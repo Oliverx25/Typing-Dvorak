@@ -4,22 +4,30 @@ A web app for practicing touch typing with the **Dvorak Simplified Keyboard** la
 
 ## Features
 
-- **Progressive lessons** — Home row, top row, bottom row, words, and sentences
-- **Live typing feedback** — Correct and incorrect keystrokes highlighted in real time
-- **Performance stats** — WPM, accuracy, and elapsed time
-- **Keyboard visualization** — On-screen Dvorak layout with next-key highlighting
-- **Session history** — Best results saved in localStorage
-- **Dark / light theme** — Toggle with system preference fallback
+- **9 progressive lessons** — Home row → top → bottom → punctuation → numbers → words → sentences
+- **Curriculum unlock** — Complete each lesson with 90%+ accuracy to unlock the next
+- **Practice & Test modes** — Relaxed practice or 60s timed test with WPM penalties for errors
+- **Live typing feedback** — Correct/incorrect keystrokes highlighted in real time
+- **Keyboard visualization** — Dvorak layout with next-key highlight, finger colors, and home guides (U · H)
+- **Blind mode** — Hide the on-screen keyboard for advanced practice
+- **Sound effects** — Optional audio feedback on keystrokes
+- **Stats dashboard** — WPM chart, per-lesson bests, day streak
+- **QWERTY vs Dvorak** — Educational comparison table on the home page
+- **i18n** — English and Spanish
+- **PWA** — Offline support via service worker
+- **Dark / light theme**
 
 ## Tech Stack
 
 | Layer      | Technology     |
 | ---------- | -------------- |
 | Framework  | Astro 7        |
-| UI         | React (islands)|
+| UI         | React islands  |
 | Styling    | Tailwind CSS 4 |
+| Tests      | Vitest         |
+| Lint       | ESLint         |
+| CI         | GitHub Actions |
 | Deployment | Vercel         |
-| Language   | TypeScript     |
 
 ## Getting Started
 
@@ -30,33 +38,32 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:4321](http://localhost:4321).
-
-## Build
+## Scripts
 
 ```bash
-npm run build
-npm run preview
+npm run dev       # Development server
+npm run build     # Production build
+npm run test      # Unit tests
+npm run lint      # ESLint
 ```
 
 ## Deploy to Vercel
 
-1. Push this repository to GitHub
-2. Import the project in [Vercel](https://vercel.com/new)
-3. Select the **Astro** framework preset (auto-detected)
-4. Deploy — no extra configuration needed
-
-Vercel will run `npm run build` and serve the static output from `dist/`.
+1. Push to GitHub
+2. Import in [Vercel](https://vercel.com/new) — Astro preset auto-detected
+3. Deploy
 
 ## Project Structure
 
 ```
 src/
-├── components/   # React islands + Astro components
-├── layouts/      # Base page layout
-├── pages/        # Routes (home + /lesson/[id])
-├── styles/       # Global CSS + Tailwind
-└── utils/        # Dvorak layout, lessons, typing logic, storage
+├── components/   # React UI (typing, keyboard, stats, settings)
+├── contexts/     # AppProvider (i18n + settings)
+├── hooks/        # useTypingSession
+├── i18n/         # en.ts, es.ts
+├── pages/        # /, /lesson/[id], /stats
+├── utils/        # Dvorak, lessons, curriculum, storage, sound
+└── styles/       # Global CSS + Tailwind
 ```
 
 ## License

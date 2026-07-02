@@ -21,6 +21,15 @@
   --color-key-pressed: #0ea5e9;
   --color-key-pressed-bg: #e0f2fe;
   --color-key-mark: #94a3b8;
+
+  --finger-lp: #a78bfa;
+  --finger-lr: #60a5fa;
+  --finger-lm: #34d399;
+  --finger-li: #fbbf24;
+  --finger-ri: #fb923c;
+  --finger-rm: #f87171;
+  --finger-rr: #f472b6;
+  --finger-rp: #c084fc;
 }
 
 .dark {
@@ -39,6 +48,46 @@
   --color-key-pressed: #38bdf8;
   --color-key-pressed-bg: #0c4a6e;
   --color-key-mark: #64748b;
+
+  --finger-lp: #8b5cf6;
+  --finger-lr: #3b82f6;
+  --finger-lm: #10b981;
+  --finger-li: #f59e0b;
+  --finger-ri: #f97316;
+  --finger-rm: #ef4444;
+  --finger-rr: #ec4899;
+  --finger-rp: #a855f7;
+}
+
+@keyframes caret-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes completion-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.caret-blink {
+  animation: caret-blink 1s step-end infinite;
+}
+
+.completion-enter {
+  animation: completion-enter 0.35s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret-blink,
+  .completion-enter {
+    animation: none;
+  }
 }
 
 html {

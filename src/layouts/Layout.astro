@@ -4,9 +4,15 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  ogImage?: string;
 }
 
-const { title = 'Typing Dvorak', description = 'Practice touch typing with the Dvorak Simplified Keyboard layout.' } = Astro.props;
+const {
+  title = 'Typing Dvorak',
+  description = 'Practice touch typing with the Dvorak Simplified Keyboard layout.',
+} = Astro.props;
+
+const siteUrl = 'https://typing-dvorak.vercel.app';
 ---
 
 <!doctype html>
@@ -15,7 +21,16 @@ const { title = 'Typing Dvorak', description = 'Practice touch typing with the D
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#6366f1" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={siteUrl} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -26,27 +41,24 @@ const { title = 'Typing Dvorak', description = 'Practice touch typing with the D
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const theme = stored === 'dark' || stored === 'light' ? stored : prefersDark ? 'dark' : 'light';
         if (theme === 'dark') document.documentElement.classList.add('dark');
+        const loc = localStorage.getItem('typing-dvorak-settings');
+        if (loc) {
+          try { document.documentElement.lang = JSON.parse(loc).locale || 'en'; } catch {}
+        }
       })();
     </script>
   </head>
   <body class="min-h-screen antialiased">
-    <header class="border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
-      <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-        <a href="/" class="flex items-center gap-2 font-semibold text-[var(--color-text)] no-underline hover:text-[var(--color-accent)]">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[var(--color-accent)]">
-            <rect width="20" height="16" x="2" y="4" rx="2" />
-            <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10" />
-          </svg>
-          Typing Dvorak
-        </a>
-        <slot name="header-actions" />
-      </div>
-    </header>
-    <main class="mx-auto max-w-5xl px-4 py-8">
-      <slot />
-    </main>
+    <slot />
     <footer class="border-t border-[var(--color-border)] py-6 text-center text-sm text-[var(--color-text-muted)]">
       <p>Built with Astro · Practice the Dvorak layout daily</p>
     </footer>
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
   </body>
 </html>

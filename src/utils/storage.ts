@@ -1,4 +1,5 @@
 import type { TypingStats } from './typing';
+import type { PracticeMode } from './settings';
 
 export interface SessionRecord {
   lessonId: string;
@@ -6,12 +7,27 @@ export interface SessionRecord {
   wpm: number;
   accuracy: number;
   elapsedSeconds: number;
+  mode: PracticeMode;
   completedAt: string;
 }
 
+export interface LessonProgress {
+  bestWpm: number;
+  bestAccuracy: number;
+  attempts: number;
+  lastPlayedAt: string;
+}
+
+export interface UserProgress {
+  lessons: Record<string, LessonProgress>;
+  streak: number;
+  lastPracticeDate: string | null;
+}
+
 const STORAGE_KEY = 'typing-dvorak-history';
+const PROGRESS_KEY = 'typing-dvorak-progress';
 const THEME_KEY = 'typing-dvorak-theme';
-const MAX_RECORDS = 50;
+const MAX_RECORDS = 100;
 
 export function getSessionHistory(): SessionRecord[] {
   if (typeof window === 'undefined') return [];
@@ -23,28 +39,109 @@ export function getSessionHistory(): SessionRecord[] {
   }
 }
 
+export function getProgress(): UserProgress {
+  if (typeof window === 'undefined') {
+    return { lessons: {}, streak: 0, lastPracticeDate: null };
+  }
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    return raw
+      ? (JSON.parse(raw) as UserProgress)
+      : { lessons: {}, streak: 0, lastPracticeDate: null };
+  } catch {
+    return { lessons: {}, streak: 0, lastPracticeDate: null };
+  }
+}
+
+function saveProgress(progress: UserProgress): void {
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+}
+
+function updateStreak(progress: UserProgress): UserProgress {
+  const today = new Date().toISOString().slice(0, 10);
+  if (progress.lastPracticeDate === today) return progress;
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+  const streak =
+    progress.lastPracticeDate === yesterdayStr ? progress.streak + 1 : 1;
+
+  return { ...progress, streak, lastPracticeDate: today };
+}
+
 export function saveSession(
   lessonId: string,
   lessonTitle: string,
   stats: TypingStats,
-): void {
+  mode: PracticeMode = 'practice',
+): { isNewRecord: boolean; previousBest: number } {
   const record: SessionRecord = {
     lessonId,
     lessonTitle,
     wpm: stats.wpm,
     accuracy: stats.accuracy,
     elapsedSeconds: stats.elapsedSeconds,
+    mode,
     completedAt: new Date().toISOString(),
   };
 
   const history = [record, ...getSessionHistory()].slice(0, MAX_RECORDS);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+
+  const progress = updateStreak(getProgress());
+  const existing = progress.lessons[lessonId];
+  const previousBest = existing?.bestWpm ?? 0;
+  const isNewRecord = stats.wpm > previousBest;
+
+  progress.lessons[lessonId] = {
+    bestWpm: Math.max(previousBest, stats.wpm),
+    bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, stats.accuracy),
+    attempts: (existing?.attempts ?? 0) + 1,
+    lastPlayedAt: record.completedAt,
+  };
+
+  saveProgress(progress);
+  return { isNewRecord, previousBest };
 }
 
 export function getBestWpmForLesson(lessonId: string): number | null {
-  const records = getSessionHistory().filter((r) => r.lessonId === lessonId);
-  if (records.length === 0) return null;
-  return Math.max(...records.map((r) => r.wpm));
+  return getProgress().lessons[lessonId]?.bestWpm ?? null;
+}
+
+export function getLessonProgress(lessonId: string): LessonProgress | null {
+  return getProgress().lessons[lessonId] ?? null;
+}
+
+export function getCompletedLessonsMap(): Record<string, { bestAccuracy: number; bestWpm: number }> {
+  const { lessons } = getProgress();
+  const map: Record<string, { bestAccuracy: number; bestWpm: number }> = {};
+  for (const [id, p] of Object.entries(lessons)) {
+    map[id] = { bestAccuracy: p.bestAccuracy, bestWpm: p.bestWpm };
+  }
+  return map;
+}
+
+export function getAggregateStats() {
+  const history = getSessionHistory();
+  const progress = getProgress();
+
+  if (history.length === 0) {
+    return { totalSessions: 0, bestWpm: 0, avgAccuracy: 0, streak: progress.streak };
+  }
+
+  const bestWpm = Math.max(...history.map((r) => r.wpm));
+  const avgAccuracy = Math.round(
+    history.reduce((sum, r) => sum + r.accuracy, 0) / history.length,
+  );
+
+  return {
+    totalSessions: history.length,
+    bestWpm,
+    avgAccuracy,
+    streak: progress.streak,
+  };
 }
 
 export type Theme = 'light' | 'dark';

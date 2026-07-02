@@ -1,109 +1,146 @@
-export type LessonCategory = 'drill' | 'words' | 'sentences';
+export type LessonCategory = 'drill' | 'words' | 'sentences' | 'punctuation' | 'numbers';
 
 export interface Lesson {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   category: LessonCategory;
   difficulty: 1 | 2 | 3 | 4 | 5;
   texts: string[];
+  /** Use text generator instead of static texts when true. */
+  generated?: boolean;
+  charSet?: string;
 }
 
 export const LESSONS: Lesson[] = [
   {
     id: 'home-row',
-    title: 'Home Row',
-    description: 'Master the foundation: A O E U I and D H T N S.',
+    titleKey: 'homeRow',
+    descriptionKey: 'homeRow',
     category: 'drill',
     difficulty: 1,
+    generated: true,
+    charSet: 'home',
     texts: [
       'aoeu aoeu iuia iuia',
       'dhtn dhtn snth snth',
       'aoeui dhtns aoeui dhtns',
-      'ueoa nshtd ueoa nshtd',
-      'aouie thnsd aouie thnsd',
     ],
   },
   {
     id: 'top-row',
-    title: 'Top Row',
-    description: 'Practice the top row: \' , . P Y F G C R L.',
+    titleKey: 'topRow',
+    descriptionKey: 'topRow',
     category: 'drill',
     difficulty: 2,
+    generated: true,
+    charSet: 'top',
     texts: [
       'pyfg pyfg crlf crlf',
       ',.py ,.py fgcr fgcr',
       'pyfgcrl ,.pyfgcrl',
-      'flyrcg py,. flyrcg py,.',
     ],
   },
   {
     id: 'bottom-row',
-    title: 'Bottom Row',
-    description: 'Train the bottom row: ; Q J K X B M W V Z.',
+    titleKey: 'bottomRow',
+    descriptionKey: 'bottomRow',
     category: 'drill',
     difficulty: 2,
+    generated: true,
+    charSet: 'bottom',
     texts: [
       'qjkx qjkx bmwv bmwv',
       ';qjk ;qjk xbmw xbmw',
       'qjkxbmwv ;qjkxbmwv',
-      'vjwm xkjq vjwm xkjq',
+    ],
+  },
+  {
+    id: 'punctuation',
+    titleKey: 'punctuation',
+    descriptionKey: 'punctuation',
+    category: 'punctuation',
+    difficulty: 3,
+    generated: true,
+    charSet: 'punctuation',
+    texts: [
+      "' , . ; ' , . ;",
+      '- / = - / =',
+      "a.e,i;o' a.e,i;o'",
+    ],
+  },
+  {
+    id: 'numbers',
+    titleKey: 'numbers',
+    descriptionKey: 'numbers',
+    category: 'numbers',
+    difficulty: 3,
+    generated: true,
+    charSet: 'numbers',
+    texts: [
+      '12345 67890',
+      '02468 13579',
+      '31415 27182',
     ],
   },
   {
     id: 'all-rows',
-    title: 'All Rows',
-    description: 'Combine every row into fluid typing patterns.',
+    titleKey: 'allRows',
+    descriptionKey: 'allRows',
     category: 'drill',
     difficulty: 3,
+    generated: true,
+    charSet: 'all',
     texts: [
       'the quick brown fox jumps over the lazy dog',
       'practice dvorak layout every single day',
-      'typing speed grows with consistent daily drills',
-      'flow state comes when fingers know each key',
     ],
   },
   {
     id: 'common-words',
-    title: 'Common Words',
-    description: 'High-frequency English words optimized for Dvorak.',
+    titleKey: 'commonWords',
+    descriptionKey: 'commonWords',
     category: 'words',
     difficulty: 3,
     texts: [
       'the and for are but not you all can had her was one our out',
       'day get has him his how man new now old see way who boy did',
       'its let put say she too use dad mom run sun top try win yes',
-      'about after again being could every first found great house',
     ],
   },
   {
     id: 'sentences',
-    title: 'Sentences',
-    description: 'Full sentences to build rhythm and accuracy.',
+    titleKey: 'sentences',
+    descriptionKey: 'sentences',
     category: 'sentences',
     difficulty: 4,
     texts: [
       'Learning Dvorak takes patience and daily practice.',
       'Your fingers will gradually find their home positions.',
       'Accuracy matters more than speed when you are starting out.',
-      'The Dvorak layout reduces finger travel and strain over time.',
-      'Keep your eyes on the screen and trust your muscle memory.',
     ],
   },
   {
     id: 'advanced',
-    title: 'Advanced Challenge',
-    description: 'Longer passages for experienced Dvorak typists.',
+    titleKey: 'advanced',
+    descriptionKey: 'advanced',
     category: 'sentences',
     difficulty: 5,
     texts: [
       'Programming languages use many symbols and punctuation marks that require practice on any keyboard layout.',
       'The Dvorak Simplified Keyboard was patented in 1936 by August Dvorak and his brother-in-law William Dealey.',
-      'Switching from QWERTY to Dvorak is a commitment, but many typists report less fatigue after the transition period.',
     ],
   },
 ];
 
 export function getLessonById(id: string): Lesson | undefined {
   return LESSONS.find((lesson) => lesson.id === id);
+}
+
+/** Localized lesson metadata — keys live in i18n lessonMeta. */
+export function getLessonText(lesson: Lesson, pick: (texts: string[]) => string, generate?: (charSet: string) => string): string {
+  if (lesson.generated && lesson.charSet && generate) {
+    return generate(lesson.charSet);
+  }
+  return pick(lesson.texts);
 }

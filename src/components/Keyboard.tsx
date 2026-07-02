@@ -1,9 +1,9 @@
 import { DVORAK_ROWS } from '../utils/dvorak';
+import { FINGER_CSS_VAR, getFingerForKey, type Finger } from '../utils/fingers';
+import { useApp } from '../contexts/AppProvider';
 
 interface KeyboardProps {
-  /** Key currently being held down (brief flash). */
   pressedKey?: string;
-  /** Key the user should press next. */
   targetKey?: string;
 }
 
@@ -19,32 +19,66 @@ function getKeyStyle(key: { width?: number }) {
 }
 
 function KeyLegend() {
+  const { t, settings } = useApp();
+
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[var(--color-text-muted)]">
-      <span className="flex items-center gap-2">
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)]" />
-        Next key
+    <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-[11px] text-[var(--color-text-muted)]">
+      <span className="flex items-center gap-1.5">
+        <span className="inline-flex h-4 w-4 items-center justify-center rounded border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)]" />
+        {t.typing.nextKey}
       </span>
-      <span className="flex items-center gap-2">
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-[var(--color-key-pressed)] text-white" />
-        Pressed
+      <span className="flex items-center gap-1.5">
+        <span className="inline-flex h-4 w-4 rounded bg-[var(--color-key-pressed)]" />
+        {t.typing.pressed}
       </span>
-      <span className="flex items-center gap-2">
-        <span className="relative inline-flex h-5 w-5 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-key)]">
-          <span className="absolute bottom-0.5 h-0.5 w-2.5 rounded-full bg-[var(--color-key-mark)]" />
+      <span className="flex items-center gap-1.5">
+        <span className="relative inline-flex h-4 w-4 rounded border border-[var(--color-border)] bg-[var(--color-key)]">
+          <span className="absolute bottom-0.5 left-1/2 h-0.5 w-2 -translate-x-1/2 rounded-full bg-[var(--color-key-mark)]" />
         </span>
-        Home guides (U · H)
+        {t.typing.homeGuides}
       </span>
+      {settings.fingerColors && (
+        <span className="hidden text-[var(--color-text-muted)] sm:inline">{t.typing.fingers} ↓</span>
+      )}
+    </div>
+  );
+}
+
+function FingerColorBar({ fingers }: { fingers: Finger[] }) {
+  const { t } = useApp();
+  const unique = [...new Set(fingers)];
+  return (
+    <div className="mb-3 hidden flex-wrap justify-center gap-2 sm:flex">
+      {unique.map((f) => (
+        <span key={f} className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)]">
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: `var(${FINGER_CSS_VAR[f]})` }} />
+          {t.fingers[f]}
+        </span>
+      ))}
     </div>
   );
 }
 
 export default function Keyboard({ pressedKey, targetKey }: KeyboardProps) {
-  return (
-    <section className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4 sm:p-6">
-      <KeyLegend />
+  const { t, settings } = useApp();
+  const showFingers = settings.fingerColors;
 
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-1.5 select-none" aria-hidden="true">
+  const allFingers = DVORAK_ROWS.flatMap((r) =>
+    r.keys.map((k) => getFingerForKey(k.code)).filter(Boolean),
+  ) as Finger[];
+
+  return (
+    <section className="hidden w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 p-4 shadow-sm sm:block sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+          {t.typing.dvorakLayout}
+        </h2>
+        <KeyLegend />
+      </div>
+
+      {showFingers && <FingerColorBar fingers={allFingers} />}
+
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-1.5 select-none motion-reduce:transition-none" aria-hidden="true">
         {DVORAK_ROWS.map((row, rowIndex) => (
           <div
             key={rowIndex}
@@ -54,30 +88,33 @@ export default function Keyboard({ pressedKey, targetKey }: KeyboardProps) {
             {row.keys.map((key) => {
               const isPressed = pressedKey === key.code;
               const isTarget = !isPressed && targetKey === key.code;
+              const finger = showFingers ? getFingerForKey(key.code) : undefined;
 
               return (
                 <div
                   key={key.code}
-                  style={getKeyStyle(key)}
+                  style={{
+                    ...getKeyStyle(key),
+                    ...(finger && !isPressed && !isTarget
+                      ? { background: `color-mix(in srgb, var(${FINGER_CSS_VAR[finger]}) 25%, var(--color-key))` }
+                      : {}),
+                  }}
                   className={[
-                    'relative flex h-11 items-center justify-center rounded-lg border text-sm font-mono font-medium transition-all duration-75 sm:h-12 sm:text-base',
+                    'relative flex h-11 items-center justify-center rounded-lg border text-sm font-mono font-medium transition-all duration-75 motion-reduce:animate-none sm:h-12 sm:text-base',
                     isPressed
                       ? 'z-10 scale-95 border-[var(--color-key-pressed)] bg-[var(--color-key-pressed)] text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.25)]'
                       : isTarget
-                        ? 'z-10 border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)] text-[var(--color-key-target)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-key-target)_25%,transparent)] animate-pulse'
+                        ? 'z-10 border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)] text-[var(--color-key-target)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-key-target)_25%,transparent)] animate-pulse motion-reduce:animate-none'
                         : 'border-[var(--color-border)] bg-[var(--color-key)] text-[var(--color-text)]',
                   ].join(' ')}
                 >
-                  <span className={isPressed ? 'opacity-100' : ''}>{key.label}</span>
+                  {key.label}
                   {key.homeRowMark && !isPressed && (
                     <span
                       className={[
                         'absolute bottom-1.5 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full',
-                        isTarget
-                          ? 'bg-[var(--color-key-target)]'
-                          : 'bg-[var(--color-key-mark)]',
+                        isTarget ? 'bg-[var(--color-key-target)]' : 'bg-[var(--color-key-mark)]',
                       ].join(' ')}
-                      aria-hidden="true"
                     />
                   )}
                 </div>

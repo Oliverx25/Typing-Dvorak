@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useApp } from '../contexts/AppProvider';
 import type { SessionRecord } from '../utils/storage';
 import { getSessionHistory } from '../utils/storage';
 
 export default function SessionHistory() {
+  const { t } = useApp();
   const [history, setHistory] = useState<SessionRecord[]>([]);
 
   useEffect(() => {
@@ -13,15 +15,15 @@ export default function SessionHistory() {
 
   return (
     <section className="mt-12">
-      <h2 className="mb-4 text-lg font-semibold text-[var(--color-text)]">Recent sessions</h2>
+      <h2 className="mb-4 text-lg font-semibold text-[var(--color-text)]">{t.home.recentSessions}</h2>
       <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
-              <th className="px-4 py-3 text-left font-medium text-[var(--color-text-muted)]">Lesson</th>
-              <th className="px-4 py-3 text-right font-medium text-[var(--color-text-muted)]">WPM</th>
-              <th className="px-4 py-3 text-right font-medium text-[var(--color-text-muted)]">Accuracy</th>
-              <th className="px-4 py-3 text-right font-medium text-[var(--color-text-muted)]">Date</th>
+              <th className="px-4 py-3 text-left font-medium text-[var(--color-text-muted)]">{t.stats.lesson}</th>
+              <th className="px-4 py-3 text-right font-medium text-[var(--color-text-muted)]">{t.stats.wpm}</th>
+              <th className="px-4 py-3 text-right font-medium text-[var(--color-text-muted)]">{t.stats.accuracy}</th>
+              <th className="px-4 py-3 text-right font-medium text-[var(--color-text-muted)]">{t.stats.date}</th>
             </tr>
           </thead>
           <tbody>

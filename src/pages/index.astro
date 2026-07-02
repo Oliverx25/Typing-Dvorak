@@ -1,47 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import LessonCard from '../components/LessonCard.astro';
-import ThemeToggle from '../components/ThemeToggle';
-import SessionHistory from '../components/SessionHistory';
-import { LESSONS } from '../utils/lessons';
+import HomePageWithProvider from '../components/HomePageWithProvider';
 ---
 
 <Layout title="Typing Dvorak — Learn Dvorak Touch Typing">
-  <ThemeToggle slot="header-actions" client:load />
-
-  <section class="mb-10 text-center">
-    <h1 class="text-4xl font-bold tracking-tight text-[var(--color-text)] sm:text-5xl">
-      Master the <span class="text-[var(--color-accent)]">Dvorak</span> layout
-    </h1>
-    <p class="mx-auto mt-4 max-w-2xl text-lg text-[var(--color-text-muted)]">
-      Progressive lessons, live feedback, and on-screen keyboard visualization.
-      Build muscle memory one row at a time.
-    </p>
-  </section>
-
-  <section>
-    <h2 class="mb-4 text-lg font-semibold text-[var(--color-text)]">Lessons</h2>
-    <div class="grid gap-4 sm:grid-cols-2">
-      {LESSONS.map((lesson) => (
-        <LessonCard
-          id={lesson.id}
-          title={lesson.title}
-          description={lesson.description}
-          category={lesson.category}
-          difficulty={lesson.difficulty}
-        />
-      ))}
-    </div>
-  </section>
-
-  <SessionHistory client:load />
-
-  <section class="mt-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
-    <h2 class="mb-3 text-lg font-semibold text-[var(--color-text)]">Dvorak home row</h2>
-    <p class="font-mono text-2xl tracking-[0.3em] text-[var(--color-accent)]">a o e u i · d h t n s</p>
-    <p class="mt-3 text-sm text-[var(--color-text-muted)]">
-      The Dvorak layout places the most common letters on the home row,
-      reducing finger travel by up to 70% compared to QWERTY.
-    </p>
-  </section>
+  <HomePageWithProvider client:load />
 </Layout>

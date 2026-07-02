@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useApp } from '../contexts/AppProvider';
 import { getStoredTheme, setStoredTheme, type Theme } from '../utils/storage';
+import { useEffect, useState } from 'react';
 
 export default function ThemeToggle() {
+  const { toggleTheme, theme: ctxTheme } = useApp();
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
     setTheme(getStoredTheme());
-  }, []);
+  }, [ctxTheme]);
 
   const toggle = () => {
     const next: Theme = theme === 'light' ? 'dark' : 'light';
     setTheme(next);
     setStoredTheme(next);
+    toggleTheme();
   };
 
   return (

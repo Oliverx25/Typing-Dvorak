@@ -1,47 +1,15 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import TypingTest from '../../components/TypingTest';
-import ThemeToggle from '../../components/ThemeToggle';
-import { getLessonById } from '../../utils/lessons';
+import LessonPage from '../../components/LessonPage';
+import { LESSONS } from '../../utils/lessons';
 
 export function getStaticPaths() {
-  return [
-    { params: { id: 'home-row' } },
-    { params: { id: 'top-row' } },
-    { params: { id: 'bottom-row' } },
-    { params: { id: 'all-rows' } },
-    { params: { id: 'common-words' } },
-    { params: { id: 'sentences' } },
-    { params: { id: 'advanced' } },
-  ];
+  return LESSONS.map((lesson) => ({ params: { id: lesson.id } }));
 }
 
 const { id } = Astro.params;
-const lesson = getLessonById(id!);
-
-if (!lesson) {
-  return Astro.redirect('/');
-}
 ---
 
-<Layout title={`${lesson.title} — Typing Dvorak`} description={lesson.description}>
-  <ThemeToggle slot="header-actions" client:load />
-
-  <nav class="mb-6">
-    <a href="/" class="text-sm text-[var(--color-text-muted)] no-underline hover:text-[var(--color-accent)]">
-      ← Back to lessons
-    </a>
-  </nav>
-
-  <header class="mb-8">
-    <h1 class="text-3xl font-bold text-[var(--color-text)]">{lesson.title}</h1>
-    <p class="mt-2 text-[var(--color-text-muted)]">{lesson.description}</p>
-  </header>
-
-  <TypingTest
-    client:load
-    lessonId={lesson.id}
-    lessonTitle={lesson.title}
-    texts={lesson.texts}
-  />
+<Layout title="Typing Dvorak — Lesson">
+  <LessonPage client:load lessonId={id!} />
 </Layout>
