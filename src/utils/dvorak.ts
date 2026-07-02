@@ -2,6 +2,8 @@ export interface KeyDef {
   label: string;
   code: string;
   width?: number;
+  /** Tactile home-row guide (Dvorak index keys: U and H). */
+  homeRowMark?: boolean;
 }
 
 export interface KeyboardRow {
@@ -51,10 +53,10 @@ export const DVORAK_ROWS: KeyboardRow[] = [
       { label: 'a', code: 'KeyA' },
       { label: 'o', code: 'KeyO' },
       { label: 'e', code: 'KeyE' },
-      { label: 'u', code: 'KeyU' },
+      { label: 'u', code: 'KeyU', homeRowMark: true },
       { label: 'i', code: 'KeyI' },
       { label: 'd', code: 'KeyD' },
-      { label: 'h', code: 'KeyH' },
+      { label: 'h', code: 'KeyH', homeRowMark: true },
       { label: 't', code: 'KeyT' },
       { label: 'n', code: 'KeyN' },
       { label: 's', code: 'KeyS' },
@@ -77,7 +79,8 @@ export const DVORAK_ROWS: KeyboardRow[] = [
     ],
   },
   {
-    keys: [{ label: 'Space', code: 'Space', width: 6 }],
+    indent: 3.5,
+    keys: [{ label: 'Space', code: 'Space', width: 5.5 }],
   },
 ];
 

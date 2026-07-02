@@ -31,7 +31,6 @@ export default function TypingTest({ lessonId, lessonTitle, texts }: TypingTestP
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [activeKey, setActiveKey] = useState<string | undefined>();
-  const [lastKey, setLastKey] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +40,7 @@ export default function TypingTest({ lessonId, lessonTitle, texts }: TypingTestP
   const progress = targetText.length > 0 ? (input.length / targetText.length) * 100 : 0;
 
   const nextChar = targetText[input.length];
-  const highlightKey = nextChar ? charToKeyCode(nextChar) : undefined;
+  const targetKey = !finished && nextChar ? charToKeyCode(nextChar) : undefined;
 
   useEffect(() => {
     if (!started || finished) return;
@@ -67,7 +66,6 @@ export default function TypingTest({ lessonId, lessonTitle, texts }: TypingTestP
       setStartTime(null);
       setElapsedMs(0);
       setActiveKey(undefined);
-      setLastKey(undefined);
       inputRef.current?.focus();
     },
     [texts],
@@ -117,8 +115,7 @@ export default function TypingTest({ lessonId, lessonTitle, texts }: TypingTestP
 
     const code = charToKeyCode(e.key);
     setActiveKey(code);
-    setLastKey(code);
-    setTimeout(() => setActiveKey(undefined), 120);
+    setTimeout(() => setActiveKey(undefined), 150);
 
     if (newInput.length === targetText.length) {
       const finalElapsed = startTime ? Date.now() - startTime : elapsedMs;
@@ -167,7 +164,9 @@ export default function TypingTest({ lessonId, lessonTitle, texts }: TypingTestP
             let color = 'text-[var(--color-text-muted)]';
             if (status === 'correct') color = 'text-[var(--color-correct)]';
             if (status === 'incorrect') color = 'text-[var(--color-incorrect)] underline decoration-wavy';
-            if (isCurrent && !finished) color = 'text-[var(--color-text)] bg-[var(--color-accent)]/20 rounded-sm';
+            if (isCurrent && !finished) {
+              color = 'text-[var(--color-key-target)] bg-[var(--color-key-target-bg)] rounded-sm ring-1 ring-[var(--color-key-target)]/40';
+            }
 
             return (
               <span key={i} className={color}>
@@ -201,7 +200,7 @@ export default function TypingTest({ lessonId, lessonTitle, texts }: TypingTestP
       )}
 
       <div className="overflow-x-auto">
-        <Keyboard activeKey={activeKey ?? lastKey} highlightKey={highlightKey} />
+        <Keyboard pressedKey={activeKey} targetKey={targetKey} />
       </div>
     </div>
   );
