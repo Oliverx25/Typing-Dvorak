@@ -16,9 +16,8 @@ export const RIGHT_FINGERS: Finger[] = ['ri', 'rm', 'rr', 'rp'];
 
 /**
  * Dvorak Simplified Keyboard — finger map by vertical column.
- * Reference: standard Dvorak touch-typing chart (column reach).
  *
- * Home row: a(LP) o(LR) e(LM) u(LI) i(LI) | d(RI) h(RM) t(RM) n(RR) s(RR)
+ * Home row: a(LP) o(LR) e(LM) u(LI) i(LI) | d(RI) h(RI) t(RM) n(RR) s(RP)
  * Space is pressed with the thumb — not mapped to a finger.
  */
 export const KEY_FINGERS: Record<string, Finger> = {
@@ -53,17 +52,15 @@ export const KEY_FINGERS: Record<string, Finger> = {
   KeyI: 'li',
   KeyX: 'li',
 
-  // Column 6 — right index
+  // Columns 6–7 — right index
   Digit6: 'ri',
   KeyF: 'ri',
   KeyD: 'ri',
   KeyB: 'ri',
-
-  // Column 7 — right middle
-  Digit7: 'rm',
-  KeyG: 'rm',
-  KeyH: 'rm',
-  KeyM: 'rm',
+  Digit7: 'ri',
+  KeyG: 'ri',
+  KeyH: 'ri',
+  KeyM: 'ri',
 
   // Column 8 — right middle
   Digit8: 'rm',
@@ -77,11 +74,11 @@ export const KEY_FINGERS: Record<string, Finger> = {
   KeyN: 'rr',
   KeyV: 'rr',
 
-  // Column 10 — right ring
-  Digit0: 'rr',
-  KeyL: 'rr',
-  KeyS: 'rr',
-  KeyZ: 'rr',
+  // Column 10 — right pinky
+  Digit0: 'rp',
+  KeyL: 'rp',
+  KeyS: 'rp',
+  KeyZ: 'rp',
 
   // Columns 11–12 — right pinky
   BracketLeft: 'rp',
@@ -107,8 +104,8 @@ export const HOME_ROW_FINGERS: Record<string, Finger> = {
   KeyU: 'li',
   KeyI: 'li',
   KeyD: 'ri',
-  KeyH: 'rm',
+  KeyH: 'ri',
   KeyT: 'rm',
   KeyN: 'rr',
-  KeyS: 'rr',
+  KeyS: 'rp',
 };

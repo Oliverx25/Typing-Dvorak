@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import { t as translate } from '../i18n';
 
@@ -10,6 +11,12 @@ interface CompletionPanelProps {
   weakKeys?: string[];
   onRetry: () => void;
   retryButtonRef?: React.RefObject<HTMLButtonElement | null>;
+}
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 export default function CompletionPanel({
@@ -25,86 +32,146 @@ export default function CompletionPanel({
   const { t, settings } = useApp();
   const isPerfect = accuracy === 100;
 
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-[var(--color-surface)]/75 p-4 backdrop-blur-md">
-      <div className="completion-enter w-full max-w-sm text-center motion-reduce:animate-none">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="completion-title"
+    >
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-[var(--color-surface)]/60 backdrop-blur-sm motion-reduce:backdrop-blur-none"
+        aria-hidden="true"
+      />
+
+      {/* Modal card */}
+      <div className="completion-enter relative w-full max-w-md overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl shadow-black/20 motion-reduce:animate-none">
         <div
           className={[
-            'mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full',
-            isPerfect ? 'bg-[var(--color-correct)]/15 ring-2 ring-[var(--color-correct)]/30' : 'bg-[var(--color-accent)]/15 ring-2 ring-[var(--color-accent)]/30',
+            'h-1 w-full',
+            isPerfect
+              ? 'bg-gradient-to-r from-[var(--color-correct)] to-[var(--color-correct)]/50'
+              : 'bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent)]/50',
           ].join(' ')}
-        >
-          {isPerfect ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-correct)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
-              <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
-            </svg>
-          )}
-        </div>
+          aria-hidden="true"
+        />
 
-        {isNewRecord && (
-          <p className="mb-2 text-sm font-semibold text-[var(--color-key-target)]">{t.completion.newRecord}</p>
-        )}
-
-        <h3 className="text-2xl font-bold text-[var(--color-text)]">
-          {isPerfect ? t.completion.perfect : t.completion.complete}
-        </h3>
-        <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">
-          {isPerfect ? t.completion.perfectDesc : t.completion.keepGoing}
-        </p>
-
-        {wpmDelta > 0 && !isNewRecord && (
-          <p className="mt-1 text-xs text-[var(--color-correct)]">
-            {translate(settings.locale, 'completion.improved', { delta: wpmDelta })}
-          </p>
-        )}
-
-        <div className="mt-6 grid grid-cols-3 gap-2">
-          <ResultPill label={t.typing.wpm} value={wpm.toString()} highlight={wpm >= 40} />
-          <ResultPill label={t.typing.accuracy} value={`${accuracy}%`} highlight={accuracy === 100} />
-          <ResultPill label={t.typing.time} value={`${elapsedSeconds}s`} />
-        </div>
-
-        {weakKeys.length > 0 && (
-          <div className="mt-5 rounded-xl border border-[var(--color-incorrect)]/25 bg-[var(--color-incorrect)]/5 px-4 py-3">
-            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t.completion.weakKeys}</p>
-            <div className="mt-2 flex justify-center gap-2">
-              {weakKeys.map((key) => (
-                <kbd
-                  key={key}
-                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-surface)] font-mono text-lg font-semibold text-[var(--color-incorrect)]"
-                >
-                  {key === ' ' ? '␣' : key}
-                </kbd>
-              ))}
-            </div>
-            <p className="mt-2 text-[10px] text-[var(--color-text-muted)]">{t.completion.weakKeysHint}</p>
+        <div className="px-6 py-8 text-center sm:px-8">
+          <div
+            className={[
+              'mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full',
+              isPerfect
+                ? 'bg-[var(--color-correct)]/15 ring-2 ring-[var(--color-correct)]/30'
+                : 'bg-[var(--color-accent)]/15 ring-2 ring-[var(--color-accent)]/30',
+            ].join(' ')}
+          >
+            {isPerfect ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-correct)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+              </svg>
+            )}
           </div>
-        )}
 
-        <button
-          ref={retryButtonRef}
-          type="button"
-          onClick={onRetry}
-          className="group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-accent)]/25 transition hover:bg-[var(--color-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]"
-        >
-          {t.completion.tryAgain}
-          <kbd className="rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-xs font-normal text-white/80">Enter ↵</kbd>
-        </button>
+          {isNewRecord && (
+            <p className="mb-2 text-sm font-semibold text-[var(--color-key-target)]">{t.completion.newRecord}</p>
+          )}
+
+          <h2 id="completion-title" className="text-2xl font-bold tracking-tight text-[var(--color-text)]">
+            {isPerfect ? t.completion.perfect : t.completion.complete}
+          </h2>
+          <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">
+            {isPerfect ? t.completion.perfectDesc : t.completion.keepGoing}
+          </p>
+
+          {wpmDelta > 0 && !isNewRecord && (
+            <p className="mt-1 text-xs text-[var(--color-correct)]">
+              {translate(settings.locale, 'completion.improved', { delta: wpmDelta })}
+            </p>
+          )}
+
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            <StatCard label={t.typing.wpm} value={wpm.toString()} highlight={wpm >= 40} />
+            <StatCard label={t.typing.accuracy} value={`${accuracy}%`} highlight={accuracy === 100} />
+            <StatCard label={t.typing.time} value={formatTime(elapsedSeconds)} />
+          </div>
+
+          {weakKeys.length > 0 && (
+            <div className="mt-5 rounded-xl border border-[var(--color-incorrect)]/20 bg-[var(--color-incorrect)]/5 px-4 py-3 text-left">
+              <p className="text-center text-xs font-medium text-[var(--color-text-muted)]">{t.completion.weakKeys}</p>
+              <div className="mt-2.5 flex justify-center gap-2">
+                {weakKeys.map((key) => (
+                  <kbd
+                    key={key}
+                    className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-[var(--color-incorrect)]/25 bg-[var(--color-surface)] font-mono text-base font-semibold text-[var(--color-incorrect)]"
+                  >
+                    {key === ' ' ? '␣' : key}
+                  </kbd>
+                ))}
+              </div>
+              <p className="mt-2 text-center text-[10px] text-[var(--color-text-muted)]">{t.completion.weakKeysHint}</p>
+            </div>
+          )}
+
+          <button
+            ref={retryButtonRef}
+            type="button"
+            onClick={onRetry}
+            className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-elevated)]"
+          >
+            {t.completion.tryAgain}
+            <kbd className="rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-xs font-normal text-white/80">
+              Enter ↵
+            </kbd>
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-function ResultPill({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
+function StatCard({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
-    <div className={['rounded-xl border px-3 py-3', highlight ? 'border-[var(--color-correct)]/30 bg-[var(--color-correct)]/10' : 'border-[var(--color-border)] bg-[var(--color-surface-elevated)]'].join(' ')}>
-      <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--color-text-muted)]">{label}</p>
-      <p className={['mt-0.5 font-mono text-xl font-bold', highlight ? 'text-[var(--color-correct)]' : 'text-[var(--color-text)]'].join(' ')}>{value}</p>
+    <div
+      className={[
+        'rounded-xl border px-2 py-3 sm:px-3',
+        highlight
+          ? 'border-[var(--color-correct)]/30 bg-[var(--color-correct)]/8'
+          : 'border-[var(--color-border)] bg-[var(--color-surface)]',
+      ].join(' ')}
+    >
+      <p className="text-[9px] font-medium uppercase tracking-widest text-[var(--color-text-muted)] sm:text-[10px]">
+        {label}
+      </p>
+      <p
+        className={[
+          'mt-1 font-mono text-xl font-bold sm:text-2xl',
+          highlight ? 'text-[var(--color-correct)]' : 'text-[var(--color-text)]',
+        ].join(' ')}
+      >
+        {value}
+      </p>
     </div>
   );
 }

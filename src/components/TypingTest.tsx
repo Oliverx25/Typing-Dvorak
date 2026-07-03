@@ -132,20 +132,20 @@ export default function TypingTest({ lessonId, lesson, customText }: TypingTestP
         )}
 
         {paused && !finished && <PauseOverlay onResume={togglePause} />}
-
-        {finished && (
-          <CompletionPanel
-            wpm={stats.wpm}
-            accuracy={stats.accuracy}
-            elapsedSeconds={stats.elapsedSeconds}
-            isNewRecord={isNewRecord}
-            wpmDelta={wpmDelta}
-            weakKeys={sessionWeakKeys}
-            onRetry={reset}
-            retryButtonRef={retryButtonRef}
-          />
-        )}
       </div>
+
+      {finished && (
+        <CompletionPanel
+          wpm={stats.wpm}
+          accuracy={stats.accuracy}
+          elapsedSeconds={stats.elapsedSeconds}
+          isNewRecord={isNewRecord}
+          wpmDelta={wpmDelta}
+          weakKeys={sessionWeakKeys}
+          onRetry={reset}
+          retryButtonRef={retryButtonRef}
+        />
+      )}
 
       {!settings.blindMode && (
         <div className="flex items-center justify-center sm:hidden">

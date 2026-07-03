@@ -9,10 +9,10 @@ describe('fingers — Dvorak home row', () => {
     expect(getFingerForKey('KeyU')).toBe('li');
     expect(getFingerForKey('KeyI')).toBe('li');
     expect(getFingerForKey('KeyD')).toBe('ri');
-    expect(getFingerForKey('KeyH')).toBe('rm');
+    expect(getFingerForKey('KeyH')).toBe('ri');
     expect(getFingerForKey('KeyT')).toBe('rm');
     expect(getFingerForKey('KeyN')).toBe('rr');
-    expect(getFingerForKey('KeyS')).toBe('rr');
+    expect(getFingerForKey('KeyS')).toBe('rp');
   });
 
   it('HOME_ROW_FINGERS matches getFingerForKey', () => {
@@ -67,11 +67,11 @@ describe('fingers — vertical column reach', () => {
     expect(getFingerForKey('Digit6')).toBe('ri');
   });
 
-  it('maps h column keys to right middle', () => {
-    expect(getFingerForKey('KeyH')).toBe('rm');
-    expect(getFingerForKey('KeyG')).toBe('rm');
-    expect(getFingerForKey('KeyM')).toBe('rm');
-    expect(getFingerForKey('Digit7')).toBe('rm');
+  it('maps g column keys to right index', () => {
+    expect(getFingerForKey('KeyG')).toBe('ri');
+    expect(getFingerForKey('KeyH')).toBe('ri');
+    expect(getFingerForKey('KeyM')).toBe('ri');
+    expect(getFingerForKey('Digit7')).toBe('ri');
   });
 
   it('maps t column keys to right middle', () => {
@@ -88,11 +88,11 @@ describe('fingers — vertical column reach', () => {
     expect(getFingerForKey('Digit9')).toBe('rr');
   });
 
-  it('maps s column keys to right ring', () => {
-    expect(getFingerForKey('KeyS')).toBe('rr');
-    expect(getFingerForKey('KeyL')).toBe('rr');
-    expect(getFingerForKey('KeyZ')).toBe('rr');
-    expect(getFingerForKey('Digit0')).toBe('rr');
+  it('maps s column keys to right pinky', () => {
+    expect(getFingerForKey('KeyS')).toBe('rp');
+    expect(getFingerForKey('KeyL')).toBe('rp');
+    expect(getFingerForKey('KeyZ')).toBe('rp');
+    expect(getFingerForKey('Digit0')).toBe('rp');
   });
 
   it('maps punctuation to right pinky', () => {
