@@ -1,67 +1,96 @@
 import { useEffect, useState } from 'react';
 import { useApp, getLessonDescription, getLessonTitle } from '../contexts/AppProvider';
-import { isLessonUnlocked, getRecommendedLessonId, getCurriculumProgress } from '../utils/curriculum';
-import { getBestWpmForLesson, getCompletedLessonsMap } from '../utils/storage';
+import { getRecommendedLessonId, getCurriculumProgress } from '../utils/curriculum';
+import { getCompletedLessonsMap } from '../utils/storage';
 import type { Lesson } from '../utils/lessons';
 import { CORE_LESSONS } from '../utils/lessons';
 import { SESSION_COMPLETE_EVENT } from '../utils/events';
+import { useLessonCardState } from '../hooks/useLessonCardState';
+import LockIcon from './LockIcon';
 
 interface LessonCardProps {
   lesson: Lesson;
   recommended?: boolean;
 }
 
-export default function LessonCard({ lesson, recommended = false }: LessonCardProps) {
-  const { t } = useApp();
-  const [unlocked, setUnlocked] = useState(true);
-  const [bestWpm, setBestWpm] = useState<number | null>(null);
+interface CardMetaProps {
+  locked: boolean;
+  categoryLabel: string;
+  difficultyLabel: string;
+  recommended?: boolean;
+  lockedLabel: string;
+}
 
-  useEffect(() => {
-    const completed = getCompletedLessonsMap();
-    const completedForUnlock = Object.fromEntries(
-      Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
-    );
-    setUnlocked(isLessonUnlocked(lesson.id, completedForUnlock));
-    setBestWpm(getBestWpmForLesson(lesson.id));
-  }, [lesson.id]);
-
-  useEffect(() => {
-    const handler = () => {
-      const completed = getCompletedLessonsMap();
-      const completedForUnlock = Object.fromEntries(
-        Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
-      );
-      setUnlocked(isLessonUnlocked(lesson.id, completedForUnlock));
-      setBestWpm(getBestWpmForLesson(lesson.id));
-    };
-    window.addEventListener(SESSION_COMPLETE_EVENT, handler);
-    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, handler);
-  }, [lesson.id]);
-
-  const title = getLessonTitle(t, lesson.titleKey);
-  const description = getLessonDescription(t, lesson.descriptionKey);
-  const categoryLabel = t.categories[lesson.category] ?? lesson.category;
-  const difficultyLabel = t.difficulty[lesson.difficulty];
-
-  if (!unlocked) {
-    return (
-      <div className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/50 p-5 opacity-60">
-        <div className="mb-3 flex items-center justify-between">
+function CardMeta({ locked, categoryLabel, difficultyLabel, recommended, lockedLabel }: CardMetaProps) {
+  return (
+    <div className="mb-3 flex items-start justify-between gap-3">
+      <div className="flex flex-wrap gap-2">
+        {locked ? (
           <span className="rounded-full bg-[var(--color-border)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-text-muted)]">
-            {t.home.locked}
+            {lockedLabel}
           </span>
-          <span className="text-xs text-[var(--color-text-muted)]">{difficultyLabel}</span>
-        </div>
-        <h3 className="text-lg font-semibold text-[var(--color-text-muted)]">{title}</h3>
-        <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">{t.home.completePrevious}</p>
-        <svg className="absolute right-4 top-4 text-[var(--color-text-muted)]" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
+        ) : (
+          <>
+            <span className="rounded-full bg-[var(--color-accent)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-accent)]">
+              {categoryLabel}
+            </span>
+            {recommended && (
+              <span className="rounded-full bg-[var(--color-key-target)]/15 px-2.5 py-0.5 text-xs font-medium text-[var(--color-key-target)]">
+                ★
+              </span>
+            )}
+          </>
+        )}
       </div>
-    );
-  }
+      <div className="flex shrink-0 items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
+        <span>{difficultyLabel}</span>
+        {locked && <LockIcon size={14} />}
+      </div>
+    </div>
+  );
+}
 
+function LockedLessonCard({
+  title,
+  difficultyLabel,
+  lockedLabel,
+  completePrevious,
+}: {
+  title: string;
+  difficultyLabel: string;
+  lockedLabel: string;
+  completePrevious: string;
+}) {
+  return (
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/50 p-5 opacity-60">
+      <CardMeta locked categoryLabel="" difficultyLabel={difficultyLabel} lockedLabel={lockedLabel} />
+      <h3 className="text-lg font-semibold text-[var(--color-text-muted)]">{title}</h3>
+      <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">{completePrevious}</p>
+    </div>
+  );
+}
+
+function UnlockedLessonCard({
+  lesson,
+  title,
+  description,
+  categoryLabel,
+  difficultyLabel,
+  recommended,
+  bestWpm,
+  startLabel,
+  bestWpmLabel,
+}: {
+  lesson: Lesson;
+  title: string;
+  description: string;
+  categoryLabel: string;
+  difficultyLabel: string;
+  recommended?: boolean;
+  bestWpm: number | null;
+  startLabel: string;
+  bestWpmLabel: string;
+}) {
   return (
     <a
       href={`/lesson/${lesson.id}`}
@@ -72,34 +101,61 @@ export default function LessonCard({ lesson, recommended = false }: LessonCardPr
           : 'border-[var(--color-border)] hover:border-[var(--color-accent)]',
       ].join(' ')}
     >
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-[var(--color-accent)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-accent)]">
-            {categoryLabel}
-          </span>
-          {recommended && (
-            <span className="rounded-full bg-[var(--color-key-target)]/15 px-2.5 py-0.5 text-xs font-medium text-[var(--color-key-target)]">
-              ★
-            </span>
-          )}
-        </div>
-        <span className="text-xs text-[var(--color-text-muted)]">{difficultyLabel}</span>
-      </div>
+      <CardMeta
+        locked={false}
+        categoryLabel={categoryLabel}
+        difficultyLabel={difficultyLabel}
+        recommended={recommended}
+        lockedLabel=""
+      />
       <h3 className="text-lg font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)]">
         {title}
       </h3>
       <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">{description}</p>
       <div className="mt-4 flex items-center justify-between">
-        <span className="text-sm font-medium text-[var(--color-accent)]">
-          {t.home.startLesson} →
-        </span>
+        <span className="text-sm font-medium text-[var(--color-accent)]">{startLabel} →</span>
         {bestWpm !== null && (
           <span className="font-mono text-xs text-[var(--color-text-muted)]">
-            {t.home.bestWpm}: <strong className="text-[var(--color-text)]">{bestWpm}</strong>
+            {bestWpmLabel}: <strong className="text-[var(--color-text)]">{bestWpm}</strong>
           </span>
         )}
       </div>
     </a>
+  );
+}
+
+export default function LessonCard({ lesson, recommended = false }: LessonCardProps) {
+  const { t } = useApp();
+  const { unlocked, bestWpm } = useLessonCardState(lesson.id);
+
+  const title = getLessonTitle(t, lesson.titleKey);
+  const description = getLessonDescription(t, lesson.descriptionKey);
+  const categoryLabel = t.categories[lesson.category] ?? lesson.category;
+  const difficultyLabel = t.difficulty[lesson.difficulty];
+
+  if (!unlocked) {
+    return (
+      <LockedLessonCard
+        title={title}
+        difficultyLabel={difficultyLabel}
+        lockedLabel={t.home.locked}
+        completePrevious={t.home.completePrevious}
+      />
+    );
+  }
+
+  return (
+    <UnlockedLessonCard
+      lesson={lesson}
+      title={title}
+      description={description}
+      categoryLabel={categoryLabel}
+      difficultyLabel={difficultyLabel}
+      recommended={recommended}
+      bestWpm={bestWpm}
+      startLabel={t.home.startLesson}
+      bestWpmLabel={t.home.bestWpm}
+    />
   );
 }
 
