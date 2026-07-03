@@ -5,7 +5,7 @@ export default function QwertyComparison() {
   const { t } = useApp();
 
   return (
-    <section className="mt-12 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
+    <section className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
       <div className="border-b border-[var(--color-border)] px-6 py-4">
         <h2 className="text-lg font-semibold text-[var(--color-text)]">{t.home.qwertyTitle}</h2>
         <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t.home.qwertyDesc}</p>

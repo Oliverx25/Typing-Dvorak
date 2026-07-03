@@ -1,0 +1,1 @@
+var e=`typing-dvorak-custom-text`;function t(){return typeof window>`u`?``:localStorage.getItem(e)??``}function n(t){localStorage.setItem(e,t.slice(0,2e3))}export{n,t};

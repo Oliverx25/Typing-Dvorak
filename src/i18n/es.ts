@@ -42,6 +42,13 @@ export const es: TranslationKey = {
     badgesTitle: 'Logros',
     microLessons: 'micro-lecciones',
     allLessons: 'Todas las lecciones',
+    yourNextStep: 'Tu siguiente paso',
+    continueWith: 'Continuar con {lesson}',
+    lessonLibrary: 'Biblioteca de lecciones',
+    extraPractice: 'Práctica extra',
+    pasteText: 'Pegar texto',
+    learnMoreTitle: 'Aprende más sobre Dvorak (opcional)',
+    inProgress: 'En progreso — toca para continuar',
   },
   auth: {
     signInGithub: 'GitHub',

@@ -40,6 +40,13 @@ export const en = {
     badgesTitle: 'Achievements',
     microLessons: 'micro-lessons',
     allLessons: 'All lessons',
+    yourNextStep: 'Your next step',
+    continueWith: 'Continue with {lesson}',
+    lessonLibrary: 'Lesson library',
+    extraPractice: 'Extra practice',
+    pasteText: 'Paste text',
+    learnMoreTitle: 'Learn more about Dvorak (optional)',
+    inProgress: 'In progress — tap to continue',
   },
   auth: {
     signInGithub: 'GitHub',
