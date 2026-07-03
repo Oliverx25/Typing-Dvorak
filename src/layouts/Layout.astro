@@ -49,6 +49,12 @@ const siteUrl = 'https://typing-dvorak.vercel.app';
     </script>
   </head>
   <body class="min-h-screen antialiased">
+    <noscript>
+      <div style="max-width:40rem;margin:2rem auto;padding:1.5rem;font-family:system-ui,sans-serif;text-align:center">
+        <h1>Typing Dvorak</h1>
+        <p>JavaScript is required. Enable it and open <a href="/">the home page</a>.</p>
+      </div>
+    </noscript>
     <slot />
     <script is:inline>
       if ('serviceWorker' in navigator) {
