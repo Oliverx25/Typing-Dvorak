@@ -18,8 +18,9 @@ pnpm-debug.log*
 .env.local
 .env.production
 
-# Supabase local config & migrations (never commit credentials)
-supabase/
+# Supabase CLI local cache (schema SQL at /supabase/ is safe to commit)
+/supabase/.temp/
+/supabase/.branches/
 
 # macOS-specific files
 .DS_Store
