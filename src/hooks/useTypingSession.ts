@@ -210,7 +210,7 @@ export function useTypingSession({
       return;
     }
 
-    if (isTestMode && (e.key === 'Escape' || e.key === 'p' || e.key === 'P')) {
+    if (isTestMode && e.key === 'Escape') {
       e.preventDefault();
       togglePause();
       return;

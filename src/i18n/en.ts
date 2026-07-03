@@ -51,7 +51,7 @@ export const en = {
     goBack: 'Go to lessons',
     paused: 'Paused',
     resume: 'Resume',
-    pauseHint: 'Press Esc or P to pause · resume when ready',
+    pauseHint: 'Press Esc to pause · resume when ready',
   },
   stats: {
     title: 'Your progress',

@@ -7,6 +7,7 @@ import StatsBar from './StatsBar';
 import CompletionPanel from './CompletionPanel';
 import ModeToggle, { ModeDescription } from './ModeToggle';
 import PauseOverlay from './PauseOverlay';
+import TypedChar from './TypedChar';
 
 interface TypingTestProps {
   lessonId: string;
@@ -104,21 +105,16 @@ export default function TypingTest({ lessonId, lesson, customText }: TypingTestP
         />
 
         <p className="relative font-mono text-xl leading-[2] tracking-wide break-words sm:text-2xl sm:leading-[2.2]" aria-live="off">
-          {targetText.split('').map((char, i) => {
-            const status = statuses[i];
-            const isCurrent = i === input.length;
-            let className = 'text-[var(--color-text-muted)]/60';
-            if (status === 'correct') className = 'text-[var(--color-correct)]';
-            if (status === 'incorrect') className = 'text-[var(--color-incorrect)] underline decoration-wavy decoration-[var(--color-incorrect)]/50';
-            if (isCurrent && !finished && !paused) {
-              className = 'relative text-[var(--color-key-target)] after:absolute after:-bottom-0.5 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-[var(--color-key-target)] after:content-[""] caret-blink motion-reduce:animate-none';
-            }
-            return (
-              <span key={i} className={className}>
-                {char === ' ' ? '·' : char}
-              </span>
-            );
-          })}
+          {targetText.split('').map((char, i) => (
+            <span key={i}>
+              <TypedChar
+                char={char}
+                status={statuses[i]}
+                isCurrent={i === input.length}
+                active={!finished && !paused}
+              />
+            </span>
+          ))}
           {!finished && !paused && input.length === targetText.length && (
             <span className="caret-blink ml-px inline-block h-[1.1em] w-0.5 translate-y-0.5 bg-[var(--color-key-target)] align-middle motion-reduce:animate-none" />
           )}

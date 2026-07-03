@@ -53,7 +53,7 @@ export const es: TranslationKey = {
     goBack: 'Ir a lecciones',
     paused: 'En pausa',
     resume: 'Continuar',
-    pauseHint: 'Pulsa Esc o P para pausar · continúa cuando quieras',
+    pauseHint: 'Pulsa Esc para pausar · continúa cuando quieras',
   },
   stats: {
     title: 'Tu progreso',
