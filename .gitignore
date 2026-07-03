@@ -15,7 +15,11 @@ pnpm-debug.log*
 
 # environment variables
 .env
+.env.local
 .env.production
+
+# Supabase local config & migrations (never commit credentials)
+supabase/
 
 # macOS-specific files
 .DS_Store
