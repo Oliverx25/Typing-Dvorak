@@ -3,17 +3,18 @@ import { LESSON_ORDER } from './curriculum';
 
 export interface Badge {
   id: string;
+  /** Path to the SVG icon in /public/badges. */
   icon: string;
   titleKey: string;
   descKey: string;
 }
 
 export const BADGES: Badge[] = [
-  { id: 'first-lesson', icon: '🎯', titleKey: 'firstLesson', descKey: 'firstLesson' },
-  { id: 'streak-7', icon: '🔥', titleKey: 'streak7', descKey: 'streak7' },
-  { id: 'wpm-50', icon: '⚡', titleKey: 'wpm50', descKey: 'wpm50' },
-  { id: 'perfect-run', icon: '💎', titleKey: 'perfectRun', descKey: 'perfectRun' },
-  { id: 'curriculum-done', icon: '🏆', titleKey: 'curriculumDone', descKey: 'curriculumDone' },
+  { id: 'first-lesson', icon: '/badges/first-lesson.svg', titleKey: 'firstLesson', descKey: 'firstLesson' },
+  { id: 'streak-7', icon: '/badges/streak-7.svg', titleKey: 'streak7', descKey: 'streak7' },
+  { id: 'wpm-50', icon: '/badges/wpm-50.svg', titleKey: 'wpm50', descKey: 'wpm50' },
+  { id: 'perfect-run', icon: '/badges/perfect-run.svg', titleKey: 'perfectRun', descKey: 'perfectRun' },
+  { id: 'curriculum-done', icon: '/badges/curriculum-done.svg', titleKey: 'curriculumDone', descKey: 'curriculumDone' },
 ];
 
 const BADGES_KEY = 'typing-dvorak-badges';
