@@ -1,4 +1,4 @@
-# Typing-Dvorak
+# Typing-Dvorak app vercel
 
 A web app for practicing touch typing with the **Dvorak Simplified Keyboard** layout. Built with [Astro](https://astro.build/) and deployed on [Vercel](https://vercel.com/).
 
