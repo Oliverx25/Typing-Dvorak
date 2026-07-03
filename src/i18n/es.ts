@@ -111,6 +111,7 @@ export const es: TranslationKey = {
     rightHand: 'Derecha',
     showKeyboard: 'Mostrar teclado',
     hideKeyboard: 'Ocultar teclado',
+    thumb: 'Pulgar',
   },
   completion: {
     perfect: '¡Ronda perfecta!',

@@ -16,73 +16,79 @@ export const RIGHT_FINGERS: Finger[] = ['ri', 'rm', 'rr', 'rp'];
 
 /**
  * Dvorak Simplified Keyboard — finger map by vertical column.
- * Reference: standard touch-typing charts (powertyping.com, home-row column reach).
+ * Reference: standard Dvorak touch-typing chart (column reach).
  *
- * Home row: a(LP) o(LR) e(LM) u(LI) i(LI) | d(RI) h(RI) t(RM) n(RR) s(RP)
+ * Home row: a(LP) o(LR) e(LM) u(LI) i(LI) | d(RI) h(RM) t(RM) n(RR) s(RR)
+ * Space is pressed with the thumb — not mapped to a finger.
  */
 export const KEY_FINGERS: Record<string, Finger> = {
-  // ── Left pinky (column 1) ──
+  // Column 1 — left pinky
   Backquote: 'lp',
   Digit1: 'lp',
-  Digit2: 'lp',
   Quote: 'lp',
-  Semicolon: 'lp',
   KeyA: 'lp',
-  KeyZ: 'lp',
-  BracketLeft: 'lp',
-  BracketRight: 'lp',
+  Semicolon: 'lp',
 
-  // ── Left ring (column 2) ──
-  Digit3: 'lr',
+  // Column 2 — left ring
+  Digit2: 'lr',
   Comma: 'lr',
   KeyO: 'lr',
   KeyQ: 'lr',
 
-  // ── Left middle (column 3) ──
-  Digit4: 'lm',
+  // Column 3 — left middle
+  Digit3: 'lm',
   Period: 'lm',
   KeyE: 'lm',
   KeyJ: 'lm',
 
-  // ── Left index (columns 4–5) ──
-  Digit5: 'li',
-  Digit6: 'li',
-  KeyU: 'li',
-  KeyI: 'li',
+  // Column 4 — left index
+  Digit4: 'li',
   KeyP: 'li',
-  KeyY: 'li',
-  KeyF: 'li',
+  KeyU: 'li',
   KeyK: 'li',
+
+  // Column 5 — left index
+  Digit5: 'li',
+  KeyY: 'li',
+  KeyI: 'li',
   KeyX: 'li',
 
-  // ── Right index (columns 6–7) ──
-  Digit7: 'ri',
+  // Column 6 — right index
+  Digit6: 'ri',
+  KeyF: 'ri',
   KeyD: 'ri',
-  KeyH: 'ri',
-  KeyG: 'ri',
   KeyB: 'ri',
-  KeyM: 'ri',
 
-  // ── Right middle (column 8) ──
+  // Column 7 — right middle
+  Digit7: 'rm',
+  KeyG: 'rm',
+  KeyH: 'rm',
+  KeyM: 'rm',
+
+  // Column 8 — right middle
   Digit8: 'rm',
-  Digit0: 'rm',
-  KeyT: 'rm',
   KeyC: 'rm',
+  KeyT: 'rm',
   KeyW: 'rm',
 
-  // ── Right ring (column 9) ──
+  // Column 9 — right ring
   Digit9: 'rr',
-  KeyN: 'rr',
   KeyR: 'rr',
+  KeyN: 'rr',
   KeyV: 'rr',
 
-  // ── Right pinky (columns 10–11) ──
-  KeyS: 'rp',
-  KeyL: 'rp',
-  Minus: 'rp',
+  // Column 10 — right ring
+  Digit0: 'rr',
+  KeyL: 'rr',
+  KeyS: 'rr',
+  KeyZ: 'rr',
+
+  // Columns 11–12 — right pinky
+  BracketLeft: 'rp',
+  BracketRight: 'rp',
   Slash: 'rp',
+  Minus: 'rp',
   Equal: 'rp',
-  Space: 'rp',
 };
 
 export function getFingerForKey(code: string): Finger | undefined {
@@ -101,8 +107,8 @@ export const HOME_ROW_FINGERS: Record<string, Finger> = {
   KeyU: 'li',
   KeyI: 'li',
   KeyD: 'ri',
-  KeyH: 'ri',
+  KeyH: 'rm',
   KeyT: 'rm',
   KeyN: 'rr',
-  KeyS: 'rp',
+  KeyS: 'rr',
 };

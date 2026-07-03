@@ -109,6 +109,7 @@ export const en = {
     rightHand: 'Right',
     showKeyboard: 'Show keyboard',
     hideKeyboard: 'Hide keyboard',
+    thumb: 'Thumb',
   },
   completion: {
     perfect: 'Perfect run!',
