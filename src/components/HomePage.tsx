@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import LessonCard, { CurriculumBar } from './LessonCard';
 import SessionHistory from './SessionHistory';
+import KeyboardHeatmap from './KeyboardHeatmap';
 import QwertyComparison from './QwertyComparison';
 import { LESSONS } from '../utils/lessons';
 import { getRecommendedLessonId } from '../utils/curriculum';
@@ -42,6 +43,8 @@ export default function HomePage() {
       </section>
 
       <SessionHistory />
+
+      <KeyboardHeatmap />
 
       <section className="mt-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
         <h2 className="mb-3 text-lg font-semibold text-[var(--color-text)]">{t.home.homeRowTitle}</h2>

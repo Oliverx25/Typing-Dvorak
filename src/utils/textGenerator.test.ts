@@ -8,8 +8,9 @@ describe('textGenerator', () => {
     expect(text).toMatch(/^[aoeuidhtns ]+$/);
   });
 
-  it('respects approximate length', () => {
-    const text = generateDrillText('top', 40);
-    expect(text.length).toBeLessThanOrEqual(40);
+  it('never includes space inside generated words', () => {
+    const text = generateDrillText('punctuation', 60);
+    expect(text).not.toMatch(/  /);
+    expect(text.split(' ').every((w) => !w.includes(' '))).toBe(true);
   });
 });

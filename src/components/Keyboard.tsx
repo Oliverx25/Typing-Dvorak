@@ -1,21 +1,11 @@
 import { DVORAK_ROWS } from '../utils/dvorak';
 import { FINGER_CSS_VAR, getFingerForKey, type Finger } from '../utils/fingers';
 import { useApp } from '../contexts/AppProvider';
+import HandGuide from './HandGuide';
 
 interface KeyboardProps {
   pressedKey?: string;
   targetKey?: string;
-}
-
-const KEY_UNIT = 44;
-
-function getKeyStyle(key: { width?: number }) {
-  const units = key.width ?? 1;
-  return {
-    flex: `${units} 1 0`,
-    minWidth: `${units * KEY_UNIT}px`,
-    maxWidth: `${units * KEY_UNIT}px`,
-  };
 }
 
 function KeyLegend() {
@@ -78,51 +68,62 @@ export default function Keyboard({ pressedKey, targetKey }: KeyboardProps) {
 
       {showFingers && <FingerColorBar fingers={allFingers} />}
 
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-1.5 select-none motion-reduce:transition-none" aria-hidden="true">
-        {DVORAK_ROWS.map((row, rowIndex) => (
-          <div
-            key={rowIndex}
-            className="flex w-full gap-1"
-            style={{ paddingLeft: `${(row.indent ?? 0) * (KEY_UNIT * 0.55)}px` }}
-          >
-            {row.keys.map((key) => {
-              const isPressed = pressedKey === key.code;
-              const isTarget = !isPressed && targetKey === key.code;
-              const finger = showFingers ? getFingerForKey(key.code) : undefined;
+      <div className="mx-auto w-full max-w-3xl select-none motion-reduce:transition-none" aria-hidden="true">
+        {DVORAK_ROWS.map((row, rowIndex) => {
+          const totalUnits = row.keys.reduce((s, k) => s + (k.width ?? 1), 0);
+          return (
+            <div
+              key={rowIndex}
+              className="mb-1 flex w-full justify-center"
+              style={{ paddingLeft: `${(row.indent ?? 0) * 2.5}%` }}
+            >
+              <div className="flex w-full gap-0.5">
+                {row.keys.map((key) => {
+                  const isPressed = pressedKey === key.code;
+                  const isTarget = !isPressed && targetKey === key.code;
+                  const finger = showFingers ? getFingerForKey(key.code) : undefined;
+                  const widthPct = ((key.width ?? 1) / totalUnits) * 100;
 
-              return (
-                <div
-                  key={key.code}
-                  style={{
-                    ...getKeyStyle(key),
-                    ...(finger && !isPressed && !isTarget
-                      ? { background: `color-mix(in srgb, var(${FINGER_CSS_VAR[finger]}) 25%, var(--color-key))` }
-                      : {}),
-                  }}
-                  className={[
-                    'relative flex h-11 items-center justify-center rounded-lg border text-sm font-mono font-medium transition-all duration-75 motion-reduce:animate-none sm:h-12 sm:text-base',
-                    isPressed
-                      ? 'z-10 scale-95 border-[var(--color-key-pressed)] bg-[var(--color-key-pressed)] text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.25)]'
-                      : isTarget
-                        ? 'z-10 border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)] text-[var(--color-key-target)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-key-target)_25%,transparent)] animate-pulse motion-reduce:animate-none'
-                        : 'border-[var(--color-border)] bg-[var(--color-key)] text-[var(--color-text)]',
-                  ].join(' ')}
-                >
-                  {key.label}
-                  {key.homeRowMark && !isPressed && (
-                    <span
+                  return (
+                    <div
+                      key={key.code}
+                      style={{
+                        width: `${widthPct}%`,
+                        ...(finger && !isPressed && !isTarget
+                          ? { background: `color-mix(in srgb, var(${FINGER_CSS_VAR[finger]}) 25%, var(--color-key))` }
+                          : {}),
+                      }}
                       className={[
-                        'absolute bottom-1.5 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full',
-                        isTarget ? 'bg-[var(--color-key-target)]' : 'bg-[var(--color-key-mark)]',
+                        'relative flex h-10 items-center justify-center rounded-lg border font-mono text-sm font-medium transition-all duration-75 motion-reduce:animate-none sm:h-11 sm:text-base',
+                        isPressed
+                          ? 'z-10 scale-95 border-[var(--color-key-pressed)] bg-[var(--color-key-pressed)] text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.25)]'
+                          : isTarget
+                            ? 'z-10 border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)] text-[var(--color-key-target)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-key-target)_25%,transparent)] animate-pulse motion-reduce:animate-none'
+                            : 'border-[var(--color-border)] bg-[var(--color-key)] text-[var(--color-text)]',
                       ].join(' ')}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+                    >
+                      {key.label}
+                      {key.homeRowMark && !isPressed && (
+                        <span
+                          className={[
+                            'absolute bottom-1 left-1/2 h-1 w-3 -translate-x-1/2 rounded-full sm:w-4',
+                            isTarget ? 'bg-[var(--color-key-target)]' : 'bg-[var(--color-key-mark)]',
+                          ].join(' ')}
+                        />
+                      )}
+                      {isTarget && (
+                        <span className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-4 border-x-transparent border-b-[var(--color-key-target)]" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
+
+      <HandGuide targetKey={targetKey} />
     </section>
   );
 }

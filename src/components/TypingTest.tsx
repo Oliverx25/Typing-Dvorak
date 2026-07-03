@@ -94,7 +94,11 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
             if (isCurrent && !finished) {
               className = 'relative text-[var(--color-key-target)] after:absolute after:-bottom-0.5 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-[var(--color-key-target)] after:content-[""] caret-blink motion-reduce:animate-none';
             }
-            return <span key={i} className={className}>{char}</span>;
+            return (
+              <span key={i} className={className}>
+                {char === ' ' ? '·' : char}
+              </span>
+            );
           })}
           {!finished && input.length === targetText.length && (
             <span className="caret-blink ml-px inline-block h-[1.1em] w-0.5 translate-y-0.5 bg-[var(--color-key-target)] align-middle motion-reduce:animate-none" />

@@ -8,6 +8,7 @@ import {
 } from '../utils/typing';
 import { generateDrillText, generateTestStream } from '../utils/textGenerator';
 import { saveSession } from '../utils/storage';
+import { recordKeystroke } from '../utils/keyStats';
 import { playCompleteSound, playCorrectSound, playIncorrectSound } from '../utils/sound';
 import type { PracticeMode } from '../utils/settings';
 import type { Lesson } from '../utils/lessons';
@@ -60,12 +61,18 @@ export function useTypingSession({
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [activeKey, setActiveKey] = useState<string | undefined>();
+  const [errorKeystrokes, setErrorKeystrokes] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
 
   const correctChars = statuses.filter((s) => s === 'correct').length;
   const incorrectChars = statuses.filter((s) => s === 'incorrect').length;
-  const liveStats = buildStats(correctChars, incorrectChars, elapsedMs || 1, isTestMode);
+  const liveStats = buildStats(
+    correctChars,
+    isTestMode ? errorKeystrokes : incorrectChars,
+    elapsedMs || 1,
+    isTestMode,
+  );
   const stats = finished && finalStats ? finalStats : liveStats;
 
   const progress = isTestMode
@@ -111,6 +118,7 @@ export function useTypingSession({
     setStartTime(null);
     setElapsedMs(0);
     setActiveKey(undefined);
+    setErrorKeystrokes(0);
     requestAnimationFrame(() => containerRef.current?.focus());
   }, [isTestMode, lesson]);
 
@@ -121,12 +129,17 @@ export function useTypingSession({
       const elapsed = Date.now() - startTime;
       setElapsedMs(elapsed);
       if (isTestMode && elapsed >= TEST_DURATION_SECONDS * 1000) {
-        const result = buildStats(correctChars, incorrectChars, elapsed, true);
+        const result = buildStats(
+          correctChars,
+          errorKeystrokes,
+          elapsed,
+          true,
+        );
         finishSession(result);
       }
     }, 100);
     return () => clearInterval(interval);
-  }, [started, finished, startTime, isTestMode, correctChars, incorrectChars, finishSession]);
+  }, [started, finished, startTime, isTestMode, correctChars, errorKeystrokes, finishSession]);
 
   useEffect(() => {
     containerRef.current?.focus();
@@ -168,10 +181,6 @@ export function useTypingSession({
     }
 
     if (e.key === 'Backspace') {
-      if (isTestMode) {
-        e.preventDefault();
-        return;
-      }
       e.preventDefault();
       if (input.length === 0) return;
       const newInput = input.slice(0, -1);
@@ -205,6 +214,9 @@ export function useTypingSession({
       return next;
     });
 
+    recordKeystroke(e.key, isCorrect);
+    if (!isCorrect) setErrorKeystrokes((n) => n + 1);
+
     if (sound) {
       if (isCorrect) playCorrectSound();
       else playIncorrectSound();
@@ -214,10 +226,10 @@ export function useTypingSession({
     setActiveKey(code);
     setTimeout(() => setActiveKey(undefined), 150);
 
-    // Extend stream in test mode when nearing end
     if (isTestMode && newInput.length >= targetText.length - 20) {
-      setTargetText((prev) => prev + ' ' + generateDrillText(lesson.charSet ?? 'all', 40));
-      setStatuses((prev) => [...prev, ...Array(41).fill('pending' as CharStatus)]);
+      const extension = ' ' + generateDrillText(lesson.charSet ?? 'all', 40);
+      setTargetText((prev) => prev + extension);
+      setStatuses((prev) => [...prev, ...extension.split('').map(() => 'pending' as CharStatus)]);
     }
 
     if (!isTestMode && newInput.length === targetText.length) {
