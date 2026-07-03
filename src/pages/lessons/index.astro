@@ -1,0 +1,10 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import HomePageWithProvider from '../../components/pages/HomePageWithProvider';
+
+export const prerender = true;
+---
+
+<Layout title="Typing Dvorak — Lessons">
+  <HomePageWithProvider client:load />
+</Layout>

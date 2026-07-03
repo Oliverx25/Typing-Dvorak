@@ -3,6 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import LessonPage from '../../components/pages/LessonPage';
 import { LESSONS } from '../../utils/lessons';
 
+export const prerender = true;
+
 export function getStaticPaths() {
   return LESSONS.map((lesson) => ({ params: { id: lesson.id } }));
 }

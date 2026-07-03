@@ -8,6 +8,11 @@ function isStatsPage(): boolean {
   return /^\/stats\/?$/.test(window.location.pathname);
 }
 
+function isLessonsPage(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /^\/lessons\/?$/.test(window.location.pathname);
+}
+
 export default function HeaderActions() {
   const { t } = useApp();
   const onStatsPage = isStatsPage();
@@ -18,8 +23,12 @@ export default function HeaderActions() {
   return (
     <div className="flex items-center gap-2">
       {onStatsPage ? (
-        <a href="/" className={linkClass}>
+        <a href="/lessons" className={linkClass}>
           {t.nav.lessons}
+        </a>
+      ) : isLessonsPage() ? (
+        <a href="/stats" className={linkClass}>
+          {t.nav.stats}
         </a>
       ) : (
         <a href="/stats" className={linkClass}>

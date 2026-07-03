@@ -26,7 +26,7 @@ export default function LessonGuard({ lessonId, children }: { lessonId: string; 
         </svg>
         <h2 className="text-xl font-bold text-[var(--color-text)]">{t.lesson.lockedTitle}</h2>
         <p className="mt-2 text-[var(--color-text-muted)]">{t.lesson.lockedDesc}</p>
-        <a href="/" className="mt-6 inline-block rounded-lg bg-[var(--color-accent)] px-6 py-2.5 font-medium text-white no-underline hover:bg-[var(--color-accent-hover)]">
+        <a href="/lessons" className="mt-6 inline-block rounded-lg bg-[var(--color-accent)] px-6 py-2.5 font-medium text-white no-underline hover:bg-[var(--color-accent-hover)]">
           {t.lesson.goBack}
         </a>
       </div>

@@ -38,7 +38,13 @@ export default function AuthControls() {
   const { user, loading, isConfigured, signOut } = useAuth();
   const { t } = useApp();
 
-  if (!isConfigured) return null;
+  if (!isConfigured) {
+    return (
+      <a href="/login" className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]">
+        {t.auth.signIn}
+      </a>
+    );
+  }
   if (loading) return null;
 
   if (user) {

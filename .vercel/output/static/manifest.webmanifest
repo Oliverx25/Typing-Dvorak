@@ -1,0 +1,17 @@
+{
+  "name": "Typing Dvorak",
+  "short_name": "Dvorak",
+  "description": "Practice touch typing with the Dvorak Simplified Keyboard layout.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

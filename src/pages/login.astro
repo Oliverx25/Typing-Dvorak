@@ -1,0 +1,10 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LoginForm from '../components/auth/LoginForm';
+
+export const prerender = true;
+---
+
+<Layout title="Typing Dvorak — Sign in">
+  <LoginForm client:load />
+</Layout>

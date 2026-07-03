@@ -6,7 +6,7 @@ interface BackLinkProps {
   label?: string;
 }
 
-export default function BackLink({ href = '/', label }: BackLinkProps) {
+export default function BackLink({ href = '/lessons', label }: BackLinkProps) {
   const { t } = useApp();
   const text = label ?? t.nav.backToLessons;
 
