@@ -16,8 +16,16 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
+const DEFAULT_SETTINGS: AppSettings = {
+  locale: 'en',
+  sound: false,
+  blindMode: false,
+  fingerColors: true,
+  practiceMode: 'practice',
+};
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<AppSettings>(getSettings);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {

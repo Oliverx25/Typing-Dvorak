@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { isLessonUnlocked } from '../utils/curriculum';
-import { getBestWpmForLesson, getCompletedLessonsMap } from '../utils/storage';
-import { SESSION_COMPLETE_EVENT } from '../utils/events';
+import { isLessonUnlocked } from '@/utils/curriculum';
+import { getBestWpmForLesson, getCompletedLessonsMap } from '@/utils/storage';
+import { SESSION_COMPLETE_EVENT } from '@/utils/events';
 
 function getUnlockState(lessonId: string) {
   const completed = getCompletedLessonsMap();
@@ -14,8 +14,11 @@ function getUnlockState(lessonId: string) {
   };
 }
 
+/** Stable defaults for SSR — localStorage sync runs after mount only. */
+const INITIAL_STATE = { unlocked: false, bestWpm: null as number | null };
+
 export function useLessonCardState(lessonId: string) {
-  const [state, setState] = useState(() => getUnlockState(lessonId));
+  const [state, setState] = useState(INITIAL_STATE);
 
   useEffect(() => {
     const refresh = () => setState(getUnlockState(lessonId));
