@@ -7,6 +7,7 @@ interface CompletionPanelProps {
   elapsedSeconds: number;
   isNewRecord?: boolean;
   wpmDelta?: number;
+  weakKeys?: string[];
   onRetry: () => void;
   retryButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
@@ -17,6 +18,7 @@ export default function CompletionPanel({
   elapsedSeconds,
   isNewRecord = false,
   wpmDelta = 0,
+  weakKeys = [],
   onRetry,
   retryButtonRef,
 }: CompletionPanelProps) {
@@ -67,11 +69,28 @@ export default function CompletionPanel({
           <ResultPill label={t.typing.time} value={`${elapsedSeconds}s`} />
         </div>
 
+        {weakKeys.length > 0 && (
+          <div className="mt-5 rounded-xl border border-[var(--color-incorrect)]/25 bg-[var(--color-incorrect)]/5 px-4 py-3">
+            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t.completion.weakKeys}</p>
+            <div className="mt-2 flex justify-center gap-2">
+              {weakKeys.map((key) => (
+                <kbd
+                  key={key}
+                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-surface)] font-mono text-lg font-semibold text-[var(--color-incorrect)]"
+                >
+                  {key === ' ' ? '␣' : key}
+                </kbd>
+              ))}
+            </div>
+            <p className="mt-2 text-[10px] text-[var(--color-text-muted)]">{t.completion.weakKeysHint}</p>
+          </div>
+        )}
+
         <button
           ref={retryButtonRef}
           type="button"
           onClick={onRetry}
-          className="group mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-accent)]/25 transition hover:bg-[var(--color-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]"
+          className="group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-accent)]/25 transition hover:bg-[var(--color-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]"
         >
           {t.completion.tryAgain}
           <kbd className="rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-xs font-normal text-white/80">Enter ↵</kbd>

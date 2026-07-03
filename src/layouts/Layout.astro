@@ -50,9 +50,6 @@ const siteUrl = 'https://typing-dvorak.vercel.app';
   </head>
   <body class="min-h-screen antialiased">
     <slot />
-    <footer class="border-t border-[var(--color-border)] py-6 text-center text-sm text-[var(--color-text-muted)]">
-      <p>Built with Astro · Practice the Dvorak layout daily</p>
-    </footer>
     <script is:inline>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {

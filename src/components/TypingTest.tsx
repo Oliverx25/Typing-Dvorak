@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useApp, getLessonTitle } from '../contexts/AppProvider';
 import type { Lesson } from '../utils/lessons';
 import { useTypingSession } from '../hooks/useTypingSession';
@@ -5,13 +6,15 @@ import Keyboard from './Keyboard';
 import StatsBar from './StatsBar';
 import CompletionPanel from './CompletionPanel';
 import ModeToggle, { ModeDescription } from './ModeToggle';
+import PauseOverlay from './PauseOverlay';
 
 interface TypingTestProps {
   lessonId: string;
   lesson: Lesson;
+  customText?: string;
 }
 
-export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
+export default function TypingTest({ lessonId, lesson, customText }: TypingTestProps) {
   const { t, settings } = useApp();
   const lessonTitle = getLessonTitle(t, lesson.titleKey);
 
@@ -21,6 +24,8 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
     lesson,
     mode: settings.practiceMode,
     sound: settings.sound,
+    locale: settings.locale,
+    customText,
   });
 
   const {
@@ -29,6 +34,7 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
     statuses,
     started,
     finished,
+    paused,
     stats,
     progress,
     timeRemaining,
@@ -36,14 +42,26 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
     activeKey,
     isNewRecord,
     wpmDelta,
+    sessionWeakKeys,
     isTestMode,
     containerRef,
     retryButtonRef,
     reset,
     handleKeyDown,
+    togglePause,
   } = session;
 
-  const showKeyboard = !settings.blindMode;
+  const [keyboardOpen, setKeyboardOpen] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    setKeyboardOpen(!mq.matches);
+    const handler = (e: MediaQueryListEvent) => setKeyboardOpen(!e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  const showKeyboard = !settings.blindMode && keyboardOpen;
 
   return (
     <div className="space-y-6">
@@ -59,19 +77,20 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
         started={started}
         isTestMode={isTestMode}
         timeRemaining={timeRemaining}
+        paused={paused}
       />
 
       <div
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        onClick={() => !finished && containerRef.current?.focus()}
+        onClick={() => !finished && !paused && containerRef.current?.focus()}
         role="textbox"
         aria-label={lessonTitle}
         aria-readonly="true"
         className={[
           'relative min-h-[160px] cursor-text overflow-hidden rounded-2xl border-2 bg-[var(--color-surface-elevated)] p-6 outline-none transition-all duration-300 sm:min-h-[180px] sm:p-8',
-          finished ? 'border-[var(--color-correct)]/30' : 'border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:ring-4 focus:ring-[var(--color-accent)]/10',
+          finished ? 'border-[var(--color-correct)]/30' : paused ? 'border-[var(--color-key-target)]/40' : 'border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:ring-4 focus:ring-[var(--color-accent)]/10',
         ].join(' ')}
       >
         <div
@@ -91,7 +110,7 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
             let className = 'text-[var(--color-text-muted)]/60';
             if (status === 'correct') className = 'text-[var(--color-correct)]';
             if (status === 'incorrect') className = 'text-[var(--color-incorrect)] underline decoration-wavy decoration-[var(--color-incorrect)]/50';
-            if (isCurrent && !finished) {
+            if (isCurrent && !finished && !paused) {
               className = 'relative text-[var(--color-key-target)] after:absolute after:-bottom-0.5 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-[var(--color-key-target)] after:content-[""] caret-blink motion-reduce:animate-none';
             }
             return (
@@ -100,7 +119,7 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
               </span>
             );
           })}
-          {!finished && input.length === targetText.length && (
+          {!finished && !paused && input.length === targetText.length && (
             <span className="caret-blink ml-px inline-block h-[1.1em] w-0.5 translate-y-0.5 bg-[var(--color-key-target)] align-middle motion-reduce:animate-none" />
           )}
         </p>
@@ -112,6 +131,8 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
           </p>
         )}
 
+        {paused && !finished && <PauseOverlay onResume={togglePause} />}
+
         {finished && (
           <CompletionPanel
             wpm={stats.wpm}
@@ -119,11 +140,28 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
             elapsedSeconds={stats.elapsedSeconds}
             isNewRecord={isNewRecord}
             wpmDelta={wpmDelta}
+            weakKeys={sessionWeakKeys}
             onRetry={reset}
             retryButtonRef={retryButtonRef}
           />
         )}
       </div>
+
+      {!settings.blindMode && (
+        <div className="flex items-center justify-center sm:hidden">
+          <button
+            type="button"
+            onClick={() => setKeyboardOpen((v) => !v)}
+            className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-4 py-2 text-sm text-[var(--color-text-muted)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect width="20" height="16" x="2" y="4" rx="2" />
+              <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001" />
+            </svg>
+            {keyboardOpen ? t.typing.hideKeyboard : t.typing.showKeyboard}
+          </button>
+        </div>
+      )}
 
       {showKeyboard && (
         <div className={['transition-all duration-500', finished ? 'pointer-events-none opacity-40 grayscale-[30%]' : 'opacity-100'].join(' ')}>
@@ -135,6 +173,10 @@ export default function TypingTest({ lessonId, lesson }: TypingTestProps) {
 
       {settings.blindMode && !finished && (
         <p className="text-center text-xs text-[var(--color-text-muted)]">👁 {t.settings.blindDesc}</p>
+      )}
+
+      {isTestMode && started && !finished && (
+        <p className="text-center text-xs text-[var(--color-text-muted)]">{t.lesson.pauseHint}</p>
       )}
     </div>
   );

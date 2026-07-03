@@ -1,14 +1,22 @@
 import { useEffect, useState } from 'react';
 import { DVORAK_ROWS } from '../utils/dvorak';
 import { getKeyStats, getKeyErrorRate, hasKeyStats } from '../utils/keyStats';
+import { KEY_STATS_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '../utils/events';
 import { useApp } from '../contexts/AppProvider';
 
 export default function KeyboardHeatmap() {
   const { t } = useApp();
-  const [stats, setStats] = useState(getKeyStats());
+  const [stats, setStats] = useState(getKeyStats);
 
   useEffect(() => {
-    setStats(getKeyStats());
+    const refresh = () => setStats(getKeyStats());
+    refresh();
+    window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
+    window.addEventListener(KEY_STATS_UPDATED_EVENT, refresh);
+    return () => {
+      window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
+      window.removeEventListener(KEY_STATS_UPDATED_EVENT, refresh);
+    };
   }, []);
 
   if (!hasKeyStats(stats)) return null;

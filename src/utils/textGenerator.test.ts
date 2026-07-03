@@ -10,7 +10,7 @@ describe('textGenerator', () => {
 
   it('never includes space inside generated words', () => {
     const text = generateDrillText('punctuation', 60);
-    expect(text).not.toMatch(/  /);
+    expect(text).not.toMatch(/ {2}/);
     expect(text.split(' ').every((w) => !w.includes(' '))).toBe(true);
   });
 });

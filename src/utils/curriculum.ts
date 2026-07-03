@@ -1,7 +1,7 @@
-import { LESSONS } from './lessons';
+import { CORE_LESSONS, getLessonById } from './lessons';
 
-/** Lesson unlock order — first lesson is always available. */
-export const LESSON_ORDER = LESSONS.map((l) => l.id);
+/** Lesson unlock order — first lesson is always available. Optional lessons excluded. */
+export const LESSON_ORDER = CORE_LESSONS.map((l) => l.id);
 
 const UNLOCK_ACCURACY = 90;
 
@@ -19,6 +19,9 @@ export function isLessonUnlocked(
   lessonId: string,
   completedLessons: Record<string, { bestAccuracy: number }>,
 ): boolean {
+  const lesson = getLessonById(lessonId);
+  if (lesson?.optional) return true;
+
   const idx = getLessonIndex(lessonId);
   if (idx <= 0) return true;
   const prevId = LESSON_ORDER[idx - 1];

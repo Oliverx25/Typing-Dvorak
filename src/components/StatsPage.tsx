@@ -1,7 +1,6 @@
-import { AppProvider } from '../contexts/AppProvider';
+import AppShell from './AppShell';
 import { useApp } from '../contexts/AppProvider';
 import StatsDashboard from './StatsDashboard';
-import PageLayout from './PageLayout';
 
 function StatsContent() {
   const { t } = useApp();
@@ -24,10 +23,8 @@ function StatsContent() {
 
 export default function StatsPage() {
   return (
-    <AppProvider>
-      <PageLayout>
-        <StatsContent />
-      </PageLayout>
-    </AppProvider>
+    <AppShell>
+      <StatsContent />
+    </AppShell>
   );
 }

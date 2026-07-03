@@ -3,7 +3,8 @@ import { useApp, getLessonDescription, getLessonTitle } from '../contexts/AppPro
 import { isLessonUnlocked, getRecommendedLessonId, getCurriculumProgress } from '../utils/curriculum';
 import { getBestWpmForLesson, getCompletedLessonsMap } from '../utils/storage';
 import type { Lesson } from '../utils/lessons';
-import { LESSONS } from '../utils/lessons';
+import { CORE_LESSONS } from '../utils/lessons';
+import { SESSION_COMPLETE_EVENT } from '../utils/events';
 
 interface LessonCardProps {
   lesson: Lesson;
@@ -22,6 +23,19 @@ export default function LessonCard({ lesson, recommended = false }: LessonCardPr
     );
     setUnlocked(isLessonUnlocked(lesson.id, completedForUnlock));
     setBestWpm(getBestWpmForLesson(lesson.id));
+  }, [lesson.id]);
+
+  useEffect(() => {
+    const handler = () => {
+      const completed = getCompletedLessonsMap();
+      const completedForUnlock = Object.fromEntries(
+        Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
+      );
+      setUnlocked(isLessonUnlocked(lesson.id, completedForUnlock));
+      setBestWpm(getBestWpmForLesson(lesson.id));
+    };
+    window.addEventListener(SESSION_COMPLETE_EVENT, handler);
+    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, handler);
   }, [lesson.id]);
 
   const title = getLessonTitle(t, lesson.titleKey);
@@ -95,12 +109,17 @@ export function CurriculumBar() {
   const [recommendedId, setRecommendedId] = useState<string | null>(null);
 
   useEffect(() => {
-    const completed = getCompletedLessonsMap();
-    const forUnlock = Object.fromEntries(
-      Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
-    );
-    setProgress(getCurriculumProgress(forUnlock));
-    setRecommendedId(getRecommendedLessonId(forUnlock));
+    const refresh = () => {
+      const completed = getCompletedLessonsMap();
+      const forUnlock = Object.fromEntries(
+        Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
+      );
+      setProgress(getCurriculumProgress(forUnlock));
+      setRecommendedId(getRecommendedLessonId(forUnlock));
+    };
+    refresh();
+    window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
+    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
   }, []);
 
   return (
@@ -116,7 +135,7 @@ export function CurriculumBar() {
         />
       </div>
       {recommendedId && (() => {
-        const lesson = LESSONS.find((l) => l.id === recommendedId);
+        const lesson = CORE_LESSONS.find((l) => l.id === recommendedId);
         const name = lesson ? getLessonTitle(t, lesson.titleKey) : recommendedId;
         return (
           <p className="mt-2 text-xs text-[var(--color-text-muted)]">

@@ -1,10 +1,28 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import type { Locale } from '../i18n';
+import { downloadExport, importProgress } from '../utils/exportImport';
+import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '../utils/events';
 
 export default function SettingsPanel() {
   const { t, settings, updateSettings, setLocale } = useApp();
   const [open, setOpen] = useState(false);
+  const [importMsg, setImportMsg] = useState<'success' | 'error' | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleImport = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const ok = importProgress(reader.result as string);
+      setImportMsg(ok ? 'success' : 'error');
+      if (ok) {
+        window.dispatchEvent(new CustomEvent(SESSION_COMPLETE_EVENT));
+        window.dispatchEvent(new CustomEvent(KEY_STATS_UPDATED_EVENT));
+      }
+      setTimeout(() => setImportMsg(null), 3000);
+    };
+    reader.readAsText(file);
+  };
 
   return (
     <div className="relative">
@@ -26,7 +44,7 @@ export default function SettingsPanel() {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
           <div className="absolute right-0 z-50 mt-2 w-72 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4 shadow-xl">
             <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">{t.settings.title}</h3>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
               <SettingRow label={t.settings.language}>
                 <div className="flex gap-1">
                   {(['en', 'es'] as Locale[]).map((loc) => (
@@ -64,6 +82,47 @@ export default function SettingsPanel() {
                 checked={settings.fingerColors}
                 onChange={(v) => updateSettings({ fingerColors: v })}
               />
+              <div className="border-t border-[var(--color-border)] pt-4 space-y-3">
+                <div>
+                  <p className="text-sm text-[var(--color-text)]">{t.settings.exportData}</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">{t.settings.exportDesc}</p>
+                  <button
+                    type="button"
+                    onClick={() => downloadExport()}
+                    className="mt-2 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-key)] px-3 py-2 text-xs font-medium text-[var(--color-text)] transition hover:border-[var(--color-accent)]"
+                  >
+                    {t.settings.exportBtn}
+                  </button>
+                </div>
+                <div>
+                  <p className="text-sm text-[var(--color-text)]">{t.settings.importData}</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">{t.settings.importDesc}</p>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="application/json,.json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImport(file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="mt-2 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-key)] px-3 py-2 text-xs font-medium text-[var(--color-text)] transition hover:border-[var(--color-accent)]"
+                  >
+                    {t.settings.importBtn}
+                  </button>
+                  {importMsg === 'success' && (
+                    <p className="mt-1.5 text-xs text-[var(--color-correct)]">{t.settings.importSuccess}</p>
+                  )}
+                  {importMsg === 'error' && (
+                    <p className="mt-1.5 text-xs text-[var(--color-incorrect)]">{t.settings.importError}</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </>

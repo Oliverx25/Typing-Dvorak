@@ -1,9 +1,8 @@
-import { AppProvider, getLessonDescription, getLessonTitle } from '../contexts/AppProvider';
+import AppShell from './AppShell';
 import { getLessonById } from '../utils/lessons';
 import TypingTest from './TypingTest';
 import LessonGuard from './LessonGuard';
-import PageLayout from './PageLayout';
-import { useApp } from '../contexts/AppProvider';
+import { useApp, getLessonDescription, getLessonTitle } from '../contexts/AppProvider';
 
 interface LessonPageProps {
   lessonId: string;
@@ -46,10 +45,8 @@ function LessonContent({ lessonId }: { lessonId: string }) {
 
 export default function LessonPage({ lessonId }: LessonPageProps) {
   return (
-    <AppProvider>
-      <PageLayout>
-        <LessonContent lessonId={lessonId} />
-      </PageLayout>
-    </AppProvider>
+    <AppShell>
+      <LessonContent lessonId={lessonId} />
+    </AppShell>
   );
 }

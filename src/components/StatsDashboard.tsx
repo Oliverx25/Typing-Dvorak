@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import { getAggregateStats, getSessionHistory } from '../utils/storage';
-import { LESSONS } from '../utils/lessons';
+import { CORE_LESSONS } from '../utils/lessons';
 import { getLessonTitle } from '../contexts/AppProvider';
 import { getBestWpmForLesson } from '../utils/storage';
+import StreakIcon from './StreakIcon';
 
 export default function StatsDashboard() {
   const { t } = useApp();
@@ -29,7 +30,11 @@ export default function StatsDashboard() {
         <SummaryCard label={t.stats.totalSessions} value={String(aggregate.totalSessions)} />
         <SummaryCard label={t.stats.bestWpm} value={String(aggregate.bestWpm)} accent />
         <SummaryCard label={t.stats.avgAccuracy} value={`${aggregate.avgAccuracy}%`} />
-        <SummaryCard label={t.stats.streak} value={`${aggregate.streak} 🔥`} />
+        <SummaryCard
+          label={t.stats.streak}
+          value={String(aggregate.streak)}
+          icon={<StreakIcon size={32} />}
+        />
       </div>
 
       {chartData.length > 0 ? (
@@ -67,7 +72,7 @@ export default function StatsDashboard() {
             </tr>
           </thead>
           <tbody>
-            {LESSONS.map((lesson) => {
+            {CORE_LESSONS.map((lesson) => {
               const best = getBestWpmForLesson(lesson.id);
               if (best === null) return null;
               return (
@@ -84,13 +89,26 @@ export default function StatsDashboard() {
   );
 }
 
-function SummaryCard({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+function SummaryCard({
+  label,
+  value,
+  accent = false,
+  icon,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  icon?: React.ReactNode;
+}) {
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-4 py-5 text-center">
       <p className="text-xs uppercase tracking-widest text-[var(--color-text-muted)]">{label}</p>
-      <p className={['mt-2 font-mono text-3xl font-bold', accent ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]'].join(' ')}>
-        {value}
-      </p>
+      <div className="mt-2 flex items-center justify-center gap-2">
+        <p className={['font-mono text-3xl font-bold', accent ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]'].join(' ')}>
+          {value}
+        </p>
+        {icon}
+      </div>
     </div>
   );
 }

@@ -1,13 +1,10 @@
-import { AppProvider } from '../contexts/AppProvider';
+import AppShell from './AppShell';
 import HomePage from './HomePage';
-import PageLayout from './PageLayout';
 
 export default function HomePageWithProvider() {
   return (
-    <AppProvider>
-      <PageLayout>
-        <HomePage />
-      </PageLayout>
-    </AppProvider>
+    <AppShell>
+      <HomePage />
+    </AppShell>
   );
 }
