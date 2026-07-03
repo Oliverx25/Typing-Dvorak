@@ -9,10 +9,10 @@ interface AuthButtonProps {
 }
 
 function ProviderButton({ provider }: AuthButtonProps) {
-  const { t } = useAuthLabels();
+  const auth = useAuthLabels();
   const [loading, setLoading] = useState(false);
   const icon = provider === 'github' ? 'github' : 'google';
-  const label = provider === 'github' ? t.signInGithub : t.signInGoogle;
+  const label = provider === 'github' ? auth.signInGithub : auth.signInGoogle;
 
   const handleClick = async () => {
     setLoading(true);
