@@ -7,7 +7,7 @@ import { headerAvatarButtonClassName } from '@/components/layout/headerClasses';
 import EditAvatarModal from './EditAvatarModal';
 
 export default function UserProfileDropdown() {
-  const { user, signOut, isConfigured } = useAuth();
+  const { user, profile, signOut, isConfigured } = useAuth();
   const { t } = useApp();
   const [open, setOpen] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
@@ -15,7 +15,7 @@ export default function UserProfileDropdown() {
 
   if (!user) return null;
 
-  const display = getUserDisplay(user);
+  const display = getUserDisplay(user, profile);
   const showImage = Boolean(display.avatarUrl) && !imageFailed;
 
   const handleSignOut = async () => {
@@ -77,6 +77,15 @@ export default function UserProfileDropdown() {
                   {t.auth.changePhoto}
                 </button>
               )}
+              <a
+                href="/achievements"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+              >
+                <Icon name="trophy" size={16} />
+                {t.auth.viewAchievements}
+              </a>
               <button
                 type="button"
                 role="menuitem"

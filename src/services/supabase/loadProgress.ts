@@ -1,0 +1,136 @@
+import { getSupabaseClient } from '@/lib/supabaseClient';
+import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries } from './queries';
+import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/storage';
+import { replaceLocalProgress } from '@/utils/storage';
+import { replaceKeyStats, type KeyStatsData } from '@/utils/keyStats';
+import { charToKeyCode } from '@/utils/dvorak';
+import { getLessonById } from '@/utils/lessons';
+import type { PracticeMode } from '@/utils/settings';
+import { dispatchSessionComplete, dispatchKeyStatsUpdated } from '@/utils/events';
+import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/streak';
+import { updateProfileStreak } from './syncProgress';
+import { syncBadgesFromSessionRows } from './syncBadges';
+
+export interface UserProfileRow {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+  avatar_custom: boolean;
+  display_name: string | null;
+  current_streak: number;
+  last_practice_date: string | null;
+}
+
+function mapSessionRow(row: {
+  lesson_id: string;
+  wpm: number;
+  accuracy: number;
+  mode: string;
+  created_at: string;
+}): SessionRecord {
+  const lesson = getLessonById(row.lesson_id);
+  return {
+    lessonId: row.lesson_id,
+    lessonTitle: lesson?.titleKey ?? row.lesson_id,
+    wpm: row.wpm,
+    accuracy: Number(row.accuracy),
+    elapsedSeconds: 0,
+    mode: (row.mode === 'test' ? 'test' : 'practice') as PracticeMode,
+    completedAt: row.created_at,
+  };
+}
+
+function buildProgressFromSessions(
+  sessions: SessionRecord[],
+  streakResult: { streak: number; lastPracticeDate: string | null },
+): UserProgress {
+  const lessons: Record<string, LessonProgress> = {};
+
+  for (const session of sessions) {
+    const existing = lessons[session.lessonId];
+    lessons[session.lessonId] = {
+      bestWpm: Math.max(existing?.bestWpm ?? 0, session.wpm),
+      bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, session.accuracy),
+      attempts: (existing?.attempts ?? 0) + 1,
+      lastPlayedAt:
+        !existing || session.completedAt > existing.lastPlayedAt
+          ? session.completedAt
+          : existing.lastPlayedAt,
+    };
+  }
+
+  return {
+    lessons,
+    streak: streakResult.streak,
+    lastPracticeDate: streakResult.lastPracticeDate,
+  };
+}
+
+function mapKeyErrors(rows: { key_char: string; error_count: number }[]): KeyStatsData {
+  const misses: Record<string, number> = {};
+  for (const row of rows) {
+    const code = charToKeyCode(row.key_char) ?? row.key_char;
+    misses[code] = row.error_count;
+  }
+  return { hits: {}, misses };
+}
+
+/** Replace local progress with this account's cloud data. Call after clearing guest keys. */
+export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
+  const supabase = getSupabaseClient();
+  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+
+  const [sessions, keyErrors, profile, timestamps] = await Promise.all([
+    fetchUserSessions(100),
+    fetchUserKeyErrors(),
+    fetchUserProfile() as Promise<UserProfileRow | null>,
+    fetchUserSessionTimestamps(),
+  ]);
+
+  const streakResult = computeStreakFromPracticeDates(collectPracticeDates(timestamps));
+  const history = sessions.map(mapSessionRow);
+  const progress = buildProgressFromSessions(history, streakResult);
+  replaceLocalProgress(history, progress);
+  replaceKeyStats(mapKeyErrors(keyErrors));
+
+  if (user) {
+    await updateProfileStreak(user.id, streakResult);
+    const sessionSummaries = await fetchAllUserSessionSummaries();
+    await syncBadgesFromSessionRows(user.id, sessionSummaries, streakResult.streak);
+  }
+
+  dispatchSessionComplete();
+  dispatchKeyStatsUpdated();
+
+  if (profile && user) {
+    return {
+      ...profile,
+      current_streak: streakResult.streak,
+      last_practice_date: streakResult.lastPracticeDate,
+    };
+  }
+
+  return profile;
+}
+
+/** Re-apply custom avatar to auth metadata after OAuth sign-in overwrites it. */
+export async function restoreCustomAvatarFromProfile(): Promise<void> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  const profile = (await fetchUserProfile()) as UserProfileRow | null;
+  if (!profile?.avatar_custom || !profile.avatar_url) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const meta = user.user_metadata ?? {};
+  if (meta.avatar_custom === true && meta.avatar_url === profile.avatar_url) return;
+
+  await supabase.auth.updateUser({
+    data: {
+      avatar_url: profile.avatar_url,
+      avatar_custom: true,
+    },
+  });
+}

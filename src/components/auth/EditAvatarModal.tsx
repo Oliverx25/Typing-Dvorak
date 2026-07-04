@@ -14,13 +14,13 @@ interface EditAvatarModalProps {
 
 export default function EditAvatarModal({ user, onClose }: EditAvatarModalProps) {
   const { t } = useApp();
-  const { refreshUser } = useAuth();
+  const { refreshUser, profile } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
 
-  const display = getUserDisplay(user);
+  const display = getUserDisplay(user, profile);
 
   const handleFile = async (file: File) => {
     setErrorKey(null);

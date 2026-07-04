@@ -59,3 +59,86 @@ export async function fetchUserProfile() {
   }
   return data;
 }
+
+/** All session timestamps for streak calculation (source of truth). Paginates past the default row cap. */
+export async function fetchUserSessionTimestamps(): Promise<string[]> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const PAGE = 1000;
+  const timestamps: string[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('typing_sessions')
+      .select('created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .range(from, from + PAGE - 1);
+
+    if (error) {
+      console.warn('[supabase] fetch session timestamps failed:', error.message);
+      break;
+    }
+
+    if (!data?.length) break;
+
+    timestamps.push(...data.map((row) => row.created_at as string));
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+
+  return timestamps;
+}
+
+export interface SessionSummaryRow {
+  lesson_id: string;
+  wpm: number;
+  accuracy: number;
+}
+
+/** All sessions (paginated) for badge evaluation. */
+export async function fetchAllUserSessionSummaries(): Promise<SessionSummaryRow[]> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const PAGE = 1000;
+  const rows: SessionSummaryRow[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('typing_sessions')
+      .select('lesson_id, wpm, accuracy')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .range(from, from + PAGE - 1);
+
+    if (error) {
+      console.warn('[supabase] fetch session summaries failed:', error.message);
+      break;
+    }
+
+    if (!data?.length) break;
+
+    rows.push(
+      ...data.map((row) => ({
+        lesson_id: row.lesson_id as string,
+        wpm: row.wpm as number,
+        accuracy: Number(row.accuracy),
+      })),
+    );
+
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+
+  return rows;
+}

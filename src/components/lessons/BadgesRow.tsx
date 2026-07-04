@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { BADGES, getUnlockedBadges } from '@/utils/badges';
-import { SESSION_COMPLETE_EVENT } from '@/utils/events';
+import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/events';
 import { BadgeIcon } from '@/components/ui';
 
 export default function BadgesRow() {
@@ -14,7 +14,11 @@ export default function BadgesRow() {
     refresh();
     const handler = () => refresh();
     window.addEventListener(SESSION_COMPLETE_EVENT, handler);
-    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, handler);
+    window.addEventListener(BADGES_UPDATED_EVENT, handler);
+    return () => {
+      window.removeEventListener(SESSION_COMPLETE_EVENT, handler);
+      window.removeEventListener(BADGES_UPDATED_EVENT, handler);
+    };
   }, []);
 
   if (unlocked.length === 0) return null;

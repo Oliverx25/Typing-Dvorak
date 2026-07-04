@@ -1,12 +1,21 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabaseClient';
-import { SESSION_COMPLETE_EVENT } from '../utils/events';
+import { SESSION_COMPLETE_EVENT, dispatchSessionComplete, dispatchKeyStatsUpdated } from '../utils/events';
 import { getSessionHistory } from '../utils/storage';
-import { syncSessionToCloud, syncKeyErrorsToCloud, migrateLocalSessionsToCloud } from '../services/supabase/syncProgress';
+import { clearGuestProgress } from '../utils/guestProgress';
+import { syncSessionToCloud, syncKeyErrorsToCloud } from '../services/supabase/syncProgress';
+import { syncBadgesToCloud } from '../services/supabase/syncBadges';
+import {
+  loadProgressFromCloud,
+  restoreCustomAvatarFromProfile,
+  type UserProfileRow,
+} from '../services/supabase/loadProgress';
+import { fetchUserProfile } from '../services/supabase/queries';
 
 interface AuthContextValue {
   user: User | null;
+  profile: UserProfileRow | null;
   loading: boolean;
   isConfigured: boolean;
   signOut: () => Promise<void>;
@@ -14,11 +23,12 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const MIGRATION_KEY = 'typing-dvorak-cloud-migrated';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfileRow | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured());
+  const lastLoadedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -42,18 +52,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  /** One-time local → cloud migration after login. */
+  const userId = user?.id ?? null;
+
+  /** On login: discard guest localStorage, load cloud progress, restore custom avatar. */
   useEffect(() => {
-    if (!user) return;
-    if (localStorage.getItem(MIGRATION_KEY)) return;
+    if (!userId) {
+      lastLoadedUserIdRef.current = null;
+      setProfile(null);
+      return;
+    }
 
-    const history = getSessionHistory();
-    migrateLocalSessionsToCloud(user.id, history).then((count) => {
-      if (count > 0) localStorage.setItem(MIGRATION_KEY, 'true');
-    });
-  }, [user]);
+    if (lastLoadedUserIdRef.current === userId) return;
 
-  /** Background sync on session complete — localStorage remains source of truth. */
+    let cancelled = false;
+
+    (async () => {
+      clearGuestProgress();
+      const loadedProfile = await loadProgressFromCloud();
+      await restoreCustomAvatarFromProfile();
+
+      if (cancelled) return;
+
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        const { data } = await supabase.auth.getUser();
+        if (!cancelled) setUser(data.user);
+      }
+
+      if (!cancelled) {
+        setProfile(loadedProfile);
+        lastLoadedUserIdRef.current = userId;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  /** Background sync on session complete — cloud mirrors authenticated sessions. */
   useEffect(() => {
     if (!user) return;
 
@@ -62,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (latest) {
         syncSessionToCloud(user.id, latest);
         syncKeyErrorsToCloud(user.id);
+        syncBadgesToCloud(user.id);
       }
     };
 
@@ -72,6 +110,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const supabase = getSupabaseClient();
     if (supabase) await supabase.auth.signOut();
+    clearGuestProgress();
+    dispatchSessionComplete();
+    dispatchKeyStatsUpdated();
+    lastLoadedUserIdRef.current = null;
+    setProfile(null);
     setUser(null);
   }, []);
 
@@ -80,17 +123,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) return;
     const { data } = await supabase.auth.getUser();
     setUser(data.user);
+    const nextProfile = (await fetchUserProfile()) as UserProfileRow | null;
+    setProfile(nextProfile);
   }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
+      profile,
       loading,
       isConfigured: isSupabaseConfigured(),
       signOut,
       refreshUser,
     }),
-    [user, loading, signOut, refreshUser],
+    [user, profile, loading, signOut, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

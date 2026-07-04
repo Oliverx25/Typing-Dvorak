@@ -1,5 +1,6 @@
 import type { TypingStats } from './typing';
 import type { PracticeMode } from './settings';
+import { collectPracticeDates, computeStreakFromPracticeDates } from './streak';
 
 export interface SessionRecord {
   lessonId: string;
@@ -58,17 +59,15 @@ function saveProgress(progress: UserProgress): void {
 }
 
 function updateStreak(progress: UserProgress): UserProgress {
-  const today = new Date().toISOString().slice(0, 10);
-  if (progress.lastPracticeDate === today) return progress;
+  const dates = collectPracticeDates(getSessionHistory().map((s) => s.completedAt));
+  const { streak, lastPracticeDate } = computeStreakFromPracticeDates(dates);
+  return { ...progress, streak, lastPracticeDate };
+}
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().slice(0, 10);
-
-  const streak =
-    progress.lastPracticeDate === yesterdayStr ? progress.streak + 1 : 1;
-
-  return { ...progress, streak, lastPracticeDate: today };
+/** Overwrite local session history and lesson progress (e.g. after cloud load). */
+export function replaceLocalProgress(history: SessionRecord[], progress: UserProgress): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, MAX_RECORDS)));
+  saveProgress(progress);
 }
 
 export function saveSession(

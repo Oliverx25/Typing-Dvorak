@@ -2,6 +2,35 @@ import { getSupabaseClient } from '../../lib/supabaseClient';
 import type { SessionRecord } from '../../utils/storage';
 import { calculateStars } from '../../utils/stars';
 import { getKeyStats } from '../../utils/keyStats';
+import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '../../utils/streak';
+import { fetchUserSessionTimestamps } from './queries';
+
+/** Writes computed streak fields to profiles (cache for quick reads). */
+export async function updateProfileStreak(
+  userId: string,
+  { streak, lastPracticeDate }: StreakResult,
+): Promise<void> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      current_streak: streak,
+      last_practice_date: lastPracticeDate,
+    })
+    .eq('id', userId);
+
+  if (error) console.warn('[sync] profile streak update failed:', error.message);
+}
+
+/** Recompute streak from all cloud sessions and persist to profiles. */
+export async function syncStreakToProfile(userId: string): Promise<StreakResult> {
+  const timestamps = await fetchUserSessionTimestamps();
+  const result = computeStreakFromPracticeDates(collectPracticeDates(timestamps));
+  await updateProfileStreak(userId, result);
+  return result;
+}
 
 /** Persists a session to Supabase. No-op when unauthenticated or offline. */
 export async function syncSessionToCloud(userId: string, record: SessionRecord): Promise<void> {
@@ -17,7 +46,12 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
     mode: record.mode,
   });
 
-  if (error) console.warn('[sync] session insert failed:', error.message);
+  if (error) {
+    console.warn('[sync] session insert failed:', error.message);
+    return;
+  }
+
+  await syncStreakToProfile(userId);
 }
 
 /** Upserts aggregated key errors from local heatmap data. */
@@ -62,5 +96,7 @@ export async function migrateLocalSessionsToCloud(userId: string, history: Sessi
     console.warn('[sync] migration failed:', error.message);
     return 0;
   }
+
+  await syncStreakToProfile(userId);
   return payload.length;
 }

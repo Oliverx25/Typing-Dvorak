@@ -40,6 +40,12 @@ function saveKeyStats(data: KeyStatsData): void {
   localStorage.setItem(KEY_STATS_KEY, JSON.stringify(data));
 }
 
+/** Overwrite heatmap stats (e.g. after cloud load). */
+export function replaceKeyStats(data: KeyStatsData): void {
+  saveKeyStats(data);
+  dispatchKeyStatsUpdated();
+}
+
 /** Records a keystroke for heatmap analytics. */
 export function recordKeystroke(char: string, isCorrect: boolean): void {
   const code = charToKeyCode(char) ?? char;

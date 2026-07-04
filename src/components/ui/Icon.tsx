@@ -12,7 +12,8 @@ export type IconName =
   | 'keyboard'
   | 'log-out'
   | 'user'
-  | 'camera';
+  | 'camera'
+  | 'trophy';
 
 const PATHS: Record<IconName, ReactNode> = {
   'chevron-down': <path d="m6 9 6 6 6-6" />,
@@ -64,6 +65,16 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
       <circle cx="12" cy="13" r="3" />
+    </>
+  ),
+  trophy: (
+    <>
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
+      <path d="M7 4h10" />
+      <path d="M17 4v3a5 5 0 0 1-10 0V4" />
+      <path d="M5 5H3v1a4 4 0 0 0 4 4" />
+      <path d="M19 5h2v1a4 4 0 0 1-4 4" />
     </>
   ),
 };

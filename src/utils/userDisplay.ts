@@ -10,6 +10,13 @@ export interface UserDisplay {
   hasCustomAvatar: boolean;
 }
 
+/** Profile row fields used for display — source of truth when logged in. */
+export interface ProfileDisplayInfo {
+  avatar_url?: string | null;
+  avatar_custom?: boolean;
+  display_name?: string | null;
+}
+
 function readOAuthAvatar(user: User): string | null {
   for (const identity of user.identities ?? []) {
     const data = identity.identity_data ?? {};
@@ -61,8 +68,25 @@ export function getUserInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-export function getUserDisplay(user: User): UserDisplay {
-  const name = getUserDisplayName(user);
+export function getUserDisplay(user: User, profile?: ProfileDisplayInfo | null): UserDisplay {
+  const name =
+    (typeof profile?.display_name === 'string' && profile.display_name.trim()
+      ? profile.display_name.trim()
+      : null) ?? getUserDisplayName(user);
+
+  if (profile?.avatar_custom === true) {
+    const custom = profile.avatar_url;
+    if (typeof custom === 'string' && custom.trim().length > 0) {
+      return {
+        name,
+        avatarUrl: custom.trim(),
+        initials: getUserInitials(name),
+        avatarSource: 'custom',
+        hasCustomAvatar: true,
+      };
+    }
+  }
+
   const avatarSource = getUserAvatarSource(user);
   return {
     name,

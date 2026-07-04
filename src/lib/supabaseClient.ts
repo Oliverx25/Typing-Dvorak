@@ -54,6 +54,20 @@ export type Database = {
         };
         Update: Partial<Database['public']['Tables']['key_errors']['Insert']>;
       };
+      user_badges: {
+        Row: {
+          id: string;
+          user_id: string;
+          badge_id: string;
+          unlocked_at: string;
+        };
+        Insert: {
+          user_id: string;
+          badge_id: string;
+          unlocked_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['user_badges']['Insert']>;
+      };
     };
   };
 };
