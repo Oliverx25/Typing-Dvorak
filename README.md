@@ -1,8 +1,6 @@
 <div align="center">
 
-<div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:4f46e5,100:a82da8&height=240&section=header&text=Typing%20Dvorak&fontSize=50&fontColor=fff&textAlignY=38&desc=Master%20the%20Dvorak%20Layout%20in%20Real-Time&descAlignY=72&descSize=18" alt="Typing Dvorak header" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:4f46e5,100:a82da8&height=220&section=header&text=Typing%20Dvorak&fontSize=65&fontAlignY=40&fontColor=fff&desc=Master%20the%20Dvorak%20Layout%20in%20Real-Time&descAlignY=60&descSize=20" />
 
 <br />
 
@@ -14,107 +12,16 @@
   <img src="https://img.shields.io/badge/Astro-BC52EE?style=for-the-badge&logo=astro&logoColor=white" alt="Astro" />
 </a>
 
-<br /><br />
-
-A web application for learning, practicing, and mastering the **Dvorak Simplified Keyboard** through progressive lessons, detailed analytics, and real-time multiplayer typing races.
-
 </div>
 
----
-
-## 🚀 Features
-
-### 📚 Progressive Lessons
-
-Structured curriculum that introduces keys row by row and advances to words, sentences, symbols, and advanced challenges.
-
-- **Basics** — Home Row, Top Row, Bottom Row, Shift and Caps, All Rows, Common Words
-- **Symbols & Numbers** — Punctuation, Numbers, Developer Symbols
-- **Advanced** — Sentences, Advanced Challenge
-- **Optional** — Adaptive Drill (generated practice)
-
-- **Curriculum unlock** — **90%+ accuracy** to unlock the next lesson.
-- **Practice & Test modes** — Open practice or 60s timed test with WPM penalties.
-- **Custom practice** — Paste text at `/practice/custom`.
-- **Live feedback** — Per-character highlighting, WPM, accuracy, progress bar.
-- **Combo counter** — Current and max correct-key streaks.
-- **Virtual keyboard** — Dvorak layout, finger colors, home-row guides.
-- **Star ratings** — Performance scored per completion.
-
-### 🌐 Real-Time Multiplayer
-
-Authenticated players create or join lobbies and race synchronously.
-
-- **Room creation** — Host picks lesson/text, rules, and modifiers; receives a room code.
-- **Join by code** — Supabase validation before entering the lobby.
-- **Waiting room** — Ready states, player grid, avatars, host controls.
-- **Host panel** — Change lesson, text, and rules between races.
-- **Race sync** — Countdown, shared text, live leaderboard via Realtime.
-- **Ownership transfer** — Host leave → privileges pass to longest-present player.
-- **Room lifecycle** — PostgreSQL registry; close deletes row and frees the code.
-
-**Routes:** `/multiplayer` · `/multiplayer/room?code=XXXXXX`
-
-### 📊 Statistics & Achievements
-
-- **Stats dashboard** (`/stats`) — WPM trends, lesson bests, streak, key-error heatmap.
-- **Achievements** (`/achievements`) — First lesson, 7-day streak, 50 WPM, perfect run, curriculum complete.
-- **Cloud sync** — Sessions, key errors, badges, and preferences via Supabase.
-
-### 🎨 Advanced Customization
-
-- **Language** — English or Spanish (full i18n).
-- **Sound** — Optional keystroke audio.
-- **Blind mode** — Hide virtual keyboard by default.
-- **Finger colors** — Color-code keys by finger.
-- **Highlight theme** — Indigo, emerald, cyan, red, amber, fuchsia accents.
-- **Theme** — Light / dark toggle.
-
-### 💾 Data Management
-
-- **Local-first** — Guest progress in `localStorage` (sessions, streaks, key stats, settings).
-- **Export / Import** — JSON backup from Settings.
-- **Account data** — Signed-in users sync and export local + cloud data.
-
-### ✨ Additional
-
-- **Authentication** — Email, GitHub, Google; custom display name and avatar.
-- **Landing page** — QWERTY vs Dvorak comparison.
-- **PWA** — Manifest + service worker for offline asset caching.
-- **Responsive** — Mobile-friendly typing UI with collapsible keyboard.
+<p align="center">
+  A web application for learning, practicing, and mastering the <strong>Dvorak Simplified Keyboard</strong>
+  through progressive lessons, detailed analytics, and real-time multiplayer typing races.
+</p>
 
 ---
 
-## 🎮 Game Modes & Modifiers
-
-Multiplayer supports multi-select win conditions and optional modifiers via osu!-style **`ModBadge`** panels.
-
-### 🏆 Win Conditions
-
-- **Max Score** *(default)* — Composite score balancing speed, accuracy, and combo.
-- **First to Finish** — First player to complete the text wins.
-- **Highest WPM** — Highest words-per-minute at race end.
-
-**Max Score formula:**
-
-```
-Score = (WPM × 10) × (Accuracy / 100) + (MaxCombo × 5)
-```
-
-Low accuracy reduces the WPM weight; long combos add bonus points. Scores broadcast in real time when Max Score is active.
-
-### ⚡ Modifiers
-
-- **Sudden Death** — One mistake eliminates you from the race.
-- **Blind Mode** — Hides the on-screen keyboard during the race.
-
-**Default match:** Max Score win condition, no modifiers.
-
-Rules are configured in the create-room sidebar and the host setup modal with horizontal badge cards (icon + title + short description).
-
----
-
-## 🛠️ Built With
+## 🛠️ Tech Stack
 
 <div align="center">
 
@@ -122,11 +29,9 @@ Rules are configured in the create-room sidebar and the host setup modal with ho
 
 </div>
 
-<br />
-
-<table width="100%">
+<table>
 <tr>
-<td width="50%" valign="top">
+<td valign="top">
 
 | Layer | Technology |
 | ----- | ---------- |
@@ -137,7 +42,7 @@ Rules are configured in the create-room sidebar and the host setup modal with ho
 | **Deploy** | [Vercel](https://vercel.com/) |
 
 </td>
-<td width="50%" valign="top">
+<td valign="top">
 
 | Tooling | Technology |
 | ------- | ---------- |
@@ -153,10 +58,89 @@ Rules are configured in the create-room sidebar and the host setup modal with ho
 
 ---
 
-<details>
-<summary><b>🔍 View Architecture Details — Multiplayer</b></summary>
+## 🚀 Features
 
-<br />
+### 📚 Progressive Lessons
+
+Structured curriculum that introduces keys row by row and advances to words, sentences, symbols, and advanced challenges.
+
+| Track | Content |
+| ----- | ------- |
+| Basics | Home Row, Top Row, Bottom Row, Shift and Caps, All Rows, Common Words |
+| Symbols & Numbers | Punctuation, Numbers, Developer Symbols |
+| Advanced | Sentences, Advanced Challenge |
+| Optional | Adaptive Drill (generated practice) |
+
+| Capability | Details |
+| ---------- | ------- |
+| Curriculum unlock | **90%+ accuracy** required to unlock the next lesson |
+| Practice & Test | Open practice or 60s timed test with WPM penalties |
+| Custom practice | Paste any text at `/practice/custom` |
+| Live feedback | Per-character highlighting, WPM, accuracy, progress bar |
+| Combo counter | Current and max correct-key streaks |
+| Virtual keyboard | Dvorak layout, finger colors, home-row guides |
+| Star ratings | Performance scored on each completion |
+
+### 🌐 Real-Time Multiplayer
+
+Authenticated players create or join lobbies and race synchronously.
+
+| Feature | Details |
+| ------- | ------- |
+| Routes | `/multiplayer` · `/multiplayer/room?code=XXXXXX` |
+| Room creation | Host picks lesson/text, rules, and modifiers; receives a room code |
+| Join by code | Supabase validation before entering the lobby |
+| Waiting room | Ready states, player grid, avatars, host controls |
+| Host panel | Change lesson, text, and rules between races |
+| Race sync | Countdown, shared text, live leaderboard via Realtime |
+| Ownership transfer | Host leave → privileges pass to longest-present player |
+| Room lifecycle | PostgreSQL registry; close deletes row and frees the code |
+
+---
+
+## 📊 Platform, Settings & Data
+
+| Area | Feature | Details |
+| ---- | ------- | ------- |
+| **Stats** | Dashboard | WPM trends, lesson bests, streak, key-error heatmap at `/stats` |
+| **Stats** | Achievements | First lesson, 7-day streak, 50 WPM, perfect run, curriculum complete |
+| **Stats** | Cloud sync | Sessions, key errors, badges, and preferences via Supabase |
+| **Settings** | Language | English or Spanish (full i18n) |
+| **Settings** | Sound | Optional keystroke audio |
+| **Settings** | Blind mode | Hide virtual keyboard by default |
+| **Settings** | Finger colors | Color-code keys by finger |
+| **Settings** | Highlight theme | Indigo, emerald, cyan, red, amber, fuchsia accents |
+| **Settings** | Theme | Light / dark toggle |
+| **Data** | Local-first | Guest progress in `localStorage` (sessions, streaks, key stats, settings) |
+| **Data** | Export / Import | JSON backup from Settings |
+| **Data** | Account sync | Signed-in users sync and export local + cloud data |
+| **App** | Authentication | Email, GitHub, Google; custom display name and avatar |
+| **App** | Landing page | QWERTY vs Dvorak comparison |
+| **App** | PWA | Manifest + service worker for offline asset caching |
+| **App** | Responsive | Mobile-friendly typing UI with collapsible keyboard |
+
+---
+
+## 🎮 Game Modes & Modifiers
+
+Multiplayer supports multi-select win conditions and optional modifiers via osu!-style **ModBadge** panels. Default match: **Max Score**, no modifiers. Rules are set in the create-room sidebar and the host setup modal.
+
+| Type | Mode | Description |
+| ---- | ---- | ----------- |
+| Win condition | **Max Score** *(default)* | Composite score balancing speed, accuracy, and combo |
+| Win condition | **First to Finish** | First player to complete the text wins |
+| Win condition | **Highest WPM** | Highest words-per-minute at race end |
+| Modifier | **Sudden Death** | One mistake eliminates you from the race |
+| Modifier | **Blind Mode** | Hides the on-screen keyboard during the race |
+
+> **Max Score formula:** `Score = (WPM × 10) × (Accuracy / 100) + (MaxCombo × 5)`
+>
+> Low accuracy reduces the WPM weight; long combos add bonus points. Scores broadcast in real time when Max Score is active.
+
+---
+
+<details>
+<summary><b>🔍 Multiplayer architecture</b></summary>
 
 Multiplayer uses **Supabase Realtime** channels and a lightweight **room registry** in PostgreSQL — no custom WebSocket server.
 
@@ -171,14 +155,12 @@ Host / Players                    Supabase
      |-- closeRoom / DELETE --------->| Row removed; code freed
 ```
 
-| Concept | Details |
-| ------- | ------- |
-| **Presence** | `userId`, display name, avatar, ready flag, finish state. |
-| **Broadcast events** | `room:state`, `room:request_state`, `room:kick`, `room:return_lobby`, `progress`. |
-| **Room registry** | Partial unique index: one **open** room per code. Close = **DELETE** row → code reused instantly. |
-| **Cleanup** | `purge_stale_rooms()` removes legacy closed rows and abandoned open rooms (7-day default). |
-| **Lifecycle** | `beforeunload` + React cleanup → `closeRoom` or host transfer via `fetch` + `keepalive`. |
-| **Collisions** | 6-char codes, 32-char alphabet, DB uniqueness, retry on create. |
+* **Presence** — `userId`, display name, avatar, ready flag, finish state
+* **Broadcast events** — `room:state`, `room:request_state`, `room:kick`, `room:return_lobby`, `progress`
+* **Room registry** — Partial unique index: one open room per code; close = DELETE row
+* **Cleanup** — `purge_stale_rooms()` removes legacy and abandoned rooms (7-day default)
+* **Lifecycle** — `beforeunload` + React cleanup → `closeRoom` or host transfer via `keepalive`
+* **Collisions** — 6-char codes, DB uniqueness, retry on create
 
 </details>
 
@@ -206,12 +188,11 @@ cp .env.example .env
 ```
 
 ```env
-# .env
 PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-> The app runs in **local-only mode** without Supabase (lessons, stats, guest progress). Auth and multiplayer require configuration.
+> Without Supabase, the app runs in local-only mode (lessons, stats, guest progress). Auth and multiplayer require configuration.
 
 ### 4. Supabase migrations
 
@@ -231,8 +212,8 @@ Run in order in the Supabase SQL Editor:
 
 Enable **GitHub** / **Google** under Authentication. Redirect URLs:
 
-- `http://localhost:4321/auth/callback`
-- `https://your-production-domain/auth/callback`
+* Local — `http://localhost:4321/auth/callback`
+* Production — `https://your-production-domain/auth/callback`
 
 ### 5. Start dev server
 
@@ -256,7 +237,7 @@ Open [http://localhost:4321](http://localhost:4321).
 | `npm run lint` | ESLint on `src/` |
 | `npm run format` | Prettier format |
 
-**Background dev (Astro 7):** `astro dev --background` · `astro dev status` · `astro dev logs` · `astro dev stop`
+Background dev (Astro 7): `astro dev --background` · `astro dev status` · `astro dev logs` · `astro dev stop`
 
 </details>
 
@@ -264,7 +245,7 @@ Open [http://localhost:4321](http://localhost:4321).
 
 ## 📁 Project Structure
 
-```
+```text
 src/
 ├── components/
 │   ├── achievements/    # Badge grid and summaries
@@ -300,7 +281,7 @@ public/icons/            # UI and multiplayer rule icons
 3. Set `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 4. Deploy.
 
-**Production:** [https://typing-dvorak.vercel.app](https://typing-dvorak.vercel.app)
+Production: [https://typing-dvorak.vercel.app](https://typing-dvorak.vercel.app)
 
 ---
 
@@ -309,8 +290,6 @@ public/icons/            # UI and multiplayer rule icons
 <div align="center">
 
 **Oliver Olvera** — Full-Stack Developer
-
-<br />
 
 <a href="https://github.com/Oliverx25">
   <img src="https://img.shields.io/badge/GitHub-Oliverx25-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
@@ -321,11 +300,11 @@ public/icons/            # UI and multiplayer rule icons
 
 </div>
 
-<br />
+---
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:a82da8,100:4f46e5&height=120&section=footer&text=Built%20with%20Astro%20%26%20Supabase&fontSize=24&fontColor=fff" alt="Typing Dvorak footer" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:a82da8,100:4f46e5&height=100&section=footer&text=Built%20with%20Astro%20%26%20Supabase&fontSize=22&fontColor=fff" alt="Footer" />
 
 <br />
 
