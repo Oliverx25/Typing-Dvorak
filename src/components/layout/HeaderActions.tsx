@@ -15,80 +15,76 @@ interface HeaderActionsProps {
   variant?: 'app' | 'landing';
 }
 
+function NavLinks({ showMultiplayer }: { showMultiplayer: boolean }) {
+  const { t } = useApp();
+  const onStatsPage = isStatsPage();
+
+  if (onStatsPage) {
+    return (
+      <a href="/lessons" className={headerLinkClassName}>
+        {t.nav.lessons}
+      </a>
+    );
+  }
+
+  return (
+    <>
+      <a href="/stats" className={headerLinkClassName}>
+        {t.nav.stats}
+      </a>
+      {showMultiplayer ? (
+        <a href="/multiplayer" className={headerLinkClassName}>
+          {t.nav.multiplayer}
+        </a>
+      ) : null}
+    </>
+  );
+}
+
 export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
   const { t } = useApp();
   const { user, loading } = useAuth();
-  const onStatsPage = isStatsPage();
-  const isApp = variant === 'app';
+  const isLanding = variant === 'landing';
+  const showNav = !isLanding || Boolean(user);
+  const showMultiplayer = Boolean(user);
 
-  if (isApp) {
+  if (isLanding && !user && !loading) {
     return (
-      <nav className="flex items-center gap-1.5 sm:gap-2" aria-label={t.nav.settings}>
-        <div className="flex items-center gap-1.5">
-          {onStatsPage ? (
-            <a href="/lessons" className={headerLinkClassName}>
-              {t.nav.lessons}
-            </a>
-          ) : (
-            <>
-              <a href="/stats" className={headerLinkClassName}>
-                {t.nav.stats}
-              </a>
-              {user ? (
-                <a href="/multiplayer" className={headerLinkClassName}>
-                  {t.nav.multiplayer}
-                </a>
-              ) : null}
-            </>
-          )}
-          <SettingsPanel />
-          <ThemeToggle />
-        </div>
+      <nav className="flex shrink-0 items-center justify-end" aria-label={t.nav.settings}>
+        <AuthControls variant="landing" />
+      </nav>
+    );
+  }
 
-        {!loading && (
-          <>
-            <div className={headerDividerClassName} aria-hidden="true" />
-            {user ? <UserProfileDropdown /> : <AuthControls variant="app" />}
-          </>
-        )}
+  if (isLanding && !user && loading) {
+    return (
+      <nav className="flex shrink-0 items-center justify-end" aria-label={t.nav.settings}>
+        <div className="h-9 w-24 animate-pulse rounded-lg bg-[var(--color-surface-elevated)]" aria-hidden="true" />
       </nav>
     );
   }
 
   return (
     <nav className="flex shrink-0 items-center justify-end gap-2 sm:gap-3" aria-label={t.nav.settings}>
-      {user && (
+      {showNav && (
         <>
           <div className="flex items-center gap-1.5">
-            {onStatsPage ? (
-              <a href="/lessons" className={headerLinkClassName}>
-                {t.nav.lessons}
-              </a>
-            ) : (
-              <>
-                <a href="/stats" className={headerLinkClassName}>
-                  {t.nav.stats}
-                </a>
-                <a href="/multiplayer" className={headerLinkClassName}>
-                  {t.nav.multiplayer}
-                </a>
-              </>
-            )}
+            <NavLinks showMultiplayer={showMultiplayer} />
           </div>
           <div className={headerDividerClassName} aria-hidden="true" />
-          <div className="flex items-center gap-1.5">
-            <SettingsPanel />
-            <ThemeToggle />
-          </div>
-          <div className={headerDividerClassName} aria-hidden="true" />
-          <UserProfileDropdown />
         </>
       )}
 
-      {!user && !loading && <AuthControls variant="landing" />}
+      <div className="flex items-center gap-1.5">
+        <SettingsPanel />
+        <ThemeToggle />
+      </div>
 
-      {!user && loading && (
-        <div className="h-9 w-24 animate-pulse rounded-lg bg-[var(--color-surface-elevated)]" aria-hidden="true" />
+      {!loading && (
+        <>
+          <div className={headerDividerClassName} aria-hidden="true" />
+          {user ? <UserProfileDropdown /> : <AuthControls variant={variant} />}
+        </>
       )}
     </nav>
   );

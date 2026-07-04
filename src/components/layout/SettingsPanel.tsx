@@ -5,12 +5,14 @@ import { downloadExport, importProgress } from '@/utils/progress/exportImport';
 import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/app/events';
 import { HIGHLIGHT_THEME_IDS, HIGHLIGHT_THEMES, type HighlightThemeId } from '@/utils/app/highlightTheme';
 import { headerIconButtonClassName } from './headerClasses';
+import HeaderMenuPortal from './HeaderMenuPortal';
 
 export default function SettingsPanel() {
   const { t, settings, updateSettings, setLocale } = useApp();
   const [open, setOpen] = useState(false);
   const [importMsg, setImportMsg] = useState<'success' | 'error' | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleImport = (file: File) => {
     const reader = new FileReader();
@@ -29,6 +31,7 @@ export default function SettingsPanel() {
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen(!open)}
         className={headerIconButtonClassName}
@@ -41,12 +44,9 @@ export default function SettingsPanel() {
         </svg>
       </button>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
-          <div className="absolute right-0 z-50 mt-2 w-72 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4 shadow-xl">
-            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">{t.settings.title}</h3>
-            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+      <HeaderMenuPortal open={open} onClose={() => setOpen(false)} anchorRef={buttonRef} menuClassName="p-4">
+        <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">{t.settings.title}</h3>
+        <div className="max-h-[70vh] space-y-4 overflow-y-auto">
               <SettingRow label={t.settings.language}>
                 <div className="flex gap-1">
                   {(['en', 'es'] as Locale[]).map((loc) => (
@@ -132,10 +132,8 @@ export default function SettingsPanel() {
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-        </>
-      )}
+        </div>
+      </HeaderMenuPortal>
     </div>
   );
 }

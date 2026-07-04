@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useApp } from '@/contexts/AppProvider';
 import { getUserDisplay } from '@/utils/user/userDisplay';
 import { Icon } from '@/components/ui';
 import { headerAvatarButtonClassName } from '@/components/layout/headerClasses';
+import HeaderMenuPortal from '@/components/layout/HeaderMenuPortal';
 import EditAvatarModal from './EditAvatarModal';
 
 export default function UserProfileDropdown() {
@@ -12,6 +13,7 @@ export default function UserProfileDropdown() {
   const [open, setOpen] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   if (!user) return null;
 
@@ -32,6 +34,7 @@ export default function UserProfileDropdown() {
     <>
       <div className="relative shrink-0">
         <button
+          ref={buttonRef}
           type="button"
           onClick={() => setOpen((o) => !o)}
           className={headerAvatarButtonClassName}
@@ -54,50 +57,50 @@ export default function UserProfileDropdown() {
           )}
         </button>
 
-        {open && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
-            <div
-              role="menu"
-              className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-xl"
-            >
-              <div className="border-b border-[var(--color-border)] px-4 py-3">
-                <p className="truncate text-sm font-medium text-[var(--color-text)]" title={display.name}>
-                  {display.name}
-                </p>
-              </div>
-              {isConfigured && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={openAvatarModal}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
-                >
-                  <Icon name="camera" size={16} />
-                  {t.auth.changePhoto}
-                </button>
-              )}
-              <a
-                href="/achievements"
-                role="menuitem"
-                onClick={() => setOpen(false)}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
-              >
-                <Icon name="trophy" size={16} />
-                {t.auth.viewAchievements}
-              </a>
+        <HeaderMenuPortal
+          open={open}
+          onClose={() => setOpen(false)}
+          anchorRef={buttonRef}
+          widthClassName="w-56"
+          menuClassName="overflow-hidden p-0"
+        >
+          <div role="menu">
+            <div className="border-b border-[var(--color-border)] px-4 py-3">
+              <p className="truncate text-sm font-medium text-[var(--color-text)]" title={display.name}>
+                {display.name}
+              </p>
+            </div>
+            {isConfigured && (
               <button
                 type="button"
                 role="menuitem"
-                onClick={handleSignOut}
+                onClick={openAvatarModal}
                 className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
               >
-                <Icon name="log-out" size={16} />
-                {t.auth.signOut}
+                <Icon name="camera" size={16} />
+                {t.auth.changePhoto}
               </button>
-            </div>
-          </>
-        )}
+            )}
+            <a
+              href="/achievements"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+            >
+              <Icon name="trophy" size={16} />
+              {t.auth.viewAchievements}
+            </a>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+            >
+              <Icon name="log-out" size={16} />
+              {t.auth.signOut}
+            </button>
+          </div>
+        </HeaderMenuPortal>
       </div>
 
       {avatarModalOpen && (
