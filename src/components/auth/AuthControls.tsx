@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { useApp } from '@/contexts/AppProvider';
 import { signInWithOAuth, type OAuthProvider } from '@/services/supabase/auth';
 import { Icon } from '@/components/ui';
-import { headerIconButtonClassName } from '@/components/layout/headerClasses';
+import { headerIconButtonClassName, headerLinkClassName } from '@/components/layout/headerClasses';
 
 interface OAuthIconButtonProps {
   provider: OAuthProvider;
@@ -48,10 +48,7 @@ export default function AuthControls({ variant = 'app' }: AuthControlsProps) {
 
   if (!isConfigured) {
     return (
-      <a
-        href="/login"
-        className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-      >
+      <a href="/login" className={headerLinkClassName}>
         {t.auth.signIn}
       </a>
     );
@@ -59,28 +56,28 @@ export default function AuthControls({ variant = 'app' }: AuthControlsProps) {
 
   if (variant === 'landing') {
     return (
-      <>
+      <div className="flex items-center gap-1.5">
         <a
           href="/login"
-          className="rounded-lg px-3 py-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)]"
+          className="rounded-lg px-3 py-2 text-sm leading-none text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)]"
         >
           {t.auth.signIn}
         </a>
         <a
           href="/lessons"
-          className="rounded-xl bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white no-underline shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)]"
+          className="inline-flex h-9 items-center rounded-xl bg-[var(--color-accent)] px-4 text-sm font-semibold leading-none text-white no-underline shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)]"
         >
           {t.landing.openApp}
         </a>
-      </>
+      </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex shrink-0 items-center gap-1.5">
       <a
         href="/login"
-        className="hidden rounded-lg px-2 py-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)] sm:inline"
+        className="hidden h-9 items-center px-2 text-sm leading-none text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)] sm:inline-flex"
       >
         {t.auth.signIn}
       </a>

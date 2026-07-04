@@ -20,11 +20,10 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
   const { user, loading } = useAuth();
   const onStatsPage = isStatsPage();
   const isApp = variant === 'app';
-  const showUtilities = isApp || Boolean(user);
 
-  return (
-    <div className="flex items-center gap-1.5 sm:gap-2">
-      {showUtilities && (
+  if (isApp) {
+    return (
+      <nav className="flex items-center gap-1.5 sm:gap-2" aria-label={t.nav.settings}>
         <div className="flex items-center gap-1.5">
           {onStatsPage ? (
             <a href="/lessons" className={headerLinkClassName}>
@@ -38,24 +37,44 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
           <SettingsPanel />
           <ThemeToggle />
         </div>
-      )}
 
-      {!user && !loading && showUtilities && (
-        <div className={headerDividerClassName} aria-hidden="true" />
-      )}
+        {!loading && (
+          <>
+            <div className={headerDividerClassName} aria-hidden="true" />
+            {user ? <UserProfileDropdown /> : <AuthControls variant="app" />}
+          </>
+        )}
+      </nav>
+    );
+  }
 
+  return (
+    <nav className="flex items-center gap-1.5 sm:gap-2" aria-label={t.nav.settings}>
       {user && (
         <>
+          <div className="flex items-center gap-1.5">
+            {onStatsPage ? (
+              <a href="/lessons" className={headerLinkClassName}>
+                {t.nav.lessons}
+              </a>
+            ) : (
+              <a href="/stats" className={headerLinkClassName}>
+                {t.nav.stats}
+              </a>
+            )}
+            <SettingsPanel />
+            <ThemeToggle />
+          </div>
           <div className={headerDividerClassName} aria-hidden="true" />
           <UserProfileDropdown />
         </>
       )}
 
-      {!user && !loading && <AuthControls variant={variant} />}
+      {!user && !loading && <AuthControls variant="landing" />}
 
-      {!user && loading && variant === 'landing' && (
+      {!user && loading && (
         <div className="h-9 w-24 animate-pulse rounded-lg bg-[var(--color-surface-elevated)]" aria-hidden="true" />
       )}
-    </div>
+    </nav>
   );
 }

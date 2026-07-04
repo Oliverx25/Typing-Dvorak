@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useApp } from '@/contexts/AppProvider';
 import { getUserDisplay } from '@/utils/userDisplay';
-import UserAvatar from './UserAvatar';
 import { Icon } from '@/components/ui';
+import { headerAvatarButtonClassName } from '@/components/layout/headerClasses';
 
 export default function UserProfileDropdown() {
   const { user, signOut } = useAuth();
   const { t } = useApp();
   const [open, setOpen] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   if (!user) return null;
 
   const { name, avatarUrl, initials } = getUserDisplay(user);
+  const showImage = avatarUrl && !imageFailed;
 
   const handleSignOut = async () => {
     setOpen(false);
@@ -20,16 +22,26 @@ export default function UserProfileDropdown() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full p-0 ring-2 ring-[var(--color-border)] transition hover:ring-[var(--color-accent)]/50 focus:outline-none focus-visible:ring-[var(--color-accent)]"
+        className={headerAvatarButtonClassName}
         aria-label={name}
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <UserAvatar avatarUrl={avatarUrl} initials={initials} size={36} />
+        {showImage ? (
+          <img
+            src={avatarUrl}
+            alt=""
+            draggable={false}
+            className="absolute inset-0 block size-full object-cover object-center"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <span className="text-xs font-semibold text-[var(--color-accent)]">{initials}</span>
+        )}
       </button>
 
       {open && (
