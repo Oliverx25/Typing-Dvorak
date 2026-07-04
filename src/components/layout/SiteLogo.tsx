@@ -1,4 +1,5 @@
 import { useApp } from '@/contexts/AppProvider';
+import { RoomAwareLink } from '@/components/multiplayer/RoomAwareLink';
 
 export function SiteLogoIcon({ className = 'text-[var(--color-highlight)]' }: { className?: string }) {
   return (
@@ -25,12 +26,12 @@ export default function SiteLogo({ className = '' }: { className?: string }) {
   const { t } = useApp();
 
   return (
-    <a
+    <RoomAwareLink
       href="/"
       className={`flex min-w-0 items-center gap-2 text-lg font-semibold text-[var(--color-text)] no-underline hover:text-[var(--color-highlight)] ${className}`}
     >
       <SiteLogoIcon />
       <span className="truncate">{t.siteName}</span>
-    </a>
+    </RoomAwareLink>
   );
 }

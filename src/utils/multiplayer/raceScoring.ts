@@ -1,10 +1,42 @@
-import type { RaceProgressPayload } from '@/types/multiplayer';
+import { calculateWpm } from '../typing/typing';
+
+/** Minimum typing window before WPM is reported in races. */
+export const RACE_MIN_ELAPSED_MS = 2_000;
+
+/** Minimum correct characters before WPM is reported in races. */
+export const RACE_MIN_CHARS = 8;
+
+export const RACE_COUNTDOWN_SECONDS = 3;
+
+/** Base points per correct keystroke (osu-style). */
+export const RACE_BASE_HIT_SCORE = 100;
 
 /**
- * Max Score formula:
- * Score = (WPM * 10) * (Accuracy / 100) + (MaxCombo * 5)
- *
- * Low accuracy sharply reduces WPM weight; long combos add raw bonus points.
+ * Stable WPM for multiplayer — avoids 12k WPM spikes on the first keypress.
+ */
+export function calculateStableRaceWpm(correctChars: number, elapsedMs: number): number {
+  if (correctChars < RACE_MIN_CHARS || elapsedMs < RACE_MIN_ELAPSED_MS) return 0;
+  return calculateWpm(correctChars, elapsedMs);
+}
+
+/**
+ * Combo multiplier inspired by osu! — grows with streak, capped at 4×.
+ */
+export function comboMultiplier(combo: number): number {
+  const safeCombo = Math.max(0, combo);
+  return 1 + Math.min(safeCombo, 300) * 0.01;
+}
+
+/**
+ * Points earned for one correct keystroke at the current combo and accuracy.
+ */
+export function scoreIncrementForHit(comboAfterHit: number, accuracyPercent: number): number {
+  const accuracyFactor = Math.max(0, Math.min(100, accuracyPercent)) / 100;
+  return Math.round(RACE_BASE_HIT_SCORE * comboMultiplier(comboAfterHit) * accuracyFactor);
+}
+
+/**
+ * @deprecated Use cumulative race score from {@link scoreIncrementForHit}.
  */
 export function calculateMaxScore(
   wpm: number,
@@ -25,11 +57,52 @@ export function formatRaceScore(score: number): string {
 
 /** Score and WPM only increase during a race — never decrease mid-run. */
 export function mergePeakRaceProgress(
-  previous: Pick<RaceProgressPayload, 'wpm' | 'score'> | undefined,
-  incoming: Pick<RaceProgressPayload, 'wpm' | 'score'>,
-): Pick<RaceProgressPayload, 'wpm' | 'score'> {
+  previous: { wpm: number; score: number } | undefined,
+  incoming: { wpm: number; score: number },
+): { wpm: number; score: number } {
   return {
     wpm: Math.max(previous?.wpm ?? 0, incoming.wpm),
     score: Math.max(previous?.score ?? 0, incoming.score),
   };
+}
+
+/** Letter grade from accuracy for results screen. */
+export function accuracyGrade(accuracy: number): string {
+  if (accuracy >= 99.5) return 'SS';
+  if (accuracy >= 98) return 'S';
+  if (accuracy >= 95) return 'A';
+  if (accuracy >= 90) return 'B';
+  if (accuracy >= 80) return 'C';
+  return 'D';
+}
+
+export function gradeAccent(grade: string): string {
+  switch (grade) {
+    case 'SS':
+      return 'from-fuchsia-400 via-pink-400 to-rose-400';
+    case 'S':
+      return 'from-emerald-400 via-teal-400 to-cyan-400';
+    case 'A':
+      return 'from-lime-400 via-green-400 to-emerald-400';
+    case 'B':
+      return 'from-amber-400 via-yellow-400 to-orange-400';
+    default:
+      return 'from-slate-400 via-zinc-400 to-neutral-400';
+  }
+}
+
+/** Clamp countdown to the expected pre-race window. */
+export function resolveRaceCountdownSeconds(raceStartedAt: number, now = Date.now()): {
+  countdownSeconds: number | null;
+  raceActive: boolean;
+} {
+  const raw = Math.ceil((raceStartedAt - now) / 1000);
+
+  if (raw > RACE_COUNTDOWN_SECONDS) {
+    return { countdownSeconds: RACE_COUNTDOWN_SECONDS, raceActive: false };
+  }
+  if (raw > 0) {
+    return { countdownSeconds: raw, raceActive: false };
+  }
+  return { countdownSeconds: null, raceActive: true };
 }

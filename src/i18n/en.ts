@@ -440,6 +440,7 @@ export const en = {
     waitingForOthersDetail: 'Waiting for {count} connected player(s) to finish.',
     waitingForOthersSync: 'Syncing results…',
     raceCombo: 'combo',
+    maxComboLabel: 'Max combo',
     raceResultsTitle: 'Race results',
     raceResultsSwipe: 'Swipe to see other placements',
     raceWinner: 'Winner',

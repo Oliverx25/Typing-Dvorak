@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { charToKeyCode } from '../utils/keyboard/dvorak';
 import {
   buildStats,
+  calculateAccuracy,
   pickRandomText,
   TEST_DURATION_SECONDS,
   type TypingStats,
@@ -12,6 +13,10 @@ import { getSessionWeakKeys, recordKeystroke } from '../utils/stats/keyStats';
 import { playCompleteSound, playCorrectSound, playIncorrectSound } from '../utils/typing/sound';
 import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '../utils/app/events';
 import { checkAndUnlockBadges } from '../utils/achievements/badges';
+import {
+  calculateStableRaceWpm,
+  scoreIncrementForHit,
+} from '../utils/multiplayer/raceScoring';
 import type { PracticeMode } from '../utils/app/settings';
 import type { Lesson } from '../utils/curriculum/lessons';
 import { getLessonText } from '../utils/curriculum/lessons';
@@ -27,6 +32,8 @@ interface UseTypingSessionOptions {
   sound: boolean;
   locale?: Locale;
   customText?: string;
+  /** Multiplayer race: stable WPM + osu-style cumulative score. */
+  raceMode?: boolean;
 }
 
 function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string): string {
@@ -48,6 +55,7 @@ export function useTypingSession({
   sound,
   locale = 'en',
   customText,
+  raceMode = false,
 }: UseTypingSessionOptions) {
   const isTestMode = mode === 'test';
 
@@ -76,6 +84,7 @@ export function useTypingSession({
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [comboBroke, setComboBroke] = useState(false);
+  const [raceScore, setRaceScore] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const sessionMissesRef = useRef<Record<string, number>>({});
@@ -84,12 +93,20 @@ export function useTypingSession({
 
   const correctChars = statuses.filter((s) => s === 'correct').length;
   const incorrectChars = statuses.filter((s) => s === 'incorrect').length;
-  const liveStats = buildStats(
-    correctChars,
-    isTestMode ? errorKeystrokes : incorrectChars,
-    elapsedMs || 1,
-    isTestMode,
-  );
+  const liveStats = raceMode
+    ? {
+        wpm: calculateStableRaceWpm(correctChars, elapsedMs),
+        accuracy: calculateAccuracy(correctChars, incorrectChars),
+        correctChars,
+        incorrectChars,
+        elapsedSeconds: Math.round(elapsedMs / 1000),
+      }
+    : buildStats(
+        correctChars,
+        isTestMode ? errorKeystrokes : incorrectChars,
+        elapsedMs || 1,
+        isTestMode,
+      );
   const stats = finished && finalStats ? finalStats : liveStats;
 
   const progress = isTestMode
@@ -165,6 +182,7 @@ export function useTypingSession({
     setCombo(0);
     setMaxCombo(0);
     setComboBroke(false);
+    setRaceScore(0);
     requestAnimationFrame(() => containerRef.current?.focus());
   }, [isTestMode, lesson, locale, customText]);
 
@@ -264,6 +282,11 @@ export function useTypingSession({
     });
 
     recordKeystroke(e.key, isCorrect);
+    const nextCorrect = isCorrect ? correctChars + 1 : correctChars;
+    const nextIncorrect = isCorrect ? incorrectChars : incorrectChars + 1;
+    const nextCombo = isCorrect ? combo + 1 : 0;
+    const nextAccuracy = calculateAccuracy(nextCorrect, nextIncorrect);
+
     if (isCorrect) {
       setComboBroke(false);
       setCombo((prev) => {
@@ -271,6 +294,9 @@ export function useTypingSession({
         setMaxCombo((max) => (next > max ? next : max));
         return next;
       });
+      if (raceMode) {
+        setRaceScore((prev) => prev + scoreIncrementForHit(nextCombo, nextAccuracy));
+      }
     } else {
       setErrorKeystrokes((n) => n + 1);
       sessionMissesRef.current[e.key] = (sessionMissesRef.current[e.key] ?? 0) + 1;
@@ -324,6 +350,7 @@ export function useTypingSession({
     combo,
     maxCombo,
     comboBroke,
+    raceScore,
     clearComboBroke: () => setComboBroke(false),
     containerRef,
     retryButtonRef,

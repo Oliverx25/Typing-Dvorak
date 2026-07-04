@@ -16,6 +16,7 @@ import {
 import { clearCreateRoomConfig, readCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
 import { parsePresenceState } from '@/utils/multiplayer/presence';
 import { canAdvanceToResults } from '@/utils/multiplayer/raceCompletion';
+import { resolveRaceCountdownSeconds } from '@/utils/multiplayer/raceScoring';
 
 const MAX_CONNECT_RETRIES = 10;
 const RETRY_DELAYS_MS = [800, 1200, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 12000];
@@ -242,20 +243,25 @@ export function useMultiplayerLobby({
     }
 
     const tick = () => {
-      const remaining = Math.ceil((startedAt - Date.now()) / 1000);
-      if (remaining > 0) {
-        setCountdownSeconds(remaining);
-        setRaceActive(false);
-      } else {
-        setCountdownSeconds(null);
-        setRaceActive(true);
-      }
+      const { countdownSeconds: nextCountdown, raceActive: nextActive } =
+        resolveRaceCountdownSeconds(startedAt);
+      setCountdownSeconds(nextCountdown);
+      setRaceActive(nextActive);
     };
 
     tick();
     const interval = window.setInterval(tick, 100);
     return () => window.clearInterval(interval);
   }, [roomState?.phase, roomState?.raceStartedAt]);
+
+  useEffect(() => {
+    const onPageHide = () => {
+      const ch = channelRef.current;
+      if (ch) void ch.untrack();
+    };
+    window.addEventListener('pagehide', onPageHide);
+    return () => window.removeEventListener('pagehide', onPageHide);
+  }, []);
 
   useEffect(() => {
     if (!user || !roomId) {
@@ -547,6 +553,7 @@ export function useMultiplayerLobby({
     if (!activeChannel || !supabase) return;
 
     await activeChannel.untrack();
+    await new Promise((resolve) => window.setTimeout(resolve, 120));
     supabase.removeChannel(activeChannel);
     channelRef.current = null;
     presenceRef.current = null;

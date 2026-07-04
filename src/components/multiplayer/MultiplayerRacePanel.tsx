@@ -25,7 +25,6 @@ interface MultiplayerRacePanelProps {
   isOwner: boolean;
   onRaceFinish: () => void;
   onReturnToLobby: () => void;
-  onLeave: () => void;
 }
 
 const EMPTY_PROGRESS: LocalRaceProgress = {
@@ -50,7 +49,6 @@ export default function MultiplayerRacePanel({
   isOwner,
   onRaceFinish,
   onReturnToLobby,
-  onLeave,
 }: MultiplayerRacePanelProps) {
   const { t, locale } = useApp();
   const [localProgress, setLocalProgress] = useState<LocalRaceProgress>(EMPTY_PROGRESS);
@@ -142,17 +140,18 @@ export default function MultiplayerRacePanel({
         primaryVictory={primaryVictory}
         isOwner={isOwner}
         title={t.multiplayer.raceResultsTitle}
-        subtitle={t.multiplayer.raceResultsSwipe}
         youLabel={t.multiplayer.you}
         winnerLabel={t.multiplayer.raceWinner}
         wpmLabel={t.stats.wpm}
         accuracyLabel={t.stats.accuracy}
         comboLabel={t.multiplayer.raceCombo}
         scoreLabel={t.multiplayer.raceScore}
+        maxComboLabel={t.multiplayer.maxComboLabel}
         finishedLabel={t.multiplayer.raceFinished}
         returnToLobbyLabel={t.multiplayer.returnToWaitingRoom}
         waitingForHostLabel={t.multiplayer.waitingForHostReturn}
         swipeHint={t.multiplayer.raceResultsSwipe}
+        leaveLabel={t.multiplayer.leaveRoom}
         onReturnToLobby={onReturnToLobby}
       />
     );
@@ -183,6 +182,7 @@ export default function MultiplayerRacePanel({
           blindModeOverride={roomState.blindMode}
           hideModeToggle
           hideCompletionPanel
+          raceMode
           onProgressChange={handleProgressChange}
           ariaLabel={lessonTitle}
         />
@@ -214,7 +214,6 @@ export default function MultiplayerRacePanel({
           scoreLabel={t.multiplayer.raceScore}
           comboLabel={t.multiplayer.raceCombo}
           leaveLabel={t.multiplayer.leaveRoom}
-          onLeave={onLeave}
         />
       </div>
     </div>

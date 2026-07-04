@@ -31,6 +31,7 @@ interface TypingTestProps {
   hideModeToggle?: boolean;
   hideCompletionPanel?: boolean;
   ariaLabel?: string;
+  raceMode?: boolean;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
 }
 
@@ -43,6 +44,7 @@ export default function TypingTest({
   hideModeToggle = false,
   hideCompletionPanel = false,
   ariaLabel,
+  raceMode = false,
   onProgressChange,
 }: TypingTestProps) {
   const { t, settings } = useApp();
@@ -58,6 +60,7 @@ export default function TypingTest({
     sound: settings.sound,
     locale: settings.locale,
     customText,
+    raceMode,
   });
 
   const {
@@ -79,6 +82,7 @@ export default function TypingTest({
     combo,
     maxCombo,
     comboBroke,
+    raceScore,
     clearComboBroke,
     containerRef,
     retryButtonRef,
@@ -100,13 +104,17 @@ export default function TypingTest({
   useEffect(() => {
     if (!onProgressChange || !started || paused) return;
 
+    const score = raceMode
+      ? raceScore
+      : calculateMaxScore(stats.wpm, stats.accuracy, maxCombo);
+
     const update: TypingProgressUpdate = {
       wpm: stats.wpm,
       percentage: progress,
       accuracy: stats.accuracy,
       maxCombo,
       combo,
-      score: calculateMaxScore(stats.wpm, stats.accuracy, maxCombo),
+      score,
     };
 
     onProgressChange(update, finished);
@@ -119,7 +127,9 @@ export default function TypingTest({
         accuracy: stats.accuracy,
         maxCombo,
         combo,
-        score: calculateMaxScore(stats.wpm, stats.accuracy, maxCombo),
+        score: raceMode
+          ? raceScore
+          : calculateMaxScore(stats.wpm, stats.accuracy, maxCombo),
       });
     }, 500);
 
@@ -133,6 +143,8 @@ export default function TypingTest({
     stats.accuracy,
     maxCombo,
     combo,
+    raceScore,
+    raceMode,
     progress,
   ]);
 

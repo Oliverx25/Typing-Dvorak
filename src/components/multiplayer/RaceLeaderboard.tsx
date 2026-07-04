@@ -1,5 +1,5 @@
 import UserAvatar from '@/components/auth/UserAvatar';
-import { Button } from '@/components/ui';
+import LeaveRoomButton from '@/components/multiplayer/LeaveRoomControls';
 import { formatRaceScore } from '@/utils/multiplayer/raceScoring';
 import type { WinCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
@@ -14,7 +14,6 @@ interface RaceLeaderboardProps {
   scoreLabel: string;
   comboLabel: string;
   leaveLabel: string;
-  onLeave: () => void;
 }
 
 function rankStyle(index: number): string {
@@ -33,7 +32,6 @@ export default function RaceLeaderboard({
   scoreLabel,
   comboLabel,
   leaveLabel,
-  onLeave,
 }: RaceLeaderboardProps) {
   const showScore = primaryVictory === 'max_score';
 
@@ -113,9 +111,9 @@ export default function RaceLeaderboard({
 
       <div className="border-t border-[var(--color-border)] p-3">
         <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={onLeave}>
+          <LeaveRoomButton variant="ghost" size="sm">
             {leaveLabel}
-          </Button>
+          </LeaveRoomButton>
         </div>
       </div>
     </aside>

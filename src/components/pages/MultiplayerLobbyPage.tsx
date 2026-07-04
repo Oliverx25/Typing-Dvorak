@@ -9,14 +9,7 @@ import { fetchRoomByCode, isRoomJoinable } from '@/services/supabase/rooms';
 import { readRoomCodeFromSearch } from '@/utils/multiplayer/roomCode';
 
 function LobbyContent({ roomId }: { roomId: string }) {
-  const { t } = useApp();
-
-  return (
-    <>
-      <BackLink href="/multiplayer" label={t.multiplayer.backToLobby} />
-      <LobbyView roomId={roomId} />
-    </>
-  );
+  return <LobbyView roomId={roomId} />;
 }
 
 function InvalidRoomContent() {

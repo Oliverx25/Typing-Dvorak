@@ -5,6 +5,7 @@ import SettingsPanel from './SettingsPanel';
 import AuthControls from '@/components/auth/AuthControls';
 import UserProfileDropdown from '@/components/auth/UserProfileDropdown';
 import { headerDividerClassName, headerLinkClassName } from './headerClasses';
+import { RoomAwareLink } from '@/components/multiplayer/RoomAwareLink';
 
 function isStatsPage(): boolean {
   if (typeof window === 'undefined') return false;
@@ -21,21 +22,21 @@ function NavLinks({ showMultiplayer }: { showMultiplayer: boolean }) {
 
   if (onStatsPage) {
     return (
-      <a href="/lessons" className={headerLinkClassName}>
+      <RoomAwareLink href="/lessons" className={headerLinkClassName}>
         {t.nav.lessons}
-      </a>
+      </RoomAwareLink>
     );
   }
 
   return (
     <>
-      <a href="/stats" className={headerLinkClassName}>
+      <RoomAwareLink href="/stats" className={headerLinkClassName}>
         {t.nav.stats}
-      </a>
+      </RoomAwareLink>
       {showMultiplayer ? (
-        <a href="/multiplayer" className={headerLinkClassName}>
+        <RoomAwareLink href="/multiplayer" className={headerLinkClassName}>
           {t.nav.multiplayer}
-        </a>
+        </RoomAwareLink>
       ) : null}
     </>
   );

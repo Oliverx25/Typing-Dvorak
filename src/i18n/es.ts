@@ -442,6 +442,7 @@ export const es: TranslationKey = {
     waitingForOthersDetail: 'Esperando a {count} jugador(es) conectado(s).',
     waitingForOthersSync: 'Sincronizando resultados…',
     raceCombo: 'combo',
+    maxComboLabel: 'Combo máx.',
     raceResultsTitle: 'Resultados de la carrera',
     raceResultsSwipe: 'Desliza para ver el resto de posiciones',
     raceWinner: 'Ganador',

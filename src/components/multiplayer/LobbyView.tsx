@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useMultiplayerLobby } from '@/hooks/useMultiplayerLobby';
 import { useRoomLifecycle } from '@/hooks/useRoomLifecycle';
 import { Button, Card } from '@/components/ui';
+import LeaveRoomButton from '@/components/multiplayer/LeaveRoomControls';
+import { RoomBackLink } from '@/components/multiplayer/RoomAwareLink';
 import LobbyPlayerGrid from '@/components/multiplayer/LobbyPlayerGrid';
 import MatchInfoCard from '@/components/multiplayer/MatchInfoCard';
 import MultiplayerRacePanel from '@/components/multiplayer/MultiplayerRacePanel';
 import RoomSetupModal from '@/components/multiplayer/RoomSetupModal';
 import { roomUrl } from '@/utils/multiplayer/roomCode';
+import { registerRoomExitHandler } from '@/utils/multiplayer/roomExit';
 
 interface LobbyViewProps {
   roomId: string;
@@ -53,6 +56,16 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
     getConnectedPlayers,
   });
 
+  const disconnectFromRoom = useCallback(async () => {
+    if (isOwner) await closeAsHost();
+    await leaveLobby();
+  }, [closeAsHost, isOwner, leaveLobby]);
+
+  useEffect(() => {
+    registerRoomExitHandler(disconnectFromRoom);
+    return () => registerRoomExitHandler(null);
+  }, [disconnectFromRoom]);
+
   useEffect(() => {
     roomEventHandlerRef.current = (event) => {
       if (event === 'kicked') {
@@ -65,12 +78,6 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
       roomEventHandlerRef.current = null;
     };
   }, [leaveLobby, roomEventHandlerRef]);
-
-  const handleLeave = async () => {
-    if (isOwner) await closeAsHost();
-    await leaveLobby();
-    window.location.href = '/multiplayer';
-  };
 
   const handleToggleReady = async () => {
     if (!isConnected || readyLoading) return;
@@ -139,6 +146,8 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
 
   return (
     <div className="space-y-6">
+      <RoomBackLink label={t.multiplayer.backToLobby} />
+
       {inLobby ? (
         <>
           <header>
@@ -226,9 +235,9 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
 
           <div className="sticky bottom-0 z-10 -mx-4 border-t border-[var(--color-border)] bg-[var(--color-surface)]/95 px-4 py-4 backdrop-blur-sm sm:-mx-0 sm:rounded-2xl sm:border sm:px-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <Button variant="ghost" onClick={() => void handleLeave()}>
+              <LeaveRoomButton variant="ghost" size="lg">
                 {t.multiplayer.leaveRoom}
-              </Button>
+              </LeaveRoomButton>
 
               <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
                 {isOwner && allReady ? (
@@ -282,7 +291,6 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
           isOwner={isOwner}
           onRaceFinish={() => void markRaceFinished()}
           onReturnToLobby={() => void returnToLobbyAfterResults()}
-          onLeave={() => void handleLeave()}
         />
       ) : null}
     </div>
