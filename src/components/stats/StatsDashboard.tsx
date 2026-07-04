@@ -35,15 +35,10 @@ export default function StatsDashboard() {
 
       <KeyHeatmap />
 
-      <Card
-        title={t.stats.byLesson}
-        padding="none"
-        headerClassName="px-6 pt-6"
-        className="overflow-hidden"
-      >
+      <Card title={t.stats.byLesson} padding="lg" bleed>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[var(--color-border)]">
+            <tr className="border-y border-[var(--color-border)]">
               <th className="px-6 py-3 text-left font-medium text-[var(--color-text-muted)]">{t.stats.lesson}</th>
               <th className="px-6 py-3 text-right font-medium text-[var(--color-text-muted)]">{t.stats.wpm}</th>
             </tr>
