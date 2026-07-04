@@ -1,5 +1,5 @@
 import { useApp } from '@/contexts/AppProvider';
-import RuleBadgeButton from '@/components/multiplayer/RuleBadgeButton';
+import ModBadge from '@/components/multiplayer/ModBadge';
 import {
   BLIND_MODE_ICON,
   MODIFIER_WIN_CONDITIONS,
@@ -51,19 +51,24 @@ export default function MatchRulesPanel({
     onChange({ winConditions: normalizeWinConditions(next) });
   };
 
+  const victoryDescription = (condition: WinCondition) => {
+    const base = t.multiplayer[winDescKeys[condition]];
+    return `${base} ${t.multiplayer.maxComboTieBreaker}`;
+  };
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col gap-5">
       <section>
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           {t.multiplayer.winCondition}
         </p>
-        <div className="flex flex-row flex-wrap gap-2">
+        <div className="flex flex-col gap-2">
           {VICTORY_CONDITIONS.map((condition) => (
-            <RuleBadgeButton
+            <ModBadge
               key={condition}
               icon={WIN_CONDITION_ICONS[condition]}
-              label={t.multiplayer[winLabelKeys[condition]]}
-              description={t.multiplayer[winDescKeys[condition]]}
+              title={t.multiplayer[winLabelKeys[condition]]}
+              description={victoryDescription(condition)}
               isActive={selected.includes(condition)}
               disabled={disabled}
               onClick={() => toggleWinCondition(condition)}
@@ -72,25 +77,25 @@ export default function MatchRulesPanel({
         </div>
       </section>
 
-      <section className="mt-5">
+      <section>
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           {t.multiplayer.modifiers}
         </p>
-        <div className="flex flex-row flex-wrap gap-2">
+        <div className="flex flex-col gap-2">
           {MODIFIER_WIN_CONDITIONS.map((condition) => (
-            <RuleBadgeButton
+            <ModBadge
               key={condition}
               icon={WIN_CONDITION_ICONS[condition]}
-              label={t.multiplayer[winLabelKeys[condition]]}
+              title={t.multiplayer[winLabelKeys[condition]]}
               description={t.multiplayer[winDescKeys[condition]]}
               isActive={selected.includes(condition)}
               disabled={disabled}
               onClick={() => toggleWinCondition(condition)}
             />
           ))}
-          <RuleBadgeButton
+          <ModBadge
             icon={BLIND_MODE_ICON}
-            label={t.multiplayer.blindModeMod}
+            title={t.multiplayer.blindModeMod}
             description={t.multiplayer.blindModeModDesc}
             isActive={blindMode}
             disabled={disabled}
@@ -98,10 +103,6 @@ export default function MatchRulesPanel({
           />
         </div>
       </section>
-
-      <p className="mt-auto pt-5 text-xs leading-relaxed text-[var(--color-text-muted)]">
-        {t.multiplayer.maxComboTieBreaker}
-      </p>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useMultiplayerLobby } from '@/hooks/useMultiplayerLobby';
+import { useRoomLifecycle } from '@/hooks/useRoomLifecycle';
 import { Button, Card } from '@/components/ui';
 import LobbyPlayerGrid from '@/components/multiplayer/LobbyPlayerGrid';
 import LobbyPlayerList from '@/components/multiplayer/LobbyPlayerList';
@@ -44,6 +45,13 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
     roomEventHandlerRef,
   } = useMultiplayerLobby({ roomId, minPlayers: 2, connectAttempt });
 
+  const { closeAsHost } = useRoomLifecycle({
+    roomId,
+    userId: currentUserId,
+    isOwner,
+    players,
+  });
+
   useEffect(() => {
     roomEventHandlerRef.current = (event) => {
       if (event === 'kicked') {
@@ -58,6 +66,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
   }, [leaveLobby, roomEventHandlerRef]);
 
   const handleLeave = async () => {
+    if (isOwner) await closeAsHost();
     await leaveLobby();
     window.location.href = '/multiplayer';
   };

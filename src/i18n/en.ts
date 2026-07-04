@@ -386,6 +386,8 @@ export const en = {
     close: 'Close',
     joinRoomDesc: 'Enter the code shared by the host.',
     joinRoomAction: 'Join',
+    validatingRoom: 'Checking room…',
+    creatingRoom: 'Creating room…',
     roomCode: 'Room code',
     roomCodePlaceholder: 'ABC123',
     currentMatch: 'Current match',

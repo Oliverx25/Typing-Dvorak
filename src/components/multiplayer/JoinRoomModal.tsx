@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { Button } from '@/components/ui';
+import { isSupabaseConfigured } from '@/lib/supabaseClient';
+import { fetchRoomByCode, isRoomJoinable } from '@/services/supabase/rooms';
 import { normalizeRoomCode } from '@/utils/multiplayer/roomCode';
 
 interface JoinRoomModalProps {
@@ -14,6 +16,8 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [code, setCode] = useState('');
   const [shaking, setShaking] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [validating, setValidating] = useState(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -23,6 +27,7 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
       dialog.showModal();
       setCode('');
       setShaking(false);
+      setJoinError(null);
     } else if (!open && dialog.open) {
       dialog.close();
     }
@@ -35,12 +40,30 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
     requestAnimationFrame(() => setShaking(true));
   };
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!isValid) {
       triggerShake();
       return;
     }
-    onJoin(normalizeRoomCode(code));
+
+    const normalized = normalizeRoomCode(code);
+    setJoinError(null);
+
+    if (isSupabaseConfigured()) {
+      setValidating(true);
+      try {
+        const room = await fetchRoomByCode(normalized);
+        if (!isRoomJoinable(room)) {
+          setJoinError(t.multiplayer.invalidRoomCode);
+          triggerShake();
+          return;
+        }
+      } finally {
+        setValidating(false);
+      }
+    }
+
+    onJoin(normalized);
   };
 
   return (
@@ -87,33 +110,42 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
         className="space-y-5 px-6 py-5"
         onSubmit={(event) => {
           event.preventDefault();
-          handleJoin();
+          void handleJoin();
         }}
       >
-        <input
-          type="text"
-          value={code}
-          autoFocus
-          onChange={(event) => {
-            setCode(normalizeRoomCode(event.target.value));
-            if (shaking) setShaking(false);
-          }}
-          onAnimationEnd={() => setShaking(false)}
-          placeholder={t.multiplayer.roomCodePlaceholder}
-          aria-label={t.multiplayer.roomCode}
-          aria-invalid={shaking}
-          className={[
-            'w-full rounded-xl border bg-[var(--color-surface)] px-4 py-3.5 text-center font-mono text-xl tracking-[0.25em] text-[var(--color-text)] uppercase outline-none transition-all duration-300 focus:ring-2',
-            shaking
-              ? 'shake border-[var(--color-incorrect)] focus:border-[var(--color-incorrect)] focus:ring-[var(--color-incorrect)]/20'
-              : 'border-[var(--color-border)] focus:border-[var(--color-highlight)] focus:ring-[var(--color-highlight)]/20',
-          ].join(' ')}
-          maxLength={8}
-          autoComplete="off"
-          spellCheck={false}
-        />
-        <Button type="submit" disabled={!isValid} fullWidth>
-          {t.multiplayer.joinRoomAction}
+        <div>
+          <input
+            type="text"
+            value={code}
+            autoFocus
+            onChange={(event) => {
+              setCode(normalizeRoomCode(event.target.value));
+              if (shaking) setShaking(false);
+              if (joinError) setJoinError(null);
+            }}
+            onAnimationEnd={() => setShaking(false)}
+            placeholder={t.multiplayer.roomCodePlaceholder}
+            aria-label={t.multiplayer.roomCode}
+            aria-invalid={Boolean(joinError) || shaking}
+            aria-describedby={joinError ? 'join-room-error' : undefined}
+            className={[
+              'w-full rounded-xl border bg-[var(--color-surface)] px-4 py-3.5 text-center font-mono text-xl tracking-[0.25em] text-[var(--color-text)] uppercase outline-none transition-all duration-300 focus:ring-2',
+              shaking || joinError
+                ? 'shake border-[var(--color-incorrect)] focus:border-[var(--color-incorrect)] focus:ring-[var(--color-incorrect)]/20'
+                : 'border-[var(--color-border)] focus:border-[var(--color-highlight)] focus:ring-[var(--color-highlight)]/20',
+            ].join(' ')}
+            maxLength={8}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          {joinError ? (
+            <p id="join-room-error" className="mt-2 text-center text-xs text-[var(--color-incorrect)]">
+              {joinError}
+            </p>
+          ) : null}
+        </div>
+        <Button type="submit" disabled={!isValid || validating} fullWidth>
+          {validating ? t.multiplayer.validatingRoom : t.multiplayer.joinRoomAction}
         </Button>
       </form>
     </dialog>

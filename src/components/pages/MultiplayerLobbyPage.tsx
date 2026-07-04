@@ -4,6 +4,8 @@ import BackLink from '@/components/layout/BackLink';
 import LobbyView from '@/components/multiplayer/LobbyView';
 import { useApp } from '@/contexts/AppProvider';
 import { Card } from '@/components/ui';
+import { isSupabaseConfigured } from '@/lib/supabaseClient';
+import { fetchRoomByCode, isRoomJoinable } from '@/services/supabase/rooms';
 import { readRoomCodeFromSearch } from '@/utils/multiplayer/roomCode';
 
 function LobbyContent({ roomId }: { roomId: string }) {
@@ -45,11 +47,45 @@ function InvalidRoomContent() {
 export default function MultiplayerLobbyPage() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [roomValid, setRoomValid] = useState(true);
 
   useEffect(() => {
-    const code = readRoomCodeFromSearch(window.location.search);
-    setRoomId(code.length >= 4 ? code : null);
-    setReady(true);
+    let cancelled = false;
+
+    const validate = async () => {
+      const code = readRoomCodeFromSearch(window.location.search);
+      if (code.length < 4) {
+        if (!cancelled) {
+          setRoomId(null);
+          setRoomValid(false);
+          setReady(true);
+        }
+        return;
+      }
+
+      if (isSupabaseConfigured()) {
+        const room = await fetchRoomByCode(code);
+        if (!isRoomJoinable(room)) {
+          if (!cancelled) {
+            setRoomValid(false);
+            setReady(true);
+            window.location.replace('/multiplayer');
+          }
+          return;
+        }
+      }
+
+      if (!cancelled) {
+        setRoomId(code);
+        setRoomValid(true);
+        setReady(true);
+      }
+    };
+
+    void validate();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -58,7 +94,7 @@ export default function MultiplayerLobbyPage() {
         <div className="flex min-h-[40vh] items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]" />
         </div>
-      ) : roomId ? (
+      ) : roomId && roomValid ? (
         <LobbyContent roomId={roomId} />
       ) : (
         <InvalidRoomContent />

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
+import { ensureRoomExists, transferRoomHost } from '@/services/supabase/rooms';
 import { getMultiplayerPresenceDisplay } from '@/utils/user/multiplayerPrivacy';
 import type { AvatarSource } from '@/utils/user/userDisplay';
 import type {
@@ -151,6 +152,7 @@ export function useMultiplayerLobby({
       next.blindMode = createConfig.blindMode;
       next.winConditions = createConfig.winConditions;
       clearCreateRoomConfig(roomId);
+      await ensureRoomExists(roomId, user.id);
     }
 
     applyRoomState(next);
@@ -175,8 +177,9 @@ export function useMultiplayerLobby({
       };
       applyRoomState(transferred);
       void broadcastRoomState(transferred);
+      void transferRoomHost(roomId, user.id);
     },
-    [applyRoomState, broadcastRoomState, user?.id],
+    [applyRoomState, broadcastRoomState, roomId, user?.id],
   );
 
   const syncPlayers = useCallback(

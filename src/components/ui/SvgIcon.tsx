@@ -35,7 +35,10 @@ export default function SvgIcon({ src, size = 20, className = '' }: SvgIconProps
       <span
         role="img"
         aria-hidden="true"
-        className={['inline-flex shrink-0', className].join(' ')}
+        className={[
+          'inline-flex shrink-0 items-center justify-center [&>svg]:block [&>svg]:h-full [&>svg]:w-full',
+          className,
+        ].join(' ')}
         style={style}
         dangerouslySetInnerHTML={{ __html: markup }}
       />
@@ -45,7 +48,7 @@ export default function SvgIcon({ src, size = 20, className = '' }: SvgIconProps
   return (
     <span
       aria-hidden="true"
-      className={['inline-block shrink-0', className].join(' ')}
+      className={['inline-flex shrink-0 items-center justify-center', className].join(' ')}
       style={style}
     />
   );

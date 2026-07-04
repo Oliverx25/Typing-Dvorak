@@ -68,6 +68,22 @@ export type Database = {
         };
         Update: Partial<Database['public']['Tables']['user_badges']['Insert']>;
       };
+      rooms: {
+        Row: {
+          id: string;
+          code: string;
+          host_id: string;
+          status: 'open' | 'closed' | 'inactive';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          code: string;
+          host_id: string;
+          status?: 'open' | 'closed' | 'inactive';
+        };
+        Update: Partial<Database['public']['Tables']['rooms']['Insert']>;
+      };
     };
   };
 };

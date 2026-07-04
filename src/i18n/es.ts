@@ -388,6 +388,8 @@ export const es: TranslationKey = {
     close: 'Cerrar',
     joinRoomDesc: 'Introduce el código que te compartió el anfitrión.',
     joinRoomAction: 'Unirse',
+    validatingRoom: 'Comprobando sala…',
+    creatingRoom: 'Creando sala…',
     roomCode: 'Código de sala',
     roomCodePlaceholder: 'ABC123',
     currentMatch: 'Partida actual',

@@ -2,19 +2,23 @@ import { useState } from 'react';
 import AppShell from '@/components/layout/AppShell';
 import BackLink from '@/components/layout/BackLink';
 import { useApp } from '@/contexts/AppProvider';
+import { useAuth } from '@/contexts/AuthProvider';
 import CreateRoomSettings, {
   isCustomTextValid,
   type CreateRoomSettingsValue,
 } from '@/components/multiplayer/CreateRoomSettings';
 import JoinRoomModal from '@/components/multiplayer/JoinRoomModal';
 import { Button, Card, SvgIcon } from '@/components/ui';
+import { createRoom } from '@/services/supabase/rooms';
 import { DEFAULT_RACE_LESSON_ID } from '@/utils/multiplayer/roomConfig';
 import { generateRoomCode, roomUrl } from '@/utils/multiplayer/roomCode';
 import { saveCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
 
 function MultiplayerIndexContent() {
   const { t } = useApp();
+  const { user } = useAuth();
   const [joinOpen, setJoinOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [roomSettings, setRoomSettings] = useState<CreateRoomSettingsValue>({
     textSource: 'lesson',
     lessonId: DEFAULT_RACE_LESSON_ID,
@@ -28,19 +32,34 @@ function MultiplayerIndexContent() {
       ? Boolean(roomSettings.lessonId)
       : isCustomTextValid(roomSettings.customText);
 
-  const handleCreateRoom = () => {
-    if (!canCreateRoom) return;
+  const handleCreateRoom = async () => {
+    if (!canCreateRoom || creating) return;
 
-    const code = generateRoomCode();
-    saveCreateRoomConfig(code, {
-      lessonId: roomSettings.lessonId,
-      customText:
-        roomSettings.textSource === 'custom' ? roomSettings.customText.trim() : '',
-      blindMode: roomSettings.blindMode,
-      winConditions: roomSettings.winConditions,
-      textSource: roomSettings.textSource,
-    });
-    window.location.href = roomUrl(code);
+    setCreating(true);
+    try {
+      let code = generateRoomCode();
+      if (user?.id) {
+        let attempts = 0;
+        while (attempts < 5) {
+          const { error } = await createRoom(code, user.id);
+          if (!error) break;
+          code = generateRoomCode();
+          attempts += 1;
+        }
+      }
+
+      saveCreateRoomConfig(code, {
+        lessonId: roomSettings.lessonId,
+        customText:
+          roomSettings.textSource === 'custom' ? roomSettings.customText.trim() : '',
+        blindMode: roomSettings.blindMode,
+        winConditions: roomSettings.winConditions,
+        textSource: roomSettings.textSource,
+      });
+      window.location.href = roomUrl(code);
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleJoinRoom = (code: string) => {
@@ -106,12 +125,12 @@ function MultiplayerIndexContent() {
                   onChange={(partial) => setRoomSettings((prev) => ({ ...prev, ...partial }))}
                 />
                 <Button
-                  onClick={handleCreateRoom}
-                  disabled={!canCreateRoom}
+                  onClick={() => void handleCreateRoom()}
+                  disabled={!canCreateRoom || creating}
                   fullWidth
                   className={!canCreateRoom ? 'opacity-50' : ''}
                 >
-                  {t.multiplayer.createRoomAction}
+                  {creating ? t.multiplayer.creatingRoom : t.multiplayer.createRoomAction}
                 </Button>
               </div>
             </Card>
