@@ -35,7 +35,12 @@ export default function StatsDashboard() {
 
       <KeyHeatmap />
 
-      <Card title={t.stats.byLesson} padding="none" className="overflow-hidden">
+      <Card
+        title={t.stats.byLesson}
+        padding="none"
+        headerClassName="px-6 pt-6"
+        className="overflow-hidden"
+      >
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
