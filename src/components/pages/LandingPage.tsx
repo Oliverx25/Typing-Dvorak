@@ -6,27 +6,30 @@ function LandingHeader() {
   const { t } = useApp();
 
   return (
-    <header className="relative mx-auto flex max-w-5xl items-center justify-between px-4 py-6">
-      <a href="/" className="flex items-center gap-2 text-lg font-semibold text-[var(--color-text)] no-underline">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="text-[var(--color-accent)]"
-          aria-hidden="true"
+    <header className="relative w-full border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
+        <a
+          href="/"
+          className="flex shrink-0 items-center gap-2 text-lg font-semibold text-[var(--color-text)] no-underline hover:text-[var(--color-accent)]"
         >
-          <rect width="20" height="16" x="2" y="4" rx="2" />
-          <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10" />
-        </svg>
-        {t.siteName}
-      </a>
-      <nav className="flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="text-[var(--color-accent)]"
+            aria-hidden="true"
+          >
+            <rect width="20" height="16" x="2" y="4" rx="2" />
+            <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10" />
+          </svg>
+          {t.siteName}
+        </a>
         <HeaderActions variant="landing" />
-      </nav>
+      </div>
     </header>
   );
 }
@@ -46,24 +49,12 @@ function LandingHeroCtas() {
   if (user) {
     return (
       <>
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
+        <div className="mt-10 flex justify-center">
           <a
             href="/lessons"
             className="inline-flex w-full max-w-xs items-center justify-center rounded-xl bg-[var(--color-accent)] px-8 py-3.5 text-base font-semibold text-white no-underline shadow-lg shadow-[var(--color-accent)]/25 transition hover:bg-[var(--color-accent-hover)] sm:w-auto"
           >
             {t.landing.continuePracticing}
-          </a>
-          <a
-            href="/multiplayer"
-            className="inline-flex w-full max-w-xs items-center justify-center rounded-xl border border-[var(--color-highlight)]/40 bg-[var(--color-highlight)]/10 px-8 py-3.5 text-base font-semibold text-[var(--color-highlight)] no-underline transition hover:border-[var(--color-highlight)] hover:bg-[var(--color-highlight)]/20 sm:w-auto"
-          >
-            {t.landing.playMultiplayer}
-          </a>
-          <a
-            href="/stats"
-            className="inline-flex w-full max-w-xs items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-8 py-3.5 text-base font-semibold text-[var(--color-text)] no-underline transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] sm:w-auto"
-          >
-            {t.landing.viewStats}
           </a>
         </div>
         <p className="mt-4 text-sm text-[var(--color-text-muted)]">{t.landing.welcomeBack}</p>

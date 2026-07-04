@@ -56,7 +56,7 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
   }
 
   return (
-    <nav className="flex items-center gap-1.5 sm:gap-2" aria-label={t.nav.settings}>
+    <nav className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3" aria-label={t.nav.settings}>
       {user && (
         <>
           <div className="flex items-center gap-1.5">
@@ -74,6 +74,9 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
                 </a>
               </>
             )}
+          </div>
+          <div className={headerDividerClassName} aria-hidden="true" />
+          <div className="flex items-center gap-1.5">
             <SettingsPanel />
             <ThemeToggle />
           </div>
