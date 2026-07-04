@@ -371,6 +371,8 @@ export const en = {
     charactersCount: '{current} / {max}',
     createRoomAction: 'Create new room',
     joinRoom: 'Join room',
+    joinWithCode: 'Join with code',
+    close: 'Close',
     joinRoomDesc: 'Enter the code shared by the host.',
     joinRoomAction: 'Join',
     roomCode: 'Room code',

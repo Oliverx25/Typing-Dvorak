@@ -373,6 +373,8 @@ export const es: TranslationKey = {
     charactersCount: '{current} / {max}',
     createRoomAction: 'Crear nueva sala',
     joinRoom: 'Unirse a sala',
+    joinWithCode: 'Unirse con código',
+    close: 'Cerrar',
     joinRoomDesc: 'Introduce el código que te compartió el anfitrión.',
     joinRoomAction: 'Unirse',
     roomCode: 'Código de sala',
