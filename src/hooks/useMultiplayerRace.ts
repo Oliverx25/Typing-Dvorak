@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type {
   LobbyPlayerPresence,
@@ -8,6 +8,7 @@ import type {
 
 interface UseMultiplayerRaceOptions {
   channel: RealtimeChannel | null;
+  progressHandlerRef: RefObject<((payload: unknown) => void) | null>;
   currentUserId: string | null;
   players: LobbyPlayerPresence[];
   enabled?: boolean;
@@ -19,6 +20,7 @@ function clampPercentage(value: number): number {
 
 export function useMultiplayerRace({
   channel,
+  progressHandlerRef,
   currentUserId,
   players,
   enabled = true,
@@ -58,33 +60,41 @@ export function useMultiplayerRace({
     animationFrameRef.current = window.requestAnimationFrame(flushOpponents);
   }, [flushOpponents]);
 
+  const scheduleFlushRef = useRef(scheduleFlush);
+  scheduleFlushRef.current = scheduleFlush;
+
+  const currentUserIdRef = useRef(currentUserId);
+  currentUserIdRef.current = currentUserId;
+
   useEffect(() => {
-    if (!channel || !enabled) return;
+    if (!enabled) {
+      progressHandlerRef.current = null;
+      return;
+    }
 
-    const opponentMap = opponentMapRef.current;
-
-    channel.on('broadcast', { event: 'progress' }, ({ payload }) => {
+    progressHandlerRef.current = (payload) => {
       const progress = payload as Partial<RaceProgressPayload>;
-      if (!progress.userId || progress.userId === currentUserId) return;
+      if (!progress.userId || progress.userId === currentUserIdRef.current) return;
 
-      opponentMap.set(progress.userId, {
+      opponentMapRef.current.set(progress.userId, {
         userId: progress.userId,
         wpm: Math.max(0, Math.round(progress.wpm ?? 0)),
         percentage: clampPercentage(progress.percentage ?? 0),
         updatedAt: progress.updatedAt ?? Date.now(),
       });
-      scheduleFlush();
-    });
+      scheduleFlushRef.current();
+    };
 
     return () => {
+      progressHandlerRef.current = null;
       if (animationFrameRef.current !== null) {
         window.cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-      opponentMap.clear();
+      opponentMapRef.current.clear();
       setOpponents([]);
     };
-  }, [channel, currentUserId, enabled, scheduleFlush]);
+  }, [enabled, progressHandlerRef]);
 
   useEffect(() => {
     scheduleFlush();

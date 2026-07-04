@@ -30,6 +30,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
     leaveLobby,
     currentUserId,
     channel,
+    progressHandlerRef,
   } = useMultiplayerLobby({
     roomId,
     onAllReady: handleAllReady,
@@ -147,6 +148,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
       {matchStarting ? (
         <MultiplayerRacePanel
           channel={channel}
+          progressHandlerRef={progressHandlerRef}
           currentUserId={currentUserId}
           players={players}
         />

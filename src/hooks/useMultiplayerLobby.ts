@@ -52,12 +52,13 @@ export function useMultiplayerLobby({
   const presenceRef = useRef<LobbyPlayerPresence | null>(null);
   const allReadyFiredRef = useRef(false);
   const onAllReadyRef = useRef(onAllReady);
+  const progressHandlerRef = useRef<((payload: unknown) => void) | null>(null);
   onAllReadyRef.current = onAllReady;
 
   const syncPlayers = useCallback(
-    (channel: RealtimeChannel) => {
+    (activeChannel: RealtimeChannel) => {
       const next = parsePresenceState(
-        channel.presenceState<LobbyPlayerPresence>() as Record<string, unknown[]>,
+        activeChannel.presenceState<LobbyPlayerPresence>() as Record<string, unknown[]>,
       );
       setPlayers(next);
 
@@ -77,6 +78,9 @@ export function useMultiplayerLobby({
     },
     [user?.id, minPlayers],
   );
+
+  const syncPlayersRef = useRef(syncPlayers);
+  syncPlayersRef.current = syncPlayers;
 
   useEffect(() => {
     allReadyFiredRef.current = false;
@@ -113,53 +117,79 @@ export function useMultiplayerLobby({
     setError(null);
     setPlayers([]);
 
-    const channel = supabase.channel(`room-${roomId}`, {
-      config: { presence: { key: user.id } },
+    const nextChannel = supabase.channel(`room-${roomId}`, {
+      config: {
+        presence: { key: user.id },
+        broadcast: { self: false },
+      },
     });
 
-    channel.on('presence', { event: 'sync' }, () => syncPlayers(channel)).subscribe(async (subscribeStatus) => {
-      if (subscribeStatus === 'SUBSCRIBED') {
-        const { error: trackError } = await channel.track(presencePayload);
-        if (trackError) {
+    // All listeners must be registered before subscribe().
+    nextChannel
+      .on('presence', { event: 'sync' }, () => syncPlayersRef.current(nextChannel))
+      .on('broadcast', { event: 'progress' }, ({ payload }) => {
+        progressHandlerRef.current?.(payload);
+      })
+      .subscribe(async (subscribeStatus) => {
+        if (subscribeStatus === 'SUBSCRIBED') {
+          const { error: trackError } = await nextChannel.track(presencePayload);
+          if (trackError) {
+            setStatus('error');
+            setError(trackError.message);
+            return;
+          }
+          setStatus('connected');
+          syncPlayersRef.current(nextChannel);
+        } else if (subscribeStatus === 'CHANNEL_ERROR') {
           setStatus('error');
-          setError(trackError.message);
-          return;
+          setError('channel_error');
+        } else if (subscribeStatus === 'TIMED_OUT') {
+          setStatus('error');
+          setError('timed_out');
         }
-        setStatus('connected');
-        syncPlayers(channel);
-      } else if (subscribeStatus === 'CHANNEL_ERROR') {
-        setStatus('error');
-        setError('channel_error');
-      } else if (subscribeStatus === 'TIMED_OUT') {
-        setStatus('error');
-        setError('timed_out');
-      }
-    });
+      });
 
-    channelRef.current = channel;
-    setChannel(channel);
+    channelRef.current = nextChannel;
+    setChannel(nextChannel);
 
     return () => {
-      void channel.untrack().finally(() => {
-        supabase.removeChannel(channel);
-      });
       channelRef.current = null;
       presenceRef.current = null;
+      progressHandlerRef.current = null;
       setChannel(null);
+      void nextChannel.untrack();
+      supabase.removeChannel(nextChannel);
     };
-  }, [user, profile, roomId, syncPlayers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- channel keyed by user id + room; profile syncs separately
+  }, [user?.id, roomId]);
+
+  useEffect(() => {
+    const activeChannel = channelRef.current;
+    if (status !== 'connected' || !user || !activeChannel || !presenceRef.current) return;
+
+    const display = getUserDisplay(user, profile);
+    const updated: LobbyPlayerPresence = {
+      ...presenceRef.current,
+      name: display.name,
+      avatarUrl: display.avatarUrl,
+      initials: display.initials,
+      avatarSource: display.avatarSource,
+    };
+    presenceRef.current = updated;
+    void activeChannel.track(updated);
+  }, [user, profile, status]);
 
   const toggleReadyStatus = useCallback(async () => {
-    const channel = channelRef.current;
+    const activeChannel = channelRef.current;
     const presence = presenceRef.current;
-    if (!channel || !presence) return;
+    if (!activeChannel || !presence) return;
 
     const nextReady = !presence.isReady;
     const updated: LobbyPlayerPresence = { ...presence, isReady: nextReady };
     presenceRef.current = updated;
     setIsReady(nextReady);
 
-    const { error: trackError } = await channel.track(updated);
+    const { error: trackError } = await activeChannel.track(updated);
     if (trackError) {
       setError(trackError.message);
       presenceRef.current = presence;
@@ -168,14 +198,15 @@ export function useMultiplayerLobby({
   }, []);
 
   const leaveLobby = useCallback(async () => {
-    const channel = channelRef.current;
+    const activeChannel = channelRef.current;
     const supabase = getSupabaseClient();
-    if (!channel || !supabase) return;
+    if (!activeChannel || !supabase) return;
 
-    await channel.untrack();
-    supabase.removeChannel(channel);
+    await activeChannel.untrack();
+    supabase.removeChannel(activeChannel);
     channelRef.current = null;
     presenceRef.current = null;
+    progressHandlerRef.current = null;
     setChannel(null);
     setPlayers([]);
     setStatus('idle');
@@ -192,5 +223,6 @@ export function useMultiplayerLobby({
     leaveLobby,
     currentUserId: user?.id ?? null,
     channel,
+    progressHandlerRef,
   };
 }

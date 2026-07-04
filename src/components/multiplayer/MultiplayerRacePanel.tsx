@@ -6,15 +6,18 @@ import MultiplayerRaceTrack from '@/components/multiplayer/MultiplayerRaceTrack'
 import { LESSONS } from '@/utils/curriculum/lessons';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { LobbyPlayerPresence } from '@/types/multiplayer';
+import type { RefObject } from 'react';
 
 interface MultiplayerRacePanelProps {
   channel: RealtimeChannel | null;
+  progressHandlerRef: RefObject<((payload: unknown) => void) | null>;
   currentUserId: string | null;
   players: LobbyPlayerPresence[];
 }
 
 export default function MultiplayerRacePanel({
   channel,
+  progressHandlerRef,
   currentUserId,
   players,
 }: MultiplayerRacePanelProps) {
@@ -24,6 +27,7 @@ export default function MultiplayerRacePanel({
 
   const { opponents, broadcastProgress } = useMultiplayerRace({
     channel,
+    progressHandlerRef,
     currentUserId,
     players,
     enabled: Boolean(channel && currentUserId),
