@@ -85,6 +85,12 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['rooms']['Insert']>;
       };
     };
+    Functions: {
+      purge_stale_rooms: {
+        Args: { stale_hours?: number };
+        Returns: number;
+      };
+    };
   };
 };
 

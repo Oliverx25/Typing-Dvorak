@@ -8,20 +8,20 @@ export const RACE_LESSONS = CORE_LESSONS.filter(
   (lesson) => !lesson.adaptive && lesson.texts.length > 0,
 );
 
-export type WinCondition = 'first_finish' | 'highest_wpm' | 'max_score' | 'sudden_death';
+export type WinCondition = 'max_score' | 'first_finish' | 'highest_wpm' | 'sudden_death';
 
 export const WIN_CONDITIONS: WinCondition[] = [
+  'max_score',
   'first_finish',
   'highest_wpm',
-  'max_score',
   'sudden_death',
 ];
 
 /** Win objectives — how the winner is determined. */
 export const VICTORY_CONDITIONS: WinCondition[] = [
-  'first_finish',
-  'highest_wpm',
   'max_score',
+	'first_finish',
+  'highest_wpm',
 ];
 
 /** Rule modifiers that alter gameplay (stored in winConditions when applicable). */

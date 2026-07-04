@@ -152,7 +152,6 @@ export default function CreateRoomSettings({
           {
             id: 'game-settings',
             title: t.multiplayer.gameSettings,
-            subtitle: t.multiplayer.gameSettingsHint,
             children: settingsFields,
           },
         ]}

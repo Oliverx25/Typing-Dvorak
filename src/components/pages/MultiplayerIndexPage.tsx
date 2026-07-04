@@ -115,9 +115,6 @@ function MultiplayerIndexContent() {
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
                     {t.multiplayer.gameSettings}
                   </p>
-                  <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                    {t.multiplayer.gameSettingsHint}
-                  </p>
                 </div>
                 <CreateRoomSettings
                   value={roomSettings}

@@ -8,6 +8,9 @@ export interface RoomRecord {
   status: RoomStatus;
 }
 
+/** Default: purge closed/inactive rows and open rooms older than 7 days. */
+export const STALE_ROOM_HOURS = 168;
+
 export function isRoomJoinable(room: RoomRecord | null): boolean {
   return room !== null && room.status === 'open';
 }
@@ -21,18 +24,31 @@ export async function fetchRoomByCode(code: string): Promise<RoomRecord | null> 
     .from('rooms')
     .select('id, status')
     .eq('code', normalized)
+    .eq('status', 'open')
     .maybeSingle();
 
   if (error || !data) return null;
   return data as RoomRecord;
 }
 
+/** Deletes legacy closed/inactive rows and long-abandoned open rooms. Fire-and-forget safe. */
+export async function purgeStaleRooms(staleHours = STALE_ROOM_HOURS): Promise<void> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  await supabase.rpc('purge_stale_rooms', { stale_hours: staleHours });
+}
+
 export async function createRoom(code: string, hostId: string): Promise<{ error?: string }> {
   const supabase = getSupabaseClient();
   if (!supabase) return { error: 'notConfigured' };
 
+  void purgeStaleRooms();
+
+  const normalized = normalizeRoomCode(code);
+
   const { error } = await supabase.from('rooms').insert({
-    code: normalizeRoomCode(code),
+    code: normalized,
     host_id: hostId,
     status: 'open',
   });
@@ -43,22 +59,9 @@ export async function createRoom(code: string, hostId: string): Promise<{ error?
 
 export async function ensureRoomExists(code: string, hostId: string): Promise<void> {
   const existing = await fetchRoomByCode(code);
-  const supabase = getSupabaseClient();
-  if (!supabase) return;
+  if (existing) return;
 
-  const normalized = normalizeRoomCode(code);
-
-  if (existing) {
-    if (existing.status !== 'open') {
-      await supabase
-        .from('rooms')
-        .update({ status: 'open', host_id: hostId })
-        .eq('code', normalized);
-    }
-    return;
-  }
-
-  await createRoom(normalized, hostId);
+  await createRoom(code, hostId);
 }
 
 export async function transferRoomHost(code: string, newHostId: string): Promise<void> {
@@ -72,8 +75,28 @@ export async function transferRoomHost(code: string, newHostId: string): Promise
     .eq('status', 'open');
 }
 
+function deleteRoomKeepalive(code: string, hostId: string, accessToken: string): void {
+  const url = import.meta.env.PUBLIC_SUPABASE_URL;
+  const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return;
+
+  const normalized = normalizeRoomCode(code);
+  void fetch(
+    `${url}/rest/v1/rooms?code=eq.${encodeURIComponent(normalized)}&host_id=eq.${encodeURIComponent(hostId)}&status=eq.open`,
+    {
+      method: 'DELETE',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${accessToken}`,
+        Prefer: 'return=minimal',
+      },
+      keepalive: true,
+    },
+  ).catch(() => {});
+}
+
 export function closeRoomKeepalive(code: string, hostId: string, accessToken: string): void {
-  patchRoomKeepalive(code, { status: 'closed' }, hostId, accessToken);
+  deleteRoomKeepalive(code, hostId, accessToken);
 }
 
 export function transferRoomHostKeepalive(
@@ -81,23 +104,13 @@ export function transferRoomHostKeepalive(
   newHostId: string,
   accessToken: string,
 ): void {
-  patchRoomKeepalive(code, { host_id: newHostId }, undefined, accessToken);
-}
-
-function patchRoomKeepalive(
-  code: string,
-  body: Record<string, string>,
-  hostId: string | undefined,
-  accessToken: string,
-): void {
   const url = import.meta.env.PUBLIC_SUPABASE_URL;
   const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return;
 
   const normalized = normalizeRoomCode(code);
-  const hostFilter = hostId ? `&host_id=eq.${encodeURIComponent(hostId)}` : '';
   void fetch(
-    `${url}/rest/v1/rooms?code=eq.${encodeURIComponent(normalized)}&status=eq.open${hostFilter}`,
+    `${url}/rest/v1/rooms?code=eq.${encodeURIComponent(normalized)}&status=eq.open`,
     {
       method: 'PATCH',
       headers: {
@@ -106,19 +119,20 @@ function patchRoomKeepalive(
         'Content-Type': 'application/json',
         Prefer: 'return=minimal',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ host_id: newHostId }),
       keepalive: true,
     },
   ).catch(() => {});
 }
 
+/** Closes a room by deleting its row so the code can be reused immediately. */
 export async function closeRoom(code: string, hostId: string): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
   await supabase
     .from('rooms')
-    .update({ status: 'closed' })
+    .delete()
     .eq('code', normalizeRoomCode(code))
     .eq('host_id', hostId)
     .eq('status', 'open');
