@@ -3,6 +3,7 @@ import { getTranslations, type Locale, type TranslationKey } from '../i18n';
 import { getSettings, saveSettings, type AppSettings, type PracticeMode } from '../utils/app/settings';
 import { getStoredTheme, setStoredTheme, type Theme } from '../utils/progress/storage';
 import { applyHighlightTheme } from '../utils/app/highlightTheme';
+import { PROFILE_PREFERENCES_SYNCED_EVENT } from '../utils/app/events';
 
 interface AppContextValue {
   locale: Locale;
@@ -37,6 +38,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTheme(storedTheme);
     setStoredTheme(storedTheme);
     applyHighlightTheme(storedSettings.highlightTheme, storedTheme);
+  }, []);
+
+  useEffect(() => {
+    const syncFromStorage = () => setSettings(getSettings());
+    window.addEventListener(PROFILE_PREFERENCES_SYNCED_EVENT, syncFromStorage);
+    return () => window.removeEventListener(PROFILE_PREFERENCES_SYNCED_EVENT, syncFromStorage);
   }, []);
 
   const updateSettings = useCallback((partial: Partial<AppSettings>) => {

@@ -1,4 +1,5 @@
 import type { User } from '@supabase/supabase-js';
+import type { MultiplayerPrivacy } from './multiplayerPrivacy';
 
 export type AvatarSource = 'custom' | 'oauth' | 'none';
 
@@ -16,6 +17,8 @@ export interface ProfileDisplayInfo {
   avatar_custom?: boolean;
   display_name?: string | null;
   display_name_custom?: boolean;
+  username?: string | null;
+  multiplayer_privacy?: MultiplayerPrivacy;
 }
 
 function readOAuthAvatar(user: User): string | null {

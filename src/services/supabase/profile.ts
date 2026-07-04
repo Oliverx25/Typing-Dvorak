@@ -1,9 +1,13 @@
+import type { Locale } from '@/i18n';
 import { getSupabaseClient } from '@/lib/supabaseClient';
+import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
 import { validateDisplayName, validateUsername } from '@/utils/user/profileValidation';
 
 export interface ProfileUpdateInput {
   displayName: string;
   username?: string;
+  locale?: Locale;
+  multiplayerPrivacy?: MultiplayerPrivacy;
 }
 
 async function syncAuthDisplayName(displayName: string): Promise<string | null> {
@@ -54,6 +58,8 @@ export async function updateUserProfile(input: ProfileUpdateInput): Promise<{ er
       display_name: displayName,
       display_name_custom: true,
       username: username || null,
+      ...(input.locale ? { locale: input.locale } : {}),
+      ...(input.multiplayerPrivacy ? { multiplayer_privacy: input.multiplayerPrivacy } : {}),
     })
     .eq('id', user.id);
 

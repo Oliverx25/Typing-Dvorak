@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { getUserDisplay } from '@/utils/user/userDisplay';
+import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
+import { getMultiplayerPresenceDisplay } from '@/utils/user/multiplayerPrivacy';
 import type { AvatarSource } from '@/utils/user/userDisplay';
 import type { LobbyConnectionStatus, LobbyPlayerPresence } from '@/types/multiplayer';
 
@@ -107,13 +108,13 @@ export function useMultiplayerLobby({
       return;
     }
 
-    const display = getUserDisplay(user, profile);
+    const presenceDisplay = getMultiplayerPresenceDisplay(user, profile);
     const presencePayload: LobbyPlayerPresence = {
       userId: user.id,
-      name: display.name,
-      avatarUrl: display.avatarUrl,
-      initials: display.initials,
-      avatarSource: display.avatarSource,
+      name: presenceDisplay.name,
+      avatarUrl: presenceDisplay.avatarUrl,
+      initials: presenceDisplay.initials,
+      avatarSource: presenceDisplay.avatarSource,
       isReady: false,
       joinedAt: Date.now(),
     };
@@ -174,13 +175,13 @@ export function useMultiplayerLobby({
     const activeChannel = channelRef.current;
     if (status !== 'connected' || !user || !activeChannel || !presenceRef.current) return;
 
-    const display = getUserDisplay(user, profile);
+    const presenceDisplay = getMultiplayerPresenceDisplay(user, profile);
     const updated: LobbyPlayerPresence = {
       ...presenceRef.current,
-      name: display.name,
-      avatarUrl: display.avatarUrl,
-      initials: display.initials,
-      avatarSource: display.avatarSource,
+      name: presenceDisplay.name,
+      avatarUrl: presenceDisplay.avatarUrl,
+      initials: presenceDisplay.initials,
+      avatarSource: presenceDisplay.avatarSource,
     };
     presenceRef.current = updated;
     void activeChannel.track(updated);

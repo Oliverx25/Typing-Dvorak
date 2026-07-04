@@ -6,10 +6,14 @@ import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import type { PracticeMode } from '@/utils/app/settings';
-import { dispatchSessionComplete, dispatchKeyStatsUpdated } from '@/utils/app/events';
+import { saveSettings } from '@/utils/app/settings';
+import type { Locale } from '@/i18n';
+import { dispatchSessionComplete, dispatchKeyStatsUpdated, dispatchProfilePreferencesSynced } from '@/utils/app/events';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { updateProfileStreak } from './syncProgress';
 import { syncBadgesFromSessionRows } from './syncBadges';
+
+import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
 
 export interface UserProfileRow {
   id: string;
@@ -18,6 +22,8 @@ export interface UserProfileRow {
   avatar_custom: boolean;
   display_name: string | null;
   display_name_custom?: boolean;
+  locale?: Locale | null;
+  multiplayer_privacy?: MultiplayerPrivacy;
   current_streak: number;
   last_practice_date: string | null;
   created_at?: string;
@@ -113,6 +119,16 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
   }
 
   return profile;
+}
+
+/** Sync locale from profile to local settings after login. */
+export async function restoreProfilePreferencesFromProfile(): Promise<void> {
+  const profile = (await fetchUserProfile()) as UserProfileRow | null;
+  if (!profile?.locale || (profile.locale !== 'en' && profile.locale !== 'es')) return;
+
+  saveSettings({ locale: profile.locale });
+  document.documentElement.lang = profile.locale;
+  dispatchProfilePreferencesSynced();
 }
 
 /** Re-apply profile display name to auth metadata after OAuth sign-in overwrites it. */

@@ -10,6 +10,7 @@ import {
   loadProgressFromCloud,
   restoreCustomAvatarFromProfile,
   restoreProfileDisplayFromProfile,
+  restoreProfilePreferencesFromProfile,
   type UserProfileRow,
 } from '../services/supabase/loadProgress';
 import { fetchUserProfile } from '../services/supabase/queries';
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       clearGuestProgress();
       const loadedProfile = await loadProgressFromCloud();
+      await restoreProfilePreferencesFromProfile();
       await restoreProfileDisplayFromProfile();
       await restoreCustomAvatarFromProfile();
 
