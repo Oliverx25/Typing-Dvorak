@@ -1,0 +1,1 @@
+function e(e=6){let t=``;for(let n=0;n<e;n++)t+=`ABCDEFGHJKLMNPQRSTUVWXYZ23456789`[Math.floor(Math.random()*32)];return t}function t(e){return e.trim().toUpperCase().replace(/[^A-Z0-9]/g,``).slice(0,8)}function n(e){let n=t(e);return`/multiplayer/room?code=${encodeURIComponent(n)}`}function r(e){return t(new URLSearchParams(e).get(`code`)??``)}export{n as i,t as n,r,e as t};

@@ -3,20 +3,20 @@ import AppShell from '@/components/layout/AppShell';
 import BackLink from '@/components/layout/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import { Button, Card } from '@/components/ui';
-import { generateRoomCode, normalizeRoomCode } from '@/utils/multiplayer/roomCode';
+import { generateRoomCode, normalizeRoomCode, roomUrl } from '@/utils/multiplayer/roomCode';
 
 function MultiplayerIndexContent() {
   const { t } = useApp();
   const [joinCode, setJoinCode] = useState('');
 
   const handleCreateRoom = () => {
-    window.location.href = `/multiplayer/${generateRoomCode()}`;
+    window.location.href = roomUrl(generateRoomCode());
   };
 
   const handleJoinRoom = () => {
     const code = normalizeRoomCode(joinCode);
-    if (!code) return;
-    window.location.href = `/multiplayer/${code}`;
+    if (code.length < 4) return;
+    window.location.href = roomUrl(code);
   };
 
   return (

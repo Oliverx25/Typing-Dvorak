@@ -332,6 +332,7 @@ export const es: TranslationKey = {
     allReady: 'Todos están listos — iniciando partida…',
     raceProgress: 'Progreso de carrera',
     waitingForOpponentProgress: 'El progreso del rival aparecerá cuando empiece a escribir.',
+    invalidRoomCode: 'Código de sala inválido o ausente. Crea una sala nueva o introduce un código válido.',
     signInRequired: 'Inicia sesión para unirte a salas multijugador.',
     notConfigured: 'El multijugador requiere que Supabase esté configurado.',
   },

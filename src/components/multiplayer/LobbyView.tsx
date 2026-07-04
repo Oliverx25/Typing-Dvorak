@@ -5,6 +5,7 @@ import { useMultiplayerLobby } from '@/hooks/useMultiplayerLobby';
 import { Button, Card } from '@/components/ui';
 import LobbyPlayerList from '@/components/multiplayer/LobbyPlayerList';
 import MultiplayerRacePanel from '@/components/multiplayer/MultiplayerRacePanel';
+import { roomUrl } from '@/utils/multiplayer/roomCode';
 
 interface LobbyViewProps {
   roomId: string;
@@ -61,7 +62,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
       <Card title={t.multiplayer.title} padding="lg">
         <p className="mb-4 text-sm text-[var(--color-text-muted)]">{t.multiplayer.signInRequired}</p>
         <a
-          href={`/login?next=/multiplayer/${roomId}`}
+          href={`/login?next=${encodeURIComponent(roomUrl(roomId))}`}
           className="inline-flex items-center justify-center rounded-xl bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)]"
         >
           {t.auth.signIn}

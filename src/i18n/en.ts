@@ -330,6 +330,7 @@ export const en = {
     allReady: 'Everyone is ready — starting match…',
     raceProgress: 'Race progress',
     waitingForOpponentProgress: 'Opponent progress will appear when they start typing.',
+    invalidRoomCode: 'Invalid or missing room code. Create a new room or enter a valid code.',
     signInRequired: 'Sign in to join multiplayer lobbies.',
     notConfigured: 'Multiplayer requires Supabase to be configured.',
   },

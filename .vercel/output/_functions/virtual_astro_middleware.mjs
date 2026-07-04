@@ -1,4 +1,4 @@
-import { N as sequence, U as defineMiddleware } from "./chunks/render_5Y2nopdm.mjs";
+import { A as sequence, B as defineMiddleware } from "./chunks/render_BCmufLRe.mjs";
 import { createServerClient } from "@supabase/ssr";
 //#region src/middleware.ts
 var AUTH_ONLY_ROUTES = [
