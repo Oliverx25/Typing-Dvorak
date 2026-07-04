@@ -71,6 +71,10 @@ export const es: TranslationKey = {
     pasteText: 'Pegar texto',
     learnMoreTitle: 'Aprende más sobre Dvorak (opcional)',
     inProgress: 'En progreso — toca para continuar',
+    selectedChapter: 'Capítulo seleccionado',
+    reviewLesson: 'Repasar {lesson}',
+    tapToReview: 'Toca para ver micro-lecciones',
+    backToRecommended: 'Volver a tu siguiente paso',
   },
   auth: {
     signInGithub: 'GitHub',

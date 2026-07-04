@@ -1,34 +1,59 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp, getLessonDescription, getLessonTitle } from '@/contexts/AppProvider';
+import { useFocusedChapter } from '@/contexts/FocusedChapterProvider';
 import { t as translate } from '@/i18n';
 import { getLessonById } from '@/utils/lessons';
-import { LESSON_GROUPS } from '@/data/microLessons';
-import { useCurriculumState } from '@/hooks/useCurriculumState';
+import { findLessonGroup } from '@/utils/microLessonGroups';
 import CircularProgress from '@/components/ui/CircularProgress';
 import { Icon } from '@/components/ui';
 
 export default function PrimaryActionCard() {
   const { t, locale } = useApp();
-  const { progress, recommendedId } = useCurriculumState();
+  const { focusedLessonId, recommendedId, isRecommendedFocus, focusedProgress, setFocusedLessonId } =
+    useFocusedChapter();
   const [microOpen, setMicroOpen] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const prevFocused = useRef(focusedLessonId);
 
-  const lesson = getLessonById(recommendedId);
+  useEffect(() => {
+    if (prevFocused.current !== focusedLessonId) {
+      setMicroOpen(true);
+      prevFocused.current = focusedLessonId;
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [focusedLessonId]);
+
+  const lesson = getLessonById(focusedLessonId);
   if (!lesson) return null;
 
   const title = getLessonTitle(t, lesson.titleKey);
   const description = getLessonDescription(t, lesson.descriptionKey);
-  const group = LESSON_GROUPS.find((g) => g.microLessons.some((m) => m.lessonId === recommendedId));
-  const continueLabel = translate(locale, 'home.continueWith', { lesson: title.toUpperCase() });
+  const group = findLessonGroup(focusedLessonId, lesson.titleKey);
+
+  const actionLabel = isRecommendedFocus
+    ? translate(locale, 'home.continueWith', { lesson: title.toUpperCase() })
+    : translate(locale, 'home.reviewLesson', { lesson: title.toUpperCase() });
 
   return (
-    <section className="mb-10">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
-        {t.home.yourNextStep}
-      </p>
+    <section ref={sectionRef} className="mb-10 scroll-mt-24">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
+          {isRecommendedFocus ? t.home.yourNextStep : t.home.selectedChapter}
+        </p>
+        {!isRecommendedFocus && (
+          <button
+            type="button"
+            onClick={() => setFocusedLessonId(recommendedId)}
+            className="text-xs text-[var(--color-highlight)] transition hover:underline"
+          >
+            {t.home.backToRecommended}
+          </button>
+        )}
+      </div>
 
       <article className="overflow-hidden rounded-2xl border-2 border-[var(--color-highlight)]/35 bg-[var(--color-surface-elevated)] shadow-lg shadow-[var(--color-highlight)]/10">
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
-          <CircularProgress value={progress} />
+          <CircularProgress value={focusedProgress} />
 
           <div className="min-w-0 flex-1">
             <h2 className="text-xl font-bold uppercase tracking-wide text-[var(--color-text)] sm:text-2xl">
@@ -37,10 +62,10 @@ export default function PrimaryActionCard() {
             <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">{description}</p>
 
             <a
-              href={`/lesson/${recommendedId}`}
+              href={`/lesson/${focusedLessonId}`}
               className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-[var(--color-highlight)] px-6 py-3.5 text-base font-semibold uppercase tracking-wide text-white no-underline shadow-lg shadow-[var(--color-highlight)]/25 transition hover:bg-[var(--color-highlight-hover)]"
             >
-              {continueLabel}
+              {actionLabel}
             </a>
           </div>
         </div>

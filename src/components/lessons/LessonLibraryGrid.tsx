@@ -1,19 +1,30 @@
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
+import { useFocusedChapter } from '@/contexts/FocusedChapterProvider';
 import { CORE_LESSONS } from '@/utils/lessons';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
-import { useCurriculumState } from '@/hooks/useCurriculumState';
 import { LockIcon } from '@/components/ui';
 
 interface LibraryCardProps {
-  lessonId: string;
   title: string;
   difficultyLabel: string;
   locked: boolean;
-  active: boolean;
+  focused: boolean;
+  isRecommended: boolean;
   inProgressLabel: string;
+  tapToReviewLabel: string;
+  onSelect: () => void;
 }
 
-function LibraryCard({ lessonId, title, difficultyLabel, locked, active, inProgressLabel }: LibraryCardProps) {
+function LibraryCard({
+  title,
+  difficultyLabel,
+  locked,
+  focused,
+  isRecommended,
+  inProgressLabel,
+  tapToReviewLabel,
+  onSelect,
+}: LibraryCardProps) {
   if (locked) {
     return (
       <div className="flex items-center justify-between rounded-xl border border-[var(--color-border)]/60 bg-[var(--color-surface-elevated)]/40 px-4 py-3 opacity-50">
@@ -26,35 +37,45 @@ function LibraryCard({ lessonId, title, difficultyLabel, locked, active, inProgr
     );
   }
 
-  if (active) {
+  const baseClass =
+    'w-full rounded-xl px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-highlight)]';
+
+  if (focused) {
     return (
-      <a
-        href={`/lesson/${lessonId}`}
-        className="block rounded-xl border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/8 px-4 py-4 no-underline ring-1 ring-[var(--color-highlight)]/15 transition hover:bg-[var(--color-highlight)]/12"
+      <button
+        type="button"
+        onClick={onSelect}
+        className={`${baseClass} border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/8 py-4 ring-1 ring-[var(--color-highlight)]/15`}
       >
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-highlight)]">{difficultyLabel}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-highlight)]">
+          {difficultyLabel}
+        </p>
         <p className="mt-1 text-base font-semibold text-[var(--color-text)]">{title}</p>
-        <p className="mt-2 text-xs text-[var(--color-text-muted)]">{inProgressLabel}</p>
-      </a>
+        <p className="mt-2 text-xs text-[var(--color-text-muted)]">
+          {isRecommended ? inProgressLabel : tapToReviewLabel}
+        </p>
+      </button>
     );
   }
 
   return (
-    <a
-      href={`/lesson/${lessonId}`}
-      className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-4 py-3 no-underline transition hover:border-[var(--color-highlight)]/40 hover:bg-[var(--color-surface)]"
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`${baseClass} flex items-center justify-between border border-[var(--color-border)] bg-[var(--color-surface-elevated)] hover:border-[var(--color-highlight)]/40 hover:bg-[var(--color-surface)]`}
     >
       <div>
         <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
         <p className="text-[10px] text-[var(--color-text-muted)]">{difficultyLabel}</p>
       </div>
       <span className="text-xs text-[var(--color-highlight)]">→</span>
-    </a>
+    </button>
   );
 }
 
-function LibraryCardRow({ lessonId, active }: { lessonId: string; active: boolean }) {
+function LibraryCardRow({ lessonId }: { lessonId: string }) {
   const { t } = useApp();
+  const { focusedLessonId, recommendedId, setFocusedLessonId } = useFocusedChapter();
   const { unlocked } = useLessonCardState(lessonId);
   const lesson = CORE_LESSONS.find((l) => l.id === lessonId);
   if (!lesson) return null;
@@ -64,19 +85,20 @@ function LibraryCardRow({ lessonId, active }: { lessonId: string; active: boolea
 
   return (
     <LibraryCard
-      lessonId={lessonId}
       title={title}
       difficultyLabel={difficultyLabel}
       locked={!unlocked}
-      active={active}
+      focused={lessonId === focusedLessonId}
+      isRecommended={lessonId === recommendedId}
       inProgressLabel={t.home.inProgress}
+      tapToReviewLabel={t.home.tapToReview}
+      onSelect={() => setFocusedLessonId(lessonId)}
     />
   );
 }
 
 export default function LessonLibraryGrid() {
   const { t } = useApp();
-  const { recommendedId } = useCurriculumState();
 
   return (
     <section className="mb-10">
@@ -85,7 +107,7 @@ export default function LessonLibraryGrid() {
       </h2>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {CORE_LESSONS.map((lesson) => (
-          <LibraryCardRow key={lesson.id} lessonId={lesson.id} active={lesson.id === recommendedId} />
+          <LibraryCardRow key={lesson.id} lessonId={lesson.id} />
         ))}
       </div>
     </section>

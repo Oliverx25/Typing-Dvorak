@@ -69,6 +69,10 @@ export const en = {
     pasteText: 'Paste text',
     learnMoreTitle: 'Learn more about Dvorak (optional)',
     inProgress: 'In progress — tap to continue',
+    selectedChapter: 'Selected chapter',
+    reviewLesson: 'Review {lesson}',
+    tapToReview: 'Tap to review micro-lessons',
+    backToRecommended: 'Back to your next step',
   },
   auth: {
     signInGithub: 'GitHub',
