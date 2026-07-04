@@ -209,6 +209,9 @@ export const en = {
   },
   settings: {
     title: 'Settings',
+    sectionPreferences: 'Preferences',
+    sectionAppearance: 'Appearance',
+    sectionData: 'Data',
     language: 'Language',
     sound: 'Sound effects',
     soundDesc: 'Play sounds on correct and incorrect keystrokes',
@@ -231,8 +234,9 @@ export const en = {
       indigo: 'Indigo',
       emerald: 'Emerald',
       cyan: 'Cyan',
-      violet: 'Violet',
+      red: 'Red',
       amber: 'Amber',
+      fuchsia: 'Fuchsia',
     },
   },
   categories: {
@@ -258,6 +262,7 @@ export const en = {
     showKeyboard: 'Show keyboard',
     hideKeyboard: 'Hide keyboard',
     thumb: 'Thumb',
+    combo: 'Combo',
   },
   completion: {
     perfect: 'Perfect run!',
@@ -366,7 +371,12 @@ export const en = {
     winCondition: 'Win condition',
     winConditionFirstFinish: 'First to finish',
     winConditionHighestWpm: 'Highest WPM',
-    winConditionSuddenDeath: 'Sudden death (1 error = out)',
+    winConditionSuddenDeath: 'Sudden death',
+    winConditionFirstFinishDesc: 'Wins whoever reaches the end of the text first.',
+    winConditionHighestWpmDesc: 'Wins whoever has the highest words per minute.',
+    winConditionSuddenDeathDesc: 'A single mistake knocks you out of the race.',
+    maxComboTieBreaker:
+      'If there is a tie, the highest correct-key streak (Max Combo) decides the winner.',
     customTextTooShort: 'Enter at least 10 characters for a custom race.',
     charactersCount: '{current} / {max}',
     createRoomAction: 'Create new room',

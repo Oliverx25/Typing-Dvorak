@@ -148,7 +148,7 @@ export function useMultiplayerLobby({
       next.customText =
         createConfig.textSource === 'custom' ? createConfig.customText : '';
       next.blindMode = createConfig.blindMode;
-      next.winCondition = createConfig.winCondition;
+      next.winConditions = createConfig.winConditions;
       clearCreateRoomConfig(roomId);
     }
 
@@ -446,7 +446,7 @@ export function useMultiplayerLobby({
   }, []);
 
   const updateRoomConfig = useCallback(
-    async (partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winCondition'>) => {
+    async (partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winConditions'>) => {
       const current = roomStateRef.current;
       if (!user?.id || !current || current.ownerId !== user.id) return;
       if (current.phase === 'racing') return;

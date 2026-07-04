@@ -102,10 +102,39 @@
   animation: mp-fade-in 0.3s ease-in-out;
 }
 
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-enter {
+  animation: modal-enter 0.2s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shake 0.4s ease-in-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .caret-blink,
   .completion-enter,
-  .mp-fade-in {
+  .mp-fade-in,
+  .modal-enter,
+  .shake {
     animation: none;
   }
 }

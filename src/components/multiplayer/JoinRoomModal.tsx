@@ -13,6 +13,7 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
   const { t } = useApp();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [code, setCode] = useState('');
+  const [shaking, setShaking] = useState(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -21,6 +22,7 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
     if (open && !dialog.open) {
       dialog.showModal();
       setCode('');
+      setShaking(false);
     } else if (!open && dialog.open) {
       dialog.close();
     }
@@ -28,8 +30,16 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
 
   const isValid = normalizeRoomCode(code).length >= 4;
 
+  const triggerShake = () => {
+    setShaking(false);
+    requestAnimationFrame(() => setShaking(true));
+  };
+
   const handleJoin = () => {
-    if (!isValid) return;
+    if (!isValid) {
+      triggerShake();
+      return;
+    }
     onJoin(normalizeRoomCode(code));
   };
 
@@ -39,7 +49,7 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
       onClose={onClose}
       onCancel={onClose}
       aria-labelledby="join-room-title"
-      className="m-auto w-[min(100%-2rem,26rem)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-0 text-[var(--color-text)] shadow-2xl backdrop:bg-black/60"
+      className="modal-enter m-auto w-[min(100%-2rem,26rem)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-0 text-[var(--color-text)] shadow-2xl backdrop:bg-black/60"
     >
       <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-6 py-4">
         <div>
@@ -84,10 +94,20 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
           type="text"
           value={code}
           autoFocus
-          onChange={(event) => setCode(normalizeRoomCode(event.target.value))}
+          onChange={(event) => {
+            setCode(normalizeRoomCode(event.target.value));
+            if (shaking) setShaking(false);
+          }}
+          onAnimationEnd={() => setShaking(false)}
           placeholder={t.multiplayer.roomCodePlaceholder}
           aria-label={t.multiplayer.roomCode}
-          className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3.5 text-center font-mono text-xl tracking-[0.25em] text-[var(--color-text)] uppercase outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/20"
+          aria-invalid={shaking}
+          className={[
+            'w-full rounded-xl border bg-[var(--color-surface)] px-4 py-3.5 text-center font-mono text-xl tracking-[0.25em] text-[var(--color-text)] uppercase outline-none transition-all duration-300 focus:ring-2',
+            shaking
+              ? 'shake border-[var(--color-incorrect)] focus:border-[var(--color-incorrect)] focus:ring-[var(--color-incorrect)]/20'
+              : 'border-[var(--color-border)] focus:border-[var(--color-accent)] focus:ring-[var(--color-accent)]/20',
+          ].join(' ')}
           maxLength={8}
           autoComplete="off"
           spellCheck={false}

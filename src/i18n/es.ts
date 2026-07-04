@@ -211,6 +211,9 @@ export const es: TranslationKey = {
   },
   settings: {
     title: 'Ajustes',
+    sectionPreferences: 'Preferencias',
+    sectionAppearance: 'Apariencia',
+    sectionData: 'Datos',
     language: 'Idioma',
     sound: 'Efectos de sonido',
     soundDesc: 'Reproduce sonidos al acertar o fallar una tecla',
@@ -233,8 +236,9 @@ export const es: TranslationKey = {
       indigo: 'Índigo',
       emerald: 'Esmeralda',
       cyan: 'Cian',
-      violet: 'Violeta',
+      red: 'Rojo',
       amber: 'Ámbar',
+      fuchsia: 'Fucsia',
     },
   },
   categories: {
@@ -260,6 +264,7 @@ export const es: TranslationKey = {
     showKeyboard: 'Mostrar teclado',
     hideKeyboard: 'Ocultar teclado',
     thumb: 'Pulgar',
+    combo: 'Combo',
   },
   completion: {
     perfect: '¡Ronda perfecta!',
@@ -368,7 +373,12 @@ export const es: TranslationKey = {
     winCondition: 'Condición de victoria',
     winConditionFirstFinish: 'Primero en terminar',
     winConditionHighestWpm: 'Mayor WPM',
-    winConditionSuddenDeath: 'Muerte súbita (1 error = fuera)',
+    winConditionSuddenDeath: 'Muerte súbita',
+    winConditionFirstFinishDesc: 'Gana quien llegue primero al final del texto.',
+    winConditionHighestWpmDesc: 'Gana quien tenga las palabras por minuto más altas.',
+    winConditionSuddenDeathDesc: 'Un solo error te elimina de la carrera.',
+    maxComboTieBreaker:
+      'En caso de empate, la Racha Máxima (Max Combo) de teclas correctas definirá al ganador.',
     customTextTooShort: 'Escribe al menos 10 caracteres para la carrera.',
     charactersCount: '{current} / {max}',
     createRoomAction: 'Crear nueva sala',

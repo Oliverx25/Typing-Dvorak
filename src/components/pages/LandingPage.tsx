@@ -103,8 +103,8 @@ function LandingContent() {
             <h2 className="text-lg font-semibold text-[var(--color-text)]">{t.landing.featureFeedbackTitle}</h2>
             <p className="mt-2 text-sm text-[var(--color-text-muted)]">{t.landing.featureFeedbackDesc}</p>
           </article>
-          <article className="rounded-2xl border border-[var(--color-highlight)]/30 bg-[var(--color-surface-elevated)] p-6 ring-1 ring-[var(--color-highlight)]/10">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-highlight)]/15 text-[var(--color-highlight)]">
+          <article className="rounded-2xl border border-indigo-500/30 bg-[var(--color-surface-elevated)] p-6 ring-1 ring-indigo-500/10">
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-500 dark:text-indigo-400">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />

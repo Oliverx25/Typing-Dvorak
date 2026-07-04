@@ -28,7 +28,7 @@ export interface RoomBroadcastState {
   lessonId: string;
   customText: string;
   blindMode: boolean;
-  winCondition: WinCondition;
+  winConditions: WinCondition[];
   phase: RoomPhase;
   raceStartedAt: number | null;
   version: number;

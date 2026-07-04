@@ -1,4 +1,4 @@
-import type { WinCondition } from '@/utils/multiplayer/roomConfig';
+import { normalizeWinConditions, type WinCondition } from '@/utils/multiplayer/roomConfig';
 
 export type TextSource = 'lesson' | 'custom';
 
@@ -6,7 +6,7 @@ export interface CreateRoomConfig {
   lessonId: string;
   customText: string;
   blindMode: boolean;
-  winCondition: WinCondition;
+  winConditions: WinCondition[];
   textSource: TextSource;
 }
 
@@ -24,13 +24,15 @@ export function readCreateRoomConfig(roomCode: string): CreateRoomConfig | null 
   try {
     const raw = sessionStorage.getItem(`${PREFIX}${roomCode}`);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<CreateRoomConfig>;
+    const parsed = JSON.parse(raw) as Partial<CreateRoomConfig> & {
+      winCondition?: WinCondition;
+    };
     if (!parsed.lessonId) return null;
     return {
       lessonId: parsed.lessonId,
       customText: parsed.customText?.trim() ?? '',
       blindMode: Boolean(parsed.blindMode),
-      winCondition: parsed.winCondition ?? 'first_finish',
+      winConditions: normalizeWinConditions(parsed.winConditions ?? parsed.winCondition),
       textSource: parsed.textSource === 'custom' ? 'custom' : 'lesson',
     };
   } catch {

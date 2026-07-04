@@ -73,6 +73,9 @@ export function useTypingSession({
   const [elapsedMs, setElapsedMs] = useState(0);
   const [activeKey, setActiveKey] = useState<string | undefined>();
   const [errorKeystrokes, setErrorKeystrokes] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [comboBroke, setComboBroke] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const sessionMissesRef = useRef<Record<string, number>>({});
@@ -159,6 +162,9 @@ export function useTypingSession({
     setElapsedMs(0);
     setActiveKey(undefined);
     setErrorKeystrokes(0);
+    setCombo(0);
+    setMaxCombo(0);
+    setComboBroke(false);
     requestAnimationFrame(() => containerRef.current?.focus());
   }, [isTestMode, lesson, locale, customText]);
 
@@ -258,9 +264,20 @@ export function useTypingSession({
     });
 
     recordKeystroke(e.key, isCorrect);
-    if (!isCorrect) {
+    if (isCorrect) {
+      setComboBroke(false);
+      setCombo((prev) => {
+        const next = prev + 1;
+        setMaxCombo((max) => (next > max ? next : max));
+        return next;
+      });
+    } else {
       setErrorKeystrokes((n) => n + 1);
       sessionMissesRef.current[e.key] = (sessionMissesRef.current[e.key] ?? 0) + 1;
+      setCombo((prev) => {
+        if (prev > 0) setComboBroke(true);
+        return 0;
+      });
     }
 
     if (sound) {
@@ -304,6 +321,10 @@ export function useTypingSession({
     wpmDelta,
     sessionWeakKeys,
     isTestMode,
+    combo,
+    maxCombo,
+    comboBroke,
+    clearComboBroke: () => setComboBroke(false),
     containerRef,
     retryButtonRef,
     reset,

@@ -48,7 +48,7 @@ export default function HeaderMenuPortal({
       <div className="fixed inset-0 z-[200]" onClick={onClose} aria-hidden="true" />
       <div
         className={[
-          'fixed z-[201] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-xl',
+          'modal-enter fixed z-[201] origin-top rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-xl',
           widthClassName,
           menuClassName,
         ].join(' ')}

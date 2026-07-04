@@ -20,7 +20,7 @@ function MultiplayerIndexContent() {
     lessonId: DEFAULT_RACE_LESSON_ID,
     customText: '',
     blindMode: false,
-    winCondition: 'first_finish',
+    winConditions: ['first_finish'],
   });
 
   const canCreateRoom =
@@ -37,7 +37,7 @@ function MultiplayerIndexContent() {
       customText:
         roomSettings.textSource === 'custom' ? roomSettings.customText.trim() : '',
       blindMode: roomSettings.blindMode,
-      winCondition: roomSettings.winCondition,
+      winConditions: roomSettings.winConditions,
       textSource: roomSettings.textSource,
     });
     window.location.href = roomUrl(code);

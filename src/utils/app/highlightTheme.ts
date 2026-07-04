@@ -2,14 +2,15 @@ import type { Theme } from '../progress/storage';
 import { getSettings } from './settings';
 import { getStoredTheme } from '../progress/storage';
 
-export type HighlightThemeId = 'indigo' | 'emerald' | 'cyan' | 'violet' | 'amber';
+export type HighlightThemeId = 'indigo' | 'emerald' | 'cyan' | 'red' | 'amber' | 'fuchsia';
 
 export const HIGHLIGHT_THEME_IDS: HighlightThemeId[] = [
   'indigo',
   'emerald',
   'cyan',
-  'violet',
+  'red',
   'amber',
+  'fuchsia',
 ];
 
 interface ThemePair {
@@ -39,15 +40,20 @@ export const HIGHLIGHT_THEMES: Record<HighlightThemeId, HighlightThemePreset> = 
     light: { main: '#0891b2', hover: '#0e7490' },
     dark: { main: '#22d3ee', hover: '#06b6d4' },
   },
-  violet: {
-    swatch: '#a78bfa',
-    light: { main: '#7c3aed', hover: '#6d28d9' },
-    dark: { main: '#a78bfa', hover: '#8b5cf6' },
+  red: {
+    swatch: '#f87171',
+    light: { main: '#dc2626', hover: '#b91c1c' },
+    dark: { main: '#f87171', hover: '#ef4444' },
   },
   amber: {
     swatch: '#fbbf24',
     light: { main: '#d97706', hover: '#b45309' },
     dark: { main: '#fbbf24', hover: '#f59e0b' },
+  },
+  fuchsia: {
+    swatch: '#e879f9',
+    light: { main: '#c026d3', hover: '#a21caf' },
+    dark: { main: '#e879f9', hover: '#d946ef' },
   },
 };
 

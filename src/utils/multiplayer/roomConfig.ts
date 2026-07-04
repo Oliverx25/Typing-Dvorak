@@ -12,6 +12,28 @@ export type WinCondition = 'first_finish' | 'highest_wpm' | 'sudden_death';
 
 export const WIN_CONDITIONS: WinCondition[] = ['first_finish', 'highest_wpm', 'sudden_death'];
 
+export const DEFAULT_WIN_CONDITIONS: WinCondition[] = ['first_finish'];
+
+/** Icon file (in /public/icons) associated with each win condition. */
+export const WIN_CONDITION_ICONS: Record<WinCondition, string> = {
+  first_finish: '/icons/timer.svg',
+  highest_wpm: '/icons/speed.svg',
+  sudden_death: '/icons/skull.svg',
+};
+
+/**
+ * Normalize a possibly-legacy win condition value (single string or array)
+ * into a de-duplicated, non-empty array of valid conditions.
+ */
+export function normalizeWinConditions(value: unknown): WinCondition[] {
+  const raw = Array.isArray(value) ? value : value != null ? [value] : [];
+  const valid = raw.filter((v): v is WinCondition =>
+    WIN_CONDITIONS.includes(v as WinCondition),
+  );
+  const unique = Array.from(new Set(valid));
+  return unique.length > 0 ? unique : [...DEFAULT_WIN_CONDITIONS];
+}
+
 export const CUSTOM_RACE_TEXT_MAX = 1000;
 export const CUSTOM_RACE_TEXT_MIN = 10;
 
@@ -36,7 +58,7 @@ export function createDefaultRoomState(ownerId: string): RoomBroadcastState {
     lessonId: DEFAULT_RACE_LESSON_ID,
     customText: '',
     blindMode: false,
-    winCondition: 'first_finish',
+    winConditions: [...DEFAULT_WIN_CONDITIONS],
     phase: 'lobby',
     raceStartedAt: null,
     version: 1,
@@ -68,7 +90,9 @@ export function mergeRoomState(
       lessonId: incoming.lessonId ?? current?.lessonId ?? DEFAULT_RACE_LESSON_ID,
       customText: incoming.customText ?? current?.customText ?? '',
       blindMode: incoming.blindMode ?? current?.blindMode ?? false,
-      winCondition: incoming.winCondition ?? current?.winCondition ?? 'first_finish',
+      winConditions: normalizeWinConditions(
+        incoming.winConditions ?? current?.winConditions,
+      ),
       phase: incoming.phase ?? current?.phase ?? 'lobby',
       raceStartedAt: incoming.raceStartedAt !== undefined
         ? incoming.raceStartedAt

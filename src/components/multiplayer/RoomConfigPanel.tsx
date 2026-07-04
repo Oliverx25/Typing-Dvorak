@@ -1,5 +1,6 @@
 import CreateRoomSettings, { type CreateRoomSettingsValue } from '@/components/multiplayer/CreateRoomSettings';
 import { useApp } from '@/contexts/AppProvider';
+import { normalizeWinConditions } from '@/utils/multiplayer/roomConfig';
 import type { RoomBroadcastState } from '@/types/multiplayer';
 
 interface RoomConfigPanelProps {
@@ -7,7 +8,7 @@ interface RoomConfigPanelProps {
   isOwner: boolean;
   disabled?: boolean;
   onChange: (
-    partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winCondition'>,
+    partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winConditions'>,
   ) => void;
 }
 
@@ -17,7 +18,7 @@ function toSettingsValue(roomState: RoomBroadcastState): CreateRoomSettingsValue
     lessonId: roomState.lessonId,
     customText: roomState.customText,
     blindMode: roomState.blindMode,
-    winCondition: roomState.winCondition ?? 'first_finish',
+    winConditions: normalizeWinConditions(roomState.winConditions),
   };
 }
 
@@ -35,7 +36,7 @@ export default function RoomConfigPanel({
       lessonId: next.lessonId,
       customText: next.textSource === 'custom' ? next.customText : '',
       blindMode: next.blindMode,
-      winCondition: next.winCondition,
+      winConditions: next.winConditions,
     });
   };
 

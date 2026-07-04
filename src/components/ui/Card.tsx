@@ -61,7 +61,7 @@ export default function Card({
   onClick,
 }: CardProps) {
   const base = [
-    'rounded-xl border transition overflow-hidden',
+    'rounded-xl border transition-all duration-300 overflow-hidden',
     VARIANT[variant],
     bleed ? '' : PADDING[padding],
     className,

@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { Accordion, CustomSelect, SegmentedControl, ToggleSwitch } from '@/components/ui';
+import { Accordion, SegmentedControl, ToggleSwitch } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 import LessonGrid from '@/components/multiplayer/LessonGrid';
+import WinConditionPicker from '@/components/multiplayer/WinConditionPicker';
 import {
   CUSTOM_RACE_TEXT_MAX,
   CUSTOM_RACE_TEXT_MIN,
   RACE_LESSONS,
-  WIN_CONDITIONS,
   type WinCondition,
 } from '@/utils/multiplayer/roomConfig';
 import type { TextSource } from '@/utils/multiplayer/roomStorage';
@@ -17,7 +17,7 @@ export interface CreateRoomSettingsValue {
   lessonId: string;
   customText: string;
   blindMode: boolean;
-  winCondition: WinCondition;
+  winConditions: WinCondition[];
 }
 
 interface CreateRoomSettingsProps {
@@ -26,15 +26,6 @@ interface CreateRoomSettingsProps {
   disabled?: boolean;
   variant?: 'full' | 'content' | 'settings';
 }
-
-const winConditionLabelKeys: Record<
-  WinCondition,
-  'winConditionFirstFinish' | 'winConditionHighestWpm' | 'winConditionSuddenDeath'
-> = {
-  first_finish: 'winConditionFirstFinish',
-  highest_wpm: 'winConditionHighestWpm',
-  sudden_death: 'winConditionSuddenDeath',
-};
 
 export function isCustomTextValid(text: string): boolean {
   const trimmed = text.trim();
@@ -59,15 +50,6 @@ export default function CreateRoomSettings({
     value.textSource === 'custom' &&
     customText.trim().length > 0 &&
     !isCustomTextValid(customText);
-
-  const winConditionOptions = useMemo(
-    () =>
-      WIN_CONDITIONS.map((condition) => ({
-        value: condition,
-        label: t.multiplayer[winConditionLabelKeys[condition]],
-      })),
-    [t],
-  );
 
   const handleCustomTextChange = (next: string) => {
     const clipped = next.slice(0, CUSTOM_RACE_TEXT_MAX);
@@ -151,21 +133,11 @@ export default function CreateRoomSettings({
 
   const settingsFields = (
     <div className="space-y-5">
-      <div>
-        <label htmlFor="win-condition" className="mb-1.5 block text-sm font-medium text-[var(--color-text)]">
-          {t.multiplayer.winCondition}
-        </label>
-        <CustomSelect
-          id="win-condition"
-          value={value.winCondition}
-          disabled={disabled}
-          onChange={(winCondition) =>
-            onChange({ winCondition: winCondition as WinCondition })
-          }
-          options={winConditionOptions}
-          aria-label={t.multiplayer.winCondition}
-        />
-      </div>
+      <WinConditionPicker
+        value={value.winConditions}
+        disabled={disabled}
+        onChange={(winConditions) => onChange({ winConditions })}
+      />
       <ToggleSwitch
         label={t.multiplayer.blindModeRace}
         checked={value.blindMode}

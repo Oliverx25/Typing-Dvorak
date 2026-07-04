@@ -1,6 +1,6 @@
 import { useApp } from '@/contexts/AppProvider';
 
-export function SiteLogoIcon({ className = 'text-[var(--color-accent)]' }: { className?: string }) {
+export function SiteLogoIcon({ className = 'text-[var(--color-highlight)]' }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
