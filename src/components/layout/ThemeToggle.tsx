@@ -1,4 +1,5 @@
 import { useApp } from '@/contexts/AppProvider';
+import { headerIconButtonClassName } from './headerClasses';
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useApp();
@@ -7,7 +8,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-2 text-[var(--color-text-muted)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+      className={headerIconButtonClassName}
       aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
     >
       {theme === 'light' ? (

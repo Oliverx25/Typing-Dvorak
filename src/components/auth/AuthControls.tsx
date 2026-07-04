@@ -2,17 +2,17 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useApp } from '@/contexts/AppProvider';
 import { signInWithOAuth, type OAuthProvider } from '@/services/supabase/auth';
-import { Button, Icon } from '@/components/ui';
+import { Icon } from '@/components/ui';
+import { headerIconButtonClassName } from '@/components/layout/headerClasses';
 
-interface AuthButtonProps {
+interface OAuthIconButtonProps {
   provider: OAuthProvider;
+  label: string;
 }
 
-function ProviderButton({ provider }: AuthButtonProps) {
-  const auth = useAuthLabels();
+function OAuthIconButton({ provider, label }: OAuthIconButtonProps) {
   const [loading, setLoading] = useState(false);
   const icon = provider === 'github' ? 'github' : 'google';
-  const label = provider === 'github' ? auth.signInGithub : auth.signInGoogle;
 
   const handleClick = async () => {
     setLoading(true);
@@ -22,16 +22,17 @@ function ProviderButton({ provider }: AuthButtonProps) {
   };
 
   return (
-    <Button variant="secondary" size="sm" onClick={handleClick} disabled={loading}>
-      <Icon name={icon} size={16} />
-      {label}
-    </Button>
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className={headerIconButtonClassName}
+      aria-label={label}
+      title={label}
+    >
+      <Icon name={icon} size={20} />
+    </button>
   );
-}
-
-function useAuthLabels() {
-  const { t } = useApp();
-  return t.auth;
 }
 
 interface AuthControlsProps {
@@ -77,8 +78,14 @@ export default function AuthControls({ variant = 'app' }: AuthControlsProps) {
 
   return (
     <div className="flex items-center gap-1.5">
-      <ProviderButton provider="github" />
-      <ProviderButton provider="google" />
+      <a
+        href="/login"
+        className="hidden rounded-lg px-2 py-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)] sm:inline"
+      >
+        {t.auth.signIn}
+      </a>
+      <OAuthIconButton provider="github" label={t.auth.signInGithub} />
+      <OAuthIconButton provider="google" label={t.auth.signInGoogle} />
     </div>
   );
 }

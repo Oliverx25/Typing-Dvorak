@@ -3,6 +3,7 @@ import { useApp } from '@/contexts/AppProvider';
 import type { Locale } from '@/i18n';
 import { downloadExport, importProgress } from '@/utils/exportImport';
 import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/events';
+import { headerIconButtonClassName } from './headerClasses';
 
 export default function SettingsPanel() {
   const { t, settings, updateSettings, setLocale } = useApp();
@@ -29,7 +30,7 @@ export default function SettingsPanel() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-2 text-[var(--color-text-muted)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+        className={headerIconButtonClassName}
         aria-label={t.settings.title}
         aria-expanded={open}
       >

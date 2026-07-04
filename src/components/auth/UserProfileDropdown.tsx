@@ -24,12 +24,12 @@ export default function UserProfileDropdown() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="rounded-full transition hover:ring-2 hover:ring-[var(--color-accent)]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full p-0 ring-2 ring-[var(--color-border)] transition hover:ring-[var(--color-accent)]/50 focus:outline-none focus-visible:ring-[var(--color-accent)]"
         aria-label={name}
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <UserAvatar name={name} avatarUrl={avatarUrl} initials={initials} size={36} />
+        <UserAvatar avatarUrl={avatarUrl} initials={initials} size={36} />
       </button>
 
       {open && (
