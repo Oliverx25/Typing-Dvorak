@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import type { Locale } from '@/i18n';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { updatePassword } from '@/services/supabase/auth';
 import {
   buildAccountExportBundle,
@@ -40,7 +41,12 @@ const PRIVACY_LABEL_KEYS: Record<MultiplayerPrivacy, 'multiplayerPrivacyPublic' 
   anonymous: 'multiplayerPrivacyAnonymous',
 };
 
+const panelClassName =
+  'rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3';
+
 export default function EditProfileModal({ user, onClose }: EditProfileModalProps) {
+  useLockBodyScroll();
+
   const { t, settings } = useApp();
   const { refreshUser, profile } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -227,273 +233,289 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
   const busy = loading || passwordLoading || exportLoading || deleteLoading;
 
   return (
-    <>
-      <div className="fixed inset-0 z-[60] bg-black/50" onClick={onClose} aria-hidden="true" />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-profile-title"
-        className="fixed left-1/2 top-1/2 z-[70] flex max-h-[min(92vh,780px)] w-[min(100%-2rem,32rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl"
-      >
-        <div className="border-b border-[var(--color-border)] px-5 py-4">
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-profile-title"
+    >
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+
+      <div className="relative flex max-h-[min(92vh,820px)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl">
+        <div className="shrink-0 border-b border-[var(--color-border)] px-6 py-4">
           <h2 id="edit-profile-title" className="text-base font-semibold text-[var(--color-text)]">
             {t.auth.editProfile}
           </h2>
-          <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.auth.editProfileDesc}</p>
+          <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">{t.auth.editProfileDesc}</p>
         </div>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
-          <div className="flex flex-col items-center gap-3">
-            <UserAvatar
-              avatarUrl={previewUrl ?? display.avatarUrl}
-              initials={display.initials}
-              avatarSource={previewUrl ? 'custom' : display.avatarSource}
-              size={88}
-            />
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => fileRef.current?.click()}>
-                {t.auth.uploadPhoto}
-              </Button>
-              {display.hasCustomAvatar && (
-                <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={handleRemovePhoto}>
-                  {t.auth.removePhoto}
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 lg:overflow-visible">
+          <div className="grid gap-5 lg:grid-cols-[10.5rem_minmax(0,1fr)] lg:items-start">
+            <div className="flex flex-col items-center gap-2.5 lg:pt-1">
+              <UserAvatar
+                avatarUrl={previewUrl ?? display.avatarUrl}
+                initials={display.initials}
+                avatarSource={previewUrl ? 'custom' : display.avatarSource}
+                size={80}
+              />
+              <div className="flex flex-wrap justify-center gap-1.5">
+                <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => fileRef.current?.click()}>
+                  {t.auth.uploadPhoto}
                 </Button>
-              )}
-            </div>
-            <p className="text-center text-xs text-[var(--color-text-muted)]">{t.auth.changePhotoDesc}</p>
-          </div>
-
-          <div>
-            <label htmlFor="profile-display-name" className="mb-1.5 block text-sm font-medium text-[var(--color-text)]">
-              {t.auth.displayName}
-            </label>
-            <input
-              id="profile-display-name"
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              maxLength={50}
-              autoComplete="name"
-              className={formFieldClassName}
-            />
-            <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.auth.displayNameHint}</p>
-          </div>
-
-          <div>
-            <label htmlFor="profile-username" className="mb-1.5 block text-sm font-medium text-[var(--color-text)]">
-              {t.auth.username}
-            </label>
-            <input
-              id="profile-username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              maxLength={24}
-              autoComplete="username"
-              className={formFieldClassName}
-              placeholder={t.auth.usernamePlaceholder}
-            />
-            <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.auth.usernameHint}</p>
-          </div>
-
-          <div>
-            <p className="mb-1.5 text-sm font-medium text-[var(--color-text)]">{t.auth.profileLocale}</p>
-            <div className="flex gap-1">
-              {(['en', 'es'] as Locale[]).map((loc) => (
-                <button
-                  key={loc}
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setLocale(loc)}
-                  className={[
-                    'rounded-md px-3 py-1.5 text-xs font-medium uppercase transition',
-                    locale === loc
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
-                  ].join(' ')}
-                >
-                  {loc}
-                </button>
-              ))}
-            </div>
-            <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.auth.profileLocaleHint}</p>
-          </div>
-
-          <div>
-            <p className="mb-1.5 text-sm font-medium text-[var(--color-text)]">{t.auth.multiplayerPrivacy}</p>
-            <div className="space-y-1.5">
-              {MULTIPLAYER_PRIVACY_OPTIONS.map((option) => (
-                <label
-                  key={option}
-                  className={[
-                    'flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-sm transition',
-                    multiplayerPrivacy === option
-                      ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10'
-                      : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]/40',
-                  ].join(' ')}
-                >
-                  <input
-                    type="radio"
-                    name="multiplayer-privacy"
-                    value={option}
-                    checked={multiplayerPrivacy === option}
-                    disabled={busy}
-                    onChange={() => setMultiplayerPrivacy(option)}
-                    className="accent-[var(--color-accent)]"
-                  />
-                  <span className="text-[var(--color-text)]">{t.auth[PRIVACY_LABEL_KEYS[option]]}</span>
-                </label>
-              ))}
-            </div>
-            <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.auth.multiplayerPrivacyHint}</p>
-          </div>
-
-          {hasEmailAuth && (
-            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-              <p className="text-sm font-medium text-[var(--color-text)]">{t.auth.changePassword}</p>
-              <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.auth.changePasswordDesc}</p>
-              <div className="mt-3 space-y-3">
-                <div>
-                  <label htmlFor="profile-new-password" className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">
-                    {t.auth.password}
-                  </label>
-                  <input
-                    id="profile-new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    autoComplete="new-password"
-                    disabled={busy}
-                    className={formFieldClassName}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="profile-confirm-password" className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">
-                    {t.auth.confirmPassword}
-                  </label>
-                  <input
-                    id="profile-confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    autoComplete="new-password"
-                    disabled={busy}
-                    className={formFieldClassName}
-                  />
-                </div>
-                {passwordMessage && (
-                  <p className={`text-xs ${passwordMessage === t.auth.passwordUpdated ? 'text-[var(--color-correct)]' : 'text-[var(--color-incorrect)]'}`}>
-                    {passwordMessage}
-                  </p>
+                {display.hasCustomAvatar && (
+                  <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={handleRemovePhoto}>
+                    {t.auth.removePhoto}
+                  </Button>
                 )}
-                <Button type="button" variant="secondary" size="sm" disabled={busy || !newPassword} onClick={handleChangePassword}>
-                  {passwordLoading ? t.auth.savingProfile : t.auth.savePassword}
-                </Button>
               </div>
+              <p className="text-center text-[11px] leading-snug text-[var(--color-text-muted)]">
+                {t.auth.changePhotoDesc}
+              </p>
             </div>
-          )}
 
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-            <p className="text-sm font-medium text-[var(--color-text)]">{t.auth.exportAccountData}</p>
-            <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.auth.exportAccountDataDesc}</p>
-            <Button type="button" variant="secondary" size="sm" className="mt-3" disabled={busy} onClick={handleExport}>
-              {exportLoading ? t.auth.exportingAccount : t.auth.exportAccountBtn}
-            </Button>
-          </div>
-
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
-              {t.auth.accountInfo}
-            </p>
-            <dl className="mt-2 space-y-2 text-sm">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <dt className="text-[var(--color-text-muted)]">{t.auth.email}</dt>
-                <dd className="truncate font-medium text-[var(--color-text)]">{user.email ?? '—'}</dd>
-              </div>
-              {linkedProviders.length > 0 && (
-                <div>
-                  <dt className="text-[var(--color-text-muted)]">{t.auth.linkedProviders}</dt>
-                  <dd className="font-medium text-[var(--color-text)]">
-                    {linkedProviders.map(providerLabel).join(' · ')}
-                  </dd>
-                </div>
-              )}
-              {memberSince && (
-                <div>
-                  <dt className="text-[var(--color-text-muted)]">{t.auth.memberSince}</dt>
-                  <dd className="font-medium text-[var(--color-text)]">{memberSince}</dd>
-                </div>
-              )}
-            </dl>
-          </div>
-
-          <div className="rounded-xl border border-[var(--color-incorrect)]/40 bg-[var(--color-incorrect)]/5 px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-incorrect)]">
-              {t.auth.dangerZone}
-            </p>
-            <p className="mt-2 text-sm font-medium text-[var(--color-text)]">{t.auth.deleteAccount}</p>
-            <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.auth.deleteAccountDesc}</p>
-            {!showDeleteConfirm ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="mt-3 text-[var(--color-incorrect)] hover:bg-[var(--color-incorrect)]/10"
-                disabled={busy}
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                {t.auth.deleteAccountBtn}
-              </Button>
-            ) : (
-              <div className="mt-3 space-y-2">
-                <label htmlFor="delete-confirm-email" className="block text-xs text-[var(--color-text-muted)]">
-                  {t.auth.deleteAccountConfirm}
+                <label htmlFor="profile-display-name" className="mb-1 block text-sm font-medium text-[var(--color-text)]">
+                  {t.auth.displayName}
                 </label>
                 <input
-                  id="delete-confirm-email"
-                  type="email"
-                  value={deleteConfirm}
-                  onChange={(e) => setDeleteConfirm(e.target.value)}
-                  autoComplete="off"
-                  disabled={busy}
+                  id="profile-display-name"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  maxLength={50}
+                  autoComplete="name"
                   className={formFieldClassName}
                 />
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-[var(--color-incorrect)] hover:bg-[var(--color-incorrect)]/10"
-                    disabled={busy}
-                    onClick={handleDeleteAccount}
-                  >
-                    {deleteLoading ? t.auth.deletingAccount : t.auth.deleteAccountBtn}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={busy}
-                    onClick={() => {
-                      setShowDeleteConfirm(false);
-                      setDeleteConfirm('');
-                    }}
-                  >
-                    {t.auth.cancel}
-                  </Button>
+                <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{t.auth.displayNameHint}</p>
+              </div>
+
+              <div>
+                <label htmlFor="profile-username" className="mb-1 block text-sm font-medium text-[var(--color-text)]">
+                  {t.auth.username}
+                </label>
+                <input
+                  id="profile-username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  maxLength={24}
+                  autoComplete="username"
+                  className={formFieldClassName}
+                  placeholder={t.auth.usernamePlaceholder}
+                />
+                <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{t.auth.usernameHint}</p>
+              </div>
+
+              <div>
+                <p className="mb-1 text-sm font-medium text-[var(--color-text)]">{t.auth.profileLocale}</p>
+                <div className="flex gap-1">
+                  {(['en', 'es'] as Locale[]).map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setLocale(loc)}
+                      className={[
+                        'rounded-md px-3 py-1.5 text-xs font-medium uppercase transition',
+                        locale === loc
+                          ? 'bg-[var(--color-accent)] text-white'
+                          : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
+                      ].join(' ')}
+                    >
+                      {loc}
+                    </button>
+                  ))}
                 </div>
+                <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{t.auth.profileLocaleHint}</p>
+              </div>
+
+              <div>
+                <p className="mb-1 text-sm font-medium text-[var(--color-text)]">{t.auth.multiplayerPrivacy}</p>
+                <div className="flex flex-wrap gap-1">
+                  {MULTIPLAYER_PRIVACY_OPTIONS.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setMultiplayerPrivacy(option)}
+                      className={[
+                        'rounded-md px-2 py-1.5 text-[11px] font-medium leading-tight transition',
+                        multiplayerPrivacy === option
+                          ? 'bg-[var(--color-accent)] text-white'
+                          : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
+                      ].join(' ')}
+                    >
+                      {t.auth[PRIVACY_LABEL_KEYS[option]]}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{t.auth.multiplayerPrivacyHint}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className={panelClassName}>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+                {t.auth.accountInfo}
+              </p>
+              <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                <div className="min-w-0">
+                  <dt className="text-[var(--color-text-muted)]">{t.auth.email}</dt>
+                  <dd className="truncate font-medium text-[var(--color-text)]">{user.email ?? '—'}</dd>
+                </div>
+                {linkedProviders.length > 0 && (
+                  <div>
+                    <dt className="text-[var(--color-text-muted)]">{t.auth.linkedProviders}</dt>
+                    <dd className="font-medium text-[var(--color-text)]">
+                      {linkedProviders.map(providerLabel).join(' · ')}
+                    </dd>
+                  </div>
+                )}
+                {memberSince && (
+                  <div>
+                    <dt className="text-[var(--color-text-muted)]">{t.auth.memberSince}</dt>
+                    <dd className="font-medium text-[var(--color-text)]">{memberSince}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+
+            {hasEmailAuth ? (
+              <div className={panelClassName}>
+                <p className="text-sm font-medium text-[var(--color-text)]">{t.auth.changePassword}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">{t.auth.changePasswordDesc}</p>
+                <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="profile-new-password" className="mb-1 block text-[11px] font-medium text-[var(--color-text-muted)]">
+                      {t.auth.password}
+                    </label>
+                    <input
+                      id="profile-new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      autoComplete="new-password"
+                      disabled={busy}
+                      className={formFieldClassName}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="profile-confirm-password" className="mb-1 block text-[11px] font-medium text-[var(--color-text-muted)]">
+                      {t.auth.confirmPassword}
+                    </label>
+                    <input
+                      id="profile-confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                      disabled={busy}
+                      className={formFieldClassName}
+                    />
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Button type="button" variant="secondary" size="sm" disabled={busy || !newPassword} onClick={handleChangePassword}>
+                    {passwordLoading ? t.auth.savingProfile : t.auth.savePassword}
+                  </Button>
+                  {passwordMessage && (
+                    <p className={`text-[11px] ${passwordMessage === t.auth.passwordUpdated ? 'text-[var(--color-correct)]' : 'text-[var(--color-incorrect)]'}`}>
+                      {passwordMessage}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className={panelClassName}>
+                <p className="text-sm font-medium text-[var(--color-text)]">{t.auth.exportAccountData}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">{t.auth.exportAccountDataDesc}</p>
+                <Button type="button" variant="secondary" size="sm" className="mt-2.5" disabled={busy} onClick={handleExport}>
+                  {exportLoading ? t.auth.exportingAccount : t.auth.exportAccountBtn}
+                </Button>
               </div>
             )}
           </div>
 
-          {errorMessage && (
-            <p className="rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-incorrect)]/10 px-3 py-2 text-xs text-[var(--color-incorrect)]">
-              {errorMessage}
-            </p>
-          )}
-          {actionMessage && !errorMessage && (
-            <p className="rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-incorrect)]/10 px-3 py-2 text-xs text-[var(--color-incorrect)]">
-              {actionMessage}
+          <div className={`mt-4 grid gap-4 ${hasEmailAuth ? 'md:grid-cols-2' : ''}`}>
+            {hasEmailAuth && (
+              <div className={panelClassName}>
+                <p className="text-sm font-medium text-[var(--color-text)]">{t.auth.exportAccountData}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">{t.auth.exportAccountDataDesc}</p>
+                <Button type="button" variant="secondary" size="sm" className="mt-2.5" disabled={busy} onClick={handleExport}>
+                  {exportLoading ? t.auth.exportingAccount : t.auth.exportAccountBtn}
+                </Button>
+              </div>
+            )}
+
+            <div className={`rounded-xl border border-[var(--color-incorrect)]/40 bg-[var(--color-incorrect)]/5 px-4 py-3 ${hasEmailAuth ? '' : 'md:col-span-2'}`}>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-incorrect)]">
+                {t.auth.dangerZone}
+              </p>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-[var(--color-text)]">{t.auth.deleteAccount}</p>
+                  <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">{t.auth.deleteAccountDesc}</p>
+                </div>
+                {!showDeleteConfirm ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 text-[var(--color-incorrect)] hover:bg-[var(--color-incorrect)]/10"
+                    disabled={busy}
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    {t.auth.deleteAccountBtn}
+                  </Button>
+                ) : (
+                  <div className="flex w-full min-w-0 flex-col gap-2 sm:max-w-xs">
+                    <label htmlFor="delete-confirm-email" className="text-[11px] text-[var(--color-text-muted)]">
+                      {t.auth.deleteAccountConfirm}
+                    </label>
+                    <input
+                      id="delete-confirm-email"
+                      type="email"
+                      value={deleteConfirm}
+                      onChange={(e) => setDeleteConfirm(e.target.value)}
+                      autoComplete="off"
+                      disabled={busy}
+                      className={formFieldClassName}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-[var(--color-incorrect)] hover:bg-[var(--color-incorrect)]/10"
+                        disabled={busy}
+                        onClick={handleDeleteAccount}
+                      >
+                        {deleteLoading ? t.auth.deletingAccount : t.auth.deleteAccountBtn}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => {
+                          setShowDeleteConfirm(false);
+                          setDeleteConfirm('');
+                        }}
+                      >
+                        {t.auth.cancel}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {(errorMessage || actionMessage) && (
+            <p className="mt-4 rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-incorrect)]/10 px-3 py-2 text-xs text-[var(--color-incorrect)]">
+              {errorMessage ?? actionMessage}
             </p>
           )}
         </div>
@@ -510,15 +532,15 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
           }}
         />
 
-        <div className="flex flex-col gap-2 border-t border-[var(--color-border)] px-5 py-4">
-          <Button type="button" fullWidth disabled={busy} onClick={handleSave}>
-            {loading ? t.auth.savingProfile : t.auth.saveProfile}
-          </Button>
-          <Button type="button" variant="ghost" fullWidth disabled={busy} onClick={onClose}>
+        <div className="flex shrink-0 justify-end gap-2 border-t border-[var(--color-border)] px-6 py-4">
+          <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>
             {t.auth.cancel}
+          </Button>
+          <Button type="button" disabled={busy} onClick={handleSave}>
+            {loading ? t.auth.savingProfile : t.auth.saveProfile}
           </Button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
