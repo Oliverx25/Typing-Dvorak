@@ -12,6 +12,12 @@ export type WinCondition = 'first_finish' | 'highest_wpm' | 'sudden_death';
 
 export const WIN_CONDITIONS: WinCondition[] = ['first_finish', 'highest_wpm', 'sudden_death'];
 
+/** Win objectives — how the winner is determined. */
+export const VICTORY_CONDITIONS: WinCondition[] = ['first_finish', 'highest_wpm'];
+
+/** Rule modifiers that alter gameplay (stored in winConditions when applicable). */
+export const MODIFIER_WIN_CONDITIONS: WinCondition[] = ['sudden_death'];
+
 export const DEFAULT_WIN_CONDITIONS: WinCondition[] = ['first_finish'];
 
 /** Icon file (in /public/icons) associated with each win condition. */
@@ -20,6 +26,8 @@ export const WIN_CONDITION_ICONS: Record<WinCondition, string> = {
   highest_wpm: '/icons/speed.svg',
   sudden_death: '/icons/skull.svg',
 };
+
+export const BLIND_MODE_ICON = '/icons/blind-mode.svg';
 
 /**
  * Normalize a possibly-legacy win condition value (single string or array)
@@ -31,7 +39,10 @@ export function normalizeWinConditions(value: unknown): WinCondition[] {
     WIN_CONDITIONS.includes(v as WinCondition),
   );
   const unique = Array.from(new Set(valid));
-  return unique.length > 0 ? unique : [...DEFAULT_WIN_CONDITIONS];
+  const victories = unique.filter((c) => VICTORY_CONDITIONS.includes(c));
+  const modifiers = unique.filter((c) => MODIFIER_WIN_CONDITIONS.includes(c));
+  const finalVictories = victories.length > 0 ? victories : [...DEFAULT_WIN_CONDITIONS];
+  return [...finalVictories, ...modifiers];
 }
 
 export const CUSTOM_RACE_TEXT_MAX = 1000;

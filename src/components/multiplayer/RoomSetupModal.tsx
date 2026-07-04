@@ -123,7 +123,7 @@ export default function RoomSetupModal({
               onChange={(partial) => setDraft((prev) => ({ ...prev, ...partial }))}
             />
           </section>
-          <aside className="lg:col-span-1">
+          <aside className="flex lg:col-span-1 lg:min-h-[20rem]">
             <CreateRoomSettings
               value={draft}
               variant="settings"

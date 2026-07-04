@@ -2,6 +2,9 @@ import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { Button, SvgIcon } from '@/components/ui';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import {
+  BLIND_MODE_ICON,
+  MODIFIER_WIN_CONDITIONS,
+  VICTORY_CONDITIONS,
   WIN_CONDITION_ICONS,
   normalizeWinConditions,
   type WinCondition,
@@ -23,6 +26,24 @@ const winLabelKeys: Record<
   sudden_death: 'winConditionSuddenDeath',
 };
 
+function RuleBadge({
+  icon,
+  label,
+}: {
+  icon: string;
+  label: string;
+}) {
+  return (
+    <span
+      title={label}
+      className="inline-flex items-center gap-1 rounded-full border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/10 px-2.5 py-1 text-[11px] font-medium text-[var(--color-highlight)]"
+    >
+      <SvgIcon src={icon} size={14} />
+      {label}
+    </span>
+  );
+}
+
 export default function MatchInfoCard({
   roomState,
   isOwner,
@@ -30,6 +51,8 @@ export default function MatchInfoCard({
 }: MatchInfoCardProps) {
   const { t } = useApp();
   const winConditions = normalizeWinConditions(roomState.winConditions);
+  const victoryConditions = winConditions.filter((c) => VICTORY_CONDITIONS.includes(c));
+  const modifierConditions = winConditions.filter((c) => MODIFIER_WIN_CONDITIONS.includes(c));
   const isCustom = roomState.customText.trim().length > 0;
   const lesson = !isCustom ? getLessonById(roomState.lessonId) : undefined;
 
@@ -67,11 +90,6 @@ export default function MatchInfoCard({
                 {difficulty}
               </span>
             ) : null}
-            {roomState.blindMode ? (
-              <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)]">
-                {t.multiplayer.blindModeOn}
-              </span>
-            ) : null}
           </div>
         </div>
 
@@ -98,18 +116,33 @@ export default function MatchInfoCard({
         ) : null}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="text-xs text-[var(--color-text-muted)]">{t.multiplayer.winCondition}:</span>
-        {winConditions.map((condition) => (
-          <span
-            key={condition}
-            title={t.multiplayer[winLabelKeys[condition]]}
-            className="inline-flex items-center gap-1 rounded-lg border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/10 px-2 py-1 text-[11px] font-medium text-[var(--color-highlight)]"
-          >
-            <SvgIcon src={WIN_CONDITION_ICONS[condition]} size={14} />
-            {t.multiplayer[winLabelKeys[condition]]}
-          </span>
-        ))}
+      <div className="mt-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-[var(--color-text-muted)]">{t.multiplayer.winCondition}:</span>
+          {victoryConditions.map((condition) => (
+            <RuleBadge
+              key={condition}
+              icon={WIN_CONDITION_ICONS[condition]}
+              label={t.multiplayer[winLabelKeys[condition]]}
+            />
+          ))}
+        </div>
+
+        {modifierConditions.length > 0 || roomState.blindMode ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-[var(--color-text-muted)]">{t.multiplayer.modifiers}:</span>
+            {modifierConditions.map((condition) => (
+              <RuleBadge
+                key={condition}
+                icon={WIN_CONDITION_ICONS[condition]}
+                label={t.multiplayer[winLabelKeys[condition]]}
+              />
+            ))}
+            {roomState.blindMode ? (
+              <RuleBadge icon={BLIND_MODE_ICON} label={t.multiplayer.blindModeMod} />
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

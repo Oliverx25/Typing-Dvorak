@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { Accordion, SegmentedControl, ToggleSwitch } from '@/components/ui';
+import { Accordion, SegmentedControl } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 import LessonGrid from '@/components/multiplayer/LessonGrid';
-import WinConditionPicker from '@/components/multiplayer/WinConditionPicker';
+import MatchRulesPanel from '@/components/multiplayer/MatchRulesPanel';
 import {
   CUSTOM_RACE_TEXT_MAX,
   CUSTOM_RACE_TEXT_MIN,
@@ -132,19 +132,12 @@ export default function CreateRoomSettings({
   );
 
   const settingsFields = (
-    <div className="space-y-5">
-      <WinConditionPicker
-        value={value.winConditions}
-        disabled={disabled}
-        onChange={(winConditions) => onChange({ winConditions })}
-      />
-      <ToggleSwitch
-        label={t.multiplayer.blindModeRace}
-        checked={value.blindMode}
-        disabled={disabled}
-        onChange={(blindMode) => onChange({ blindMode })}
-      />
-    </div>
+    <MatchRulesPanel
+      winConditions={value.winConditions}
+      blindMode={value.blindMode}
+      disabled={disabled}
+      onChange={(partial) => onChange(partial)}
+    />
   );
 
   if (variant === 'content') return contentSection;
