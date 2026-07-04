@@ -356,6 +356,8 @@ export const es: TranslationKey = {
     backToLobby: 'Volver a multijugador',
     createRoom: 'Crear sala',
     createRoomDesc: 'Elige lección o texto personalizado y comparte el código.',
+    advancedOptions: 'Opciones avanzadas',
+    advancedOptionsHint: 'Texto personalizado y modo ciego',
     createRoomAction: 'Crear nueva sala',
     joinRoom: 'Unirse a sala',
     joinRoomDesc: 'Introduce el código que te compartió el anfitrión.',

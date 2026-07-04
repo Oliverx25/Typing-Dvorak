@@ -354,6 +354,8 @@ export const en = {
     backToLobby: 'Back to multiplayer',
     createRoom: 'Create room',
     createRoomDesc: 'Pick a lesson or custom text, then share the code.',
+    advancedOptions: 'Advanced options',
+    advancedOptionsHint: 'Custom text and blind mode',
     createRoomAction: 'Create new room',
     joinRoom: 'Join room',
     joinRoomDesc: 'Enter the code shared by the host.',

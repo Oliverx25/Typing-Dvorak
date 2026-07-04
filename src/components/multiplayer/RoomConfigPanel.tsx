@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
+import { CustomSelect } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 import { RACE_LESSONS } from '@/utils/multiplayer/roomConfig';
 import type { RoomBroadcastState } from '@/types/multiplayer';
@@ -19,6 +20,15 @@ export default function RoomConfigPanel({
 }: RoomConfigPanelProps) {
   const { t } = useApp();
   const [customText, setCustomText] = useState(roomState.customText);
+
+  const lessonOptions = useMemo(
+    () =>
+      RACE_LESSONS.map((lesson) => ({
+        value: lesson.id,
+        label: getLessonTitle(t, lesson.titleKey),
+      })),
+    [t],
+  );
 
   useEffect(() => {
     setCustomText(roomState.customText);
@@ -41,19 +51,14 @@ export default function RoomConfigPanel({
         <label htmlFor="race-lesson" className="mb-1 block text-sm font-medium text-[var(--color-text)]">
           {t.multiplayer.raceLesson}
         </label>
-        <select
+        <CustomSelect
           id="race-lesson"
           value={roomState.lessonId}
           disabled={!isOwner || disabled}
-          onChange={(event) => onChange({ lessonId: event.target.value })}
-          className={formFieldClassName}
-        >
-          {RACE_LESSONS.map((lesson) => (
-            <option key={lesson.id} value={lesson.id}>
-              {getLessonTitle(t, lesson.titleKey)}
-            </option>
-          ))}
-        </select>
+          onChange={(lessonId) => onChange({ lessonId })}
+          options={lessonOptions}
+          aria-label={t.multiplayer.raceLesson}
+        />
       </div>
 
       <div className="flex items-end">
