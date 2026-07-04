@@ -12,7 +12,7 @@ interface UseRoomLifecycleOptions {
   roomId: string;
   userId: string | null;
   isOwner: boolean;
-  players: LobbyPlayerPresence[];
+  getConnectedPlayers: () => LobbyPlayerPresence[];
 }
 
 /**
@@ -23,17 +23,17 @@ export function useRoomLifecycle({
   roomId,
   userId,
   isOwner,
-  players,
+  getConnectedPlayers,
 }: UseRoomLifecycleOptions) {
   const isOwnerRef = useRef(isOwner);
   const userIdRef = useRef(userId);
-  const playersRef = useRef(players);
+  const getConnectedPlayersRef = useRef(getConnectedPlayers);
   const accessTokenRef = useRef<string | null>(null);
   const lifecycleHandledRef = useRef(false);
 
   isOwnerRef.current = isOwner;
   userIdRef.current = userId;
-  playersRef.current = players;
+  getConnectedPlayersRef.current = getConnectedPlayers;
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -58,7 +58,8 @@ export function useRoomLifecycle({
       if (!hostId || !isOwnerRef.current || lifecycleHandledRef.current) return;
 
       lifecycleHandledRef.current = true;
-      const others = playersRef.current.filter((player) => player.userId !== hostId);
+      const connected = getConnectedPlayersRef.current();
+      const others = connected.filter((player) => player.userId !== hostId);
       const token = accessTokenRef.current;
 
       if (others.length === 0) {
@@ -103,7 +104,8 @@ export function useRoomLifecycle({
     if (!hostId || !isOwnerRef.current) return;
 
     lifecycleHandledRef.current = true;
-    const others = playersRef.current.filter((player) => player.userId !== hostId);
+    const connected = getConnectedPlayersRef.current();
+    const others = connected.filter((player) => player.userId !== hostId);
 
     if (others.length === 0) {
       await closeRoom(roomId, hostId);

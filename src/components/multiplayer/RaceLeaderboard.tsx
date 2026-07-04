@@ -1,4 +1,5 @@
 import UserAvatar from '@/components/auth/UserAvatar';
+import { Button } from '@/components/ui';
 import { formatRaceScore } from '@/utils/multiplayer/raceScoring';
 import type { WinCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
@@ -10,8 +11,10 @@ interface RaceLeaderboardProps {
   title: string;
   youLabel: string;
   finishedLabel: string;
-  waitingLabel: string;
   scoreLabel: string;
+  comboLabel: string;
+  leaveLabel: string;
+  onLeave: () => void;
 }
 
 function rankStyle(index: number): string {
@@ -27,8 +30,10 @@ export default function RaceLeaderboard({
   title,
   youLabel,
   finishedLabel,
-  waitingLabel,
   scoreLabel,
+  comboLabel,
+  leaveLabel,
+  onLeave,
 }: RaceLeaderboardProps) {
   const showScore = primaryVictory === 'max_score';
 
@@ -41,73 +46,78 @@ export default function RaceLeaderboard({
       </div>
 
       <ol className="flex-1 space-y-2 overflow-y-auto p-3">
-        {entries.length === 0 ? (
-          <li className="px-2 py-6 text-center text-sm text-[var(--color-text-muted)]">
-            {waitingLabel}
-          </li>
-        ) : (
-          entries.map((entry, index) => {
-            const isSelf = entry.userId === currentUserId;
-            const pct = entry.finished ? 100 : Math.round(entry.percentage);
+        {entries.map((entry, index) => {
+          const isSelf = entry.userId === currentUserId;
+          const pct = entry.finished ? 100 : Math.round(entry.percentage);
 
-            return (
-              <li
-                key={entry.userId}
-                className={[
-                  'rounded-xl border px-3 py-2.5 transition',
-                  rankStyle(index),
-                  isSelf ? 'ring-1 ring-[var(--color-highlight)]/30' : '',
-                ].join(' ')}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="w-5 shrink-0 text-center font-mono text-xs font-bold text-[var(--color-text-muted)]">
-                    {index + 1}
-                  </span>
-                  <UserAvatar
-                    avatarUrl={entry.avatarUrl}
-                    initials={entry.initials}
-                    avatarSource={entry.avatarSource}
-                    size={32}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-medium text-[var(--color-text)]">
-                        {entry.name}
-                        {isSelf ? (
-                          <span className="ml-1 text-[11px] font-normal text-[var(--color-text-muted)]">
-                            ({youLabel})
-                          </span>
-                        ) : null}
-                      </p>
-                      <span className="shrink-0 font-mono text-[11px] text-[var(--color-text-muted)]">
-                        {showScore
-                          ? `${formatRaceScore(entry.score)} ${scoreLabel}`
-                          : `${Math.round(entry.wpm)} WPM`}
-                      </span>
-                    </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--color-border)]/60">
-                      <div
-                        className={[
-                          'h-full rounded-full transition-[width] duration-300 ease-out',
-                          entry.finished ? 'bg-[var(--color-correct)]' : 'bg-[var(--color-highlight)]',
-                        ].join(' ')}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <p className="mt-1 text-[10px] text-[var(--color-text-muted)]">
+          return (
+            <li
+              key={entry.userId}
+              className={[
+                'rounded-xl border px-3 py-2.5 transition',
+                rankStyle(index),
+                isSelf ? 'ring-1 ring-[var(--color-highlight)]/30' : '',
+              ].join(' ')}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-5 shrink-0 text-center font-mono text-xs font-bold text-[var(--color-text-muted)]">
+                  {index + 1}
+                </span>
+                <UserAvatar
+                  avatarUrl={entry.avatarUrl}
+                  initials={entry.initials}
+                  avatarSource={entry.avatarSource}
+                  size={32}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-sm font-medium text-[var(--color-text)]">
+                      {entry.name}
+                      {isSelf ? (
+                        <span className="ml-1 text-[11px] font-normal text-[var(--color-text-muted)]">
+                          ({youLabel})
+                        </span>
+                      ) : null}
+                    </p>
+                    <span className="shrink-0 font-mono text-[11px] text-[var(--color-text-muted)]">
+                      {showScore
+                        ? `${formatRaceScore(entry.score)} ${scoreLabel}`
+                        : `${Math.round(entry.wpm)} WPM`}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--color-border)]/60">
+                    <div
+                      className={[
+                        'h-full rounded-full transition-[width] duration-300 ease-out',
+                        entry.finished ? 'bg-[var(--color-correct)]' : 'bg-[var(--color-highlight)]',
+                      ].join(' ')}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2 text-[10px] text-[var(--color-text-muted)]">
+                    <span>
                       {entry.finished
                         ? finishedLabel
-                        : showScore
-                          ? `${Math.round(entry.wpm)} WPM · ${Math.round(entry.accuracy)}%`
-                          : `${pct}%`}
-                    </p>
+                        : `${Math.round(entry.wpm)} WPM · ${Math.round(entry.accuracy)}%`}
+                    </span>
+                    <span className="shrink-0 font-mono tabular-nums">
+                      {entry.combo} {comboLabel}
+                    </span>
                   </div>
                 </div>
-              </li>
-            );
-          })
-        )}
+              </div>
+            </li>
+          );
+        })}
       </ol>
+
+      <div className="border-t border-[var(--color-border)] p-3">
+        <div className="flex justify-end">
+          <Button variant="ghost" size="sm" onClick={onLeave}>
+            {leaveLabel}
+          </Button>
+        </div>
+      </div>
     </aside>
   );
 }

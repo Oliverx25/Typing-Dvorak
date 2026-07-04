@@ -20,7 +20,7 @@ export type LobbyConnectionStatus =
   | 'connected'
   | 'error';
 
-export type RoomPhase = 'lobby' | 'racing';
+export type RoomPhase = 'lobby' | 'racing' | 'results';
 
 /** Authoritative room settings broadcast by the owner. */
 export interface RoomBroadcastState {
@@ -40,6 +40,8 @@ export interface RaceProgressPayload {
   percentage: number;
   accuracy: number;
   maxCombo: number;
+  /** Current correct-key streak; resets to 0 on a mistake. */
+  combo: number;
   score: number;
   updatedAt: number;
   finished?: boolean;

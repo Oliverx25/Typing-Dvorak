@@ -5,7 +5,7 @@ import type {
   RaceParticipantProgress,
   RaceProgressPayload,
 } from '@/types/multiplayer';
-import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
+import { calculateMaxScore, mergePeakRaceProgress } from '@/utils/multiplayer/raceScoring';
 import {
   getPrimaryVictoryCondition,
   type WinCondition,
@@ -16,6 +16,7 @@ export interface LocalRaceProgress {
   percentage: number;
   accuracy: number;
   maxCombo: number;
+  combo: number;
   score: number;
   finished: boolean;
 }
@@ -34,6 +35,20 @@ function clampPercentage(value: number): number {
   return Math.min(100, Math.max(0, value));
 }
 
+function emptyProgressFor(userId: string): RaceProgressPayload {
+  return {
+    userId,
+    wpm: 0,
+    percentage: 0,
+    accuracy: 100,
+    maxCombo: 0,
+    combo: 0,
+    score: 0,
+    updatedAt: Date.now(),
+    finished: false,
+  };
+}
+
 function normalizeProgressPayload(
   progress: Partial<RaceProgressPayload>,
 ): RaceProgressPayload {
@@ -41,6 +56,7 @@ function normalizeProgressPayload(
   const percentage = clampPercentage(progress.percentage ?? 0);
   const accuracy = Math.min(100, Math.max(0, progress.accuracy ?? 100));
   const maxCombo = Math.max(0, progress.maxCombo ?? 0);
+  const combo = Math.max(0, progress.combo ?? 0);
   const score =
     progress.score ??
     calculateMaxScore(wpm, accuracy, maxCombo);
@@ -51,6 +67,7 @@ function normalizeProgressPayload(
     percentage,
     accuracy,
     maxCombo,
+    combo,
     score,
     updatedAt: progress.updatedAt ?? Date.now(),
     finished: Boolean(progress.finished),
@@ -102,22 +119,28 @@ export function useMultiplayerRace({
     animationFrameRef.current = null;
     const next: RaceParticipantProgress[] = [];
 
-    for (const progress of progressMapRef.current.values()) {
-      const player = playerById.get(progress.userId);
-      if (!player) continue;
+    for (const player of players) {
+      const stored =
+        player.userId === currentUserId
+          ? null
+          : progressMapRef.current.get(player.userId);
+      const base = stored ?? emptyProgressFor(player.userId);
 
       next.push({
-        ...progress,
+        ...base,
         name: player.name,
         avatarUrl: player.avatarUrl,
         initials: player.initials,
         avatarSource: player.avatarSource,
+        finished: base.finished || player.hasFinished,
+        percentage:
+          base.finished || player.hasFinished ? Math.max(base.percentage, 100) : base.percentage,
       });
     }
 
     next.sort((a, b) => compareParticipants(a, b, primaryVictory));
     setRemoteProgress(next);
-  }, [playerById, primaryVictory]);
+  }, [currentUserId, players, primaryVictory]);
 
   const scheduleFlush = useCallback(() => {
     if (animationFrameRef.current !== null) return;
@@ -140,10 +163,14 @@ export function useMultiplayerRace({
       const progress = payload as Partial<RaceProgressPayload>;
       if (!progress.userId || progress.userId === currentUserIdRef.current) return;
 
-      progressMapRef.current.set(
-        progress.userId,
-        normalizeProgressPayload(progress),
-      );
+      const previous = progressMapRef.current.get(progress.userId);
+      const normalized = normalizeProgressPayload(progress);
+      const peaks = mergePeakRaceProgress(previous, normalized);
+
+      progressMapRef.current.set(progress.userId, {
+        ...normalized,
+        ...peaks,
+      });
       scheduleFlushRef.current();
     };
 
@@ -168,6 +195,7 @@ export function useMultiplayerRace({
       percentage: number,
       accuracy: number,
       maxCombo: number,
+      combo: number,
       score: number,
       finished = false,
       force = false,
@@ -187,6 +215,7 @@ export function useMultiplayerRace({
           percentage: clampPercentage(percentage),
           accuracy: Math.min(100, Math.max(0, accuracy)),
           maxCombo: Math.max(0, maxCombo),
+          combo: Math.max(0, combo),
           score,
           updatedAt: now,
           finished,
@@ -197,40 +226,52 @@ export function useMultiplayerRace({
   );
 
   const leaderboard = useMemo(() => {
+    const remoteById = new Map(remoteProgress.map((entry) => [entry.userId, entry]));
     const entries: RaceParticipantProgress[] = [];
 
-    if (currentUserId) {
-      const self = playerById.get(currentUserId);
-      if (self) {
+    for (const player of players) {
+      const isSelf = player.userId === currentUserId;
+      const playerMeta = {
+        name: player.name,
+        avatarUrl: player.avatarUrl,
+        initials: player.initials,
+        avatarSource: player.avatarSource,
+      };
+
+      if (isSelf && currentUserId) {
         entries.push({
           userId: currentUserId,
           wpm: localProgress.wpm,
           percentage: clampPercentage(localProgress.percentage),
           accuracy: localProgress.accuracy,
           maxCombo: localProgress.maxCombo,
+          combo: localProgress.combo,
           score: localProgress.score,
           updatedAt: Date.now(),
-          finished: localProgress.finished || self.hasFinished,
-          name: self.name,
-          avatarUrl: self.avatarUrl,
-          initials: self.initials,
-          avatarSource: self.avatarSource,
+          finished: localProgress.finished || player.hasFinished,
+          ...playerMeta,
         });
+        continue;
       }
-    }
 
-    for (const remote of remoteProgress) {
-      if (remote.userId === currentUserId) continue;
-      const player = playerById.get(remote.userId);
+      const base = remoteById.get(player.userId) ?? {
+        ...emptyProgressFor(player.userId),
+        ...playerMeta,
+      };
+
       entries.push({
-        ...remote,
-        finished: remote.finished || Boolean(player?.hasFinished),
-        percentage: remote.finished || player?.hasFinished ? 100 : remote.percentage,
+        ...base,
+        ...playerMeta,
+        finished: base.finished || player.hasFinished,
+        percentage:
+          base.finished || player.hasFinished
+            ? Math.max(base.percentage, 100)
+            : base.percentage,
       });
     }
 
     return entries.sort((a, b) => compareParticipants(a, b, primaryVictory));
-  }, [currentUserId, localProgress, playerById, primaryVictory, remoteProgress]);
+  }, [currentUserId, localProgress, players, primaryVictory, remoteProgress]);
 
   return {
     leaderboard,

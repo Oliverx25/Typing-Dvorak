@@ -18,6 +18,7 @@ export interface TypingProgressUpdate {
   percentage: number;
   accuracy: number;
   maxCombo: number;
+  combo: number;
   score: number;
 }
 
@@ -104,6 +105,7 @@ export default function TypingTest({
       percentage: progress,
       accuracy: stats.accuracy,
       maxCombo,
+      combo,
       score: calculateMaxScore(stats.wpm, stats.accuracy, maxCombo),
     };
 
@@ -116,6 +118,7 @@ export default function TypingTest({
         percentage: progress,
         accuracy: stats.accuracy,
         maxCombo,
+        combo,
         score: calculateMaxScore(stats.wpm, stats.accuracy, maxCombo),
       });
     }, 500);
@@ -129,6 +132,7 @@ export default function TypingTest({
     stats.wpm,
     stats.accuracy,
     maxCombo,
+    combo,
     progress,
   ]);
 

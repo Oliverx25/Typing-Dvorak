@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateMaxScore } from './raceScoring';
+import { calculateMaxScore, mergePeakRaceProgress } from './raceScoring';
 
 describe('calculateMaxScore', () => {
   it('weights accuracy into WPM and adds combo bonus', () => {
@@ -10,5 +10,22 @@ describe('calculateMaxScore', () => {
 
   it('clamps invalid inputs', () => {
     expect(calculateMaxScore(-10, 120, -5)).toBe(0);
+  });
+});
+
+describe('mergePeakRaceProgress', () => {
+  it('never decreases score or wpm', () => {
+    expect(mergePeakRaceProgress(undefined, { wpm: 60, score: 400 })).toEqual({
+      wpm: 60,
+      score: 400,
+    });
+    expect(mergePeakRaceProgress({ wpm: 60, score: 400 }, { wpm: 30, score: 200 })).toEqual({
+      wpm: 60,
+      score: 400,
+    });
+    expect(mergePeakRaceProgress({ wpm: 60, score: 400 }, { wpm: 70, score: 350 })).toEqual({
+      wpm: 70,
+      score: 400,
+    });
   });
 });
