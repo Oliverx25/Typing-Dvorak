@@ -34,9 +34,11 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
               <a href="/stats" className={headerLinkClassName}>
                 {t.nav.stats}
               </a>
-              <a href="/multiplayer" className={headerLinkClassName}>
-                {t.nav.multiplayer}
-              </a>
+              {user ? (
+                <a href="/multiplayer" className={headerLinkClassName}>
+                  {t.nav.multiplayer}
+                </a>
+              ) : null}
             </>
           )}
           <SettingsPanel />
@@ -63,9 +65,14 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
                 {t.nav.lessons}
               </a>
             ) : (
-              <a href="/stats" className={headerLinkClassName}>
-                {t.nav.stats}
-              </a>
+              <>
+                <a href="/stats" className={headerLinkClassName}>
+                  {t.nav.stats}
+                </a>
+                <a href="/multiplayer" className={headerLinkClassName}>
+                  {t.nav.multiplayer}
+                </a>
+              </>
             )}
             <SettingsPanel />
             <ThemeToggle />

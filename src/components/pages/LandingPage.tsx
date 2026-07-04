@@ -46,12 +46,18 @@ function LandingHeroCtas() {
   if (user) {
     return (
       <>
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
           <a
             href="/lessons"
             className="inline-flex w-full max-w-xs items-center justify-center rounded-xl bg-[var(--color-accent)] px-8 py-3.5 text-base font-semibold text-white no-underline shadow-lg shadow-[var(--color-accent)]/25 transition hover:bg-[var(--color-accent-hover)] sm:w-auto"
           >
             {t.landing.continuePracticing}
+          </a>
+          <a
+            href="/multiplayer"
+            className="inline-flex w-full max-w-xs items-center justify-center rounded-xl border border-[var(--color-highlight)]/40 bg-[var(--color-highlight)]/10 px-8 py-3.5 text-base font-semibold text-[var(--color-highlight)] no-underline transition hover:border-[var(--color-highlight)] hover:bg-[var(--color-highlight)]/20 sm:w-auto"
+          >
+            {t.landing.playMultiplayer}
           </a>
           <a
             href="/stats"
@@ -118,7 +124,7 @@ function LandingContent() {
 
         <LandingHeroCtas />
 
-        <section className="mt-20 grid gap-6 text-left sm:grid-cols-3">
+        <section className="mt-20 grid gap-6 text-left sm:grid-cols-2 lg:grid-cols-4">
           <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-accent)]/15 text-[var(--color-accent)]">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -137,6 +143,18 @@ function LandingContent() {
             </div>
             <h2 className="text-lg font-semibold text-[var(--color-text)]">{t.landing.featureFeedbackTitle}</h2>
             <p className="mt-2 text-sm text-[var(--color-text-muted)]">{t.landing.featureFeedbackDesc}</p>
+          </article>
+          <article className="rounded-2xl border border-[var(--color-highlight)]/30 bg-[var(--color-surface-elevated)] p-6 ring-1 ring-[var(--color-highlight)]/10">
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-highlight)]/15 text-[var(--color-highlight)]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold text-[var(--color-text)]">{t.landing.featureMultiplayerTitle}</h2>
+            <p className="mt-2 text-sm text-[var(--color-text-muted)]">{t.landing.featureMultiplayerDesc}</p>
           </article>
           <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-key-target)]/15 text-[var(--color-key-target)]">
