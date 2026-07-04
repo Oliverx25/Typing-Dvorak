@@ -58,7 +58,7 @@ export default function SettingsPanel() {
                     className={[
                       'rounded-md px-2.5 py-1 text-xs font-medium uppercase transition-all duration-300',
                       settings.locale === loc
-                        ? 'bg-[var(--color-accent)] text-white'
+                        ? 'bg-[var(--color-highlight)] text-white'
                         : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
                     ].join(' ')}
                   >
@@ -105,7 +105,7 @@ export default function SettingsPanel() {
                 <button
                   type="button"
                   onClick={() => downloadExport()}
-                  className="mt-2 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-key)] px-3 py-2 text-xs font-medium text-[var(--color-text)] transition-all duration-300 hover:border-[var(--color-accent)]"
+                  className="mt-2 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-key)] px-3 py-2 text-xs font-medium text-[var(--color-text)] transition-all duration-300 hover:border-[var(--color-highlight)]"
                 >
                   {t.settings.exportBtn}
                 </button>
@@ -127,7 +127,7 @@ export default function SettingsPanel() {
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="mt-2 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-key)] px-3 py-2 text-xs font-medium text-[var(--color-text)] transition-all duration-300 hover:border-[var(--color-accent)]"
+                  className="mt-2 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-key)] px-3 py-2 text-xs font-medium text-[var(--color-text)] transition-all duration-300 hover:border-[var(--color-highlight)]"
                 >
                   {t.settings.importBtn}
                 </button>
@@ -247,7 +247,7 @@ function Toggle({
         onClick={() => onChange(!checked)}
         className={[
           'relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-all duration-300',
-          checked ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-border)]',
+          checked ? 'bg-[var(--color-highlight)]' : 'bg-[var(--color-border)]',
         ].join(' ')}
       >
         <span

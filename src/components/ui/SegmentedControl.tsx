@@ -38,7 +38,7 @@ export default function SegmentedControl<T extends string>({
             className={[
               'flex-1 rounded-lg px-3 py-2 text-xs font-medium transition sm:text-sm',
               isActive
-                ? 'bg-[var(--color-accent)] text-white shadow-sm'
+                ? 'bg-[var(--color-highlight)] text-white shadow-sm'
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
               disabled ? 'cursor-not-allowed opacity-50' : '',
             ].join(' ')}

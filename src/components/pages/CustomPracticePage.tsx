@@ -67,7 +67,7 @@ export default function CustomPracticePage() {
         <button
           type="button"
           onClick={() => setActive(false)}
-          className="text-sm text-[var(--color-text-muted)] transition hover:text-[var(--color-accent)]"
+          className="text-sm text-[var(--color-text-muted)] transition hover:text-[var(--color-highlight)]"
         >
           {t.custom.editText}
         </button>

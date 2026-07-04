@@ -106,7 +106,7 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
             'w-full rounded-xl border bg-[var(--color-surface)] px-4 py-3.5 text-center font-mono text-xl tracking-[0.25em] text-[var(--color-text)] uppercase outline-none transition-all duration-300 focus:ring-2',
             shaking
               ? 'shake border-[var(--color-incorrect)] focus:border-[var(--color-incorrect)] focus:ring-[var(--color-incorrect)]/20'
-              : 'border-[var(--color-border)] focus:border-[var(--color-accent)] focus:ring-[var(--color-accent)]/20',
+              : 'border-[var(--color-border)] focus:border-[var(--color-highlight)] focus:ring-[var(--color-highlight)]/20',
           ].join(' ')}
           maxLength={8}
           autoComplete="off"

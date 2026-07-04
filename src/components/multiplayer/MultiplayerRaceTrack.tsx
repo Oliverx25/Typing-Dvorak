@@ -46,7 +46,7 @@ function RaceRow({
         </div>
         <div className="h-3 overflow-hidden rounded-full bg-[var(--color-surface)]">
           <div
-            className="h-full rounded-full bg-[var(--color-accent)] transition-[width] duration-300 ease-out"
+            className="h-full rounded-full bg-[var(--color-highlight)] transition-[width] duration-300 ease-out"
             style={{ width: `${percentage}%` }}
           />
         </div>

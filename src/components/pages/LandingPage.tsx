@@ -1,6 +1,13 @@
 import { AuthProvider, useAuth } from '@/contexts/AuthProvider';
 import { AppProvider, useApp } from '@/contexts/AppProvider';
 import SiteHeader from '@/components/layout/SiteHeader';
+import LandingFeatureCard from '@/components/pages/LandingFeatureCard';
+
+const primaryCtaClassName =
+  'inline-flex w-full max-w-xs items-center justify-center rounded-xl bg-[var(--color-highlight)] px-8 py-3.5 text-base font-semibold text-white no-underline shadow-lg shadow-[var(--color-highlight)]/25 transition-all duration-300 hover:bg-[var(--color-highlight-hover)] sm:w-auto';
+
+const secondaryCtaClassName =
+  'inline-flex w-full max-w-xs items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-8 py-3.5 text-base font-semibold text-[var(--color-text)] no-underline transition-all duration-300 hover:border-[var(--color-highlight)] hover:text-[var(--color-highlight)] sm:w-auto';
 
 function LandingHeroCtas() {
   const { t } = useApp();
@@ -18,10 +25,7 @@ function LandingHeroCtas() {
     return (
       <>
         <div className="mt-10 flex justify-center">
-          <a
-            href="/lessons"
-            className="inline-flex w-full max-w-xs items-center justify-center rounded-xl bg-[var(--color-accent)] px-8 py-3.5 text-base font-semibold text-white no-underline shadow-lg shadow-[var(--color-accent)]/25 transition hover:bg-[var(--color-accent-hover)] sm:w-auto"
-          >
+          <a href="/lessons" className={primaryCtaClassName}>
             {t.landing.continuePracticing}
           </a>
         </div>
@@ -33,22 +37,16 @@ function LandingHeroCtas() {
   return (
     <>
       <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <a
-          href="/lessons"
-          className="inline-flex w-full max-w-xs items-center justify-center rounded-xl bg-[var(--color-accent)] px-8 py-3.5 text-base font-semibold text-white no-underline shadow-lg shadow-[var(--color-accent)]/25 transition hover:bg-[var(--color-accent-hover)] sm:w-auto"
-        >
+        <a href="/lessons" className={primaryCtaClassName}>
           {t.landing.startPracticing}
         </a>
-        <a
-          href="/signup"
-          className="inline-flex w-full max-w-xs items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-8 py-3.5 text-base font-semibold text-[var(--color-text)] no-underline transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] sm:w-auto"
-        >
+        <a href="/signup" className={secondaryCtaClassName}>
           {t.landing.createAccount}
         </a>
       </div>
       <p className="mt-4 text-sm text-[var(--color-text-muted)]">
         {t.auth.hasAccount}{' '}
-        <a href="/login" className="text-[var(--color-accent)] no-underline hover:underline">
+        <a href="/login" className="text-[var(--color-highlight)] no-underline hover:underline">
           {t.auth.signIn}
         </a>
       </p>
@@ -62,20 +60,20 @@ function LandingContent() {
   return (
     <div className="relative flex min-h-full w-full flex-1 flex-col">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-accent)_0%,_transparent_50%)] opacity-10"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-highlight)_0%,_transparent_50%)] opacity-10"
         aria-hidden="true"
       />
 
       <SiteHeader variant="landing" />
 
       <main className="relative mx-auto w-full max-w-5xl flex-1 px-4 pb-20 pt-8 text-center sm:pt-16">
-        <p className="mb-4 inline-flex rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-4 py-1 text-xs font-medium uppercase tracking-widest text-[var(--color-accent)]">
+        <p className="mb-4 inline-flex rounded-full border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/10 px-4 py-1 text-xs font-medium uppercase tracking-widest text-[var(--color-highlight)]">
           {t.landing.badge}
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-[var(--color-text)] sm:text-6xl">
           {t.landing.title}
           <br />
-          <span className="text-[var(--color-accent)]">{t.landing.titleAccent}</span>
+          <span className="text-[var(--color-highlight)]">{t.landing.titleAccent}</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-[var(--color-text-muted)] sm:text-xl">
           {t.landing.subtitle}
@@ -84,51 +82,55 @@ function LandingContent() {
         <LandingHeroCtas />
 
         <section className="mt-20 grid gap-6 text-left sm:grid-cols-2 lg:grid-cols-4">
-          <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-accent)]/15 text-[var(--color-accent)]">
+          <LandingFeatureCard
+            accent="indigo"
+            title={t.landing.featureLessonsTitle}
+            description={t.landing.featureLessonsDesc}
+            icon={
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
               </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-[var(--color-text)]">{t.landing.featureLessonsTitle}</h2>
-            <p className="mt-2 text-sm text-[var(--color-text-muted)]">{t.landing.featureLessonsDesc}</p>
-          </article>
-          <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-correct)]/15 text-[var(--color-correct)]">
+            }
+          />
+          <LandingFeatureCard
+            accent="emerald"
+            title={t.landing.featureFeedbackTitle}
+            description={t.landing.featureFeedbackDesc}
+            icon={
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                 <path d="m22 4-10 10.01-3-3" />
               </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-[var(--color-text)]">{t.landing.featureFeedbackTitle}</h2>
-            <p className="mt-2 text-sm text-[var(--color-text-muted)]">{t.landing.featureFeedbackDesc}</p>
-          </article>
-          <article className="rounded-2xl border border-indigo-500/30 bg-[var(--color-surface-elevated)] p-6 ring-1 ring-indigo-500/10">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-500 dark:text-indigo-400">
+            }
+          />
+          <LandingFeatureCard
+            accent="cyan"
+            title={t.landing.featureMultiplayerTitle}
+            description={t.landing.featureMultiplayerDesc}
+            icon={
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-[var(--color-text)]">{t.landing.featureMultiplayerTitle}</h2>
-            <p className="mt-2 text-sm text-[var(--color-text-muted)]">{t.landing.featureMultiplayerDesc}</p>
-          </article>
-          <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-key-target)]/15 text-[var(--color-key-target)]">
+            }
+          />
+          <LandingFeatureCard
+            accent="amber"
+            title={t.landing.featureSyncTitle}
+            description={t.landing.featureSyncDesc}
+            icon={
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M3 3v18h18" />
                 <path d="m19 9-5 5-4-4-3 3" />
               </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-[var(--color-text)]">{t.landing.featureSyncTitle}</h2>
-            <p className="mt-2 text-sm text-[var(--color-text-muted)]">{t.landing.featureSyncDesc}</p>
-          </article>
+            }
+          />
         </section>
 
         <section className="mt-16 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-8">
-          <p className="font-mono text-2xl tracking-[0.25em] text-[var(--color-accent)] sm:text-3xl">
+          <p className="font-mono text-2xl tracking-[0.25em] text-[var(--color-highlight)] sm:text-3xl">
             {t.home.homeRowKeys}
           </p>
           <p className="mt-3 text-sm text-[var(--color-text-muted)]">{t.landing.homeRowCaption}</p>
@@ -137,8 +139,8 @@ function LandingContent() {
 
       <footer className="mt-auto shrink-0 border-t border-[var(--color-border)] py-8 text-center text-sm text-[var(--color-text-muted)]">
         <p>
-          {t.landing.builtWith} ·{' '}
-          <a href="/lessons" className="text-[var(--color-accent)] no-underline hover:underline">
+          {t.landing.builtWith}{' '}
+          <a href="/lessons" className="text-[var(--color-highlight)] no-underline hover:underline">
             {t.landing.goToLessons}
           </a>
         </p>

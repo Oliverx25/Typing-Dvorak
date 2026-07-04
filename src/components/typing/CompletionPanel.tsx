@@ -61,7 +61,7 @@ export default function CompletionPanel({
             'h-1 w-full',
             isPerfect
               ? 'bg-gradient-to-r from-[var(--color-correct)] to-[var(--color-correct)]/50'
-              : 'bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent)]/50',
+              : 'bg-gradient-to-r from-[var(--color-highlight)] to-[var(--color-highlight)]/50',
           ].join(' ')}
           aria-hidden="true"
         />
@@ -72,7 +72,7 @@ export default function CompletionPanel({
               'mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full',
               isPerfect
                 ? 'bg-[var(--color-correct)]/15 ring-2 ring-[var(--color-correct)]/30'
-                : 'bg-[var(--color-accent)]/15 ring-2 ring-[var(--color-accent)]/30',
+                : 'bg-[var(--color-highlight)]/15 ring-2 ring-[var(--color-highlight)]/30',
             ].join(' ')}
           >
             {isPerfect ? (
@@ -80,7 +80,7 @@ export default function CompletionPanel({
                 <path d="M20 6 9 17l-5-5" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-highlight)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
                 <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
               </svg>
@@ -135,7 +135,7 @@ export default function CompletionPanel({
             ref={retryButtonRef}
             type="button"
             onClick={onRetry}
-            className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-elevated)]"
+            className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-highlight)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-highlight)]/20 transition hover:bg-[var(--color-highlight-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-highlight)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-elevated)]"
           >
             {t.completion.tryAgain}
             <kbd className="rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-xs font-normal text-white/80">

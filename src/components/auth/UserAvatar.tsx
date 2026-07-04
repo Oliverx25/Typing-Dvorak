@@ -18,7 +18,7 @@ export default function UserAvatar({
 
   return (
     <span
-      className="relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-accent)]/15"
+      className="relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-highlight)]/15"
       style={{ width: size, height: size }}
     >
       {showImage ? (
@@ -32,11 +32,11 @@ export default function UserAvatar({
         <Icon
           name="user"
           size={Math.round(size * 0.48)}
-          className="text-[var(--color-accent)]"
+          className="text-[var(--color-highlight)]"
         />
       ) : (
         <span
-          className="font-semibold text-[var(--color-accent)]"
+          className="font-semibold text-[var(--color-highlight)]"
           style={{ fontSize: size * 0.36 }}
         >
           {initials}

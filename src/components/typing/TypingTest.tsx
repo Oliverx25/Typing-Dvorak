@@ -132,7 +132,7 @@ export default function TypingTest({
         aria-readonly="true"
         className={[
           'relative min-h-[160px] cursor-text overflow-hidden rounded-2xl border-2 bg-[var(--color-surface-elevated)] p-6 outline-none transition-all duration-300 sm:min-h-[180px] sm:p-8',
-          finished ? 'border-[var(--color-correct)]/30' : paused ? 'border-[var(--color-key-target)]/40' : 'border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:ring-4 focus:ring-[var(--color-accent)]/10',
+          finished ? 'border-[var(--color-correct)]/30' : paused ? 'border-[var(--color-key-target)]/40' : 'border-[var(--color-border)] focus:border-[var(--color-highlight)]/50 focus:ring-4 focus:ring-[var(--color-highlight)]/10',
         ].join(' ')}
       >
         <div
@@ -174,7 +174,7 @@ export default function TypingTest({
 
         {!started && !finished && (
           <p className="relative mt-6 flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
-            <span className="inline-flex h-2 w-2 rounded-full bg-[var(--color-accent)] animate-pulse motion-reduce:animate-none" />
+            <span className="inline-flex h-2 w-2 rounded-full bg-[var(--color-highlight)] animate-pulse motion-reduce:animate-none" />
             {t.lesson.startTyping}
           </p>
         )}
@@ -200,7 +200,7 @@ export default function TypingTest({
           <button
             type="button"
             onClick={() => setKeyboardOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-4 py-2 text-sm text-[var(--color-text-muted)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-4 py-2 text-sm text-[var(--color-text-muted)] transition hover:border-[var(--color-highlight)] hover:text-[var(--color-highlight)]"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect width="20" height="16" x="2" y="4" rx="2" />

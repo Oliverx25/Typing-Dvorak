@@ -63,12 +63,15 @@ export function isHighlightThemeId(value: unknown): value is HighlightThemeId {
   return typeof value === 'string' && HIGHLIGHT_THEME_IDS.includes(value as HighlightThemeId);
 }
 
+/** Apply user highlight theme and sync accent tokens used across interactive UI. */
 export function applyHighlightTheme(id: HighlightThemeId, mode: Theme): void {
   if (typeof document === 'undefined') return;
   const preset = HIGHLIGHT_THEMES[id] ?? HIGHLIGHT_THEMES.indigo;
   const pair = mode === 'dark' ? preset.dark : preset.light;
   document.documentElement.style.setProperty('--color-highlight', pair.main);
   document.documentElement.style.setProperty('--color-highlight-hover', pair.hover);
+  document.documentElement.style.setProperty('--color-accent', pair.main);
+  document.documentElement.style.setProperty('--color-accent-hover', pair.hover);
 }
 
 /** Read settings + theme from storage and apply highlight (for early init). */

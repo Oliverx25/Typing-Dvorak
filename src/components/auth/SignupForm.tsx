@@ -70,7 +70,7 @@ function SignupFormContent() {
       footer={
         <p>
           {t.hasAccount}{' '}
-          <a href="/login" className="text-[var(--color-accent)] no-underline hover:underline">
+          <a href="/login" className="text-[var(--color-highlight)] no-underline hover:underline">
             {t.signIn}
           </a>
         </p>

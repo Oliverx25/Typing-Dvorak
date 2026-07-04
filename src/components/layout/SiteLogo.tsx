@@ -27,7 +27,7 @@ export default function SiteLogo({ className = '' }: { className?: string }) {
   return (
     <a
       href="/"
-      className={`flex min-w-0 items-center gap-2 text-lg font-semibold text-[var(--color-text)] no-underline hover:text-[var(--color-accent)] ${className}`}
+      className={`flex min-w-0 items-center gap-2 text-lg font-semibold text-[var(--color-text)] no-underline hover:text-[var(--color-highlight)] ${className}`}
     >
       <SiteLogoIcon />
       <span className="truncate">{t.siteName}</span>

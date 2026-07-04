@@ -9,7 +9,7 @@ interface BadgeProps {
 }
 
 const VARIANT: Record<BadgeVariant, string> = {
-  accent: 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]',
+  accent: 'bg-[var(--color-highlight)]/10 text-[var(--color-highlight)]',
   muted: 'bg-[var(--color-border)] text-[var(--color-text-muted)]',
   success: 'bg-[var(--color-correct)]/10 text-[var(--color-correct)]',
   warning: 'bg-[var(--color-key-target)]/15 text-[var(--color-key-target)]',

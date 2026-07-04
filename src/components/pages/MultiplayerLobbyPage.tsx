@@ -33,7 +33,7 @@ function InvalidRoomContent() {
         <p className="mb-4 text-sm text-[var(--color-text-muted)]">{t.multiplayer.invalidRoomCode}</p>
         <a
           href="/multiplayer"
-          className="inline-flex items-center justify-center rounded-xl bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)]"
+          className="inline-flex items-center justify-center rounded-xl bg-[var(--color-highlight)] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[var(--color-highlight)]/20 transition hover:bg-[var(--color-highlight-hover)]"
         >
           {t.multiplayer.backToLobby}
         </a>
@@ -56,7 +56,7 @@ export default function MultiplayerLobbyPage() {
     <AppShell>
       {!ready ? (
         <div className="flex min-h-[40vh] items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-accent)]" />
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]" />
         </div>
       ) : roomId ? (
         <LobbyContent roomId={roomId} />

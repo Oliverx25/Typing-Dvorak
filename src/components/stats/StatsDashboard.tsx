@@ -50,7 +50,7 @@ export default function StatsDashboard() {
               return (
                 <tr key={lesson.id} className="border-b border-[var(--color-border)] last:border-0">
                   <td className="px-6 py-3 text-[var(--color-text)]">{getLessonTitle(t, lesson.titleKey)}</td>
-                  <td className="px-6 py-3 text-right font-mono font-semibold text-[var(--color-accent)]">{best}</td>
+                  <td className="px-6 py-3 text-right font-mono font-semibold text-[var(--color-highlight)]">{best}</td>
                 </tr>
               );
             })}
@@ -79,7 +79,7 @@ function SummaryCard({
         <p
           className={[
             'font-mono text-3xl font-bold',
-            accent ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]',
+            accent ? 'text-[var(--color-highlight)]' : 'text-[var(--color-text)]',
           ].join(' ')}
         >
           {value}

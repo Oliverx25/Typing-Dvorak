@@ -51,12 +51,12 @@ function LoginFormContent() {
         <>
           <p>
             {t.noAccount}{' '}
-            <a href="/signup" className="text-[var(--color-accent)] no-underline hover:underline">
+            <a href="/signup" className="text-[var(--color-highlight)] no-underline hover:underline">
               {t.signUp}
             </a>
           </p>
           <p className="mt-2">
-            <a href="/lessons" className="text-[var(--color-text-muted)] no-underline hover:text-[var(--color-accent)]">
+            <a href="/lessons" className="text-[var(--color-text-muted)] no-underline hover:text-[var(--color-highlight)]">
               {t.continueWithout} →
             </a>
           </p>
@@ -95,7 +95,7 @@ function LoginFormContent() {
         </label>
 
         <div className="text-right">
-          <a href="/forgot-password" className="text-xs text-[var(--color-accent)] no-underline hover:underline">
+          <a href="/forgot-password" className="text-xs text-[var(--color-highlight)] no-underline hover:underline">
             {t.forgotPassword}
           </a>
         </div>

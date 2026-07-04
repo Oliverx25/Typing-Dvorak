@@ -51,9 +51,9 @@ export default function UserProfileDropdown() {
               onError={() => setImageFailed(true)}
             />
           ) : display.avatarSource === 'none' ? (
-            <Icon name="user" size={18} className="text-[var(--color-accent)]" />
+            <Icon name="user" size={18} className="text-[var(--color-highlight)]" />
           ) : (
-            <span className="text-xs font-semibold text-[var(--color-accent)]">{display.initials}</span>
+            <span className="text-xs font-semibold text-[var(--color-highlight)]">{display.initials}</span>
           )}
         </button>
 

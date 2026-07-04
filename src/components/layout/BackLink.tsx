@@ -14,7 +14,7 @@ export default function BackLink({ href = '/lessons', label }: BackLinkProps) {
     <nav className="mb-8">
       <a
         href={href}
-        className="inline-flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)]"
+        className="inline-flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-highlight)]"
       >
         <Icon name="chevron-right" size={16} className="rotate-180" />
         {text}

@@ -69,7 +69,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
   if (authLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-accent)]" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]" />
       </div>
     );
   }
@@ -80,7 +80,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
         <p className="mb-4 text-sm text-[var(--color-text-muted)]">{t.multiplayer.signInRequired}</p>
         <a
           href={`/login?next=${encodeURIComponent(roomUrl(roomId))}`}
-          className="inline-flex items-center justify-center rounded-xl bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)]"
+          className="inline-flex items-center justify-center rounded-xl bg-[var(--color-highlight)] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[var(--color-highlight)]/20 transition hover:bg-[var(--color-highlight-hover)]"
         >
           {t.auth.signIn}
         </a>
@@ -146,7 +146,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
         ) : null}
 
         {status === 'reconnecting' ? (
-          <p className="mx-6 mt-4 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-4 py-3 text-sm text-[var(--color-text-muted)]">
+          <p className="mx-6 mt-4 rounded-lg border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/10 px-4 py-3 text-sm text-[var(--color-text-muted)]">
             {t.multiplayer.reconnectingHint}
           </p>
         ) : null}

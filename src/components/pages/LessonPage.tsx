@@ -25,7 +25,7 @@ function LessonContent({ lessonId }: { lessonId: string }) {
 
       <header className="mb-10 border-b border-[var(--color-border)] pb-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-[var(--color-accent)]/10 px-3 py-1 text-xs font-medium text-[var(--color-accent)]">
+          <span className="rounded-full bg-[var(--color-highlight)]/10 px-3 py-1 text-xs font-medium text-[var(--color-highlight)]">
             {categoryLabel}
           </span>
           <span className="rounded-full border border-[var(--color-border)] px-3 py-1 text-xs text-[var(--color-text-muted)]">

@@ -15,7 +15,7 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
       <a
         href="/"
-        className="mb-8 flex items-center gap-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)]"
+        className="mb-8 flex items-center gap-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-highlight)]"
       >
         ← Back to home
       </a>
@@ -29,7 +29,7 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
         {!configured ? (
           <div className="rounded-xl border border-[var(--color-key-target)]/30 bg-[var(--color-key-target)]/10 p-4 text-center text-sm text-[var(--color-text-muted)]">
             <p>Cloud auth is not configured on this deployment.</p>
-            <a href="/lessons" className="mt-3 inline-block font-medium text-[var(--color-accent)] no-underline hover:underline">
+            <a href="/lessons" className="mt-3 inline-block font-medium text-[var(--color-highlight)] no-underline hover:underline">
               Continue without account →
             </a>
           </div>

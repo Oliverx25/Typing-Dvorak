@@ -12,6 +12,7 @@ export { default as StarRating } from './StarRating';
 export { default as StatCard } from './StatCard';
 export { default as LockIcon } from './LockIcon';
 export { default as BadgeIcon } from './BadgeIcon';
+export { default as SvgIcon } from './SvgIcon';
 export { default as StreakIcon } from './StreakIcon';
 export { default as CircularProgress } from './CircularProgress';
 export type { AccordionItem } from './Accordion';

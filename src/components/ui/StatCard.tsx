@@ -15,14 +15,14 @@ const VARIANT_CLASSES: Record<StatCardVariant, string> = {
   highlight: 'border-[var(--color-correct)]/30 bg-[var(--color-correct)]/8',
   accent: 'border-[var(--color-border)] bg-[var(--color-surface-elevated)]',
   success: 'border-[var(--color-correct)]/40 bg-[var(--color-correct)]/5',
-  active: 'border-[var(--color-accent)]/30 bg-[var(--color-surface-elevated)] shadow-sm',
+  active: 'border-[var(--color-highlight)]/30 bg-[var(--color-surface-elevated)] shadow-sm',
   urgent: 'border-[var(--color-incorrect)]/50 bg-[var(--color-incorrect)]/5 animate-pulse motion-reduce:animate-none',
 };
 
 const VALUE_CLASSES: Record<StatCardVariant, string> = {
   default: 'text-[var(--color-text)]',
   highlight: 'text-[var(--color-correct)]',
-  accent: 'text-[var(--color-accent)]',
+  accent: 'text-[var(--color-highlight)]',
   success: 'text-[var(--color-correct)]',
   active: 'text-[var(--color-text)]',
   urgent: 'text-[var(--color-incorrect)]',
@@ -50,7 +50,7 @@ export default function StatCard({
       ].join(' ')}
     >
       {variant === 'active' && (
-        <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--color-accent)] animate-pulse motion-reduce:animate-none" />
+        <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--color-highlight)] animate-pulse motion-reduce:animate-none" />
       )}
       <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--color-text-muted)] sm:text-xs">
         {label}

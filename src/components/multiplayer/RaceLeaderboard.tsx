@@ -12,7 +12,7 @@ interface RaceLeaderboardProps {
 
 function rankStyle(index: number): string {
   if (index === 0) return 'border-[var(--color-correct)]/40 bg-[var(--color-correct)]/10';
-  if (index === 1) return 'border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5';
+  if (index === 1) return 'border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/5';
   return 'border-[var(--color-border)] bg-[var(--color-surface)]';
 }
 
@@ -48,7 +48,7 @@ export default function RaceLeaderboard({
                 className={[
                   'rounded-xl border px-3 py-2.5 transition',
                   rankStyle(index),
-                  isSelf ? 'ring-1 ring-[var(--color-accent)]/30' : '',
+                  isSelf ? 'ring-1 ring-[var(--color-highlight)]/30' : '',
                 ].join(' ')}
               >
                 <div className="flex items-center gap-2.5">
@@ -79,7 +79,7 @@ export default function RaceLeaderboard({
                       <div
                         className={[
                           'h-full rounded-full transition-[width] duration-300 ease-out',
-                          entry.finished ? 'bg-[var(--color-correct)]' : 'bg-[var(--color-accent)]',
+                          entry.finished ? 'bg-[var(--color-correct)]' : 'bg-[var(--color-highlight)]',
                         ].join(' ')}
                         style={{ width: `${pct}%` }}
                       />

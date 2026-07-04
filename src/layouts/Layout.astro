@@ -61,6 +61,8 @@ const siteUrl = 'https://typing-dvorak.vercel.app';
         const pair = hl[highlightId][theme];
         document.documentElement.style.setProperty('--color-highlight', pair[0]);
         document.documentElement.style.setProperty('--color-highlight-hover', pair[1]);
+        document.documentElement.style.setProperty('--color-accent', pair[0]);
+        document.documentElement.style.setProperty('--color-accent-hover', pair[1]);
       })();
     </script>
   </head>

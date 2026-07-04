@@ -14,7 +14,7 @@ export default function ModeToggle() {
           className={[
             'flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition',
             settings.practiceMode === mode
-              ? 'bg-[var(--color-accent)] text-white shadow-sm'
+              ? 'bg-[var(--color-highlight)] text-white shadow-sm'
               : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
           ].join(' ')}
         >

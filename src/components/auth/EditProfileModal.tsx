@@ -319,7 +319,7 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
                       className={[
                         'rounded-md px-3 py-1.5 text-xs font-medium uppercase transition',
                         locale === loc
-                          ? 'bg-[var(--color-accent)] text-white'
+                          ? 'bg-[var(--color-highlight)] text-white'
                           : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
                       ].join(' ')}
                     >
@@ -342,7 +342,7 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
                       className={[
                         'rounded-md px-2 py-1.5 text-[11px] font-medium leading-tight transition',
                         multiplayerPrivacy === option
-                          ? 'bg-[var(--color-accent)] text-white'
+                          ? 'bg-[var(--color-highlight)] text-white'
                           : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
                       ].join(' ')}
                     >

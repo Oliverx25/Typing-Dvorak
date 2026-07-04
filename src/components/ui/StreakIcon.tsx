@@ -13,7 +13,7 @@ export default function StreakIcon({ className = '', size = 28 }: StreakIconProp
       style={{
         width: size,
         height: size,
-        background: 'linear-gradient(160deg, var(--color-key-target) 0%, #f97316 45%, var(--color-accent) 100%)',
+        background: 'linear-gradient(160deg, var(--color-key-target) 0%, #f97316 45%, var(--color-highlight) 100%)',
         WebkitMaskImage: 'url(/streak.png)',
         maskImage: 'url(/streak.png)',
         WebkitMaskSize: 'contain',

@@ -85,9 +85,9 @@ export default function MultiplayerRacePanel({
       </div>
 
       {countdownSeconds !== null && countdownSeconds > 0 ? (
-        <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5 py-16">
+        <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/5 py-16">
           <p className="text-sm font-medium text-[var(--color-text-muted)]">{t.multiplayer.raceStarting}</p>
-          <p className="mt-2 font-mono text-6xl font-bold tabular-nums text-[var(--color-accent)]">
+          <p className="mt-2 font-mono text-6xl font-bold tabular-nums text-[var(--color-highlight)]">
             {countdownSeconds}
           </p>
         </div>

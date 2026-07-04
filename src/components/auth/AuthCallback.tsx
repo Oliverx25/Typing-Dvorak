@@ -51,7 +51,7 @@ function AuthCallbackContent() {
       {error ? (
         <>
           <p className="text-[var(--color-incorrect)]">{error}</p>
-          <a href="/login" className="mt-4 text-[var(--color-accent)] no-underline hover:underline">
+          <a href="/login" className="mt-4 text-[var(--color-highlight)] no-underline hover:underline">
             {t.signIn}
           </a>
         </>

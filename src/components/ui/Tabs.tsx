@@ -35,7 +35,7 @@ export default function Tabs({ tabs, activeTab, onTabChange, className = '' }: T
               className={[
                 'flex-1 px-4 py-3 text-sm font-medium transition',
                 isActive
-                  ? 'border-b-2 border-[var(--color-accent)] text-[var(--color-text)]'
+                  ? 'border-b-2 border-[var(--color-highlight)] text-[var(--color-text)]'
                   : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
               ].join(' ')}
             >

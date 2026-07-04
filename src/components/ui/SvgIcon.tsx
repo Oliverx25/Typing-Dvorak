@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-interface BadgeIconProps {
+interface SvgIconProps {
   src: string;
   size?: number;
   className?: string;
@@ -8,11 +8,8 @@ interface BadgeIconProps {
 
 const cache = new Map<string, string>();
 
-/**
- * Loads a badge SVG inline so its `currentColor` strokes/fills inherit the
- * app accent color and adapt to light/dark themes. Falls back to <img> on SSR.
- */
-export default function BadgeIcon({ src, size = 18, className = '' }: BadgeIconProps) {
+/** Inline SVG so `currentColor` strokes/fills inherit from parent text color. */
+export default function SvgIcon({ src, size = 20, className = '' }: SvgIconProps) {
   const [markup, setMarkup] = useState<string | null>(() => cache.get(src) ?? null);
 
   useEffect(() => {
@@ -31,19 +28,25 @@ export default function BadgeIcon({ src, size = 18, className = '' }: BadgeIconP
     };
   }, [src, markup]);
 
-  const style = { width: size, height: size, color: 'var(--color-highlight)' };
+  const style = { width: size, height: size };
 
   if (markup) {
     return (
       <span
         role="img"
         aria-hidden="true"
-        className={['inline-flex', className].join(' ')}
+        className={['inline-flex shrink-0', className].join(' ')}
         style={style}
         dangerouslySetInnerHTML={{ __html: markup }}
       />
     );
   }
 
-  return <span aria-hidden="true" className={['inline-block', className].join(' ')} style={style} />;
+  return (
+    <span
+      aria-hidden="true"
+      className={['inline-block shrink-0', className].join(' ')}
+      style={style}
+    />
+  );
 }

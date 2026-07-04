@@ -42,7 +42,7 @@ export default function ProgressChart({ data, emptyLabel }: ProgressChartProps) 
           <div key={i} className="flex flex-1 flex-col items-center gap-1">
             <span className="font-mono text-[10px] text-[var(--color-text-muted)]">{d.wpm}</span>
             <div
-              className="w-full rounded-t-md bg-gradient-to-t from-[var(--color-accent)] to-[var(--color-accent)]/60 transition-all duration-300"
+              className="w-full rounded-t-md bg-gradient-to-t from-[var(--color-highlight)] to-[var(--color-highlight)]/60 transition-all duration-300"
               style={{ height: `${(d.wpm / maxWpm) * 100}%`, minHeight: '4px' }}
               title={`${d.date}: ${d.wpm} WPM`}
             />

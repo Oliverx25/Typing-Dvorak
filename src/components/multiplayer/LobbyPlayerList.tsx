@@ -70,7 +70,7 @@ export default function LobbyPlayerList({
                   </span>
                 ) : null}
                 {isRoomOwner ? (
-                  <span className="ml-2 rounded-md bg-[var(--color-accent)]/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-accent)]">
+                  <span className="ml-2 rounded-md bg-[var(--color-highlight)]/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-highlight)]">
                     {ownerLabel}
                   </span>
                 ) : null}

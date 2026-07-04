@@ -59,7 +59,7 @@ export default function StatsBar({
               ? 'bg-[var(--color-correct)]'
               : isTestMode
                 ? 'bg-[var(--color-key-target)]'
-                : 'bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-hover)]',
+                : 'bg-gradient-to-r from-[var(--color-highlight)] to-[var(--color-highlight-hover)]',
           ].join(' ')}
           style={{ width: `${Math.min(progress, 100)}%` }}
           role="progressbar"

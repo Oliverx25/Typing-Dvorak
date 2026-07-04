@@ -17,7 +17,7 @@ interface CustomSelectProps {
 }
 
 const triggerClassName =
-  'flex w-full items-center justify-between gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-left text-sm text-[var(--color-text)] outline-none transition hover:border-[var(--color-text-muted)]/40 focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15 disabled:cursor-not-allowed disabled:opacity-50';
+  'flex w-full items-center justify-between gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-left text-sm text-[var(--color-text)] outline-none transition hover:border-[var(--color-text-muted)]/40 focus:border-[var(--color-highlight)] focus:ring-2 focus:ring-[var(--color-highlight)]/15 disabled:cursor-not-allowed disabled:opacity-50';
 
 export default function CustomSelect({
   id: idProp,
@@ -186,10 +186,10 @@ export default function CustomSelect({
                     className={[
                       'flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition',
                       isSelected
-                        ? 'bg-[var(--color-accent)]/15 text-[var(--color-text)]'
+                        ? 'bg-[var(--color-highlight)]/15 text-[var(--color-text)]'
                         : isHighlighted
-                          ? 'bg-[var(--color-accent)]/10 text-[var(--color-text)]'
-                          : 'text-[var(--color-text)] hover:bg-[var(--color-accent)]/10',
+                          ? 'bg-[var(--color-highlight)]/10 text-[var(--color-text)]'
+                          : 'text-[var(--color-text)] hover:bg-[var(--color-highlight)]/10',
                     ].join(' ')}
                   >
                     <span className="truncate">{option.label}</span>
@@ -204,7 +204,7 @@ export default function CustomSelect({
                         strokeWidth="2.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="shrink-0 text-[var(--color-accent)]"
+                        className="shrink-0 text-[var(--color-highlight)]"
                         aria-hidden="true"
                       >
                         <path d="M20 6 9 17l-5-5" />

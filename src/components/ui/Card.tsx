@@ -27,7 +27,7 @@ const VARIANT: Record<CardVariant, string> = {
   default: 'border-[var(--color-border)] bg-[var(--color-surface-elevated)]',
   elevated: 'border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-sm',
   dashed: 'border-dashed border-[var(--color-border)] bg-[var(--color-surface-elevated)]/50',
-  highlight: 'border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/20 bg-[var(--color-surface-elevated)]',
+  highlight: 'border-[var(--color-highlight)] ring-2 ring-[var(--color-highlight)]/20 bg-[var(--color-surface-elevated)]',
   muted: 'border-[var(--color-border)] bg-[var(--color-surface-elevated)]/50 opacity-60',
 };
 
