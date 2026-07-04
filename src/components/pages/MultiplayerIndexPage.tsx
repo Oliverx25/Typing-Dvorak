@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import AppShell from '@/components/layout/AppShell';
 import BackLink from '@/components/layout/BackLink';
-import { useApp, getLessonTitle } from '@/contexts/AppProvider';
-import { Accordion, Button, Card, CustomSelect, Tabs } from '@/components/ui';
-import { formFieldClassName } from '@/components/ui/formFieldClasses';
-import { DEFAULT_RACE_LESSON_ID, RACE_LESSONS } from '@/utils/multiplayer/roomConfig';
+import { useApp } from '@/contexts/AppProvider';
+import CreateRoomSettings, {
+  isCustomTextValid,
+  type CreateRoomSettingsValue,
+} from '@/components/multiplayer/CreateRoomSettings';
+import { Button, Card, Tabs } from '@/components/ui';
+import { DEFAULT_RACE_LESSON_ID } from '@/utils/multiplayer/roomConfig';
 import { generateRoomCode, normalizeRoomCode, roomUrl } from '@/utils/multiplayer/roomCode';
 import { saveCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
 
@@ -14,16 +17,28 @@ function MultiplayerIndexContent() {
   const { t } = useApp();
   const [activeTab, setActiveTab] = useState<MultiplayerTab>('create');
   const [joinCode, setJoinCode] = useState('');
-  const [lessonId, setLessonId] = useState(DEFAULT_RACE_LESSON_ID);
-  const [customText, setCustomText] = useState('');
-  const [blindMode, setBlindMode] = useState(false);
+  const [roomSettings, setRoomSettings] = useState<CreateRoomSettingsValue>({
+    textSource: 'lesson',
+    lessonId: DEFAULT_RACE_LESSON_ID,
+    customText: '',
+    blindMode: false,
+    winCondition: 'first_finish',
+  });
+
+  const canCreateRoom =
+    roomSettings.textSource === 'lesson' || isCustomTextValid(roomSettings.customText);
 
   const handleCreateRoom = () => {
+    if (!canCreateRoom) return;
+
     const code = generateRoomCode();
     saveCreateRoomConfig(code, {
-      lessonId,
-      customText: customText.trim(),
-      blindMode,
+      lessonId: roomSettings.lessonId,
+      customText:
+        roomSettings.textSource === 'custom' ? roomSettings.customText.trim() : '',
+      blindMode: roomSettings.blindMode,
+      winCondition: roomSettings.winCondition,
+      textSource: roomSettings.textSource,
     });
     window.location.href = roomUrl(code);
   };
@@ -40,66 +55,14 @@ function MultiplayerIndexContent() {
 
   const joinCodeValid = normalizeRoomCode(joinCode).length >= 4;
 
-  const lessonOptions = RACE_LESSONS.map((lesson) => ({
-    value: lesson.id,
-    label: getLessonTitle(t, lesson.titleKey),
-  }));
-
   const createPanel = (
     <div className="space-y-5">
-      <div>
-        <label htmlFor="create-lesson" className="mb-1.5 block text-sm font-medium text-[var(--color-text)]">
-          {t.multiplayer.raceLesson}
-        </label>
-        <CustomSelect
-          id="create-lesson"
-          value={lessonId}
-          onChange={setLessonId}
-          options={lessonOptions}
-          aria-label={t.multiplayer.raceLesson}
-        />
-      </div>
-
-      <Accordion
-        items={[
-          {
-            id: 'advanced',
-            title: t.multiplayer.advancedOptions,
-            subtitle: t.multiplayer.advancedOptionsHint,
-            children: (
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="create-custom-text"
-                    className="mb-1.5 block text-sm font-medium text-[var(--color-text)]"
-                  >
-                    {t.multiplayer.customRaceText}
-                  </label>
-                  <textarea
-                    id="create-custom-text"
-                    value={customText}
-                    onChange={(event) => setCustomText(event.target.value)}
-                    placeholder={t.multiplayer.customRaceTextPlaceholder}
-                    rows={2}
-                    className={`${formFieldClassName} min-h-[4.5rem] resize-y`}
-                  />
-                </div>
-                <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--color-text)]">
-                  <input
-                    type="checkbox"
-                    checked={blindMode}
-                    onChange={(event) => setBlindMode(event.target.checked)}
-                    className="accent-[var(--color-accent)]"
-                  />
-                  {t.multiplayer.blindModeRace}
-                </label>
-              </div>
-            ),
-          },
-        ]}
+      <CreateRoomSettings
+        value={roomSettings}
+        onChange={(partial) => setRoomSettings((prev) => ({ ...prev, ...partial }))}
       />
 
-      <Button onClick={handleCreateRoom} fullWidth>
+      <Button onClick={handleCreateRoom} disabled={!canCreateRoom} fullWidth>
         {t.multiplayer.createRoomAction}
       </Button>
     </div>
@@ -145,7 +108,7 @@ function MultiplayerIndexContent() {
         </p>
       ) : null}
 
-      <div className="mx-auto w-full max-w-md px-1">
+      <div className="mx-auto w-full max-w-lg px-1">
         <Card padding="lg" variant="elevated">
           <Tabs
             activeTab={activeTab}

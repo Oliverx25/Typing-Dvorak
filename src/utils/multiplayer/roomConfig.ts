@@ -8,12 +8,35 @@ export const RACE_LESSONS = CORE_LESSONS.filter(
   (lesson) => !lesson.adaptive && lesson.texts.length > 0,
 );
 
+export type WinCondition = 'first_finish' | 'highest_wpm' | 'sudden_death';
+
+export const WIN_CONDITIONS: WinCondition[] = ['first_finish', 'highest_wpm', 'sudden_death'];
+
+export const CUSTOM_RACE_TEXT_MAX = 1000;
+export const CUSTOM_RACE_TEXT_MIN = 10;
+
+export const LESSON_GRID_GROUPS = [
+  {
+    id: 'basics' as const,
+    lessonIds: ['home-row', 'top-row', 'bottom-row', 'shift-caps', 'all-rows', 'common-words'],
+  },
+  {
+    id: 'symbols' as const,
+    lessonIds: ['punctuation', 'numbers', 'dev-symbols'],
+  },
+  {
+    id: 'advanced' as const,
+    lessonIds: ['sentences', 'advanced'],
+  },
+];
+
 export function createDefaultRoomState(ownerId: string): RoomBroadcastState {
   return {
     ownerId,
     lessonId: DEFAULT_RACE_LESSON_ID,
     customText: '',
     blindMode: false,
+    winCondition: 'first_finish',
     phase: 'lobby',
     raceStartedAt: null,
     version: 1,
@@ -45,6 +68,7 @@ export function mergeRoomState(
       lessonId: incoming.lessonId ?? current?.lessonId ?? DEFAULT_RACE_LESSON_ID,
       customText: incoming.customText ?? current?.customText ?? '',
       blindMode: incoming.blindMode ?? current?.blindMode ?? false,
+      winCondition: incoming.winCondition ?? current?.winCondition ?? 'first_finish',
       phase: incoming.phase ?? current?.phase ?? 'lobby',
       raceStartedAt: incoming.raceStartedAt !== undefined
         ? incoming.raceStartedAt

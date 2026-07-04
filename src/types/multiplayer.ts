@@ -1,4 +1,5 @@
 import type { AvatarSource } from '@/utils/user/userDisplay';
+import type { WinCondition } from '@/utils/multiplayer/roomConfig';
 
 /** Payload tracked in Supabase Realtime Presence for each lobby player. */
 export interface LobbyPlayerPresence {
@@ -27,6 +28,7 @@ export interface RoomBroadcastState {
   lessonId: string;
   customText: string;
   blindMode: boolean;
+  winCondition: WinCondition;
   phase: RoomPhase;
   raceStartedAt: number | null;
   version: number;

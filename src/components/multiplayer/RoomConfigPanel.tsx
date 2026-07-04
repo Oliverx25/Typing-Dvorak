@@ -1,15 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useApp, getLessonTitle } from '@/contexts/AppProvider';
-import { CustomSelect } from '@/components/ui';
-import { formFieldClassName } from '@/components/ui/formFieldClasses';
-import { RACE_LESSONS } from '@/utils/multiplayer/roomConfig';
+import CreateRoomSettings, { type CreateRoomSettingsValue } from '@/components/multiplayer/CreateRoomSettings';
+import { useApp } from '@/contexts/AppProvider';
 import type { RoomBroadcastState } from '@/types/multiplayer';
 
 interface RoomConfigPanelProps {
   roomState: RoomBroadcastState;
   isOwner: boolean;
   disabled?: boolean;
-  onChange: (partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode'>) => void;
+  onChange: (
+    partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winCondition'>,
+  ) => void;
+}
+
+function toSettingsValue(roomState: RoomBroadcastState): CreateRoomSettingsValue {
+  return {
+    textSource: roomState.customText.trim() ? 'custom' : 'lesson',
+    lessonId: roomState.lessonId,
+    customText: roomState.customText,
+    blindMode: roomState.blindMode,
+    winCondition: roomState.winCondition ?? 'first_finish',
+  };
 }
 
 export default function RoomConfigPanel({
@@ -19,83 +28,29 @@ export default function RoomConfigPanel({
   onChange,
 }: RoomConfigPanelProps) {
   const { t } = useApp();
-  const [customText, setCustomText] = useState(roomState.customText);
 
-  const lessonOptions = useMemo(
-    () =>
-      RACE_LESSONS.map((lesson) => ({
-        value: lesson.id,
-        label: getLessonTitle(t, lesson.titleKey),
-      })),
-    [t],
-  );
-
-  useEffect(() => {
-    setCustomText(roomState.customText);
-  }, [roomState.customText, roomState.version]);
-
-  useEffect(() => {
-    if (!isOwner || disabled) return;
-    if (customText === roomState.customText) return;
-
-    const timer = window.setTimeout(() => {
-      onChange({ customText });
-    }, 400);
-
-    return () => window.clearTimeout(timer);
-  }, [customText, disabled, isOwner, onChange, roomState.customText]);
+  const handleChange = (partial: Partial<CreateRoomSettingsValue>) => {
+    const next = { ...toSettingsValue(roomState), ...partial };
+    onChange({
+      lessonId: next.lessonId,
+      customText: next.textSource === 'custom' ? next.customText : '',
+      blindMode: next.blindMode,
+      winCondition: next.winCondition,
+    });
+  };
 
   const content = (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <div>
-        <label htmlFor="race-lesson" className="mb-1 block text-sm font-medium text-[var(--color-text)]">
-          {t.multiplayer.raceLesson}
-        </label>
-        <CustomSelect
-          id="race-lesson"
-          value={roomState.lessonId}
-          disabled={!isOwner || disabled}
-          onChange={(lessonId) => onChange({ lessonId })}
-          options={lessonOptions}
-          aria-label={t.multiplayer.raceLesson}
-        />
-      </div>
-
-      <div className="flex items-end">
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--color-text)]">
-          <input
-            type="checkbox"
-            checked={roomState.blindMode}
-            disabled={!isOwner || disabled}
-            onChange={(event) => onChange({ blindMode: event.target.checked })}
-            className="accent-[var(--color-accent)]"
-          />
-          {t.multiplayer.blindModeRace}
-        </label>
-      </div>
-
-      <div className="sm:col-span-2">
-        <label htmlFor="race-custom-text" className="mb-1 block text-sm font-medium text-[var(--color-text)]">
-          {t.multiplayer.customRaceText}
-        </label>
-        <textarea
-          id="race-custom-text"
-          value={customText}
-          disabled={!isOwner || disabled}
-          onChange={(event) => setCustomText(event.target.value)}
-          placeholder={t.multiplayer.customRaceTextPlaceholder}
-          rows={2}
-          className={`${formFieldClassName} resize-y min-h-[4.5rem]`}
-        />
-        <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t.multiplayer.customRaceTextHint}</p>
-      </div>
-    </div>
+    <CreateRoomSettings
+      value={toSettingsValue(roomState)}
+      onChange={handleChange}
+      disabled={!isOwner || disabled}
+    />
   );
 
   if (!isOwner) {
     return (
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
           {t.multiplayer.raceSettings}
         </p>
         {content}
