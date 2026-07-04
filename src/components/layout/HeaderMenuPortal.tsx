@@ -1,4 +1,3 @@
-import { createPortal } from 'react-dom';
 import { useLayoutEffect, useState, type ReactNode, type RefObject } from 'react';
 
 interface HeaderMenuPortalProps {
@@ -10,7 +9,7 @@ interface HeaderMenuPortalProps {
   menuClassName?: string;
 }
 
-/** Renders header dropdowns in a portal so sticky/backdrop-filter ancestors cannot block clicks. */
+/** Fixed-position overlay menus — avoids react-dom/createPortal and stale chunk issues. */
 export default function HeaderMenuPortal({
   open,
   onClose,
@@ -42,9 +41,9 @@ export default function HeaderMenuPortal({
     };
   }, [open, anchorRef]);
 
-  if (!open || typeof document === 'undefined') return null;
+  if (!open) return null;
 
-  return createPortal(
+  return (
     <>
       <div className="fixed inset-0 z-[200]" onClick={onClose} aria-hidden="true" />
       <div
@@ -57,7 +56,6 @@ export default function HeaderMenuPortal({
       >
         {children}
       </div>
-    </>,
-    document.body,
+    </>
   );
 }

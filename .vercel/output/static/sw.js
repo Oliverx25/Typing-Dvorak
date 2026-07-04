@@ -1,4 +1,4 @@
-const CACHE = 'typing-dvorak-v2';
+const CACHE = 'typing-dvorak-v3';
 const STATIC_ASSETS = ['/favicon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -30,6 +30,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request)),
     );
+    return;
+  }
+
+  // Hashed build assets must always come from the network — caching breaks hydration after deploys.
+  if (url.pathname.startsWith('/_astro/')) {
+    event.respondWith(fetch(event.request));
     return;
   }
 
