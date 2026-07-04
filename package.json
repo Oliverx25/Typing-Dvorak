@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "rm -rf .vercel/output dist && astro build",
     "preview": "astro preview",
     "test": "vitest run",
     "test:watch": "vitest",

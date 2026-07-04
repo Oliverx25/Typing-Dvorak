@@ -1,1 +1,0 @@
-import{S as e,T as t,y as n}from"./AppProvider.C5M6be6K.js";var r=2e3;function i(){return n(t.customText)}function a(n){e(t.customText,n.slice(0,r))}export{a as n,i as t};
