@@ -1,21 +1,48 @@
 import type { User } from '@supabase/supabase-js';
 
+export type AvatarSource = 'custom' | 'oauth' | 'none';
+
 export interface UserDisplay {
   name: string;
   avatarUrl: string | null;
   initials: string;
+  avatarSource: AvatarSource;
+  hasCustomAvatar: boolean;
+}
+
+function readOAuthAvatar(user: User): string | null {
+  for (const identity of user.identities ?? []) {
+    const data = identity.identity_data ?? {};
+    const url = data.avatar_url ?? data.picture;
+    if (typeof url === 'string' && url.trim().length > 0) return url.trim();
+  }
+
+  const meta = user.user_metadata ?? {};
+  const fallback = meta.avatar_url ?? meta.picture;
+  if (typeof fallback === 'string' && fallback.trim().length > 0 && meta.avatar_custom !== true) {
+    return fallback.trim();
+  }
+
+  return null;
 }
 
 export function getUserAvatarUrl(user: User): string | null {
   const meta = user.user_metadata ?? {};
-  const fromMeta = meta.avatar_url ?? meta.picture;
-  if (typeof fromMeta === 'string' && fromMeta.length > 0) return fromMeta;
+  if (meta.avatar_custom === true) {
+    const custom = meta.avatar_url;
+    if (typeof custom === 'string' && custom.trim().length > 0) return custom.trim();
+  }
 
-  const identity = user.identities?.find((i) => i.identity_data?.avatar_url ?? i.identity_data?.picture);
-  const fromIdentity = identity?.identity_data?.avatar_url ?? identity?.identity_data?.picture;
-  if (typeof fromIdentity === 'string' && fromIdentity.length > 0) return fromIdentity;
+  return readOAuthAvatar(user);
+}
 
-  return null;
+export function getUserAvatarSource(user: User): AvatarSource {
+  const meta = user.user_metadata ?? {};
+  if (meta.avatar_custom === true && typeof meta.avatar_url === 'string' && meta.avatar_url.trim()) {
+    return 'custom';
+  }
+  if (readOAuthAvatar(user)) return 'oauth';
+  return 'none';
 }
 
 export function getUserDisplayName(user: User): string {
@@ -36,9 +63,12 @@ export function getUserInitials(name: string): string {
 
 export function getUserDisplay(user: User): UserDisplay {
   const name = getUserDisplayName(user);
+  const avatarSource = getUserAvatarSource(user);
   return {
     name,
     avatarUrl: getUserAvatarUrl(user),
     initials: getUserInitials(name),
+    avatarSource,
+    hasCustomAvatar: avatarSource === 'custom',
   };
 }

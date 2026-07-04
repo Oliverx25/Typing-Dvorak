@@ -1,33 +1,42 @@
-import { useState } from 'react';
+import { Icon } from '@/components/ui';
+import type { AvatarSource } from '@/utils/userDisplay';
 
 interface UserAvatarProps {
   avatarUrl: string | null;
   initials: string;
+  avatarSource?: AvatarSource;
   size?: number;
 }
 
-export default function UserAvatar({ avatarUrl, initials, size = 36 }: UserAvatarProps) {
-  const [imageFailed, setImageFailed] = useState(false);
-  const showImage = avatarUrl && !imageFailed;
+export default function UserAvatar({
+  avatarUrl,
+  initials,
+  avatarSource = 'none',
+  size = 36,
+}: UserAvatarProps) {
+  const showImage = Boolean(avatarUrl);
 
   return (
     <span
-      className="relative inline-flex shrink-0 overflow-hidden rounded-full bg-[var(--color-accent)]/20"
+      className="relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-accent)]/15"
       style={{ width: size, height: size }}
     >
       {showImage ? (
         <img
-          src={avatarUrl}
+          src={avatarUrl!}
           alt=""
-          width={size}
-          height={size}
           draggable={false}
-          className="block h-full w-full object-cover object-center"
-          onError={() => setImageFailed(true)}
+          className="absolute inset-0 block size-full object-cover object-center"
+        />
+      ) : avatarSource === 'none' ? (
+        <Icon
+          name="user"
+          size={Math.round(size * 0.48)}
+          className="text-[var(--color-accent)]"
         />
       ) : (
         <span
-          className="flex h-full w-full items-center justify-center font-semibold text-[var(--color-accent)]"
+          className="font-semibold text-[var(--color-accent)]"
           style={{ fontSize: size * 0.36 }}
         >
           {initials}

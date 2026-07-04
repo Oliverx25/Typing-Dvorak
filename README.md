@@ -66,6 +66,19 @@ src/
 └── styles/       # Global CSS + Tailwind
 ```
 
+## Supabase (optional — cloud sync & auth)
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Copy `.env.example` → `.env` and set `PUBLIC_SUPABASE_URL` + `PUBLIC_SUPABASE_ANON_KEY`
+3. In **SQL Editor**, run migrations in order:
+   - `supabase/schema/01_initial_schema.sql`
+   - `supabase/rls/02_security_policies.sql`
+   - `supabase/schema/03_profile_avatars_storage.sql` *(avatars bucket + profile photo columns)*
+4. Enable **GitHub** / **Google** providers under Authentication → Providers
+5. Add redirect URLs: `https://your-domain/auth/callback`, `http://localhost:4321/auth/callback`
+
+Profile photos are stored in the public `avatars` bucket; metadata flag `avatar_custom` in Auth distinguishes custom uploads from OAuth defaults.
+
 ## License
 
 MIT

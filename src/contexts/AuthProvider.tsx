@@ -10,6 +10,7 @@ interface AuthContextValue {
   loading: boolean;
   isConfigured: boolean;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -74,14 +75,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+    const { data } = await supabase.auth.getUser();
+    setUser(data.user);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       loading,
       isConfigured: isSupabaseConfigured(),
       signOut,
+      refreshUser,
     }),
-    [user, loading, signOut],
+    [user, loading, signOut, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
