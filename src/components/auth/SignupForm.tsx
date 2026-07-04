@@ -3,6 +3,7 @@ import { useAuthText } from '@/hooks/useAuthText';
 import { signInWithOAuth, signUpWithEmail } from '@/services/supabase/auth';
 import AuthShell from './AuthShell';
 import { Button, Icon } from '@/components/ui';
+import { formFieldClassName } from '@/components/ui/formFieldClasses';
 
 export default function SignupForm() {
   const t = useAuthText();
@@ -86,7 +87,7 @@ export default function SignupForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15"
+            className={formFieldClassName}
           />
         </label>
 
@@ -99,7 +100,7 @@ export default function SignupForm() {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15"
+            className={formFieldClassName}
           />
         </label>
 
@@ -112,7 +113,7 @@ export default function SignupForm() {
             autoComplete="new-password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15"
+            className={formFieldClassName}
           />
         </label>
 

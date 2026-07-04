@@ -3,6 +3,7 @@ import { useAuthText } from '@/hooks/useAuthText';
 import { signInWithEmail, signInWithOAuth } from '@/services/supabase/auth';
 import AuthShell from './AuthShell';
 import { Button, Icon } from '@/components/ui';
+import { formFieldClassName } from '@/components/ui/formFieldClasses';
 
 export default function LoginForm() {
   const t = useAuthText();
@@ -68,7 +69,7 @@ export default function LoginForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15"
+            className={formFieldClassName}
           />
         </label>
 
@@ -80,7 +81,7 @@ export default function LoginForm() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15"
+            className={formFieldClassName}
           />
         </label>
 

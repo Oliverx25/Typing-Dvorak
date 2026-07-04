@@ -91,7 +91,31 @@
 }
 
 html {
+  color-scheme: light;
   scroll-behavior: smooth;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='range']):not([type='color']),
+textarea,
+select {
+  color: var(--color-text);
+  caret-color: var(--color-text);
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='range']):not([type='color'])::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+textarea::-webkit-input-placeholder,
+input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='range']):not([type='color'])::-webkit-input-placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
 }
 
 body {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { getCustomText, saveCustomText } from '@/utils/customText';
 import { Button } from '@/components/ui';
+import { formFieldMonoClassName } from '@/components/ui/formFieldClasses';
 
 export default function ExtraPracticeCard() {
   const { t } = useApp();
@@ -34,7 +35,7 @@ export default function ExtraPracticeCard() {
           onChange={(e) => setText(e.target.value)}
           placeholder={t.custom.placeholder}
           rows={3}
-          className="w-full resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 font-mono text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-correct)]/50 focus:ring-2 focus:ring-[var(--color-correct)]/15"
+          className={`${formFieldMonoClassName} focus:border-[var(--color-correct)]/50 focus:ring-[var(--color-correct)]/15`}
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <Button type="button" variant="secondary" size="sm" onClick={handlePaste}>

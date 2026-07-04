@@ -1,0 +1,1 @@
+var e=`w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15`,t=`${e} resize-none font-mono`,n=`${e} resize-y font-mono`;export{t as n,n as r,e as t};

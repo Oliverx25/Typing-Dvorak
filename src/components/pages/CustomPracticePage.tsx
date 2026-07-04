@@ -4,6 +4,7 @@ import { getCustomText, saveCustomText } from '@/utils/customText';
 import TypingTest from '@/components/typing/TypingTest';
 import BackLink from '@/components/layout/BackLink';
 import { Button } from '@/components/ui';
+import { formFieldMonoResizableClassName } from '@/components/ui/formFieldClasses';
 import type { Lesson } from '@/utils/lessons';
 
 const CUSTOM_LESSON: Lesson = {
@@ -44,7 +45,7 @@ export default function CustomPracticePage() {
             onChange={(e) => setText(e.target.value)}
             placeholder={t.custom.placeholder}
             rows={8}
-            className="w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4 font-mono text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15"
+            className={`${formFieldMonoResizableClassName} bg-[var(--color-surface-elevated)] p-4`}
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-[var(--color-text-muted)]">

@@ -1,26 +1,12 @@
 import { useApp } from '@/contexts/AppProvider';
-import { getStoredTheme, setStoredTheme, type Theme } from '@/utils/storage';
-import { useEffect, useState } from 'react';
 
 export default function ThemeToggle() {
-  const { toggleTheme, theme: ctxTheme } = useApp();
-  const [theme, setTheme] = useState<Theme>('light');
-
-  useEffect(() => {
-    setTheme(getStoredTheme());
-  }, [ctxTheme]);
-
-  const toggle = () => {
-    const next: Theme = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    setStoredTheme(next);
-    toggleTheme();
-  };
+  const { theme, toggleTheme } = useApp();
 
   return (
     <button
       type="button"
-      onClick={toggle}
+      onClick={toggleTheme}
       className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-2 text-[var(--color-text-muted)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
       aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
     >

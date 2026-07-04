@@ -29,8 +29,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
-    setSettings(getSettings());
-    setTheme(getStoredTheme());
+    const storedSettings = getSettings();
+    const storedTheme = getStoredTheme();
+    setSettings(storedSettings);
+    setTheme(storedTheme);
+    setStoredTheme(storedTheme);
   }, []);
 
   const updateSettings = useCallback((partial: Partial<AppSettings>) => {
