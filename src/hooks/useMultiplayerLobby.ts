@@ -14,14 +14,16 @@ interface UseMultiplayerLobbyOptions {
 }
 
 function parsePresenceState(state: Record<string, unknown[]>): LobbyPlayerPresence[] {
-  const players: LobbyPlayerPresence[] = [];
+  // Dedupe by userId — a player may have multiple presence entries (e.g. after
+  // re-tracking on ready toggle or transient reconnects). Keep the latest one.
+  const byUser = new Map<string, LobbyPlayerPresence>();
 
   for (const presences of Object.values(state)) {
     for (const raw of presences) {
       const entry = raw as Partial<LobbyPlayerPresence>;
       if (!entry.userId || !entry.name) continue;
 
-      players.push({
+      const player: LobbyPlayerPresence = {
         userId: entry.userId,
         name: entry.name,
         avatarUrl: entry.avatarUrl ?? null,
@@ -29,11 +31,16 @@ function parsePresenceState(state: Record<string, unknown[]>): LobbyPlayerPresen
         avatarSource: (entry.avatarSource as AvatarSource) ?? 'none',
         isReady: Boolean(entry.isReady),
         joinedAt: entry.joinedAt ?? 0,
-      });
+      };
+
+      const existing = byUser.get(player.userId);
+      if (!existing || player.joinedAt >= existing.joinedAt) {
+        byUser.set(player.userId, player);
+      }
     }
   }
 
-  return players.sort((a, b) => a.joinedAt - b.joinedAt);
+  return Array.from(byUser.values()).sort((a, b) => a.joinedAt - b.joinedAt);
 }
 
 export function useMultiplayerLobby({
