@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useMultiplayerLobby } from '@/hooks/useMultiplayerLobby';
 import { Button, Card } from '@/components/ui';
 import LobbyPlayerList from '@/components/multiplayer/LobbyPlayerList';
 import MultiplayerRacePanel from '@/components/multiplayer/MultiplayerRacePanel';
+import RoomConfigPanel from '@/components/multiplayer/RoomConfigPanel';
 import { roomUrl } from '@/utils/multiplayer/roomCode';
 
 interface LobbyViewProps {
@@ -14,11 +15,7 @@ interface LobbyViewProps {
 export default function LobbyView({ roomId }: LobbyViewProps) {
   const { t } = useApp();
   const { user, loading: authLoading, isConfigured } = useAuth();
-  const [matchStarting, setMatchStarting] = useState(false);
-
-  const handleAllReady = useCallback(() => {
-    setMatchStarting(true);
-  }, []);
+  const [connectAttempt, setConnectAttempt] = useState(0);
 
   const {
     players,
@@ -26,16 +23,35 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
     error,
     isReady,
     isConnected,
+    isOwner,
+    allReady,
+    roomState,
+    raceActive,
+    countdownSeconds,
     toggleReadyStatus,
+    updateRoomConfig,
+    startRace,
+    markRaceFinished,
+    kickPlayer,
     leaveLobby,
     currentUserId,
     channel,
     progressHandlerRef,
-  } = useMultiplayerLobby({
-    roomId,
-    onAllReady: handleAllReady,
-    minPlayers: 2,
-  });
+    roomEventHandlerRef,
+  } = useMultiplayerLobby({ roomId, minPlayers: 2, connectAttempt });
+
+  useEffect(() => {
+    roomEventHandlerRef.current = (event) => {
+      if (event === 'kicked') {
+        void leaveLobby().then(() => {
+          window.location.href = '/multiplayer?kicked=1';
+        });
+      }
+    };
+    return () => {
+      roomEventHandlerRef.current = null;
+    };
+  }, [leaveLobby, roomEventHandlerRef]);
 
   const handleLeave = async () => {
     await leaveLobby();
@@ -75,13 +91,26 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
   const statusLabel =
     status === 'connecting'
       ? t.multiplayer.connecting
-      : status === 'connected'
-        ? t.multiplayer.connected
-        : status === 'error'
-          ? t.multiplayer.connectionError
-          : t.multiplayer.waiting;
+      : status === 'reconnecting'
+        ? t.multiplayer.reconnecting
+        : status === 'connected'
+          ? t.multiplayer.connected
+          : status === 'error'
+            ? t.multiplayer.connectionError
+            : t.multiplayer.waiting;
 
   const readyCount = players.filter((player) => player.isReady).length;
+  const inRace = roomState?.phase === 'racing';
+  const showLobbyDetails = !inRace || countdownSeconds !== null;
+
+  const errorMessage =
+    error === 'supabase_not_configured'
+      ? t.multiplayer.notConfigured
+      : error === 'channel_error'
+        ? t.multiplayer.connectionError
+        : error === 'timed_out'
+          ? t.multiplayer.timedOut
+          : error;
 
   return (
     <div className="space-y-6">
@@ -98,59 +127,107 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
           <div className="text-right">
             <p className="text-sm text-[var(--color-text-muted)]">{statusLabel}</p>
             <p className="mt-1 text-sm font-medium text-[var(--color-text)]">
-              {t.multiplayer.playersReady.replace('{ready}', String(readyCount)).replace('{total}', String(players.length))}
+              {t.multiplayer.playersReady
+                .replace('{ready}', String(readyCount))
+                .replace('{total}', String(players.length))}
             </p>
           </div>
         </div>
 
-        {error ? (
-          <p className="mx-6 mt-4 rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-incorrect)]/10 px-4 py-3 text-sm text-[var(--color-incorrect)]">
-            {error === 'supabase_not_configured'
-              ? t.multiplayer.notConfigured
-              : error === 'channel_error'
-                ? t.multiplayer.connectionError
-                : error === 'timed_out'
-                  ? t.multiplayer.timedOut
-                  : error}
-          </p>
-        ) : null}
-
-        {matchStarting ? (
-          <div className="mx-6 mt-4 rounded-lg border border-[var(--color-correct)]/30 bg-[var(--color-correct)]/10 px-4 py-3 text-sm font-medium text-[var(--color-correct)]">
-            {t.multiplayer.allReady}
+        {error && status === 'error' ? (
+          <div className="mx-6 mt-4 space-y-3">
+            <p className="rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-incorrect)]/10 px-4 py-3 text-sm text-[var(--color-incorrect)]">
+              {errorMessage}
+            </p>
+            <Button variant="secondary" size="sm" onClick={() => setConnectAttempt((n) => n + 1)}>
+              {t.multiplayer.retryConnection}
+            </Button>
           </div>
         ) : null}
 
-        <div className="mt-6">
-          <LobbyPlayerList
-            players={players}
-            currentUserId={currentUserId}
-            readyLabel={t.multiplayer.ready}
-            waitingLabel={t.multiplayer.notReady}
-            youLabel={t.multiplayer.you}
-          />
-        </div>
+        {status === 'reconnecting' ? (
+          <p className="mx-6 mt-4 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-4 py-3 text-sm text-[var(--color-text-muted)]">
+            {t.multiplayer.reconnectingHint}
+          </p>
+        ) : null}
+
+        {showLobbyDetails && roomState ? (
+          <div className="mx-6 mt-4">
+            <RoomConfigPanel
+              roomState={roomState}
+              isOwner={isOwner}
+              disabled={inRace}
+              onChange={(partial) => void updateRoomConfig(partial)}
+            />
+          </div>
+        ) : null}
+
+        {showLobbyDetails ? (
+          <div className="mt-6">
+            <LobbyPlayerList
+              players={players}
+              currentUserId={currentUserId}
+              ownerId={roomState?.ownerId ?? null}
+              isOwner={isOwner}
+              readyLabel={t.multiplayer.ready}
+              waitingLabel={t.multiplayer.notReady}
+              youLabel={t.multiplayer.you}
+              ownerLabel={t.multiplayer.roomOwner}
+              kickLabel={t.multiplayer.kickPlayer}
+              finishedLabel={t.multiplayer.raceFinished}
+              onKick={(userId) => void kickPlayer(userId)}
+              compact={inRace}
+            />
+          </div>
+        ) : null}
       </Card>
 
-      <div className="flex flex-wrap gap-3">
-        <Button
-          variant={isReady ? 'secondary' : 'success'}
-          onClick={() => void toggleReadyStatus()}
-          disabled={!isConnected || matchStarting}
-        >
-          {isReady ? t.multiplayer.unready : t.multiplayer.markReady}
-        </Button>
-        <Button variant="ghost" onClick={() => void handleLeave()}>
-          {t.multiplayer.leaveRoom}
-        </Button>
-      </div>
+      {!inRace ? (
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant={isReady ? 'secondary' : 'success'}
+            onClick={() => void toggleReadyStatus()}
+            disabled={!isConnected}
+          >
+            {isReady ? t.multiplayer.unready : t.multiplayer.markReady}
+          </Button>
 
-      {matchStarting ? (
+          {isOwner ? (
+            <Button
+              variant="primary"
+              onClick={() => void startRace()}
+              disabled={!isConnected || !allReady}
+            >
+              {t.multiplayer.startRace}
+            </Button>
+          ) : allReady ? (
+            <p className="self-center text-sm text-[var(--color-text-muted)]">
+              {t.multiplayer.waitingForHost}
+            </p>
+          ) : null}
+
+          <Button variant="ghost" onClick={() => void handleLeave()}>
+            {t.multiplayer.leaveRoom}
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <Button variant="ghost" onClick={() => void handleLeave()}>
+            {t.multiplayer.leaveRoom}
+          </Button>
+        </div>
+      )}
+
+      {inRace && roomState ? (
         <MultiplayerRacePanel
           channel={channel}
           progressHandlerRef={progressHandlerRef}
           currentUserId={currentUserId}
           players={players}
+          roomState={roomState}
+          raceActive={raceActive}
+          countdownSeconds={countdownSeconds}
+          onRaceFinish={() => void markRaceFinished()}
         />
       ) : null}
     </div>

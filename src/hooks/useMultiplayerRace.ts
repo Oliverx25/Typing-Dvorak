@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type {
   LobbyPlayerPresence,
-  RaceOpponentProgress,
+  RaceParticipantProgress,
   RaceProgressPayload,
 } from '@/types/multiplayer';
 
@@ -11,6 +11,7 @@ interface UseMultiplayerRaceOptions {
   progressHandlerRef: RefObject<((payload: unknown) => void) | null>;
   currentUserId: string | null;
   players: LobbyPlayerPresence[];
+  localProgress: { wpm: number; percentage: number; finished: boolean };
   enabled?: boolean;
 }
 
@@ -23,10 +24,11 @@ export function useMultiplayerRace({
   progressHandlerRef,
   currentUserId,
   players,
+  localProgress,
   enabled = true,
 }: UseMultiplayerRaceOptions) {
-  const [opponents, setOpponents] = useState<RaceOpponentProgress[]>([]);
-  const opponentMapRef = useRef(new Map<string, RaceProgressPayload>());
+  const [remoteProgress, setRemoteProgress] = useState<RaceParticipantProgress[]>([]);
+  const progressMapRef = useRef(new Map<string, RaceProgressPayload>());
   const animationFrameRef = useRef<number | null>(null);
   const lastBroadcastAtRef = useRef(0);
 
@@ -34,13 +36,13 @@ export function useMultiplayerRace({
     return new Map(players.map((player) => [player.userId, player]));
   }, [players]);
 
-  const flushOpponents = useCallback(() => {
+  const flushProgress = useCallback(() => {
     animationFrameRef.current = null;
-    const next: RaceOpponentProgress[] = [];
+    const next: RaceParticipantProgress[] = [];
 
-    for (const progress of opponentMapRef.current.values()) {
+    for (const progress of progressMapRef.current.values()) {
       const player = playerById.get(progress.userId);
-      if (!player || progress.userId === currentUserId) continue;
+      if (!player) continue;
 
       next.push({
         ...progress,
@@ -51,14 +53,17 @@ export function useMultiplayerRace({
       });
     }
 
-    next.sort((a, b) => b.percentage - a.percentage || b.wpm - a.wpm);
-    setOpponents(next);
-  }, [currentUserId, playerById]);
+    next.sort((a, b) => {
+      if (a.finished !== b.finished) return a.finished ? -1 : 1;
+      return b.percentage - a.percentage || b.wpm - a.wpm;
+    });
+    setRemoteProgress(next);
+  }, [playerById]);
 
   const scheduleFlush = useCallback(() => {
     if (animationFrameRef.current !== null) return;
-    animationFrameRef.current = window.requestAnimationFrame(flushOpponents);
-  }, [flushOpponents]);
+    animationFrameRef.current = window.requestAnimationFrame(flushProgress);
+  }, [flushProgress]);
 
   const scheduleFlushRef = useRef(scheduleFlush);
   scheduleFlushRef.current = scheduleFlush;
@@ -76,11 +81,12 @@ export function useMultiplayerRace({
       const progress = payload as Partial<RaceProgressPayload>;
       if (!progress.userId || progress.userId === currentUserIdRef.current) return;
 
-      opponentMapRef.current.set(progress.userId, {
+      progressMapRef.current.set(progress.userId, {
         userId: progress.userId,
         wpm: Math.max(0, Math.round(progress.wpm ?? 0)),
         percentage: clampPercentage(progress.percentage ?? 0),
         updatedAt: progress.updatedAt ?? Date.now(),
+        finished: Boolean(progress.finished),
       });
       scheduleFlushRef.current();
     };
@@ -91,8 +97,8 @@ export function useMultiplayerRace({
         window.cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-      opponentMapRef.current.clear();
-      setOpponents([]);
+      progressMapRef.current.clear();
+      setRemoteProgress([]);
     };
   }, [enabled, progressHandlerRef]);
 
@@ -101,11 +107,11 @@ export function useMultiplayerRace({
   }, [players, scheduleFlush]);
 
   const broadcastProgress = useCallback(
-    async (wpm: number, percentage: number, force = false) => {
+    async (wpm: number, percentage: number, finished = false, force = false) => {
       if (!channel || !currentUserId || !enabled) return;
 
       const now = Date.now();
-      if (!force && now - lastBroadcastAtRef.current < 500) return;
+      if (!force && !finished && now - lastBroadcastAtRef.current < 500) return;
       lastBroadcastAtRef.current = now;
 
       await channel.send({
@@ -116,14 +122,54 @@ export function useMultiplayerRace({
           wpm: Math.max(0, Math.round(wpm)),
           percentage: clampPercentage(percentage),
           updatedAt: now,
+          finished,
         } satisfies RaceProgressPayload,
       });
     },
     [channel, currentUserId, enabled],
   );
 
+  const leaderboard = useMemo(() => {
+    const entries: RaceParticipantProgress[] = [];
+
+    if (currentUserId) {
+      const self = playerById.get(currentUserId);
+      if (self) {
+        entries.push({
+          userId: currentUserId,
+          wpm: localProgress.wpm,
+          percentage: clampPercentage(localProgress.percentage),
+          updatedAt: Date.now(),
+          finished: localProgress.finished || self.hasFinished,
+          name: self.name,
+          avatarUrl: self.avatarUrl,
+          initials: self.initials,
+          avatarSource: self.avatarSource,
+        });
+      }
+    }
+
+    for (const remote of remoteProgress) {
+      if (remote.userId === currentUserId) continue;
+      const player = playerById.get(remote.userId);
+      entries.push({
+        ...remote,
+        finished: remote.finished || Boolean(player?.hasFinished),
+        percentage: remote.finished || player?.hasFinished ? 100 : remote.percentage,
+      });
+    }
+
+    return entries.sort((a, b) => {
+      if (a.finished !== b.finished) return a.finished ? -1 : 1;
+      return b.percentage - a.percentage || b.wpm - a.wpm;
+    });
+  }, [currentUserId, localProgress, playerById, remoteProgress]);
+
   return {
-    opponents,
+    leaderboard,
     broadcastProgress,
   };
 }
+
+/** @deprecated use leaderboard from useMultiplayerRace */
+export type { RaceParticipantProgress as RaceOpponentProgress };

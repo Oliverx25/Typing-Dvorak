@@ -9,10 +9,17 @@ import ModeToggle, { ModeDescription } from './ModeToggle';
 import PauseOverlay from './PauseOverlay';
 import TypedChar from './TypedChar';
 
+import type { PracticeMode } from '@/utils/app/settings';
+
 interface TypingTestProps {
   lessonId: string;
   lesson: Lesson;
   customText?: string;
+  practiceMode?: PracticeMode;
+  blindModeOverride?: boolean;
+  hideModeToggle?: boolean;
+  hideCompletionPanel?: boolean;
+  ariaLabel?: string;
   onProgressChange?: (wpm: number, percentage: number, force?: boolean) => void;
 }
 
@@ -20,16 +27,23 @@ export default function TypingTest({
   lessonId,
   lesson,
   customText,
+  practiceMode,
+  blindModeOverride,
+  hideModeToggle = false,
+  hideCompletionPanel = false,
+  ariaLabel,
   onProgressChange,
 }: TypingTestProps) {
   const { t, settings } = useApp();
-  const lessonTitle = getLessonTitle(t, lesson.titleKey);
+  const lessonTitle = ariaLabel ?? getLessonTitle(t, lesson.titleKey);
+  const effectiveBlindMode = blindModeOverride ?? settings.blindMode;
+  const effectiveMode = practiceMode ?? settings.practiceMode;
 
   const session = useTypingSession({
     lessonId,
     lessonTitle,
     lesson,
-    mode: settings.practiceMode,
+    mode: effectiveMode,
     sound: settings.sound,
     locale: settings.locale,
     customText,
@@ -81,12 +95,16 @@ export default function TypingTest({
     return () => window.clearInterval(interval);
   }, [onProgressChange, started, paused, finished, stats.wpm, progress]);
 
-  const showKeyboard = !settings.blindMode && keyboardOpen;
+  const showKeyboard = !effectiveBlindMode && keyboardOpen;
 
   return (
     <div className="space-y-6">
-      <ModeToggle />
-      <ModeDescription />
+      {!hideModeToggle ? (
+        <>
+          <ModeToggle />
+          <ModeDescription />
+        </>
+      ) : null}
 
       <StatsBar
         wpm={stats.wpm}
@@ -149,7 +167,7 @@ export default function TypingTest({
         {paused && !finished && <PauseOverlay onResume={togglePause} />}
       </div>
 
-      {finished && (
+      {finished && !hideCompletionPanel && (
         <CompletionPanel
           wpm={stats.wpm}
           accuracy={stats.accuracy}
@@ -162,7 +180,7 @@ export default function TypingTest({
         />
       )}
 
-      {!settings.blindMode && (
+      {!effectiveBlindMode && (
         <div className="flex items-center justify-center sm:hidden">
           <button
             type="button"
@@ -186,7 +204,7 @@ export default function TypingTest({
         </div>
       )}
 
-      {settings.blindMode && !finished && (
+      {effectiveBlindMode && !finished && (
         <p className="text-center text-xs text-[var(--color-text-muted)]">👁 {t.settings.blindDesc}</p>
       )}
 
