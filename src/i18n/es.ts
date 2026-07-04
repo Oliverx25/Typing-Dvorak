@@ -155,6 +155,15 @@ export const es: TranslationKey = {
     importBtn: 'Elegir archivo',
     importSuccess: 'Progreso restaurado correctamente',
     importError: 'Archivo de copia inválido',
+    highlightTheme: 'Tema resalte',
+    highlightThemeDesc: 'Color de acento para lecciones, progreso y acciones de práctica',
+    highlightThemes: {
+      indigo: 'Índigo',
+      emerald: 'Esmeralda',
+      cyan: 'Cian',
+      violet: 'Violeta',
+      amber: 'Ámbar',
+    },
   },
   categories: {
     drill: 'Ejercicio de teclas',

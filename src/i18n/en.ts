@@ -153,6 +153,15 @@ export const en = {
     importBtn: 'Choose file',
     importSuccess: 'Progress restored successfully',
     importError: 'Invalid backup file',
+    highlightTheme: 'Highlight theme',
+    highlightThemeDesc: 'Accent color for lessons, progress, and practice actions',
+    highlightThemes: {
+      indigo: 'Indigo',
+      emerald: 'Emerald',
+      cyan: 'Cyan',
+      violet: 'Violet',
+      amber: 'Amber',
+    },
   },
   categories: {
     drill: 'Key Drill',

@@ -35,7 +35,7 @@ export default function AdaptiveDrillCard() {
   return (
     <a
       href="/lesson/adaptive-drill"
-      className="mb-8 block rounded-xl border border-[var(--color-key-target)]/40 bg-gradient-to-br from-[var(--color-key-target)]/8 to-[var(--color-accent)]/5 p-5 no-underline transition hover:shadow-md hover:ring-2 hover:ring-[var(--color-key-target)]/20"
+      className="mb-8 block rounded-xl border border-[var(--color-key-target)]/40 bg-gradient-to-br from-[var(--color-key-target)]/8 to-[var(--color-highlight)]/5 p-5 no-underline transition hover:shadow-md hover:ring-2 hover:ring-[var(--color-key-target)]/20"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex-1">
@@ -59,7 +59,7 @@ export default function AdaptiveDrillCard() {
           ))}
         </div>
       </div>
-      <p className="mt-4 text-sm font-medium text-[var(--color-accent)]">{t.home.startLesson} →</p>
+      <p className="mt-4 text-sm font-medium text-[var(--color-highlight)]">{t.home.startLesson} →</p>
     </a>
   );
 }

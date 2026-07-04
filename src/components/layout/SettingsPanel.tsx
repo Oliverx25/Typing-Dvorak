@@ -3,6 +3,7 @@ import { useApp } from '@/contexts/AppProvider';
 import type { Locale } from '@/i18n';
 import { downloadExport, importProgress } from '@/utils/exportImport';
 import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/events';
+import { HIGHLIGHT_THEME_IDS, HIGHLIGHT_THEMES, type HighlightThemeId } from '@/utils/highlightTheme';
 import { headerIconButtonClassName } from './headerClasses';
 
 export default function SettingsPanel() {
@@ -83,6 +84,13 @@ export default function SettingsPanel() {
                 checked={settings.fingerColors}
                 onChange={(v) => updateSettings({ fingerColors: v })}
               />
+              <HighlightThemePicker
+                label={t.settings.highlightTheme}
+                description={t.settings.highlightThemeDesc}
+                value={settings.highlightTheme}
+                themeLabels={t.settings.highlightThemes}
+                onChange={(id) => updateSettings({ highlightTheme: id })}
+              />
               <div className="border-t border-[var(--color-border)] pt-4 space-y-3">
                 <div>
                   <p className="text-sm text-[var(--color-text)]">{t.settings.exportData}</p>
@@ -137,6 +145,49 @@ function SettingRow({ label, children }: { label: string; children: React.ReactN
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm text-[var(--color-text)]">{label}</span>
       {children}
+    </div>
+  );
+}
+
+function HighlightThemePicker({
+  label,
+  description,
+  value,
+  themeLabels,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  value: HighlightThemeId;
+  themeLabels: Record<HighlightThemeId, string>;
+  onChange: (id: HighlightThemeId) => void;
+}) {
+  return (
+    <div>
+      <p className="text-sm text-[var(--color-text)]">{label}</p>
+      <p className="text-xs text-[var(--color-text-muted)]">{description}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {HIGHLIGHT_THEME_IDS.map((id) => {
+          const selected = value === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              title={themeLabels[id]}
+              aria-label={themeLabels[id]}
+              aria-pressed={selected}
+              onClick={() => onChange(id)}
+              className={[
+                'size-8 rounded-lg border-2 transition hover:scale-105',
+                selected
+                  ? 'border-[var(--color-text)] ring-2 ring-[var(--color-highlight)] ring-offset-2 ring-offset-[var(--color-surface-elevated)]'
+                  : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]',
+              ].join(' ')}
+              style={{ backgroundColor: HIGHLIGHT_THEMES[id].swatch }}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -98,12 +98,12 @@ function UnlockedLessonCard({
         recommended={recommended}
         lockedLabel=""
       />
-      <h3 className="text-lg font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)]">
+      <h3 className="text-lg font-semibold text-[var(--color-text)] group-hover:text-[var(--color-highlight)]">
         {title}
       </h3>
       <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">{description}</p>
       <div className="mt-4 flex items-center justify-between">
-        <span className="text-sm font-medium text-[var(--color-accent)]">{startLabel} →</span>
+        <span className="text-sm font-medium text-[var(--color-highlight)]">{startLabel} →</span>
         {bestWpm !== null && (
           <span className="font-mono text-xs text-[var(--color-text-muted)]">
             {bestWpmLabel}: <strong className="text-[var(--color-text)]">{bestWpm}</strong>
@@ -172,11 +172,11 @@ export function CurriculumBar() {
     <Card padding="md" className="mb-8">
       <div className="mb-2 flex items-center justify-between text-sm">
         <span className="font-medium text-[var(--color-text)]">{t.home.curriculumProgress}</span>
-        <span className="font-mono text-[var(--color-accent)]">{progress}%</span>
+        <span className="font-mono text-[var(--color-highlight)]">{progress}%</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-[var(--color-border)]">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-correct)] transition-all duration-500"
+          className="h-full rounded-full bg-gradient-to-r from-[var(--color-highlight)] to-[var(--color-highlight-hover)] transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -185,7 +185,7 @@ export function CurriculumBar() {
         const name = lesson ? getLessonTitle(t, lesson.titleKey) : recommendedId;
         return (
           <p className="mt-2 text-xs text-[var(--color-text-muted)]">
-            {t.home.recommended}: <span className="text-[var(--color-accent)]">{name}</span>
+            {t.home.recommended}: <span className="text-[var(--color-highlight)]">{name}</span>
           </p>
         );
       })()}

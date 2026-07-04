@@ -35,7 +35,7 @@ export default function ExtraPracticeCard() {
           onChange={(e) => setText(e.target.value)}
           placeholder={t.custom.placeholder}
           rows={3}
-          className={`${formFieldMonoClassName} focus:border-[var(--color-correct)]/50 focus:ring-[var(--color-correct)]/15`}
+          className={`${formFieldMonoClassName} focus:border-[var(--color-highlight)]/50 focus:ring-[var(--color-highlight)]/15`}
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <Button type="button" variant="secondary" size="sm" onClick={handlePaste}>
@@ -43,7 +43,7 @@ export default function ExtraPracticeCard() {
           </Button>
           <Button
             type="button"
-            variant="success"
+            variant="highlight"
             size="sm"
             onClick={handleStart}
             disabled={text.trim().length < 10}

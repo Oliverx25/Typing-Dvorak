@@ -25,7 +25,7 @@ export default function CircularProgress({ value, size = 72, stroke = 6 }: Circu
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--color-correct)"
+          stroke="var(--color-highlight)"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -33,7 +33,7 @@ export default function CircularProgress({ value, size = 72, stroke = 6 }: Circu
           className="transition-all duration-500"
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center font-mono text-sm font-bold text-[var(--color-correct)]">
+      <span className="absolute inset-0 flex items-center justify-center font-mono text-sm font-bold text-[var(--color-highlight)]">
         {value}%
       </span>
     </div>

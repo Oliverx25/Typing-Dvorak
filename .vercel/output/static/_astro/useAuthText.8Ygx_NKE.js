@@ -1,1 +1,0 @@
-import{i as e,n as t}from"./jsx-runtime.BGkMBytW.js";function n(){return t(e().locale).auth}export{n as t};

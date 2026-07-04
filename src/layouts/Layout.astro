@@ -42,9 +42,24 @@ const siteUrl = 'https://typing-dvorak.vercel.app';
         const theme = stored === 'dark' || stored === 'light' ? stored : prefersDark ? 'dark' : 'light';
         if (theme === 'dark') document.documentElement.classList.add('dark');
         const loc = localStorage.getItem('typing-dvorak-settings');
+        const hl = {
+          indigo: { light: ['#6366f1', '#4f46e5'], dark: ['#818cf8', '#6366f1'] },
+          emerald: { light: ['#22c55e', '#16a34a'], dark: ['#4ade80', '#22c55e'] },
+          cyan: { light: ['#0891b2', '#0e7490'], dark: ['#22d3ee', '#06b6d4'] },
+          violet: { light: ['#7c3aed', '#6d28d9'], dark: ['#a78bfa', '#8b5cf6'] },
+          amber: { light: ['#d97706', '#b45309'], dark: ['#fbbf24', '#f59e0b'] },
+        };
+        let highlightId = 'indigo';
         if (loc) {
-          try { document.documentElement.lang = JSON.parse(loc).locale || 'en'; } catch {}
+          try {
+            const settings = JSON.parse(loc);
+            document.documentElement.lang = settings.locale || 'en';
+            if (hl[settings.highlightTheme]) highlightId = settings.highlightTheme;
+          } catch {}
         }
+        const pair = hl[highlightId][theme];
+        document.documentElement.style.setProperty('--color-highlight', pair[0]);
+        document.documentElement.style.setProperty('--color-highlight-hover', pair[1]);
       })();
     </script>
   </head>

@@ -30,9 +30,9 @@ function LibraryCard({ lessonId, title, difficultyLabel, locked, active, inProgr
     return (
       <a
         href={`/lesson/${lessonId}`}
-        className="block rounded-xl border border-[var(--color-correct)]/30 bg-[var(--color-correct)]/5 px-4 py-4 no-underline ring-1 ring-[var(--color-correct)]/20 transition hover:bg-[var(--color-correct)]/10"
+        className="block rounded-xl border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/8 px-4 py-4 no-underline ring-1 ring-[var(--color-highlight)]/15 transition hover:bg-[var(--color-highlight)]/12"
       >
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-correct)]">{difficultyLabel}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-highlight)]">{difficultyLabel}</p>
         <p className="mt-1 text-base font-semibold text-[var(--color-text)]">{title}</p>
         <p className="mt-2 text-xs text-[var(--color-text-muted)]">{inProgressLabel}</p>
       </a>
@@ -42,13 +42,13 @@ function LibraryCard({ lessonId, title, difficultyLabel, locked, active, inProgr
   return (
     <a
       href={`/lesson/${lessonId}`}
-      className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-4 py-3 no-underline transition hover:border-[var(--color-correct)]/40 hover:bg-[var(--color-surface)]"
+      className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-4 py-3 no-underline transition hover:border-[var(--color-highlight)]/40 hover:bg-[var(--color-surface)]"
     >
       <div>
         <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
         <p className="text-[10px] text-[var(--color-text-muted)]">{difficultyLabel}</p>
       </div>
-      <span className="text-xs text-[var(--color-correct)]">→</span>
+      <span className="text-xs text-[var(--color-highlight)]">→</span>
     </a>
   );
 }

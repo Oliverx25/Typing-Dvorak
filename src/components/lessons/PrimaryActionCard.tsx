@@ -26,7 +26,7 @@ export default function PrimaryActionCard() {
         {t.home.yourNextStep}
       </p>
 
-      <article className="overflow-hidden rounded-2xl border-2 border-[var(--color-correct)]/40 bg-[var(--color-surface-elevated)] shadow-lg shadow-[var(--color-correct)]/5">
+      <article className="overflow-hidden rounded-2xl border-2 border-[var(--color-highlight)]/35 bg-[var(--color-surface-elevated)] shadow-lg shadow-[var(--color-highlight)]/10">
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
           <CircularProgress value={progress} />
 
@@ -38,7 +38,7 @@ export default function PrimaryActionCard() {
 
             <a
               href={`/lesson/${recommendedId}`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-[var(--color-correct)] px-6 py-3.5 text-base font-semibold uppercase tracking-wide text-white no-underline shadow-lg shadow-[var(--color-correct)]/25 transition hover:brightness-110"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-[var(--color-highlight)] px-6 py-3.5 text-base font-semibold uppercase tracking-wide text-white no-underline shadow-lg shadow-[var(--color-highlight)]/25 transition hover:bg-[var(--color-highlight-hover)]"
             >
               {continueLabel}
             </a>
@@ -68,7 +68,7 @@ export default function PrimaryActionCard() {
                         className="flex items-center justify-between rounded-lg px-3 py-2 text-sm no-underline transition hover:bg-[var(--color-surface-elevated)]"
                       >
                         <span className="text-[var(--color-text)]">{microTitle}</span>
-                        <span className="font-mono text-xs tracking-widest text-[var(--color-correct)]">
+                        <span className="font-mono text-xs tracking-widest text-[var(--color-highlight)]">
                           {micro.chars}
                         </span>
                       </a>

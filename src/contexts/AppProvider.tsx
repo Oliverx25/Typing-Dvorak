@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { getTranslations, type Locale, type TranslationKey } from '../i18n';
 import { getSettings, saveSettings, type AppSettings, type PracticeMode } from '../utils/settings';
 import { getStoredTheme, setStoredTheme, type Theme } from '../utils/storage';
+import { applyHighlightTheme } from '../utils/highlightTheme';
 
 interface AppContextValue {
   locale: Locale;
@@ -22,6 +23,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   blindMode: false,
   fingerColors: true,
   practiceMode: 'practice',
+  highlightTheme: 'indigo',
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -34,6 +36,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSettings(storedSettings);
     setTheme(storedTheme);
     setStoredTheme(storedTheme);
+    applyHighlightTheme(storedSettings.highlightTheme, storedTheme);
   }, []);
 
   const updateSettings = useCallback((partial: Partial<AppSettings>) => {
@@ -49,7 +52,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const next: Theme = theme === 'light' ? 'dark' : 'light';
     setTheme(next);
     setStoredTheme(next);
-  }, [theme]);
+    applyHighlightTheme(settings.highlightTheme, next);
+  }, [theme, settings.highlightTheme]);
 
   const setPracticeMode = useCallback((mode: PracticeMode) => {
     updateSettings({ practiceMode: mode });

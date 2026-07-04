@@ -31,7 +31,7 @@ function MicroLessonLink({ micro }: { micro: MicroLesson }) {
     >
       <div>
         <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
-        <p className="font-mono text-xs tracking-widest text-[var(--color-accent)]">{micro.chars}</p>
+        <p className="font-mono text-xs tracking-widest text-[var(--color-highlight)]">{micro.chars}</p>
       </div>
       <span className="text-xs text-[var(--color-text-muted)]">{difficulty}</span>
     </a>

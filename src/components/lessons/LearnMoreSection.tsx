@@ -22,7 +22,7 @@ export default function LearnMoreSection() {
         <div className="mt-6 space-y-8">
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
             <h3 className="text-base font-semibold text-[var(--color-text)]">{t.home.homeRowTitle}</h3>
-            <p className="mt-3 font-mono text-xl tracking-[0.25em] text-[var(--color-correct)] sm:text-2xl">
+            <p className="mt-3 font-mono text-xl tracking-[0.25em] text-[var(--color-highlight)] sm:text-2xl">
               {t.home.homeRowKeys}
             </p>
             <p className="mt-3 text-sm text-[var(--color-text-muted)]">{t.home.homeRowDesc}</p>
