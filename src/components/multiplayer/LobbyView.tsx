@@ -185,7 +185,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
       {!inRace ? (
         <div className="flex flex-wrap gap-3">
           <Button
-            variant={isReady ? 'secondary' : 'success'}
+            variant={isReady ? 'secondary' : 'primary'}
             onClick={() => void toggleReadyStatus()}
             disabled={!isConnected}
           >

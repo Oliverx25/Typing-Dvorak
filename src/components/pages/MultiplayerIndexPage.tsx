@@ -7,7 +7,7 @@ import CreateRoomSettings, {
   type CreateRoomSettingsValue,
 } from '@/components/multiplayer/CreateRoomSettings';
 import JoinRoomModal from '@/components/multiplayer/JoinRoomModal';
-import { Button, Card } from '@/components/ui';
+import { Button, Card, SvgIcon } from '@/components/ui';
 import { DEFAULT_RACE_LESSON_ID } from '@/utils/multiplayer/roomConfig';
 import { generateRoomCode, roomUrl } from '@/utils/multiplayer/roomCode';
 import { saveCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
@@ -65,7 +65,11 @@ function MultiplayerIndexContent() {
             </p>
           </div>
           <Button variant="secondary" onClick={() => setJoinOpen(true)}>
-            <img src="/icons/join.svg" alt="" aria-hidden="true" className="h-4 w-4" />
+            <SvgIcon
+              src="/icons/join.svg"
+              size={16}
+              className="text-[var(--color-highlight)]"
+            />
             {t.multiplayer.joinWithCode}
           </Button>
         </header>

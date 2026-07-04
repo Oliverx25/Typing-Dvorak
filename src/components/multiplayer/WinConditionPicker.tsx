@@ -66,7 +66,10 @@ export default function WinConditionPicker({
                 disabled={disabled}
                 aria-pressed={isActive}
                 aria-label={`${label}: ${description}`}
-                onClick={() => toggle(condition)}
+                onClick={(event) => {
+                  toggle(condition);
+                  event.currentTarget.blur();
+                }}
                 className={[
                   'flex w-full flex-col items-center gap-1.5 rounded-xl border px-2 py-3 transition-all duration-300',
                   isActive
@@ -98,7 +101,7 @@ export default function WinConditionPicker({
 
               <div
                 role="tooltip"
-                className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-max max-w-[12rem] -translate-x-1/2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-2.5 py-1.5 text-center text-[11px] leading-snug text-[var(--color-text-muted)] opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100"
+                className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-max max-w-[12rem] -translate-x-1/2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-2.5 py-1.5 text-center text-[11px] leading-snug text-[var(--color-text-muted)] opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
               >
                 <span className="block font-medium text-[var(--color-text)]">{label}</span>
                 <span className="mt-0.5 block">{description}</span>
