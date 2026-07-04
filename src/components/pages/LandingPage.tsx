@@ -6,11 +6,11 @@ function LandingHeader() {
   const { t } = useApp();
 
   return (
-    <header className="relative w-full border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
+    <header className="sticky top-0 z-30 w-full border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)]/90 backdrop-blur-sm">
+      <div className="grid w-full grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <a
           href="/"
-          className="flex shrink-0 items-center gap-2 text-lg font-semibold text-[var(--color-text)] no-underline hover:text-[var(--color-accent)]"
+          className="flex min-w-0 items-center gap-2 text-lg font-semibold text-[var(--color-text)] no-underline hover:text-[var(--color-accent)]"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -20,13 +20,13 @@ function LandingHeader() {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className="text-[var(--color-accent)]"
+            className="shrink-0 text-[var(--color-accent)]"
             aria-hidden="true"
           >
             <rect width="20" height="16" x="2" y="4" rx="2" />
             <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10" />
           </svg>
-          {t.siteName}
+          <span className="truncate">{t.siteName}</span>
         </a>
         <HeaderActions variant="landing" />
       </div>
@@ -92,7 +92,7 @@ function LandingContent() {
   const { t } = useApp();
 
   return (
-    <div className="relative flex min-h-full flex-1 flex-col overflow-hidden">
+    <div className="relative flex min-h-full w-full flex-1 flex-col overflow-hidden">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-accent)_0%,_transparent_50%)] opacity-10"
         aria-hidden="true"
@@ -183,7 +183,7 @@ export default function LandingPage() {
   return (
     <AuthProvider>
       <AppProvider>
-        <div className="flex min-h-full flex-1 flex-col">
+        <div className="flex min-h-full w-full flex-1 flex-col">
           <LandingContent />
         </div>
       </AppProvider>
