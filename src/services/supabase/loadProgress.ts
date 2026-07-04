@@ -17,8 +17,10 @@ export interface UserProfileRow {
   avatar_url: string | null;
   avatar_custom: boolean;
   display_name: string | null;
+  display_name_custom?: boolean;
   current_streak: number;
   last_practice_date: string | null;
+  created_at?: string;
 }
 
 function mapSessionRow(row: {
@@ -111,6 +113,30 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
   }
 
   return profile;
+}
+
+/** Re-apply profile display name to auth metadata after OAuth sign-in overwrites it. */
+export async function restoreProfileDisplayFromProfile(): Promise<void> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  const profile = (await fetchUserProfile()) as UserProfileRow | null;
+  const dbName = profile?.display_name?.trim();
+  if (!dbName) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const meta = user.user_metadata ?? {};
+  if (meta.full_name === dbName && meta.display_name_custom === true) return;
+
+  await supabase.auth.updateUser({
+    data: {
+      full_name: dbName,
+      display_name: dbName,
+      display_name_custom: true,
+    },
+  });
 }
 
 /** Re-apply custom avatar to auth metadata after OAuth sign-in overwrites it. */

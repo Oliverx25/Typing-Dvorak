@@ -15,6 +15,7 @@ export interface ProfileDisplayInfo {
   avatar_url?: string | null;
   avatar_custom?: boolean;
   display_name?: string | null;
+  display_name_custom?: boolean;
 }
 
 function readOAuthAvatar(user: User): string | null {
@@ -69,10 +70,18 @@ export function getUserInitials(name: string): string {
 }
 
 export function getUserDisplay(user: User, profile?: ProfileDisplayInfo | null): UserDisplay {
-  const name =
-    (typeof profile?.display_name === 'string' && profile.display_name.trim()
+  const profileName =
+    typeof profile?.display_name === 'string' && profile.display_name.trim()
       ? profile.display_name.trim()
-      : null) ?? getUserDisplayName(user);
+      : null;
+
+  const meta = user.user_metadata ?? {};
+  const authCustomName =
+    meta.display_name_custom === true && typeof meta.full_name === 'string' && meta.full_name.trim()
+      ? meta.full_name.trim()
+      : null;
+
+  const name = profileName ?? authCustomName ?? getUserDisplayName(user);
 
   if (profile?.avatar_custom === true) {
     const custom = profile.avatar_url;

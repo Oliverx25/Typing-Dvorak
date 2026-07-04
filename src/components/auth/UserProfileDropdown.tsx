@@ -5,13 +5,13 @@ import { getUserDisplay } from '@/utils/user/userDisplay';
 import { Icon } from '@/components/ui';
 import { headerAvatarButtonClassName } from '@/components/layout/headerClasses';
 import HeaderMenuPortal from '@/components/layout/HeaderMenuPortal';
-import EditAvatarModal from './EditAvatarModal';
+import EditProfileModal from './EditProfileModal';
 
 export default function UserProfileDropdown() {
   const { user, profile, signOut, isConfigured } = useAuth();
   const { t } = useApp();
   const [open, setOpen] = useState(false);
-  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -25,9 +25,9 @@ export default function UserProfileDropdown() {
     await signOut();
   };
 
-  const openAvatarModal = () => {
+  const openProfileModal = () => {
     setOpen(false);
-    setAvatarModalOpen(true);
+    setProfileModalOpen(true);
   };
 
   return (
@@ -74,11 +74,11 @@ export default function UserProfileDropdown() {
               <button
                 type="button"
                 role="menuitem"
-                onClick={openAvatarModal}
+                onClick={openProfileModal}
                 className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
               >
-                <Icon name="camera" size={16} />
-                {t.auth.changePhoto}
+                <Icon name="user" size={16} />
+                {t.auth.editProfile}
               </button>
             )}
             <a
@@ -103,8 +103,8 @@ export default function UserProfileDropdown() {
         </HeaderMenuPortal>
       </div>
 
-      {avatarModalOpen && (
-        <EditAvatarModal user={user} onClose={() => setAvatarModalOpen(false)} />
+      {profileModalOpen && (
+        <EditProfileModal user={user} onClose={() => setProfileModalOpen(false)} />
       )}
     </>
   );
