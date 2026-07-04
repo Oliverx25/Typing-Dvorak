@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import MultiplayerLobbyPage from '../../components/pages/MultiplayerLobbyPage';
+
+const { code } = Astro.params;
+const roomId = (code ?? '').toUpperCase();
+---
+
+<Layout title="Typing Dvorak — Lobby">
+  <MultiplayerLobbyPage client:load roomId={roomId} />
+</Layout>

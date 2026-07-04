@@ -1,0 +1,10 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import MultiplayerIndexPage from '../../components/pages/MultiplayerIndexPage';
+
+export const prerender = true;
+---
+
+<Layout title="Typing Dvorak — Multiplayer">
+  <MultiplayerIndexPage client:load />
+</Layout>

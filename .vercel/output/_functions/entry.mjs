@@ -1,6 +1,6 @@
-import { B as LocalsReassigned, H as MiddlewareNotAResponse, O as ForbiddenRewrite, V as MiddlewareNoDataOrNextCalled, _ as ActionsReturnedInvalidDataError, a as fileExtension, b as ClientAddressNotAvailable, ct as StaticClientAddressNotAvailable, d as removeLeadingForwardSlash, et as PrerenderClientAddressNotAvailable, g as ActionNotFoundError, i as collapseDuplicateTrailingSlashes, it as ResponseSentError, l as joinPaths, m as slash, mt as AstroError, n as collapseDuplicateLeadingSlashes, o as hasFileExtension, ot as SessionStorageInitError, p as removeTrailingForwardSlash, pt as i18nNoLocaleFoundInPath, r as collapseDuplicateSlashes, s as isInternalPath, st as SessionStorageSaveError, t as appendForwardSlash, u as prependForwardSlash, v as AstroResponseHeadersReassigned, y as CacheNotEnabled, z as LocalsNotAnObject } from "./chunks/path_C9X7x7su.mjs";
-import { c as matchPattern } from "./chunks/remoteProbe_D38GD8nn.mjs";
-import { $ as shouldAppendForwardSlash, A as sequence, F as isRoute404, G as REDIRECT_STATUS_CODES, H as readBodyWithLimit, I as isRoute500, J as clientAddressSymbol, K as REROUTABLE_STATUS_CODES, L as MultiLevelEncodingError, M as findRouteToRewrite, N as getOriginPathname, O as getRouteGenerator, P as setOriginPathname, Q as responseSentSymbol$1, R as validateAndDecodePathname, T as renderEndpoint, U as ASTRO_ERROR_HEADER, V as BodySizeLimitError, W as ASTRO_GENERATOR, X as originPathnameSymbol, Y as fetchStateSymbol, Z as pipelineSymbol, a as createConsoleLogger, b as decodeKey, c as getParams, d as getFallbackRoute, f as routeHasHtmlExtension, g as getPattern, h as SERVER_ISLAND_COMPONENT, i as PipelineFeatures, j as copyRequest, k as RedirectSinglePageBuiltModule, l as getProps, m as routeIsRedirect, n as ALL_PIPELINE_FEATURES, o as AstroIntegrationLogger, p as routeIsFallback, q as appSymbol, r as Pipeline, s as routeComparator, t as Slots, u as getCustom404Route, v as renderPage, x as generateCspDigest, z as NOOP_MIDDLEWARE_FN } from "./chunks/render_BCmufLRe.mjs";
+import { $ as AstroError, D as MiddlewareNotAResponse, E as MiddlewareNoDataOrNextCalled, G as SessionStorageInitError, K as SessionStorageSaveError, Q as i18nNoLocaleFoundInPath, T as LocalsReassigned, U as ResponseSentError, a as ClientAddressNotAvailable, i as CacheNotEnabled, n as ActionsReturnedInvalidDataError, p as ForbiddenRewrite, q as StaticClientAddressNotAvailable, r as AstroResponseHeadersReassigned, t as ActionNotFoundError, w as LocalsNotAnObject, z as PrerenderClientAddressNotAvailable } from "./chunks/errors-data_sKwIzwfZ.mjs";
+import { c as matchPattern } from "./chunks/remoteProbe_C7-LKqCd.mjs";
+import { $ as originPathnameSymbol, B as MultiLevelEncodingError, C as generateCspDigest, F as findRouteToRewrite, G as readBodyWithLimit, H as NOOP_MIDDLEWARE_FN, I as getOriginPathname, J as REDIRECT_STATUS_CODES, K as ASTRO_ERROR_HEADER, L as setOriginPathname, M as RedirectSinglePageBuiltModule, N as sequence, O as renderEndpoint, P as copyRequest, Q as fetchStateSymbol, R as isRoute404, S as decodeKey, V as validateAndDecodePathname, W as BodySizeLimitError, X as appSymbol, Y as REROUTABLE_STATUS_CODES, Z as clientAddressSymbol, a as createConsoleLogger, at as collapseDuplicateSlashes, c as getParams, ct as hasFileExtension, d as getFallbackRoute, dt as joinPaths, et as pipelineSymbol, f as routeHasHtmlExtension, ft as prependForwardSlash, g as getPattern, gt as slash, h as SERVER_ISLAND_COMPONENT, ht as removeTrailingForwardSlash, i as PipelineFeatures, it as collapseDuplicateLeadingSlashes, j as getRouteGenerator, l as getProps, lt as isInternalPath, m as routeIsRedirect, n as ALL_PIPELINE_FEATURES, nt as shouldAppendForwardSlash, o as AstroIntegrationLogger, ot as collapseDuplicateTrailingSlashes, p as routeIsFallback, pt as removeLeadingForwardSlash, q as ASTRO_GENERATOR, r as Pipeline, rt as appendForwardSlash, s as routeComparator, st as fileExtension, t as Slots, tt as responseSentSymbol$1, u as getCustom404Route, v as renderPage, z as isRoute500 } from "./chunks/render_5Y2nopdm.mjs";
 import nodePath from "node:path";
 import "@vercel/routing-utils";
 import colors from "piccolore";
@@ -9,6 +9,8 @@ import "es-module-lexer";
 import { parse as parse$1, serialize } from "cookie";
 import { escape } from "html-escaper";
 import { createStorage } from "unstorage";
+import React, { createElement } from "react";
+import ReactDOM from "react-dom/server";
 nodePath.posix.join;
 //#endregion
 //#region node_modules/@astrojs/vercel/dist/index.js
@@ -19,7 +21,7 @@ var ASTRO_MIDDLEWARE_SECRET_HEADER = "x-astro-middleware-secret";
 `${ASTRO_PATH_PARAM}`;
 //#endregion
 //#region \0virtual:astro-vercel:config
-var middlewareSecret = "5d80b329-66c9-47e5-8175-1aee79536d4e";
+var middlewareSecret = "623afa4c-75dd-46ae-b1b7-ad6b7f2d7ad8";
 //#endregion
 //#region node_modules/astro/dist/actions/consts.js
 var ACTION_QUERY_PARAMS = {
@@ -258,7 +260,7 @@ async function parseRequestBody(request, bodySizeLimit) {
 		message: `Request body exceeds ${bodySizeLimit} bytes`
 	});
 	try {
-		if (hasContentType(contentType, formContentTypes)) {
+		if (hasContentType(contentType, formContentTypes$1)) {
 			if (!hasContentLength) {
 				const body = await readBodyWithLimit(request.clone(), bodySizeLimit);
 				return await new Request(request.url, {
@@ -288,7 +290,7 @@ async function parseRequestBody(request, bodySizeLimit) {
 	throw new TypeError("Unsupported content type");
 }
 var ACTION_API_CONTEXT_SYMBOL = /* @__PURE__ */ Symbol.for("astro.actionAPIContext");
-var formContentTypes = ["application/x-www-form-urlencoded", "multipart/form-data"];
+var formContentTypes$1 = ["application/x-www-form-urlencoded", "multipart/form-data"];
 function hasContentType(contentType, expected) {
 	const type = contentType.split(";")[0].toLowerCase();
 	return expected.some((t) => type === t);
@@ -3539,67 +3541,286 @@ function deserializeRouteInfo(rawRouteInfo) {
 	};
 }
 //#endregion
+//#region \0astro:react:opts
+var _astro_react_opts_default = {
+	experimentalReactChildren: false,
+	experimentalDisableStreaming: false
+};
+//#endregion
+//#region node_modules/@astrojs/react/dist/context.js
+var contexts = /* @__PURE__ */ new WeakMap();
+var ID_PREFIX = "r";
+function getContext(rendererContextResult) {
+	if (contexts.has(rendererContextResult)) return contexts.get(rendererContextResult);
+	const ctx = {
+		currentIndex: 0,
+		get id() {
+			return ID_PREFIX + this.currentIndex.toString();
+		}
+	};
+	contexts.set(rendererContextResult, ctx);
+	return ctx;
+}
+function incrementId(rendererContextResult) {
+	const ctx = getContext(rendererContextResult);
+	const id = ctx.id;
+	ctx.currentIndex++;
+	return id;
+}
+//#endregion
+//#region node_modules/@astrojs/react/dist/static-html.js
+var StaticHtml = ({ value, name, hydrate = true }) => {
+	if (!value) return null;
+	return createElement(hydrate ? "astro-slot" : "astro-static-slot", {
+		name,
+		suppressHydrationWarning: true,
+		dangerouslySetInnerHTML: { __html: value }
+	});
+};
+StaticHtml.shouldComponentUpdate = () => false;
+var static_html_default = StaticHtml;
+//#endregion
+//#region node_modules/@astrojs/react/dist/server.js
+var slotName = (str) => str.trim().replace(/[-_]([a-z])/g, (_, w) => w.toUpperCase());
+var reactTypeof = Symbol.for("react.element");
+var reactTransitionalTypeof = Symbol.for("react.transitional.element");
+async function check(Component, props, children) {
+	if (typeof Component === "object") return Component["$$typeof"].toString().slice(7).startsWith("react");
+	if (typeof Component !== "function") return false;
+	if (Component.name === "QwikComponent") return false;
+	if (typeof Component === "function" && Component["$$typeof"] === Symbol.for("react.forward_ref")) return false;
+	if (Component.prototype != null && typeof Component.prototype.render === "function") return React.Component.isPrototypeOf(Component) || React.PureComponent.isPrototypeOf(Component);
+	let isReactComponent = false;
+	function Tester(...args) {
+		try {
+			const vnode = Component(...args);
+			if (vnode && (vnode["$$typeof"] === reactTypeof || vnode["$$typeof"] === reactTransitionalTypeof)) isReactComponent = true;
+		} catch {}
+		return React.createElement("div");
+	}
+	await renderToStaticMarkup.call(this, Tester, props, children);
+	return isReactComponent;
+}
+async function getNodeWritable() {
+	let { Writable } = await import(
+		/* @vite-ignore */
+		"node:stream"
+);
+	return Writable;
+}
+function needsHydration(metadata) {
+	return metadata?.astroStaticSlot ? !!metadata.hydrate : true;
+}
+async function renderToStaticMarkup(Component, props, { default: children, ...slotted }, metadata) {
+	let prefix;
+	if (this && this.result) prefix = incrementId(this.result);
+	const attrs = { prefix };
+	delete props["class"];
+	const slots = {};
+	for (const [key, value] of Object.entries(slotted)) {
+		const name = slotName(key);
+		slots[name] = React.createElement(static_html_default, {
+			hydrate: needsHydration(metadata),
+			value,
+			name
+		});
+	}
+	const newProps = {
+		...props,
+		...slots
+	};
+	const newChildren = children ?? props.children;
+	if (children && _astro_react_opts_default.experimentalReactChildren) {
+		attrs["data-react-children"] = true;
+		newProps.children = (await import("./chunks/vnode-children_B6vVcKTz.mjs").then((mod) => mod.default))(children);
+	} else if (newChildren != null) newProps.children = React.createElement(static_html_default, {
+		hydrate: needsHydration(metadata),
+		value: newChildren
+	});
+	const formState = this ? await getFormState(this) : void 0;
+	if (formState) {
+		attrs["data-action-result"] = JSON.stringify(formState[0]);
+		attrs["data-action-key"] = formState[1];
+		attrs["data-action-name"] = formState[2];
+	}
+	const vnode = React.createElement(Component, newProps);
+	const renderOptions = {
+		identifierPrefix: prefix,
+		formState
+	};
+	let html;
+	if (_astro_react_opts_default.experimentalDisableStreaming) html = ReactDOM.renderToString(vnode);
+	else if ("renderToReadableStream" in ReactDOM) html = await renderToReadableStreamAsync(vnode, renderOptions);
+	else html = await renderToPipeableStreamAsync(vnode, renderOptions);
+	return {
+		html,
+		attrs
+	};
+}
+async function getFormState({ result }) {
+	const { request, actionResult } = result;
+	if (!actionResult) return void 0;
+	if (!isFormRequest(request.headers.get("content-type"))) return void 0;
+	const { searchParams } = new URL(request.url);
+	const actionKey = (await request.clone().formData()).get("$ACTION_KEY")?.toString();
+	const actionName = searchParams.get("_action");
+	if (!actionKey || !actionName) return void 0;
+	return [
+		actionResult,
+		actionKey,
+		actionName
+	];
+}
+async function renderToPipeableStreamAsync(vnode, options) {
+	const Writable = await getNodeWritable();
+	let html = "";
+	return new Promise((resolve, reject) => {
+		let error = void 0;
+		let stream = ReactDOM.renderToPipeableStream(vnode, {
+			...options,
+			onError(err) {
+				error = err;
+				reject(error);
+			},
+			onAllReady() {
+				stream.pipe(new Writable({
+					write(chunk, _encoding, callback) {
+						html += chunk.toString("utf-8");
+						callback();
+					},
+					destroy() {
+						resolve(html);
+					}
+				}));
+			}
+		});
+	});
+}
+async function readResult(stream) {
+	const reader = stream.getReader();
+	let result = "";
+	const decoder = new TextDecoder("utf-8");
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) {
+			if (value) result += decoder.decode(value);
+			else decoder.decode(/* @__PURE__ */ new Uint8Array());
+			return result;
+		}
+		result += decoder.decode(value, { stream: true });
+	}
+}
+async function renderToReadableStreamAsync(vnode, options) {
+	return await readResult(await ReactDOM.renderToReadableStream(vnode, options));
+}
+var formContentTypes = ["application/x-www-form-urlencoded", "multipart/form-data"];
+function isFormRequest(contentType) {
+	const type = contentType?.split(";")[0].toLowerCase();
+	return formContentTypes.some((t) => type === t);
+}
+//#endregion
 //#region \0virtual:astro:renderers
-var renderers = [];
-[{
-	"file": "",
-	"links": [],
-	"scripts": [],
-	"styles": [],
-	"routeData": {
-		"type": "page",
-		"component": "_server-islands.astro",
-		"params": ["name"],
-		"segments": [[{
-			"content": "_server-islands",
-			"dynamic": false,
-			"spread": false
-		}], [{
-			"content": "name",
-			"dynamic": true,
-			"spread": false
-		}]],
-		"pattern": "^\\/_server-islands\\/([^/]+?)\\/?$",
-		"prerender": false,
-		"isIndex": false,
-		"fallbackRoutes": [],
-		"route": "/_server-islands/[name]",
-		"origin": "internal",
-		"distURL": [],
-		"_meta": { "trailingSlash": "ignore" }
+var renderers = [Object.assign({
+	"name": "@astrojs/react",
+	"clientEntrypoint": "@astrojs/react/client.js",
+	"serverEntrypoint": "@astrojs/react/server.js"
+}, { ssr: {
+	name: "@astrojs/react",
+	check,
+	renderToStaticMarkup,
+	supportsAstroStaticSlot: true
+} })];
+[
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"type": "page",
+			"component": "_server-islands.astro",
+			"params": ["name"],
+			"segments": [[{
+				"content": "_server-islands",
+				"dynamic": false,
+				"spread": false
+			}], [{
+				"content": "name",
+				"dynamic": true,
+				"spread": false
+			}]],
+			"pattern": "^\\/_server-islands\\/([^/]+?)\\/?$",
+			"prerender": false,
+			"isIndex": false,
+			"fallbackRoutes": [],
+			"route": "/_server-islands/[name]",
+			"origin": "internal",
+			"distURL": [],
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/_image",
+			"component": "node_modules/astro/dist/assets/endpoint/generic.js",
+			"params": [],
+			"pathname": "/_image",
+			"pattern": "^\\/_image\\/?$",
+			"segments": [[{
+				"content": "_image",
+				"dynamic": false,
+				"spread": false
+			}]],
+			"type": "endpoint",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"isIndex": false,
+			"origin": "internal",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/multiplayer/[code]",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/multiplayer\\/([^/]+?)\\/?$",
+			"segments": [[{
+				"content": "multiplayer",
+				"dynamic": false,
+				"spread": false
+			}], [{
+				"content": "code",
+				"dynamic": true,
+				"spread": false
+			}]],
+			"params": ["code"],
+			"component": "src/pages/multiplayer/[code].astro",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
 	}
-}, {
-	"file": "",
-	"links": [],
-	"scripts": [],
-	"styles": [],
-	"routeData": {
-		"route": "/_image",
-		"component": "node_modules/astro/dist/assets/endpoint/generic.js",
-		"params": [],
-		"pathname": "/_image",
-		"pattern": "^\\/_image\\/?$",
-		"segments": [[{
-			"content": "_image",
-			"dynamic": false,
-			"spread": false
-		}]],
-		"type": "endpoint",
-		"prerender": false,
-		"fallbackRoutes": [],
-		"distURL": [],
-		"isIndex": false,
-		"origin": "internal",
-		"_meta": { "trailingSlash": "ignore" }
-	}
-}].map(deserializeRouteInfo);
+].map(deserializeRouteInfo);
 //#endregion
 //#region \0virtual:astro:pages
-var _page0 = () => import("./chunks/generic_BVCReiEb.mjs");
-var pageMap = /* @__PURE__ */ new Map([["node_modules/astro/dist/assets/endpoint/generic.js", _page0]]);
+var _page0 = () => import("./chunks/generic_DaApJUBu.mjs");
+var _page1 = () => import("./chunks/_code__BoiUc3Py.mjs");
+var pageMap = /* @__PURE__ */ new Map([["node_modules/astro/dist/assets/endpoint/generic.js", _page0], ["src/pages/multiplayer/[code].astro", _page1]]);
 //#endregion
 //#region \0virtual:astro:manifest
-var _manifest = deserializeManifest({"rootDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/","cacheDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/node_modules/.astro/","outDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/dist/","srcDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/src/","publicDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/public/","buildClientDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/dist/client/","buildServerDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/dist/server/","adapterName":"@astrojs/vercel","assetsDir":"_astro","routes":[{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"type":"page","component":"_server-islands.astro","params":["name"],"segments":[[{"content":"_server-islands","dynamic":false,"spread":false}],[{"content":"name","dynamic":true,"spread":false}]],"pattern":"^\\/_server-islands\\/([^/]+?)\\/?$","prerender":false,"isIndex":false,"fallbackRoutes":[],"route":"/_server-islands/[name]","origin":"internal","distURL":[],"_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/_image","component":"node_modules/astro/dist/assets/endpoint/generic.js","params":[],"pathname":"/_image","pattern":"^\\/_image\\/?$","segments":[[{"content":"_image","dynamic":false,"spread":false}]],"type":"endpoint","prerender":false,"fallbackRoutes":[],"distURL":[],"isIndex":false,"origin":"internal","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/achievements","isIndex":false,"type":"page","pattern":"^\\/achievements\\/?$","segments":[[{"content":"achievements","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/achievements.astro","pathname":"/achievements","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/auth/callback","isIndex":false,"type":"page","pattern":"^\\/auth\\/callback\\/?$","segments":[[{"content":"auth","dynamic":false,"spread":false}],[{"content":"callback","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/auth/callback.astro","pathname":"/auth/callback","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/auth/reset-password","isIndex":false,"type":"page","pattern":"^\\/auth\\/reset-password\\/?$","segments":[[{"content":"auth","dynamic":false,"spread":false}],[{"content":"reset-password","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/auth/reset-password.astro","pathname":"/auth/reset-password","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/forgot-password","isIndex":false,"type":"page","pattern":"^\\/forgot-password\\/?$","segments":[[{"content":"forgot-password","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/forgot-password.astro","pathname":"/forgot-password","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/lesson/[id]","isIndex":false,"type":"page","pattern":"^\\/lesson\\/([^/]+?)\\/?$","segments":[[{"content":"lesson","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}]],"params":["id"],"component":"src/pages/lesson/[id].astro","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/lessons","isIndex":true,"type":"page","pattern":"^\\/lessons\\/?$","segments":[[{"content":"lessons","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/lessons/index.astro","pathname":"/lessons","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/login","isIndex":false,"type":"page","pattern":"^\\/login\\/?$","segments":[[{"content":"login","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/login.astro","pathname":"/login","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/practice/custom","isIndex":false,"type":"page","pattern":"^\\/practice\\/custom\\/?$","segments":[[{"content":"practice","dynamic":false,"spread":false}],[{"content":"custom","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/practice/custom.astro","pathname":"/practice/custom","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/signup","isIndex":false,"type":"page","pattern":"^\\/signup\\/?$","segments":[[{"content":"signup","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/signup.astro","pathname":"/signup","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/stats","isIndex":false,"type":"page","pattern":"^\\/stats\\/?$","segments":[[{"content":"stats","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/stats.astro","pathname":"/stats","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/","isIndex":true,"type":"page","pattern":"^\\/$","segments":[],"params":[],"component":"src/pages/index.astro","pathname":"/","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}}],"serverLike":true,"middlewareMode":"classic","base":"/","trailingSlash":"ignore","compressHTML":"jsx","componentMetadata":[["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/achievements.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/auth/callback.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/auth/reset-password.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/forgot-password.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/index.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/lesson/[id].astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/lessons/index.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/login.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/practice/custom.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/signup.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/stats.astro",{"propagation":"none","containsHead":true}]],"renderers":[],"clientDirectives":[["idle","(()=>{var l=(n,t)=>{let i=async()=>{await(await n())()},e=typeof t.value==\"object\"?t.value:void 0,s={timeout:e==null?void 0:e.timeout};\"requestIdleCallback\"in window?window.requestIdleCallback(i,s):setTimeout(i,s.timeout||200)};(self.Astro||(self.Astro={})).idle=l;window.dispatchEvent(new Event(\"astro:idle\"));})();"],["load","(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event(\"astro:load\"));})();"],["media","(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener(\"change\",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event(\"astro:media\"));})();"],["only","(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).only=e;window.dispatchEvent(new Event(\"astro:only\"));})();"],["visible","(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value==\"object\"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event(\"astro:visible\"));})();"]],"entryModules":{"astro/entrypoints/prerender":"prerender-entry.3v8mCTUt.mjs","\u0000virtual:astro:page:src/pages/lesson/[id]@_@astro":"chunks/_id__N9BreDx3.mjs","\u0000virtual:astro:middleware":"virtual_astro_middleware.mjs","\u0000virtual:astro:server-island-manifest":"chunks/_virtual_astro_server-island-manifest_C1Q2srgE.mjs","\u0000virtual:astro:session-driver":"chunks/_virtual_astro_session-driver_C-PI1Pas.mjs","\u0000virtual:astro:page:src/pages/achievements@_@astro":"chunks/achievements_Z5IVxL62.mjs","\u0000virtual:astro:page:src/pages/auth/callback@_@astro":"chunks/callback_CQJ3NyId.mjs","\u0000virtual:astro:page:src/pages/practice/custom@_@astro":"chunks/custom_COf2ubP6.mjs","\u0000virtual:astro:page:src/pages/forgot-password@_@astro":"chunks/forgot-password_CUdu1oHW.mjs","\u0000virtual:astro:page:src/pages/lessons/index@_@astro":"chunks/index_C5pPyAW0.mjs","\u0000virtual:astro:page:src/pages/index@_@astro":"chunks/index_rEcPhXMS.mjs","\u0000virtual:astro:page:src/pages/login@_@astro":"chunks/login_CxbjTTjw.mjs","\u0000virtual:astro:actions/noop-entrypoint":"chunks/noop-entrypoint_Z3zFhrGC.mjs","\u0000virtual:astro:page:src/pages/auth/reset-password@_@astro":"chunks/reset-password_BzeQsPoO.mjs","\u0000virtual:astro:page:src/pages/signup@_@astro":"chunks/signup_B2ccoTnL.mjs","\u0000virtual:astro:page:src/pages/stats@_@astro":"chunks/stats_CBIBBPkz.mjs","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/node_modules/@astrojs/react/dist/vnode-children.js":"chunks/vnode-children_B6vVcKTz.mjs","@astrojs/vercel/entrypoint":"entry.mjs","\u0000virtual:astro:page:node_modules/astro/dist/assets/endpoint/generic@_@js":"chunks/generic_BVCReiEb.mjs","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/node_modules/astro/dist/assets/services/sharp.js":"chunks/sharp_2Gk2Tvgw.mjs","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/AchievementsPage":"_astro/AchievementsPage.mEVxSo5t.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/AuthCallback":"_astro/AuthCallback.BZ55mzD4.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/CustomPracticeShell":"_astro/CustomPracticeShell.B0zL9MiY.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/ForgotPasswordForm":"_astro/ForgotPasswordForm.E6Q-nJR0.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/HomePageWithProvider":"_astro/HomePageWithProvider.BOwMCdsJ.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/LandingPage":"_astro/LandingPage.x0eNW-Ke.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/LessonPage":"_astro/LessonPage.BWK8vo84.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/LoginForm":"_astro/LoginForm.DlngyG2r.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/ResetPasswordForm":"_astro/ResetPasswordForm.DVBqPuE2.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/SignupForm":"_astro/SignupForm.BTyFKMMo.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/StatsPage":"_astro/StatsPage.D7tcxP8_.js","@astrojs/react/client.js":"_astro/client.4C0Tdtk0.js","astro:scripts/before-hydration.js":""},"inlinedScripts":[],"assets":["/favicon.ico","/favicon.svg","/manifest.webmanifest","/robots.txt","/sitemap.xml","/streak.png","/sw.js","/_astro/AchievementsPage.mEVxSo5t.js","/_astro/AppShell.Dw_K9oze.js","/_astro/AuthCallback.BZ55mzD4.js","/_astro/AuthShell.CC4wj9b2.js","/_astro/BackLink.DFjBYzQ3.js","/_astro/CustomPracticeShell.B0zL9MiY.js","/_astro/ForgotPasswordForm.E6Q-nJR0.js","/_astro/HeaderActions.50F4tc91.js","/_astro/HomePageWithProvider.BOwMCdsJ.js","/_astro/LandingPage.x0eNW-Ke.js","/_astro/LessonPage.BWK8vo84.js","/_astro/LoginForm.DlngyG2r.js","/_astro/ResetPasswordForm.DVBqPuE2.js","/_astro/SignupForm.BTyFKMMo.js","/_astro/StatsPage.D7tcxP8_.js","/_astro/TypingTest.BiVk37VT.js","/_astro/client.4C0Tdtk0.js","/_astro/customText.DPAuz6Td.js","/_astro/formFieldClasses.B75aIxp5.js","/_astro/jsx-runtime.C6tRdbML.js","/_astro/react.CD6hyuMb.js","/_astro/ui.CJ4cDUWd.js","/_astro/useAuthText.l56X5Uzm.js","/badges/curriculum-done.svg","/badges/first-lesson.svg","/badges/perfect-run.svg","/badges/streak-7.svg","/badges/wpm-50.svg","/_astro/Layout.C-HCr2WH.css","/achievements/index.html","/auth/callback/index.html","/auth/reset-password/index.html","/forgot-password/index.html","/lessons/index.html","/login/index.html","/practice/custom/index.html","/signup/index.html","/stats/index.html","/index.html"],"buildFormat":"directory","checkOrigin":true,"actionBodySizeLimit":1048576,"serverIslandBodySizeLimit":1048576,"allowedDomains":[],"key":"05F/QUgGYl+kB6NxTLUld23KzpWgwZIJVczmY1FidOo=","image":{},"devToolbar":{"enabled":false,"debugInfoOutput":""},"logLevel":"info","shouldInjectCspMetaTags":false});
+var _manifest = deserializeManifest({"rootDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/","cacheDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/node_modules/.astro/","outDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/dist/","srcDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/src/","publicDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/public/","buildClientDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/dist/client/","buildServerDir":"file:///Users/oliverolvera/Documents/GitHub%20-%20Personal/Typing-Dvorak/dist/server/","adapterName":"@astrojs/vercel","assetsDir":"_astro","routes":[{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"type":"page","component":"_server-islands.astro","params":["name"],"segments":[[{"content":"_server-islands","dynamic":false,"spread":false}],[{"content":"name","dynamic":true,"spread":false}]],"pattern":"^\\/_server-islands\\/([^/]+?)\\/?$","prerender":false,"isIndex":false,"fallbackRoutes":[],"route":"/_server-islands/[name]","origin":"internal","distURL":[],"_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/_image","component":"node_modules/astro/dist/assets/endpoint/generic.js","params":[],"pathname":"/_image","pattern":"^\\/_image\\/?$","segments":[[{"content":"_image","dynamic":false,"spread":false}]],"type":"endpoint","prerender":false,"fallbackRoutes":[],"distURL":[],"isIndex":false,"origin":"internal","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/achievements","isIndex":false,"type":"page","pattern":"^\\/achievements\\/?$","segments":[[{"content":"achievements","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/achievements.astro","pathname":"/achievements","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/auth/callback","isIndex":false,"type":"page","pattern":"^\\/auth\\/callback\\/?$","segments":[[{"content":"auth","dynamic":false,"spread":false}],[{"content":"callback","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/auth/callback.astro","pathname":"/auth/callback","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/auth/reset-password","isIndex":false,"type":"page","pattern":"^\\/auth\\/reset-password\\/?$","segments":[[{"content":"auth","dynamic":false,"spread":false}],[{"content":"reset-password","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/auth/reset-password.astro","pathname":"/auth/reset-password","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/forgot-password","isIndex":false,"type":"page","pattern":"^\\/forgot-password\\/?$","segments":[[{"content":"forgot-password","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/forgot-password.astro","pathname":"/forgot-password","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/lesson/[id]","isIndex":false,"type":"page","pattern":"^\\/lesson\\/([^/]+?)\\/?$","segments":[[{"content":"lesson","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}]],"params":["id"],"component":"src/pages/lesson/[id].astro","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/lessons","isIndex":true,"type":"page","pattern":"^\\/lessons\\/?$","segments":[[{"content":"lessons","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/lessons/index.astro","pathname":"/lessons","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/login","isIndex":false,"type":"page","pattern":"^\\/login\\/?$","segments":[[{"content":"login","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/login.astro","pathname":"/login","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/_code_.c-2mlV8P.css"}],"routeData":{"route":"/multiplayer/[code]","isIndex":false,"type":"page","pattern":"^\\/multiplayer\\/([^/]+?)\\/?$","segments":[[{"content":"multiplayer","dynamic":false,"spread":false}],[{"content":"code","dynamic":true,"spread":false}]],"params":["code"],"component":"src/pages/multiplayer/[code].astro","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/multiplayer","isIndex":true,"type":"page","pattern":"^\\/multiplayer\\/?$","segments":[[{"content":"multiplayer","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/multiplayer/index.astro","pathname":"/multiplayer","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/practice/custom","isIndex":false,"type":"page","pattern":"^\\/practice\\/custom\\/?$","segments":[[{"content":"practice","dynamic":false,"spread":false}],[{"content":"custom","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/practice/custom.astro","pathname":"/practice/custom","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/signup","isIndex":false,"type":"page","pattern":"^\\/signup\\/?$","segments":[[{"content":"signup","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/signup.astro","pathname":"/signup","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/stats","isIndex":false,"type":"page","pattern":"^\\/stats\\/?$","segments":[[{"content":"stats","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/stats.astro","pathname":"/stats","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/","isIndex":true,"type":"page","pattern":"^\\/$","segments":[],"params":[],"component":"src/pages/index.astro","pathname":"/","prerender":true,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}}],"serverLike":true,"middlewareMode":"classic","base":"/","trailingSlash":"ignore","compressHTML":"jsx","componentMetadata":[["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/achievements.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/auth/callback.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/auth/reset-password.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/forgot-password.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/index.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/lesson/[id].astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/lessons/index.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/login.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/multiplayer/index.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/practice/custom.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/signup.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/stats.astro",{"propagation":"none","containsHead":true}],["/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/pages/multiplayer/[code].astro",{"propagation":"none","containsHead":true}]],"renderers":[],"clientDirectives":[["idle","(()=>{var l=(n,t)=>{let i=async()=>{await(await n())()},e=typeof t.value==\"object\"?t.value:void 0,s={timeout:e==null?void 0:e.timeout};\"requestIdleCallback\"in window?window.requestIdleCallback(i,s):setTimeout(i,s.timeout||200)};(self.Astro||(self.Astro={})).idle=l;window.dispatchEvent(new Event(\"astro:idle\"));})();"],["load","(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event(\"astro:load\"));})();"],["media","(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener(\"change\",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event(\"astro:media\"));})();"],["only","(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).only=e;window.dispatchEvent(new Event(\"astro:only\"));})();"],["visible","(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value==\"object\"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event(\"astro:visible\"));})();"]],"entryModules":{"astro/entrypoints/prerender":"prerender-entry.BVrMSKyN.mjs","\u0000virtual:astro:page:src/pages/lesson/[id]@_@astro":"chunks/_id__DJxw5h6r.mjs","\u0000virtual:astro:middleware":"virtual_astro_middleware.mjs","\u0000virtual:astro:server-island-manifest":"chunks/_virtual_astro_server-island-manifest_C1Q2srgE.mjs","\u0000virtual:astro:session-driver":"chunks/_virtual_astro_session-driver_C-PI1Pas.mjs","\u0000virtual:astro:page:src/pages/achievements@_@astro":"chunks/achievements_DpFM43Cr.mjs","\u0000virtual:astro:page:src/pages/auth/callback@_@astro":"chunks/callback_Ckj0Djjv.mjs","\u0000virtual:astro:page:src/pages/practice/custom@_@astro":"chunks/custom_QCFNb80T.mjs","\u0000virtual:astro:page:src/pages/forgot-password@_@astro":"chunks/forgot-password_-X8pPFoB.mjs","\u0000virtual:astro:page:src/pages/index@_@astro":"chunks/index_CC1V3zlj.mjs","\u0000virtual:astro:page:src/pages/lessons/index@_@astro":"chunks/index_D9XJsT9P.mjs","\u0000virtual:astro:page:src/pages/multiplayer/index@_@astro":"chunks/index_DNVFWCQD.mjs","\u0000virtual:astro:page:src/pages/login@_@astro":"chunks/login_B1OaOVeb.mjs","\u0000virtual:astro:actions/noop-entrypoint":"chunks/noop-entrypoint_Z3zFhrGC.mjs","\u0000virtual:astro:page:src/pages/auth/reset-password@_@astro":"chunks/reset-password_ppjSoMf-.mjs","\u0000virtual:astro:page:src/pages/signup@_@astro":"chunks/signup_CnKIGMey.mjs","\u0000virtual:astro:page:src/pages/stats@_@astro":"chunks/stats_CfUaeWr2.mjs","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/node_modules/@astrojs/react/dist/vnode-children.js":"chunks/vnode-children_B6vVcKTz.mjs","@astrojs/vercel/entrypoint":"entry.mjs","\u0000virtual:astro:page:src/pages/multiplayer/[code]@_@astro":"chunks/_code__BoiUc3Py.mjs","\u0000virtual:astro:page:node_modules/astro/dist/assets/endpoint/generic@_@js":"chunks/generic_DaApJUBu.mjs","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/node_modules/astro/dist/assets/services/sharp.js":"chunks/sharp_uWwBainP.mjs","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/AchievementsPage":"_astro/AchievementsPage.CVU0vLqX.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/AuthCallback":"_astro/AuthCallback.Dkha76in.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/CustomPracticeShell":"_astro/CustomPracticeShell.CIeGhnZ8.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/ForgotPasswordForm":"_astro/ForgotPasswordForm.DsJwStiw.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/HomePageWithProvider":"_astro/HomePageWithProvider.B4FoY7Uy.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/LandingPage":"_astro/LandingPage.Bc2D_2JR.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/LessonPage":"_astro/LessonPage.L9PnDwrq.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/LoginForm":"_astro/LoginForm.CaqdE3HP.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/MultiplayerIndexPage":"_astro/MultiplayerIndexPage.BheDYXne.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/MultiplayerLobbyPage":"_astro/MultiplayerLobbyPage.Ccl9bjKS.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/ResetPasswordForm":"_astro/ResetPasswordForm.BCXsNJlf.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/auth/SignupForm":"_astro/SignupForm.DxQtDvjy.js","/Users/oliverolvera/Documents/GitHub - Personal/Typing-Dvorak/src/components/pages/StatsPage":"_astro/StatsPage.DG1KQ5GZ.js","@astrojs/react/client.js":"_astro/client.4C0Tdtk0.js","astro:scripts/before-hydration.js":""},"inlinedScripts":[],"assets":["/favicon.ico","/favicon.svg","/manifest.webmanifest","/robots.txt","/sitemap.xml","/streak.png","/sw.js","/badges/curriculum-done.svg","/badges/first-lesson.svg","/badges/perfect-run.svg","/badges/streak-7.svg","/badges/wpm-50.svg","/_astro/AchievementsPage.CVU0vLqX.js","/_astro/AppShell.DiKKp8qi.js","/_astro/AuthCallback.Dkha76in.js","/_astro/AuthShell.U42mPdxP.js","/_astro/BackLink.pSsgqyHK.js","/_astro/CustomPracticeShell.CIeGhnZ8.js","/_astro/ForgotPasswordForm.DsJwStiw.js","/_astro/HeaderActions.DNbuBcmv.js","/_astro/HomePageWithProvider.B4FoY7Uy.js","/_astro/LandingPage.Bc2D_2JR.js","/_astro/LessonPage.L9PnDwrq.js","/_astro/LoginForm.CaqdE3HP.js","/_astro/MultiplayerIndexPage.BheDYXne.js","/_astro/MultiplayerLobbyPage.Ccl9bjKS.js","/_astro/ResetPasswordForm.BCXsNJlf.js","/_astro/SignupForm.DxQtDvjy.js","/_astro/StatsPage.DG1KQ5GZ.js","/_astro/TypingTest.D6sRIPxW.js","/_astro/client.4C0Tdtk0.js","/_astro/customText.C9va4-YV.js","/_astro/formFieldClasses.B75aIxp5.js","/_astro/jsx-runtime.8gdNEpHp.js","/_astro/react.CD6hyuMb.js","/_astro/ui.DD7LJ0so.js","/_astro/useAuthText.BtUqv3xl.js","/_astro/Layout.c-2mlV8P.css","/_astro/_code_.c-2mlV8P.css","/achievements/index.html","/auth/callback/index.html","/auth/reset-password/index.html","/forgot-password/index.html","/lessons/index.html","/login/index.html","/multiplayer/index.html","/practice/custom/index.html","/signup/index.html","/stats/index.html","/index.html"],"buildFormat":"directory","checkOrigin":true,"actionBodySizeLimit":1048576,"serverIslandBodySizeLimit":1048576,"allowedDomains":[],"key":"n2mTlhSv7SUP3q19cbwkWLejIiMc+pzUo8nNiRmIgPw=","image":{},"devToolbar":{"enabled":false,"debugInfoOutput":""},"logLevel":"info","shouldInjectCspMetaTags":false});
 var manifestRoutes = _manifest.routes;
 var manifest = Object.assign(_manifest, {
 	renderers,

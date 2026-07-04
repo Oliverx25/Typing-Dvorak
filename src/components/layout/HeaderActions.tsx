@@ -30,9 +30,14 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
               {t.nav.lessons}
             </a>
           ) : (
-            <a href="/stats" className={headerLinkClassName}>
-              {t.nav.stats}
-            </a>
+            <>
+              <a href="/stats" className={headerLinkClassName}>
+                {t.nav.stats}
+              </a>
+              <a href="/multiplayer" className={headerLinkClassName}>
+                {t.nav.multiplayer}
+              </a>
+            </>
           )}
           <SettingsPanel />
           <ThemeToggle />
