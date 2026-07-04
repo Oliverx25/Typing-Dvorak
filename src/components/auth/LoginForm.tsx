@@ -2,10 +2,19 @@ import { useState } from 'react';
 import { useAuthText } from '@/hooks/useAuthText';
 import { signInWithEmail, signInWithOAuth } from '@/services/supabase/auth';
 import AuthShell from './AuthShell';
+import PublicShell from '@/components/layout/PublicShell';
 import { Button, Icon } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 
 export default function LoginForm() {
+  return (
+    <PublicShell>
+      <LoginFormContent />
+    </PublicShell>
+  );
+}
+
+function LoginFormContent() {
   const t = useAuthText();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

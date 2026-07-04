@@ -5,7 +5,7 @@ export default function PageLayout({ children }: { children: React.ReactNode }) 
   const { t } = useApp();
 
   return (
-    <>
+    <div className="flex flex-1 flex-col">
       <header className="border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <a href="/" className="flex items-center gap-2 font-semibold text-[var(--color-text)] no-underline hover:text-[var(--color-accent)]">
@@ -18,7 +18,7 @@ export default function PageLayout({ children }: { children: React.ReactNode }) 
           <HeaderActions />
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
-    </>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
+    </div>
   );
 }

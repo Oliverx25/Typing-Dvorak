@@ -2,10 +2,19 @@ import { useState } from 'react';
 import { useAuthText } from '@/hooks/useAuthText';
 import { updatePassword } from '@/services/supabase/auth';
 import AuthShell from './AuthShell';
+import PublicShell from '@/components/layout/PublicShell';
 import { Button } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 
 export default function ResetPasswordForm() {
+  return (
+    <PublicShell>
+      <ResetPasswordFormContent />
+    </PublicShell>
+  );
+}
+
+function ResetPasswordFormContent() {
   const t = useAuthText();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');

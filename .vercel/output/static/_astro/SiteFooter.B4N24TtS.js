@@ -1,0 +1,1 @@
+import{a as e,i as t}from"./AppProvider.lj1epcki.js";var n=e();function r(){let{t:e}=t();return(0,n.jsx)(`footer`,{className:`mt-auto shrink-0 border-t border-[var(--color-border)] py-6 text-center text-sm text-[var(--color-text-muted)]`,children:(0,n.jsx)(`p`,{children:e.footer})})}export{r as t};

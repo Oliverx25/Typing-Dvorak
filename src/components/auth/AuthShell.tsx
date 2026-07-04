@@ -12,7 +12,7 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
   const configured = isSupabaseConfigured();
 
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12">
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
       <a
         href="/"
         className="mb-8 flex items-center gap-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)]"

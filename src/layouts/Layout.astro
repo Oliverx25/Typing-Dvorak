@@ -63,13 +63,15 @@ const siteUrl = 'https://typing-dvorak.vercel.app';
       })();
     </script>
   </head>
-  <body class="min-h-screen antialiased">
+  <body class="flex min-h-screen flex-col antialiased">
     <noscript>
       <div style="max-width:40rem;margin:2rem auto;padding:1.5rem;font-family:system-ui,sans-serif;text-align:center">
         <h1>Typing Dvorak</h1>
         <p>JavaScript is required. Enable it and open <a href="/lessons">the lessons page</a>.</p>
       </div>
     </noscript>
-    <slot />
+    <div class="flex min-h-full flex-1 flex-col">
+      <slot />
+    </div>
   </body>
 </html>

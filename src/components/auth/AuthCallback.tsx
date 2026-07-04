@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { useAuthText } from '@/hooks/useAuthText';
+import PublicShell from '@/components/layout/PublicShell';
 
 export default function AuthCallback() {
+  return (
+    <PublicShell>
+      <AuthCallbackContent />
+    </PublicShell>
+  );
+}
+
+function AuthCallbackContent() {
   const t = useAuthText();
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +47,7 @@ export default function AuthCallback() {
   }, []);
 
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
       {error ? (
         <>
           <p className="text-[var(--color-incorrect)]">{error}</p>

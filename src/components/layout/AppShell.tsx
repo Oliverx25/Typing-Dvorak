@@ -12,8 +12,10 @@ export default function AppShell({ children }: AppShellProps) {
   return (
     <AuthProvider>
       <AppProvider>
-        <PageLayout>{children}</PageLayout>
-        <SiteFooter />
+        <div className="flex min-h-full flex-1 flex-col">
+          <PageLayout>{children}</PageLayout>
+          <SiteFooter />
+        </div>
       </AppProvider>
     </AuthProvider>
   );

@@ -95,7 +95,7 @@ function LandingContent() {
   const { t } = useApp();
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative flex min-h-full flex-1 flex-col overflow-hidden">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-accent)_0%,_transparent_50%)] opacity-10"
         aria-hidden="true"
@@ -103,7 +103,7 @@ function LandingContent() {
 
       <LandingHeader />
 
-      <main className="relative mx-auto max-w-5xl px-4 pb-20 pt-8 text-center sm:pt-16">
+      <main className="relative mx-auto w-full max-w-5xl flex-1 px-4 pb-20 pt-8 text-center sm:pt-16">
         <p className="mb-4 inline-flex rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-4 py-1 text-xs font-medium uppercase tracking-widest text-[var(--color-accent)]">
           {t.landing.badge}
         </p>
@@ -158,7 +158,7 @@ function LandingContent() {
         </section>
       </main>
 
-      <footer className="border-t border-[var(--color-border)] py-8 text-center text-sm text-[var(--color-text-muted)]">
+      <footer className="mt-auto shrink-0 border-t border-[var(--color-border)] py-8 text-center text-sm text-[var(--color-text-muted)]">
         <p>
           {t.landing.builtWith} ·{' '}
           <a href="/lessons" className="text-[var(--color-accent)] no-underline hover:underline">
@@ -174,7 +174,9 @@ export default function LandingPage() {
   return (
     <AuthProvider>
       <AppProvider>
-        <LandingContent />
+        <div className="flex min-h-full flex-1 flex-col">
+          <LandingContent />
+        </div>
       </AppProvider>
     </AuthProvider>
   );

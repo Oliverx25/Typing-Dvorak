@@ -2,10 +2,19 @@ import { useState } from 'react';
 import { useAuthText } from '@/hooks/useAuthText';
 import { resetPasswordForEmail } from '@/services/supabase/auth';
 import AuthShell from './AuthShell';
+import PublicShell from '@/components/layout/PublicShell';
 import { Button } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 
 export default function ForgotPasswordForm() {
+  return (
+    <PublicShell>
+      <ForgotPasswordFormContent />
+    </PublicShell>
+  );
+}
+
+function ForgotPasswordFormContent() {
   const t = useAuthText();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
