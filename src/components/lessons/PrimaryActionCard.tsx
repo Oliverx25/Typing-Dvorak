@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useApp, getLessonDescription, getLessonTitle } from '@/contexts/AppProvider';
 import { useFocusedChapter } from '@/contexts/FocusedChapterProvider';
 import { t as translate } from '@/i18n';
-import { getLessonById } from '@/utils/lessons';
-import { findLessonGroup } from '@/utils/microLessonGroups';
+import { getLessonById } from '@/utils/curriculum/lessons';
+import { findLessonGroup } from '@/utils/curriculum/microLessonGroups';
 import CircularProgress from '@/components/ui/CircularProgress';
 import { Icon } from '@/components/ui';
 

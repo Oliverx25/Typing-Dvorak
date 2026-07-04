@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getRecommendedLessonId, getCurriculumProgress } from '@/utils/curriculum';
-import { getCompletedLessonsMap } from '@/utils/storage';
-import { SESSION_COMPLETE_EVENT } from '@/utils/events';
+import { getRecommendedLessonId, getCurriculumProgress } from '@/utils/curriculum/curriculum';
+import { getCompletedLessonsMap } from '@/utils/progress/storage';
+import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
 export function useCurriculumState() {
   const [progress, setProgress] = useState(0);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { BADGES, getUnlockedBadges } from '@/utils/badges';
-import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/events';
+import { BADGES, getUnlockedBadges } from '@/utils/achievements/badges';
+import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { BadgeIcon } from '@/components/ui';
 
 export default function BadgesRow() {

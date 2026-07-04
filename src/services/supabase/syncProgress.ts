@@ -1,8 +1,8 @@
 import { getSupabaseClient } from '../../lib/supabaseClient';
-import type { SessionRecord } from '../../utils/storage';
-import { calculateStars } from '../../utils/stars';
-import { getKeyStats } from '../../utils/keyStats';
-import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '../../utils/streak';
+import type { SessionRecord } from '../../utils/progress/storage';
+import { calculateStars } from '../../utils/curriculum/stars';
+import { getKeyStats } from '../../utils/stats/keyStats';
+import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '../../utils/progress/streak';
 import { fetchUserSessionTimestamps } from './queries';
 
 /** Writes computed streak fields to profiles (cache for quick reads). */

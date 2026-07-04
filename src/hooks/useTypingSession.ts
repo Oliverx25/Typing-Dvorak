@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { charToKeyCode } from '../utils/dvorak';
+import { charToKeyCode } from '../utils/keyboard/dvorak';
 import {
   buildStats,
   pickRandomText,
   TEST_DURATION_SECONDS,
   type TypingStats,
-} from '../utils/typing';
-import { generateDrillText, generateTestStream } from '../utils/textGenerator';
-import { saveSession } from '../utils/storage';
-import { getSessionWeakKeys, recordKeystroke } from '../utils/keyStats';
-import { playCompleteSound, playCorrectSound, playIncorrectSound } from '../utils/sound';
-import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '../utils/events';
-import { checkAndUnlockBadges } from '../utils/badges';
-import type { PracticeMode } from '../utils/settings';
-import type { Lesson } from '../utils/lessons';
-import { getLessonText } from '../utils/lessons';
+} from '../utils/typing/typing';
+import { generateDrillText, generateTestStream } from '../utils/typing/textGenerator';
+import { saveSession } from '../utils/progress/storage';
+import { getSessionWeakKeys, recordKeystroke } from '../utils/stats/keyStats';
+import { playCompleteSound, playCorrectSound, playIncorrectSound } from '../utils/typing/sound';
+import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '../utils/app/events';
+import { checkAndUnlockBadges } from '../utils/achievements/badges';
+import type { PracticeMode } from '../utils/app/settings';
+import type { Lesson } from '../utils/curriculum/lessons';
+import { getLessonText } from '../utils/curriculum/lessons';
 import type { Locale } from '../i18n';
 
 export type CharStatus = 'pending' | 'correct' | 'incorrect';

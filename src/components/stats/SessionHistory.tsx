@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import type { SessionRecord } from '@/utils/storage';
-import { getSessionHistory } from '@/utils/storage';
+import type { SessionRecord } from '@/utils/progress/storage';
+import { getSessionHistory } from '@/utils/progress/storage';
 import { Card } from '@/components/ui';
 
 export default function SessionHistory() {

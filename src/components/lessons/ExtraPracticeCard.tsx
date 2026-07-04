@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { getCustomText, saveCustomText } from '@/utils/customText';
+import { getCustomText, saveCustomText } from '@/utils/progress/customText';
 import { Button } from '@/components/ui';
 import { formFieldMonoClassName } from '@/components/ui/formFieldClasses';
 

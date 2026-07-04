@@ -5,8 +5,8 @@ import {
   buildBadgeEvaluationFromLocal,
   getBadgeProgressState,
   getUnlockedBadges,
-} from '@/utils/badges';
-import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/events';
+} from '@/utils/achievements/badges';
+import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { BadgeIcon, Icon } from '@/components/ui';
 
 export default function AchievementsGrid() {

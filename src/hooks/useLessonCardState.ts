@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { isLessonUnlocked } from '@/utils/curriculum';
-import { getBestWpmForLesson, getCompletedLessonsMap } from '@/utils/storage';
-import { SESSION_COMPLETE_EVENT } from '@/utils/events';
+import { isLessonUnlocked } from '@/utils/curriculum/curriculum';
+import { getBestWpmForLesson, getCompletedLessonsMap } from '@/utils/progress/storage';
+import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
 function getUnlockState(lessonId: string) {
   const completed = getCompletedLessonsMap();

@@ -1,4 +1,4 @@
-import { calculateStars } from '@/utils/stars';
+import { calculateStars } from '@/utils/curriculum/stars';
 import Icon from './Icon';
 
 interface StarRatingProps {

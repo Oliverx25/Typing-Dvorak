@@ -1,5 +1,5 @@
-import { DVORAK_ROWS } from '@/utils/dvorak';
-import { FINGER_CSS_VAR, getFingerForKey, type Finger } from '@/utils/fingers';
+import { DVORAK_ROWS } from '@/utils/keyboard/dvorak';
+import { FINGER_CSS_VAR, getFingerForKey, type Finger } from '@/utils/keyboard/fingers';
 import { useApp } from '@/contexts/AppProvider';
 import HandGuide from './HandGuide';
 

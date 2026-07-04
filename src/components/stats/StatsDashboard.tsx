@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
-import { getAggregateStats, getSessionHistory, getBestWpmForLesson } from '@/utils/storage';
-import { CORE_LESSONS } from '@/utils/lessons';
+import { getAggregateStats, getSessionHistory, getBestWpmForLesson } from '@/utils/progress/storage';
+import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { Card, StreakIcon } from '@/components/ui';
 import ProgressChart from './ProgressChart';
 import KeyHeatmap from './KeyHeatmap';

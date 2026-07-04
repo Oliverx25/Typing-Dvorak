@@ -1,4 +1,4 @@
-import { getSettings } from '@/utils/settings';
+import { getSettings } from '@/utils/app/settings';
 import { getTranslations } from '@/i18n';
 
 export function useAuthText() {

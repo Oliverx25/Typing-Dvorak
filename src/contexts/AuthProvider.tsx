@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabaseClient';
-import { SESSION_COMPLETE_EVENT, dispatchSessionComplete, dispatchKeyStatsUpdated } from '../utils/events';
-import { getSessionHistory } from '../utils/storage';
-import { clearGuestProgress } from '../utils/guestProgress';
+import { SESSION_COMPLETE_EVENT, dispatchSessionComplete, dispatchKeyStatsUpdated } from '../utils/app/events';
+import { getSessionHistory } from '../utils/progress/storage';
+import { clearGuestProgress } from '../utils/progress/guestProgress';
 import { syncSessionToCloud, syncKeyErrorsToCloud } from '../services/supabase/syncProgress';
 import { syncBadgesToCloud } from '../services/supabase/syncBadges';
 import {

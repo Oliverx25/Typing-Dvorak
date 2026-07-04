@@ -2,8 +2,8 @@ import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { LESSON_GROUPS, type MicroLesson } from '@/data/microLessons';
 import { Accordion, Badge } from '@/components/ui';
 import type { AccordionItem } from '@/components/ui';
-import { isLessonUnlocked } from '@/utils/curriculum';
-import { getCompletedLessonsMap } from '@/utils/storage';
+import { isLessonUnlocked } from '@/utils/curriculum/curriculum';
+import { getCompletedLessonsMap } from '@/utils/progress/storage';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 
 function MicroLessonLink({ micro }: { micro: MicroLesson }) {

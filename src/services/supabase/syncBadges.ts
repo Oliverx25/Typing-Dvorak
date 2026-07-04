@@ -3,9 +3,10 @@ import {
   evaluateUnlockedBadges,
   replaceUnlockedBadges,
   type BadgeEvaluationInput,
-} from '../../utils/badges';
-import { LESSON_ORDER } from '../../utils/curriculum';
-import { collectPracticeDates, computeStreakFromPracticeDates } from '../../utils/streak';
+} from '../../utils/achievements/badges';
+import { LESSON_ORDER } from '../../utils/curriculum/curriculum';
+import { UNLOCK_ACCURACY } from '../../utils/curriculum/constants';
+import { collectPracticeDates, computeStreakFromPracticeDates } from '../../utils/progress/streak';
 import { fetchAllUserSessionSummaries, fetchUserSessionTimestamps } from './queries';
 
 export interface SessionSummary {
@@ -35,7 +36,7 @@ export function buildBadgeEvaluationFromSessions(
   }
 
   const masteredLessonCount = LESSON_ORDER.filter(
-    (id) => (lessonBests[id]?.bestAccuracy ?? 0) >= 90,
+    (id) => (lessonBests[id]?.bestAccuracy ?? 0) >= UNLOCK_ACCURACY,
   ).length;
 
   return {

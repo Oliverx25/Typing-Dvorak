@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { getTranslations, type Locale, type TranslationKey } from '../i18n';
-import { getSettings, saveSettings, type AppSettings, type PracticeMode } from '../utils/settings';
-import { getStoredTheme, setStoredTheme, type Theme } from '../utils/storage';
-import { applyHighlightTheme } from '../utils/highlightTheme';
+import { getSettings, saveSettings, type AppSettings, type PracticeMode } from '../utils/app/settings';
+import { getStoredTheme, setStoredTheme, type Theme } from '../utils/progress/storage';
+import { applyHighlightTheme } from '../utils/app/highlightTheme';
 
 interface AppContextValue {
   locale: Locale;

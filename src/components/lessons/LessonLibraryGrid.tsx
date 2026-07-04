@@ -1,6 +1,6 @@
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { useFocusedChapter } from '@/contexts/FocusedChapterProvider';
-import { CORE_LESSONS } from '@/utils/lessons';
+import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 import { LockIcon } from '@/components/ui';
 

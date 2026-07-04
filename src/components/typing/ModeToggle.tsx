@@ -1,5 +1,5 @@
 import { useApp } from '@/contexts/AppProvider';
-import type { PracticeMode } from '@/utils/settings';
+import type { PracticeMode } from '@/utils/app/settings';
 
 export default function ModeToggle() {
   const { t, settings, setPracticeMode } = useApp();

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { getCustomText, saveCustomText } from '@/utils/customText';
+import { getCustomText, saveCustomText } from '@/utils/progress/customText';
 import TypingTest from '@/components/typing/TypingTest';
 import BackLink from '@/components/layout/BackLink';
 import { Button } from '@/components/ui';
 import { formFieldMonoResizableClassName } from '@/components/ui/formFieldClasses';
-import type { Lesson } from '@/utils/lessons';
+import type { Lesson } from '@/utils/curriculum/lessons';
 
 const CUSTOM_LESSON: Lesson = {
   id: 'custom-practice',

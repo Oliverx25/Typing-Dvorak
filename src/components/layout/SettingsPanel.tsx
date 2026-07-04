@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import type { Locale } from '@/i18n';
-import { downloadExport, importProgress } from '@/utils/exportImport';
-import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/events';
-import { HIGHLIGHT_THEME_IDS, HIGHLIGHT_THEMES, type HighlightThemeId } from '@/utils/highlightTheme';
+import { downloadExport, importProgress } from '@/utils/progress/exportImport';
+import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/app/events';
+import { HIGHLIGHT_THEME_IDS, HIGHLIGHT_THEMES, type HighlightThemeId } from '@/utils/app/highlightTheme';
 import { headerIconButtonClassName } from './headerClasses';
 
 export default function SettingsPanel() {

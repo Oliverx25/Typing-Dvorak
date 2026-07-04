@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { getWeakestKeys, hasKeyStats, getKeyStats } from '@/utils/keyStats';
-import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/events';
+import { getWeakestKeys, hasKeyStats, getKeyStats } from '@/utils/stats/keyStats';
+import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/app/events';
 
 export default function AdaptiveDrillCard() {
   const { t } = useApp();

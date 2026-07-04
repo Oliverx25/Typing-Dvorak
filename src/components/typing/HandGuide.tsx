@@ -1,4 +1,4 @@
-import { getFingerForKey, FINGER_CSS_VAR, type Finger } from '@/utils/fingers';
+import { getFingerForKey, FINGER_CSS_VAR, type Finger } from '@/utils/keyboard/fingers';
 import { useApp } from '@/contexts/AppProvider';
 
 interface HandGuideProps {

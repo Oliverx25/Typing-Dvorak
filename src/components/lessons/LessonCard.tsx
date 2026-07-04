@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useApp, getLessonDescription, getLessonTitle } from '@/contexts/AppProvider';
-import { getRecommendedLessonId, getCurriculumProgress } from '@/utils/curriculum';
-import { getCompletedLessonsMap } from '@/utils/storage';
-import type { Lesson } from '@/utils/lessons';
-import { CORE_LESSONS } from '@/utils/lessons';
-import { SESSION_COMPLETE_EVENT } from '@/utils/events';
+import { getRecommendedLessonId, getCurriculumProgress } from '@/utils/curriculum/curriculum';
+import { getCompletedLessonsMap } from '@/utils/progress/storage';
+import type { Lesson } from '@/utils/curriculum/lessons';
+import { CORE_LESSONS } from '@/utils/curriculum/lessons';
+import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 import { Card, Badge, LockIcon } from '@/components/ui';
 

@@ -1,6 +1,6 @@
-import type { KeyStatsData } from '@/utils/keyStats';
-import { getKeyErrorRate } from '@/utils/keyStats';
-import { DVORAK_ROWS } from '@/utils/dvorak';
+import type { KeyStatsData } from '@/utils/stats/keyStats';
+import { getKeyErrorRate } from '@/utils/stats/keyStats';
+import { DVORAK_ROWS } from '@/utils/keyboard/dvorak';
 
 interface HeatmapGridProps {
   stats: KeyStatsData;

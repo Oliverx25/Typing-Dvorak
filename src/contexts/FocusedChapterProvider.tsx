@@ -8,9 +8,9 @@ import {
   type ReactNode,
 } from 'react';
 import { useCurriculumState } from '@/hooks/useCurriculumState';
-import { getCompletedLessonsMap } from '@/utils/storage';
-import { SESSION_COMPLETE_EVENT } from '@/utils/events';
-import { UNLOCK_ACCURACY } from '@/utils/curriculum';
+import { getCompletedLessonsMap } from '@/utils/progress/storage';
+import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
+import { UNLOCK_ACCURACY } from '@/utils/curriculum/curriculum';
 
 interface FocusedChapterContextValue {
   focusedLessonId: string;

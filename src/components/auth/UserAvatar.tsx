@@ -1,5 +1,5 @@
 import { Icon } from '@/components/ui';
-import type { AvatarSource } from '@/utils/userDisplay';
+import type { AvatarSource } from '@/utils/user/userDisplay';
 
 interface UserAvatarProps {
   avatarUrl: string | null;

@@ -1,5 +1,5 @@
 import { useApp } from '@/contexts/AppProvider';
-import { COMPARISON_LETTERS, DVORAK_POSITIONS, isSamePosition } from '@/utils/qwerty';
+import { COMPARISON_LETTERS, DVORAK_POSITIONS, isSamePosition } from '@/utils/keyboard/qwerty';
 import { Card } from '@/components/ui';
 
 export default function QwertyComparison() {

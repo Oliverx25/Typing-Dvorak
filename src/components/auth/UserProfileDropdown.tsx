@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useApp } from '@/contexts/AppProvider';
-import { getUserDisplay } from '@/utils/userDisplay';
+import { getUserDisplay } from '@/utils/user/userDisplay';
 import { Icon } from '@/components/ui';
 import { headerAvatarButtonClassName } from '@/components/layout/headerClasses';
 import EditAvatarModal from './EditAvatarModal';

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { isLessonUnlocked } from '@/utils/curriculum';
-import { getCompletedLessonsMap } from '@/utils/storage';
+import { isLessonUnlocked } from '@/utils/curriculum/curriculum';
+import { getCompletedLessonsMap } from '@/utils/progress/storage';
 
 export default function LessonGuard({ lessonId, children }: { lessonId: string; children: React.ReactNode }) {
   const { t } = useApp();

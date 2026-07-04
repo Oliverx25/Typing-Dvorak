@@ -1,13 +1,13 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries } from './queries';
-import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/storage';
-import { replaceLocalProgress } from '@/utils/storage';
-import { replaceKeyStats, type KeyStatsData } from '@/utils/keyStats';
-import { charToKeyCode } from '@/utils/dvorak';
-import { getLessonById } from '@/utils/lessons';
-import type { PracticeMode } from '@/utils/settings';
-import { dispatchSessionComplete, dispatchKeyStatsUpdated } from '@/utils/events';
-import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/streak';
+import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/progress/storage';
+import { replaceLocalProgress } from '@/utils/progress/storage';
+import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
+import { charToKeyCode } from '@/utils/keyboard/dvorak';
+import { getLessonById } from '@/utils/curriculum/lessons';
+import type { PracticeMode } from '@/utils/app/settings';
+import { dispatchSessionComplete, dispatchKeyStatsUpdated } from '@/utils/app/events';
+import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { updateProfileStreak } from './syncProgress';
 import { syncBadgesFromSessionRows } from './syncBadges';
 

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
-import { getUserDisplay } from '@/utils/userDisplay';
+import { getUserDisplay } from '@/utils/user/userDisplay';
 import { removeCustomUserAvatar, uploadUserAvatar } from '@/services/supabase/avatar';
 import UserAvatar from './UserAvatar';
 import { Button } from '@/components/ui';

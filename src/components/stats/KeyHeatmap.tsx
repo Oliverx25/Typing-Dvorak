@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getKeyStats, hasKeyStats } from '@/utils/keyStats';
-import { KEY_STATS_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/events';
+import { getKeyStats, hasKeyStats } from '@/utils/stats/keyStats';
+import { KEY_STATS_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useApp } from '@/contexts/AppProvider';
 import { Card } from '@/components/ui';
 import HeatmapGrid, { HeatmapLegend } from './HeatmapGrid';

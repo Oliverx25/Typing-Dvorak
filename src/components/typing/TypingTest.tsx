@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
-import type { Lesson } from '@/utils/lessons';
+import type { Lesson } from '@/utils/curriculum/lessons';
 import { useTypingSession } from '@/hooks/useTypingSession';
 import Keyboard from './Keyboard';
 import StatsBar from './StatsBar';

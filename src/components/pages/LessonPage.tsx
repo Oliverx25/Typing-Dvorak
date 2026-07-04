@@ -1,5 +1,5 @@
 import AppShell from '@/components/layout/AppShell';
-import { getLessonById } from '@/utils/lessons';
+import { getLessonById } from '@/utils/curriculum/lessons';
 import TypingTest from '@/components/typing/TypingTest';
 import LessonGuard from '@/components/lessons/LessonGuard';
 import BackLink from '@/components/layout/BackLink';
