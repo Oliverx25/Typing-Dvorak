@@ -24,6 +24,7 @@ interface CreateRoomSettingsProps {
   value: CreateRoomSettingsValue;
   onChange: (partial: Partial<CreateRoomSettingsValue>) => void;
   disabled?: boolean;
+  variant?: 'full' | 'content' | 'settings';
 }
 
 const winConditionLabelKeys: Record<
@@ -44,6 +45,7 @@ export default function CreateRoomSettings({
   value,
   onChange,
   disabled = false,
+  variant = 'full',
 }: CreateRoomSettingsProps) {
   const { t } = useApp();
   const [customText, setCustomText] = useState(value.customText);
@@ -73,7 +75,7 @@ export default function CreateRoomSettings({
     onChange({ customText: clipped });
   };
 
-  return (
+  const contentSection = (
     <div className="space-y-5">
       <SegmentedControl
         value={value.textSource}
@@ -139,6 +141,41 @@ export default function CreateRoomSettings({
           )}
         </div>
       )}
+    </div>
+  );
+
+  const settingsFields = (
+    <div className="space-y-5">
+      <div>
+        <label htmlFor="win-condition" className="mb-1.5 block text-sm font-medium text-[var(--color-text)]">
+          {t.multiplayer.winCondition}
+        </label>
+        <CustomSelect
+          id="win-condition"
+          value={value.winCondition}
+          disabled={disabled}
+          onChange={(winCondition) =>
+            onChange({ winCondition: winCondition as WinCondition })
+          }
+          options={winConditionOptions}
+          aria-label={t.multiplayer.winCondition}
+        />
+      </div>
+      <ToggleSwitch
+        label={t.multiplayer.blindModeRace}
+        checked={value.blindMode}
+        disabled={disabled}
+        onChange={(blindMode) => onChange({ blindMode })}
+      />
+    </div>
+  );
+
+  if (variant === 'content') return contentSection;
+  if (variant === 'settings') return settingsFields;
+
+  return (
+    <div className="space-y-5">
+      {contentSection}
 
       <Accordion
         items={[
@@ -146,31 +183,7 @@ export default function CreateRoomSettings({
             id: 'game-settings',
             title: t.multiplayer.gameSettings,
             subtitle: t.multiplayer.gameSettingsHint,
-            children: (
-              <div className="space-y-4">
-                <ToggleSwitch
-                  label={t.multiplayer.blindModeRace}
-                  checked={value.blindMode}
-                  disabled={disabled}
-                  onChange={(blindMode) => onChange({ blindMode })}
-                />
-                <div>
-                  <label htmlFor="win-condition" className="mb-1.5 block text-sm font-medium text-[var(--color-text)]">
-                    {t.multiplayer.winCondition}
-                  </label>
-                  <CustomSelect
-                    id="win-condition"
-                    value={value.winCondition}
-                    disabled={disabled}
-                    onChange={(winCondition) =>
-                      onChange({ winCondition: winCondition as WinCondition })
-                    }
-                    options={winConditionOptions}
-                    aria-label={t.multiplayer.winCondition}
-                  />
-                </div>
-              </div>
-            ),
+            children: settingsFields,
           },
         ]}
       />

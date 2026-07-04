@@ -27,7 +27,7 @@ export default function LessonGrid({
   const lessonMap = new Map(lessons.map((lesson) => [lesson.id, lesson]));
 
   return (
-    <div className="max-h-64 overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+    <div className="max-h-[28rem] overflow-y-auto pr-1">
       <div className="space-y-4">
         {LESSON_GRID_GROUPS.map((group) => {
           const groupLessons = group.lessonIds
@@ -53,7 +53,7 @@ export default function LessonGrid({
                       disabled={disabled}
                       onClick={() => onSelect(lesson.id)}
                       className={[
-                        'rounded-lg border px-2.5 py-2.5 text-left text-xs font-medium transition',
+                        'min-h-16 rounded-xl border px-3 py-3 text-left text-xs font-medium transition',
                         isSelected
                           ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/15 text-[var(--color-text)] ring-1 ring-[var(--color-accent)]/40'
                           : 'border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]/40 hover:text-[var(--color-text)]',
