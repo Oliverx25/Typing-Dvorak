@@ -18,19 +18,27 @@ interface MatchRulesPanelProps {
 
 const winLabelKeys: Record<
   WinCondition,
-  'winConditionFirstFinish' | 'winConditionHighestWpm' | 'winConditionSuddenDeath'
+  | 'winConditionFirstFinish'
+  | 'winConditionHighestWpm'
+  | 'winConditionMaxScore'
+  | 'winConditionSuddenDeath'
 > = {
   first_finish: 'winConditionFirstFinish',
   highest_wpm: 'winConditionHighestWpm',
+  max_score: 'winConditionMaxScore',
   sudden_death: 'winConditionSuddenDeath',
 };
 
 const winDescKeys: Record<
   WinCondition,
-  'winConditionFirstFinishDesc' | 'winConditionHighestWpmDesc' | 'winConditionSuddenDeathDesc'
+  | 'winConditionFirstFinishDesc'
+  | 'winConditionHighestWpmDesc'
+  | 'winConditionMaxScoreDesc'
+  | 'winConditionSuddenDeathDesc'
 > = {
   first_finish: 'winConditionFirstFinishDesc',
   highest_wpm: 'winConditionHighestWpmDesc',
+  max_score: 'winConditionMaxScoreDesc',
   sudden_death: 'winConditionSuddenDeathDesc',
 };
 
@@ -51,11 +59,6 @@ export default function MatchRulesPanel({
     onChange({ winConditions: normalizeWinConditions(next) });
   };
 
-  const victoryDescription = (condition: WinCondition) => {
-    const base = t.multiplayer[winDescKeys[condition]];
-    return `${base} ${t.multiplayer.maxComboTieBreaker}`;
-  };
-
   return (
     <div className="flex h-full min-h-0 flex-col gap-5">
       <section>
@@ -68,7 +71,7 @@ export default function MatchRulesPanel({
               key={condition}
               icon={WIN_CONDITION_ICONS[condition]}
               title={t.multiplayer[winLabelKeys[condition]]}
-              description={victoryDescription(condition)}
+              description={t.multiplayer[winDescKeys[condition]]}
               isActive={selected.includes(condition)}
               disabled={disabled}
               onClick={() => toggleWinCondition(condition)}

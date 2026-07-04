@@ -1,13 +1,17 @@
 import UserAvatar from '@/components/auth/UserAvatar';
+import { formatRaceScore } from '@/utils/multiplayer/raceScoring';
+import type { WinCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
 
 interface RaceLeaderboardProps {
   entries: RaceParticipantProgress[];
   currentUserId: string | null;
+  primaryVictory: WinCondition;
   title: string;
   youLabel: string;
   finishedLabel: string;
   waitingLabel: string;
+  scoreLabel: string;
 }
 
 function rankStyle(index: number): string {
@@ -19,13 +23,17 @@ function rankStyle(index: number): string {
 export default function RaceLeaderboard({
   entries,
   currentUserId,
+  primaryVictory,
   title,
   youLabel,
   finishedLabel,
   waitingLabel,
+  scoreLabel,
 }: RaceLeaderboardProps) {
+  const showScore = primaryVictory === 'max_score';
+
   return (
-    <aside className="flex h-full flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
+    <aside className="flex h-full flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
       <div className="border-b border-[var(--color-border)] px-4 py-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
           {title}
@@ -72,7 +80,9 @@ export default function RaceLeaderboard({
                         ) : null}
                       </p>
                       <span className="shrink-0 font-mono text-[11px] text-[var(--color-text-muted)]">
-                        {Math.round(entry.wpm)} WPM
+                        {showScore
+                          ? `${formatRaceScore(entry.score)} ${scoreLabel}`
+                          : `${Math.round(entry.wpm)} WPM`}
                       </span>
                     </div>
                     <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--color-border)]/60">
@@ -85,7 +95,11 @@ export default function RaceLeaderboard({
                       />
                     </div>
                     <p className="mt-1 text-[10px] text-[var(--color-text-muted)]">
-                      {entry.finished ? finishedLabel : `${pct}%`}
+                      {entry.finished
+                        ? finishedLabel
+                        : showScore
+                          ? `${Math.round(entry.wpm)} WPM · ${Math.round(entry.accuracy)}%`
+                          : `${pct}%`}
                     </p>
                   </div>
                 </div>

@@ -8,26 +8,47 @@ export const RACE_LESSONS = CORE_LESSONS.filter(
   (lesson) => !lesson.adaptive && lesson.texts.length > 0,
 );
 
-export type WinCondition = 'first_finish' | 'highest_wpm' | 'sudden_death';
+export type WinCondition = 'first_finish' | 'highest_wpm' | 'max_score' | 'sudden_death';
 
-export const WIN_CONDITIONS: WinCondition[] = ['first_finish', 'highest_wpm', 'sudden_death'];
+export const WIN_CONDITIONS: WinCondition[] = [
+  'first_finish',
+  'highest_wpm',
+  'max_score',
+  'sudden_death',
+];
 
 /** Win objectives — how the winner is determined. */
-export const VICTORY_CONDITIONS: WinCondition[] = ['first_finish', 'highest_wpm'];
+export const VICTORY_CONDITIONS: WinCondition[] = [
+  'first_finish',
+  'highest_wpm',
+  'max_score',
+];
 
 /** Rule modifiers that alter gameplay (stored in winConditions when applicable). */
 export const MODIFIER_WIN_CONDITIONS: WinCondition[] = ['sudden_death'];
 
-export const DEFAULT_WIN_CONDITIONS: WinCondition[] = ['first_finish'];
+export const DEFAULT_WIN_CONDITIONS: WinCondition[] = ['max_score'];
 
 /** Icon file (in /public/icons) associated with each win condition. */
 export const WIN_CONDITION_ICONS: Record<WinCondition, string> = {
   first_finish: '/icons/timer.svg',
   highest_wpm: '/icons/speed.svg',
+  max_score: '/icons/max-score.svg',
   sudden_death: '/icons/skull.svg',
 };
 
 export const BLIND_MODE_ICON = '/icons/blind-mode.svg';
+
+/** Primary victory rule used for leaderboard ordering when multiple are selected. */
+export function getPrimaryVictoryCondition(
+  winConditions: WinCondition[],
+): WinCondition {
+  const normalized = normalizeWinConditions(winConditions);
+  if (normalized.includes('max_score')) return 'max_score';
+  if (normalized.includes('first_finish')) return 'first_finish';
+  if (normalized.includes('highest_wpm')) return 'highest_wpm';
+  return DEFAULT_WIN_CONDITIONS[0]!;
+}
 
 /**
  * Normalize a possibly-legacy win condition value (single string or array)

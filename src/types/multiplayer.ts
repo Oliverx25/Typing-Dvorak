@@ -38,6 +38,9 @@ export interface RaceProgressPayload {
   userId: string;
   wpm: number;
   percentage: number;
+  accuracy: number;
+  maxCombo: number;
+  score: number;
   updatedAt: number;
   finished?: boolean;
 }

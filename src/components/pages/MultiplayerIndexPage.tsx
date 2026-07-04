@@ -24,7 +24,7 @@ function MultiplayerIndexContent() {
     lessonId: DEFAULT_RACE_LESSON_ID,
     customText: '',
     blindMode: false,
-    winConditions: ['first_finish'],
+    winConditions: ['max_score'],
   });
 
   const canCreateRoom =

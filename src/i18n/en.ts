@@ -372,9 +372,12 @@ export const en = {
     modifiers: 'Modifiers',
     winConditionFirstFinish: 'First to finish',
     winConditionHighestWpm: 'Highest WPM',
+    winConditionMaxScore: 'Max Score',
     winConditionSuddenDeath: 'Sudden death',
     winConditionFirstFinishDesc: 'Wins whoever reaches the end of the text first.',
     winConditionHighestWpmDesc: 'Wins whoever has the highest words per minute.',
+    winConditionMaxScoreDesc:
+      'The winner is decided by a total balance of speed, flawless accuracy, and error-free streaks.',
     winConditionSuddenDeathDesc: 'A single mistake knocks you out of the race.',
     maxComboTieBreaker:
       'If there is a tie, the highest correct-key streak (Max Combo) decides the winner.',
@@ -431,6 +434,7 @@ export const en = {
     raceTextPreview: 'Text to type',
     raceStarting: 'Race starts in',
     raceProgress: 'Race progress',
+    raceScore: 'pts',
     leaderboard: 'Leaderboard',
     raceFinished: 'Finished',
     waitingForOpponentProgress: 'Waiting for other players…',

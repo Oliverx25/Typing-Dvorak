@@ -11,6 +11,15 @@ import TypedChar from './TypedChar';
 import ComboCounter from './ComboCounter';
 
 import type { PracticeMode } from '@/utils/app/settings';
+import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
+
+export interface TypingProgressUpdate {
+  wpm: number;
+  percentage: number;
+  accuracy: number;
+  maxCombo: number;
+  score: number;
+}
 
 interface TypingTestProps {
   lessonId: string;
@@ -21,7 +30,7 @@ interface TypingTestProps {
   hideModeToggle?: boolean;
   hideCompletionPanel?: boolean;
   ariaLabel?: string;
-  onProgressChange?: (wpm: number, percentage: number, force?: boolean) => void;
+  onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
 }
 
 export default function TypingTest({
@@ -67,6 +76,7 @@ export default function TypingTest({
     sessionWeakKeys,
     isTestMode,
     combo,
+    maxCombo,
     comboBroke,
     clearComboBroke,
     containerRef,
@@ -89,15 +99,38 @@ export default function TypingTest({
   useEffect(() => {
     if (!onProgressChange || !started || paused) return;
 
-    onProgressChange(stats.wpm, progress, finished);
+    const update: TypingProgressUpdate = {
+      wpm: stats.wpm,
+      percentage: progress,
+      accuracy: stats.accuracy,
+      maxCombo,
+      score: calculateMaxScore(stats.wpm, stats.accuracy, maxCombo),
+    };
+
+    onProgressChange(update, finished);
     if (finished) return;
 
     const interval = window.setInterval(() => {
-      onProgressChange(stats.wpm, progress);
+      onProgressChange({
+        wpm: stats.wpm,
+        percentage: progress,
+        accuracy: stats.accuracy,
+        maxCombo,
+        score: calculateMaxScore(stats.wpm, stats.accuracy, maxCombo),
+      });
     }, 500);
 
     return () => window.clearInterval(interval);
-  }, [onProgressChange, started, paused, finished, stats.wpm, progress]);
+  }, [
+    onProgressChange,
+    started,
+    paused,
+    finished,
+    stats.wpm,
+    stats.accuracy,
+    maxCombo,
+    progress,
+  ]);
 
   const showKeyboard = !effectiveBlindMode && keyboardOpen;
 

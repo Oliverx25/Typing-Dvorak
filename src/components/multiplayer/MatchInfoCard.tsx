@@ -1,5 +1,6 @@
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
-import { Button, SvgIcon } from '@/components/ui';
+import { Button } from '@/components/ui';
+import ModBadge from '@/components/multiplayer/ModBadge';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import {
   BLIND_MODE_ICON,
@@ -19,30 +20,16 @@ interface MatchInfoCardProps {
 
 const winLabelKeys: Record<
   WinCondition,
-  'winConditionFirstFinish' | 'winConditionHighestWpm' | 'winConditionSuddenDeath'
+  | 'winConditionFirstFinish'
+  | 'winConditionHighestWpm'
+  | 'winConditionMaxScore'
+  | 'winConditionSuddenDeath'
 > = {
   first_finish: 'winConditionFirstFinish',
   highest_wpm: 'winConditionHighestWpm',
+  max_score: 'winConditionMaxScore',
   sudden_death: 'winConditionSuddenDeath',
 };
-
-function RuleBadge({
-  icon,
-  label,
-}: {
-  icon: string;
-  label: string;
-}) {
-  return (
-    <span
-      title={label}
-      className="inline-flex items-center gap-1 rounded-full border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/10 px-2.5 py-1 text-[11px] font-medium text-[var(--color-highlight)]"
-    >
-      <SvgIcon src={icon} size={14} />
-      {label}
-    </span>
-  );
-}
 
 export default function MatchInfoCard({
   roomState,
@@ -66,14 +53,13 @@ export default function MatchInfoCard({
   const category = lesson ? t.categories[lesson.category] : null;
 
   return (
-    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-        {t.multiplayer.currentMatch}
-      </p>
-
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold text-[var(--color-text)] sm:text-3xl">{title}</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            {t.multiplayer.currentMatch}
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-[var(--color-text)] sm:text-3xl">{title}</h2>
           {isCustom ? (
             <p className="mt-2 line-clamp-2 font-mono text-sm text-[var(--color-text-muted)]">
               {roomState.customText.trim()}
@@ -86,7 +72,7 @@ export default function MatchInfoCard({
               </span>
             ) : null}
             {difficulty ? (
-              <span className="rounded-md bg-[var(--color-surface-elevated)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)]">
+              <span className="rounded-md bg-[var(--color-surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)]">
                 {difficulty}
               </span>
             ) : null}
@@ -116,32 +102,52 @@ export default function MatchInfoCard({
         ) : null}
       </div>
 
-      <div className="mt-4 space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-[var(--color-text-muted)]">{t.multiplayer.winCondition}:</span>
-          {victoryConditions.map((condition) => (
-            <RuleBadge
-              key={condition}
-              icon={WIN_CONDITION_ICONS[condition]}
-              label={t.multiplayer[winLabelKeys[condition]]}
-            />
-          ))}
-        </div>
-
-        {modifierConditions.length > 0 || roomState.blindMode ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-[var(--color-text-muted)]">{t.multiplayer.modifiers}:</span>
-            {modifierConditions.map((condition) => (
-              <RuleBadge
+      <div className="mt-6 space-y-4 border-t border-[var(--color-border)] pt-5">
+        <section>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            {t.multiplayer.winCondition}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {victoryConditions.map((condition) => (
+              <ModBadge
                 key={condition}
+                compact
+                readOnly
+                isActive
                 icon={WIN_CONDITION_ICONS[condition]}
-                label={t.multiplayer[winLabelKeys[condition]]}
+                title={t.multiplayer[winLabelKeys[condition]]}
               />
             ))}
-            {roomState.blindMode ? (
-              <RuleBadge icon={BLIND_MODE_ICON} label={t.multiplayer.blindModeMod} />
-            ) : null}
           </div>
+        </section>
+
+        {modifierConditions.length > 0 || roomState.blindMode ? (
+          <section>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+              {t.multiplayer.modifiers}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {modifierConditions.map((condition) => (
+                <ModBadge
+                  key={condition}
+                  compact
+                  readOnly
+                  isActive
+                  icon={WIN_CONDITION_ICONS[condition]}
+                  title={t.multiplayer[winLabelKeys[condition]]}
+                />
+              ))}
+              {roomState.blindMode ? (
+                <ModBadge
+                  compact
+                  readOnly
+                  isActive
+                  icon={BLIND_MODE_ICON}
+                  title={t.multiplayer.blindModeMod}
+                />
+              ) : null}
+            </div>
+          </section>
         ) : null}
       </div>
     </div>

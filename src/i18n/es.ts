@@ -374,9 +374,12 @@ export const es: TranslationKey = {
     modifiers: 'Modificadores',
     winConditionFirstFinish: 'Primero en terminar',
     winConditionHighestWpm: 'Mayor WPM',
+    winConditionMaxScore: 'Puntuación Máxima',
     winConditionSuddenDeath: 'Muerte súbita',
     winConditionFirstFinishDesc: 'Gana quien llegue primero al final del texto.',
     winConditionHighestWpmDesc: 'Gana quien tenga las palabras por minuto más altas.',
+    winConditionMaxScoreDesc:
+      'El ganador se decide por un balance total entre velocidad, precisión impecable y rachas sin errores.',
     winConditionSuddenDeathDesc: 'Un solo error te elimina de la carrera.',
     maxComboTieBreaker:
       'En caso de empate, la Racha Máxima (Max Combo) de teclas correctas definirá al ganador.',
@@ -433,6 +436,7 @@ export const es: TranslationKey = {
     raceTextPreview: 'Texto a escribir',
     raceStarting: 'La carrera empieza en',
     raceProgress: 'Progreso de carrera',
+    raceScore: 'pts',
     leaderboard: 'Clasificación',
     raceFinished: 'Terminó',
     waitingForOpponentProgress: 'Esperando a otros jugadores…',
