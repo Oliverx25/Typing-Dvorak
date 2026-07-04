@@ -2,7 +2,6 @@ export type LayoutId = 'qwerty' | 'dvorak';
 
 export interface LayoutRow {
   keys: string[];
-  indent?: number;
   homeRow?: boolean;
 }
 
@@ -17,16 +16,16 @@ export const KEYBOARD_LAYOUTS: Record<LayoutId, KeyboardLayout> = {
     id: 'qwerty',
     rows: [
       { keys: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'] },
-      { keys: ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'], indent: 1, homeRow: true },
-      { keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm'], indent: 2 },
+      { keys: ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'], homeRow: true },
+      { keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm'] },
     ],
   },
   dvorak: {
     id: 'dvorak',
     rows: [
       { keys: ["'", ',', '.', 'p', 'y', 'f', 'g', 'c', 'r', 'l'] },
-      { keys: ['a', 'o', 'e', 'u', 'i', 'd', 'h', 't', 'n', 's'], indent: 1, homeRow: true },
-      { keys: [';', 'q', 'j', 'k', 'x', 'b', 'm', 'w', 'v', 'z'], indent: 2 },
+      { keys: ['a', 'o', 'e', 'u', 'i', 'd', 'h', 't', 'n', 's'], homeRow: true },
+      { keys: [';', 'q', 'j', 'k', 'x', 'b', 'm', 'w', 'v', 'z'] },
     ],
   },
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { Card } from '@/components/ui';
 import {
@@ -7,6 +7,15 @@ import {
   LAYOUT_IDS,
   type LayoutId,
 } from '@/utils/keyboard/layouts';
+
+/** Physical keyboard row stagger — top row flush, each row indented further. */
+const ROW_STAGGER_CLASS = [
+  'ml-0',
+  'ml-[4%] sm:ml-[5%]',
+  'ml-[8%] sm:ml-[10%]',
+] as const;
+
+const KEY_TRANSITION = 'transition-all duration-300 ease-in-out motion-reduce:transition-none';
 
 function LayoutToggle({
   active,
@@ -36,7 +45,8 @@ function LayoutToggle({
           aria-selected={active === id}
           onClick={() => onChange(id)}
           className={[
-            'flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition',
+            'flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold',
+            KEY_TRANSITION,
             active === id
               ? 'bg-[var(--color-highlight)] text-white shadow-sm'
               : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
@@ -54,30 +64,33 @@ function VisualKeyboard({ layoutId }: { layoutId: LayoutId }) {
   const isDvorak = layoutId === 'dvorak';
 
   return (
-    <div className="mx-auto w-full max-w-2xl select-none" aria-hidden="true">
+    <div className="mx-auto w-full max-w-2xl select-none px-1 sm:px-0" aria-hidden="true">
       {layout.rows.map((row, rowIndex) => {
         const highlightHomeRow = isDvorak && row.homeRow;
+        const staggerClass = ROW_STAGGER_CLASS[rowIndex] ?? 'ml-0';
 
         return (
           <div
             key={rowIndex}
             className={[
-              'mb-1.5 flex justify-center rounded-xl transition-colors',
+              'mb-1.5 flex justify-start rounded-xl px-1 py-1',
+              staggerClass,
+              KEY_TRANSITION,
               highlightHomeRow
-                ? 'bg-[var(--color-highlight)]/10 px-1 py-1.5 ring-1 ring-[var(--color-highlight)]/25'
-                : '',
+                ? 'bg-[var(--color-highlight)]/10 py-1.5 ring-1 ring-[var(--color-highlight)]/25'
+                : 'bg-transparent ring-1 ring-transparent',
             ].join(' ')}
-            style={{ paddingLeft: `${(row.indent ?? 0) * 4}%` }}
           >
-            <div className="flex w-full gap-0.5 sm:gap-1">
+            <div className="flex w-full max-w-full gap-0.5 sm:gap-1">
               {row.keys.map((key, keyIndex) => {
                 const isVowel = isDvorak && row.homeRow && DVORAK_HOME_VOWELS.has(key);
 
                 return (
                   <div
-                    key={`${rowIndex}-${keyIndex}`}
+                    key={keyIndex}
                     className={[
-                      'flex h-8 min-w-0 flex-1 items-center justify-center rounded-md border font-mono text-[10px] font-medium uppercase transition-colors sm:h-10 sm:rounded-lg sm:text-sm',
+                      'flex h-8 min-w-0 flex-1 items-center justify-center rounded-md border font-mono text-[10px] font-medium uppercase sm:h-10 sm:rounded-lg sm:text-sm',
+                      KEY_TRANSITION,
                       isVowel
                         ? 'border-[var(--color-highlight)]/40 bg-[var(--color-highlight)]/20 text-[var(--color-highlight)]'
                         : highlightHomeRow
@@ -85,7 +98,7 @@ function VisualKeyboard({ layoutId }: { layoutId: LayoutId }) {
                           : 'border-[var(--color-border)] bg-[var(--color-key)] text-[var(--color-text)]',
                     ].join(' ')}
                   >
-                    {key}
+                    <span className={KEY_TRANSITION}>{key}</span>
                   </div>
                 );
               })}
@@ -121,12 +134,29 @@ function HighlightCards() {
 export default function KeyboardComparator() {
   const { t } = useApp();
   const [layoutId, setLayoutId] = useState<LayoutId>('qwerty');
+  const [keyboardVisible, setKeyboardVisible] = useState(true);
+
+  const handleLayoutChange = useCallback((next: LayoutId) => {
+    if (next === layoutId) return;
+    setKeyboardVisible(false);
+    window.setTimeout(() => {
+      setLayoutId(next);
+      setKeyboardVisible(true);
+    }, 150);
+  }, [layoutId]);
 
   return (
     <Card as="section" title={t.home.qwertyTitle} description={t.home.qwertyDesc} padding="lg">
       <div className="space-y-8">
-        <LayoutToggle active={layoutId} onChange={setLayoutId} />
-        <VisualKeyboard layoutId={layoutId} />
+        <LayoutToggle active={layoutId} onChange={handleLayoutChange} />
+        <div
+          className={[
+            KEY_TRANSITION,
+            keyboardVisible ? 'opacity-100' : 'opacity-0',
+          ].join(' ')}
+        >
+          <VisualKeyboard layoutId={layoutId} />
+        </div>
         <HighlightCards />
       </div>
     </Card>
