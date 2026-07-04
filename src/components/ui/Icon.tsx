@@ -9,7 +9,8 @@ export type IconName =
   | 'google'
   | 'lock'
   | 'chart'
-  | 'keyboard';
+  | 'keyboard'
+  | 'log-out';
 
 const PATHS: Record<IconName, ReactNode> = {
   'chevron-down': <path d="m6 9 6 6 6-6" />,
@@ -42,6 +43,13 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <rect width="20" height="16" x="2" y="4" rx="2" />
       <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001" />
+    </>
+  ),
+  'log-out': (
+    <>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" x2="9" y1="12" y2="12" />
     </>
   ),
 };

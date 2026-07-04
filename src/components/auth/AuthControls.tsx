@@ -34,28 +34,44 @@ function useAuthLabels() {
   return t.auth;
 }
 
-export default function AuthControls() {
-  const { user, loading, isConfigured, signOut } = useAuth();
+interface AuthControlsProps {
+  variant?: 'app' | 'landing';
+}
+
+export default function AuthControls({ variant = 'app' }: AuthControlsProps) {
+  const { user, loading, isConfigured } = useAuth();
   const { t } = useApp();
+
+  if (user) return null;
+  if (loading) return null;
 
   if (!isConfigured) {
     return (
-      <a href="/login" className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]">
+      <a
+        href="/login"
+        className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+      >
         {t.auth.signIn}
       </a>
     );
   }
-  if (loading) return null;
 
-  if (user) {
-    const name = user.user_metadata?.user_name ?? user.user_metadata?.name ?? user.email?.split('@')[0];
+  if (variant === 'landing') {
     return (
-      <div className="flex items-center gap-2">
-        <span className="hidden text-xs text-[var(--color-text-muted)] sm:inline">{name}</span>
-        <Button variant="ghost" size="sm" onClick={signOut}>
-          {t.auth.signOut}
-        </Button>
-      </div>
+      <>
+        <a
+          href="/login"
+          className="rounded-lg px-3 py-2 text-sm text-[var(--color-text-muted)] no-underline transition hover:text-[var(--color-accent)]"
+        >
+          {t.auth.signIn}
+        </a>
+        <a
+          href="/lessons"
+          className="rounded-xl bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white no-underline shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)]"
+        >
+          {t.landing.openApp}
+        </a>
+      </>
     );
   }
 
