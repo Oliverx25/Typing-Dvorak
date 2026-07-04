@@ -10,7 +10,7 @@ export const es: TranslationKey = {
     backToLessons: 'Volver a lecciones',
   },
   landing: {
-    badge: 'Teclado Dvorak simplificado',
+    badge: 'Distribución Dvorak simplificado',
     title: 'Escribe más rápido con',
     titleAccent: 'menos recorrido de dedos',
     subtitle:
@@ -39,7 +39,7 @@ export const es: TranslationKey = {
       'Lecciones progresivas, feedback en vivo y visualización del teclado. Construye memoria muscular fila por fila.',
     lessonsHeading: 'Lecciones',
     recommended: 'Siguiente recomendada',
-    curriculumProgress: 'Progreso del curriculum',
+    curriculumProgress: 'Progreso del currículum',
     homeRowTitle: 'Fila base Dvorak',
     homeRowKeys: 'a o e u i · d h t n s',
     homeRowDesc:
@@ -119,7 +119,7 @@ export const es: TranslationKey = {
   },
   achievements: {
     title: 'Logros',
-    subtitle: 'Desbloquea insignias practicando con constancia, mejorando velocidad y dominando el curriculum.',
+    subtitle: 'Desbloquea insignias practicando con constancia, mejorando velocidad y dominando el currículum.',
     unlockedCount: 'Desbloqueados',
     totalCount: 'Total',
     completionRate: 'Completado',
@@ -145,16 +145,16 @@ export const es: TranslationKey = {
   },
   stats: {
     title: 'Tu progreso',
-    subtitle: 'Sigue tu WPM, precisión y racha de práctica.',
+    subtitle: 'Sigue tu PPM, precisión y racha de práctica.',
     totalSessions: 'Sesiones totales',
-    bestWpm: 'Mejor WPM',
+    bestWpm: 'Mejor PPM',
     avgAccuracy: 'Precisión media',
     streak: 'Racha de días',
-    wpmOverTime: 'WPM en el tiempo',
+    wpmOverTime: 'PPM en el tiempo',
     byLesson: 'Por lección',
     noData: 'Completa una lección para ver tus estadísticas.',
     lesson: 'Lección',
-    wpm: 'WPM',
+    wpm: 'PPM',
     accuracy: 'Precisión',
     date: 'Fecha',
     heatmapTitle: 'Mapa de calor por tecla',
@@ -181,7 +181,7 @@ export const es: TranslationKey = {
     importBtn: 'Elegir archivo',
     importSuccess: 'Progreso restaurado correctamente',
     importError: 'Archivo de copia inválido',
-    highlightTheme: 'Tema resalte',
+    highlightTheme: 'Tema de resalte',
     highlightThemeDesc: 'Color de acento para lecciones, progreso y acciones de práctica',
     highlightThemes: {
       indigo: 'Índigo',
