@@ -290,11 +290,15 @@ export const en = {
     esFull: 'Spanish pangrams',
   },
   qwerty: {
-    letter: 'Letter',
     qwerty: 'QWERTY',
     dvorak: 'Dvorak',
-    same: 'Same position',
-    moved: 'Moved',
+    vowelsTitle: 'Grouped vowels',
+    vowelsDesc: 'All vowels (A, O, E, U, I) rest under your left hand.',
+    homeRowTitle: '70% on home row',
+    homeRowDesc: 'Your fingers travel much less compared to 32% usage on QWERTY.',
+    alternationTitle: 'Natural alternation',
+    alternationDesc:
+      'The most common consonants sit on the right hand, creating a fluid rhythm between both hands.',
   },
 } as const;
 

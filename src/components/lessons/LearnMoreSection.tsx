@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import QwertyComparison from './QwertyComparison';
+import KeyboardComparator from '@/components/typing/KeyboardComparator';
 import { Icon } from '@/components/ui';
 
 export default function LearnMoreSection() {
@@ -27,7 +27,7 @@ export default function LearnMoreSection() {
             </p>
             <p className="mt-3 text-sm text-[var(--color-text-muted)]">{t.home.homeRowDesc}</p>
           </div>
-          <QwertyComparison />
+          <KeyboardComparator />
         </div>
       )}
     </section>

@@ -292,10 +292,14 @@ export const es: TranslationKey = {
     esFull: 'Pangrams en español',
   },
   qwerty: {
-    letter: 'Letra',
     qwerty: 'QWERTY',
     dvorak: 'Dvorak',
-    same: 'Misma posición',
-    moved: 'Movida',
+    vowelsTitle: 'Vocales agrupadas',
+    vowelsDesc: 'Todas las vocales (A, O, E, U, I) descansan bajo tu mano izquierda.',
+    homeRowTitle: '70% en la fila base',
+    homeRowDesc: 'Tus dedos viajan mucho menos en comparación al 32% de uso en QWERTY.',
+    alternationTitle: 'Alternancia natural',
+    alternationDesc:
+      'Las consonantes más usadas están en la mano derecha, creando un ritmo de escritura fluido entre ambas manos.',
   },
 };
