@@ -94,6 +94,7 @@ export function useMultiplayerLobby({
   const roomEventHandlerRef = useRef<((event: string, payload: unknown) => void) | null>(null);
   const ownershipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const returnLobbyCheckRef = useRef(false);
+  const readyTogglePendingRef = useRef(false);
 
   roomStateRef.current = roomState;
 
@@ -187,7 +188,20 @@ export function useMultiplayerLobby({
 
       if (user?.id) {
         const self = next.find((player) => player.userId === user.id);
-        if (self) setIsReady(self.isReady);
+        if (self) {
+          if (!readyTogglePendingRef.current) {
+            setIsReady(self.isReady);
+          }
+          if (presenceRef.current) {
+            presenceRef.current = {
+              ...presenceRef.current,
+              isReady: readyTogglePendingRef.current
+                ? presenceRef.current.isReady
+                : self.isReady,
+              hasFinished: self.hasFinished,
+            };
+          }
+        }
       }
 
       maybeTransferOwnership(next);
@@ -431,17 +445,31 @@ export function useMultiplayerLobby({
     const activeChannel = channelRef.current;
     const presence = presenceRef.current;
     if (!activeChannel || !presence || roomStateRef.current?.phase === 'racing') return;
+    if (readyTogglePendingRef.current) return;
 
-    const nextReady = !presence.isReady;
+    const previousPresence = presence;
+    const previousReady = presence.isReady;
+    const nextReady = !previousReady;
+
+    readyTogglePendingRef.current = true;
     const updated: LobbyPlayerPresence = { ...presence, isReady: nextReady, hasFinished: false };
     presenceRef.current = updated;
     setIsReady(nextReady);
 
-    const { error: trackError } = await activeChannel.track(updated);
-    if (trackError) {
-      setError(trackError.message);
-      presenceRef.current = presence;
-      setIsReady(presence.isReady);
+    try {
+      const { error: trackError } = await activeChannel.track(updated);
+      if (trackError) {
+        presenceRef.current = previousPresence;
+        setIsReady(previousReady);
+        setError(trackError.message);
+      }
+    } catch (err) {
+      presenceRef.current = previousPresence;
+      setIsReady(previousReady);
+      setError(err instanceof Error ? err.message : 'track_failed');
+    } finally {
+      readyTogglePendingRef.current = false;
+      syncPlayersRef.current(activeChannel);
     }
   }, []);
 
