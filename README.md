@@ -1,6 +1,8 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:4f46e5,100:a82da8&height=200&section=header&text=Typing%20Dvorak&fontSize=60&fontColor=fff&desc=Master%20the%20Dvorak%20Layout%20in%20Real-Time&descAlignY=60&descSize=20" alt="Typing Dvorak header" />
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:4f46e5,100:a82da8&height=240&section=header&text=Typing%20Dvorak&fontSize=50&fontColor=fff&textAlignY=38&desc=Master%20the%20Dvorak%20Layout%20in%20Real-Time&descAlignY=72&descSize=18" alt="Typing Dvorak header" />
 
 <br />
 
@@ -22,20 +24,14 @@ A web application for learning, practicing, and mastering the **Dvorak Simplifie
 
 ## 🚀 Features
 
-<table width="100%">
-<tr>
-<td width="50%" valign="top">
-
 ### 📚 Progressive Lessons
 
 Structured curriculum that introduces keys row by row and advances to words, sentences, symbols, and advanced challenges.
 
-| Category | Lessons |
-| -------- | ------- |
-| **Basics** | Home Row, Top Row, Bottom Row, Shift and Caps, All Rows, Common Words |
-| **Symbols & Numbers** | Punctuation, Numbers, Developer Symbols |
-| **Advanced** | Sentences, Advanced Challenge |
-| **Optional** | Adaptive Drill (generated practice) |
+- **Basics** — Home Row, Top Row, Bottom Row, Shift and Caps, All Rows, Common Words
+- **Symbols & Numbers** — Punctuation, Numbers, Developer Symbols
+- **Advanced** — Sentences, Advanced Challenge
+- **Optional** — Adaptive Drill (generated practice)
 
 - **Curriculum unlock** — **90%+ accuracy** to unlock the next lesson.
 - **Practice & Test modes** — Open practice or 60s timed test with WPM penalties.
@@ -45,34 +41,19 @@ Structured curriculum that introduces keys row by row and advances to words, sen
 - **Virtual keyboard** — Dvorak layout, finger colors, home-row guides.
 - **Star ratings** — Performance scored per completion.
 
-</td>
-<td width="50%" valign="top">
-
 ### 🌐 Real-Time Multiplayer
 
 Authenticated players create or join lobbies and race synchronously.
 
-| Capability | Description |
-| ---------- | ----------- |
-| **Room creation** | Host picks lesson/text, rules, and modifiers; receives a room code. |
-| **Join by code** | Supabase validation before entering the lobby. |
-| **Waiting room** | Ready states, player grid, avatars, host controls. |
-| **Host panel** | Change lesson, text, and rules between races. |
-| **Race sync** | Countdown, shared text, live leaderboard via Realtime. |
-| **Ownership transfer** | Host leave → privileges pass to longest-present player. |
-| **Room lifecycle** | PostgreSQL registry; close deletes row and frees the code. |
+- **Room creation** — Host picks lesson/text, rules, and modifiers; receives a room code.
+- **Join by code** — Supabase validation before entering the lobby.
+- **Waiting room** — Ready states, player grid, avatars, host controls.
+- **Host panel** — Change lesson, text, and rules between races.
+- **Race sync** — Countdown, shared text, live leaderboard via Realtime.
+- **Ownership transfer** — Host leave → privileges pass to longest-present player.
+- **Room lifecycle** — PostgreSQL registry; close deletes row and frees the code.
 
 **Routes:** `/multiplayer` · `/multiplayer/room?code=XXXXXX`
-
-</td>
-</tr>
-</table>
-
-<br />
-
-<table width="100%">
-<tr>
-<td width="50%" valign="top">
 
 ### 📊 Statistics & Achievements
 
@@ -80,23 +61,14 @@ Authenticated players create or join lobbies and race synchronously.
 - **Achievements** (`/achievements`) — First lesson, 7-day streak, 50 WPM, perfect run, curriculum complete.
 - **Cloud sync** — Sessions, key errors, badges, and preferences via Supabase.
 
-</td>
-<td width="50%" valign="top">
-
 ### 🎨 Advanced Customization
 
-| Setting | Description |
-| ------- | ----------- |
-| **Language** | English or Spanish (full i18n). |
-| **Sound** | Optional keystroke audio. |
-| **Blind mode** | Hide virtual keyboard by default. |
-| **Finger colors** | Color-code keys by finger. |
-| **Highlight theme** | Indigo, emerald, cyan, red, amber, fuchsia accents. |
-| **Theme** | Light / dark toggle. |
-
-</td>
-</tr>
-</table>
+- **Language** — English or Spanish (full i18n).
+- **Sound** — Optional keystroke audio.
+- **Blind mode** — Hide virtual keyboard by default.
+- **Finger colors** — Color-code keys by finger.
+- **Highlight theme** — Indigo, emerald, cyan, red, amber, fuchsia accents.
+- **Theme** — Light / dark toggle.
 
 ### 💾 Data Management
 
@@ -117,17 +89,11 @@ Authenticated players create or join lobbies and race synchronously.
 
 Multiplayer supports multi-select win conditions and optional modifiers via osu!-style **`ModBadge`** panels.
 
-<table width="100%">
-<tr>
-<td width="50%" valign="top">
+### 🏆 Win Conditions
 
-#### 🏆 Win Conditions
-
-| Mode | Description |
-| ---- | ----------- |
-| **Max Score** *(default)* | Composite score: speed + accuracy + combo. |
-| **First to Finish** | First to complete the text wins. |
-| **Highest WPM** | Highest words-per-minute at race end. |
+- **Max Score** *(default)* — Composite score balancing speed, accuracy, and combo.
+- **First to Finish** — First player to complete the text wins.
+- **Highest WPM** — Highest words-per-minute at race end.
 
 **Max Score formula:**
 
@@ -137,25 +103,14 @@ Score = (WPM × 10) × (Accuracy / 100) + (MaxCombo × 5)
 
 Low accuracy reduces the WPM weight; long combos add bonus points. Scores broadcast in real time when Max Score is active.
 
-</td>
-<td width="50%" valign="top">
+### ⚡ Modifiers
 
-#### ⚡ Modifiers
-
-| Modifier | Description |
-| -------- | ----------- |
-| **Sudden Death** | One mistake eliminates you from the race. |
-| **Blind Mode** | Hides the on-screen keyboard during the race. |
-
-<br />
+- **Sudden Death** — One mistake eliminates you from the race.
+- **Blind Mode** — Hides the on-screen keyboard during the race.
 
 **Default match:** Max Score win condition, no modifiers.
 
 Rules are configured in the create-room sidebar and the host setup modal with horizontal badge cards (icon + title + short description).
-
-</td>
-</tr>
-</table>
 
 ---
 
