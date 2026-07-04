@@ -330,6 +330,8 @@ export const es: TranslationKey = {
     connectionError: 'No se pudo conectar a la sala.',
     timedOut: 'La conexión expiró.',
     allReady: 'Todos están listos — iniciando partida…',
+    raceProgress: 'Progreso de carrera',
+    waitingForOpponentProgress: 'El progreso del rival aparecerá cuando empiece a escribir.',
     signInRequired: 'Inicia sesión para unirte a salas multijugador.',
     notConfigured: 'El multijugador requiere que Supabase esté configurado.',
   },

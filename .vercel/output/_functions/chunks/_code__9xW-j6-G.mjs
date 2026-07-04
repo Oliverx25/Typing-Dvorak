@@ -417,6 +417,8 @@ var en = {
 		connectionError: "Could not connect to the room.",
 		timedOut: "Connection timed out.",
 		allReady: "Everyone is ready — starting match…",
+		raceProgress: "Race progress",
+		waitingForOpponentProgress: "Opponent progress will appear when they start typing.",
 		signInRequired: "Sign in to join multiplayer lobbies.",
 		notConfigured: "Multiplayer requires Supabase to be configured."
 	}
@@ -803,6 +805,8 @@ var translations = {
 			connectionError: "No se pudo conectar a la sala.",
 			timedOut: "La conexión expiró.",
 			allReady: "Todos están listos — iniciando partida…",
+			raceProgress: "Progreso de carrera",
+			waitingForOpponentProgress: "El progreso del rival aparecerá cuando empiece a escribir.",
 			signInRequired: "Inicia sesión para unirte a salas multijugador.",
 			notConfigured: "El multijugador requiere que Supabase esté configurado."
 		}
@@ -810,6 +814,14 @@ var translations = {
 };
 function getTranslations(locale) {
 	return translations[locale] ?? en;
+}
+function t(locale, path, params) {
+	const keys = path.split(".");
+	let value = getTranslations(locale);
+	for (const key of keys) value = value?.[key];
+	if (typeof value !== "string") return path;
+	if (!params) return value;
+	return Object.entries(params).reduce((str, [k, v]) => str.replace(`{${k}}`, String(v)), value);
 }
 //#endregion
 //#region src/utils/progress/streak.ts
@@ -920,16 +932,87 @@ function removeKeys(keys) {
 //#endregion
 //#region src/utils/progress/storage.ts
 var MAX_RECORDS = 100;
+var EMPTY_PROGRESS = {
+	lessons: {},
+	streak: 0,
+	lastPracticeDate: null
+};
 function getSessionHistory() {
 	return readJson(STORAGE_KEYS.history, []);
 }
+function getProgress() {
+	return readJson(STORAGE_KEYS.progress, EMPTY_PROGRESS);
+}
 function saveProgress(progress) {
 	writeJson(STORAGE_KEYS.progress, progress);
+}
+function updateStreak(progress) {
+	const { streak, lastPracticeDate } = computeStreakFromPracticeDates(collectPracticeDates(getSessionHistory().map((s) => s.completedAt)));
+	return {
+		...progress,
+		streak,
+		lastPracticeDate
+	};
 }
 /** Overwrite local session history and lesson progress (e.g. after cloud load). */
 function replaceLocalProgress(history, progress) {
 	writeJson(STORAGE_KEYS.history, history.slice(0, MAX_RECORDS));
 	saveProgress(progress);
+}
+function saveSession(lessonId, lessonTitle, stats, mode = "practice") {
+	const record = {
+		lessonId,
+		lessonTitle,
+		wpm: stats.wpm,
+		accuracy: stats.accuracy,
+		elapsedSeconds: stats.elapsedSeconds,
+		mode,
+		completedAt: (/* @__PURE__ */ new Date()).toISOString()
+	};
+	const history = [record, ...getSessionHistory()].slice(0, MAX_RECORDS);
+	writeJson(STORAGE_KEYS.history, history);
+	const progress = updateStreak(getProgress());
+	const existing = progress.lessons[lessonId];
+	const previousBest = existing?.bestWpm ?? 0;
+	const isNewRecord = stats.wpm > previousBest;
+	progress.lessons[lessonId] = {
+		bestWpm: Math.max(previousBest, stats.wpm),
+		bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, stats.accuracy),
+		attempts: (existing?.attempts ?? 0) + 1,
+		lastPlayedAt: record.completedAt
+	};
+	saveProgress(progress);
+	return {
+		isNewRecord,
+		previousBest
+	};
+}
+function getCompletedLessonsMap() {
+	const { lessons } = getProgress();
+	const map = {};
+	for (const [id, p] of Object.entries(lessons)) map[id] = {
+		bestAccuracy: p.bestAccuracy,
+		bestWpm: p.bestWpm
+	};
+	return map;
+}
+function getAggregateStats() {
+	const history = getSessionHistory();
+	const progress = getProgress();
+	if (history.length === 0) return {
+		totalSessions: 0,
+		bestWpm: 0,
+		avgAccuracy: 0,
+		streak: progress.streak
+	};
+	const bestWpm = Math.max(...history.map((r) => r.wpm));
+	const avgAccuracy = Math.round(history.reduce((sum, r) => sum + r.accuracy, 0) / history.length);
+	return {
+		totalSessions: history.length,
+		bestWpm,
+		avgAccuracy,
+		streak: progress.streak
+	};
 }
 function getStoredTheme() {
 	const stored = readString(STORAGE_KEYS.theme);
@@ -1110,6 +1193,9 @@ function useApp() {
 	const ctx = useContext(AppContext);
 	if (!ctx) throw new Error("useApp must be used within AppProvider");
 	return ctx;
+}
+function getLessonTitle(t, key) {
+	return t.lessonMeta[key]?.title ?? key;
 }
 //#endregion
 //#region src/lib/supabaseClient.ts
@@ -1391,6 +1477,9 @@ var EMPTY_STATS = {
 };
 var CODE_TO_LABEL = {};
 for (const row of DVORAK_ROWS) for (const key of row.keys) CODE_TO_LABEL[key.code] = key.label;
+function codeToLabel(code) {
+	return CODE_TO_LABEL[code] ?? code.replace("Key", "").replace("Digit", "");
+}
 function getKeyStats() {
 	return readJson(STORAGE_KEYS.keyStats, EMPTY_STATS);
 }
@@ -1401,6 +1490,43 @@ function saveKeyStats(data) {
 function replaceKeyStats(data) {
 	saveKeyStats(data);
 	dispatchKeyStatsUpdated();
+}
+/** Records a keystroke for heatmap analytics. */
+function recordKeystroke(char, isCorrect) {
+	const code = charToKeyCode(char) ?? char;
+	const stats = getKeyStats();
+	const bucket = isCorrect ? stats.hits : stats.misses;
+	bucket[code] = (bucket[code] ?? 0) + 1;
+	saveKeyStats(stats);
+	dispatchKeyStatsUpdated();
+}
+/** Returns error rate 0–1 for a key code (0 = perfect, 1 = all misses). */
+function getKeyErrorRate(code, stats) {
+	const hits = stats.hits[code] ?? 0;
+	const misses = stats.misses[code] ?? 0;
+	const total = hits + misses;
+	if (total === 0) return 0;
+	return misses / total;
+}
+/** Keys with the most misses, weighted by error rate. */
+function getWeakestKeys(limit = 5, stats = getKeyStats()) {
+	const codes = /* @__PURE__ */ new Set([...Object.keys(stats.hits), ...Object.keys(stats.misses)]);
+	const ranked = [];
+	for (const code of codes) {
+		const misses = stats.misses[code] ?? 0;
+		if (misses === 0) continue;
+		const errorRate = getKeyErrorRate(code, stats);
+		ranked.push({
+			code,
+			label: codeToLabel(code),
+			misses,
+			errorRate
+		});
+	}
+	return ranked.sort((a, b) => b.misses * b.errorRate - a.misses * a.errorRate).slice(0, limit);
+}
+function getSessionWeakKeys(misses, limit = 3) {
+	return Object.entries(misses).sort(([, a], [, b]) => b - a).slice(0, limit).map(([char]) => char);
 }
 //#endregion
 //#region src/services/supabase/queries.ts
@@ -1540,7 +1666,50 @@ async function syncKeyErrorsToCloud(userId) {
 		if (error) console.warn("[sync] key_errors upsert failed:", error.message);
 	}
 }
-HOME_ROW + TOP_ROW + BOTTOM_ROW;
+//#endregion
+//#region src/utils/typing/textGenerator.ts
+var CHARSETS = {
+	home: HOME_ROW,
+	top: TOP_ROW,
+	bottom: BOTTOM_ROW,
+	all: HOME_ROW + TOP_ROW + BOTTOM_ROW,
+	punctuation: "'.,;-/=",
+	numbers: "0123456789"
+};
+function drillChars(charSet) {
+	return (CHARSETS[charSet] ?? charSet).replace(/\s/g, "");
+}
+function randomChar(chars) {
+	return chars[Math.floor(Math.random() * chars.length)];
+}
+/** Builds a drill string from a character set, grouped in word chunks separated by single spaces. */
+function generateDrillText(charSet, length = 48) {
+	const chars = drillChars(charSet);
+	if (!chars.length) return "";
+	const words = [];
+	let total = 0;
+	while (total < length) {
+		const wordLen = Math.min(3 + Math.floor(Math.random() * 4), length - total);
+		if (wordLen <= 0) break;
+		let word = "";
+		for (let i = 0; i < wordLen; i++) word += randomChar(chars);
+		words.push(word);
+		total += word.length + (total + word.length < length ? 1 : 0);
+	}
+	return words.join(" ").slice(0, length);
+}
+/** Generates continuous text for timed test mode. */
+function generateTestStream(charSet, minLength = 200) {
+	return generateDrillText(charSet, minLength);
+}
+//#endregion
+//#region src/utils/typing/adaptiveDrill.ts
+/** Builds practice text focused on the user's weakest keys. */
+function generateAdaptiveDrillText(length = 48) {
+	const weak = getWeakestKeys(5);
+	if (weak.length === 0) return null;
+	return generateDrillText(weak.map((w) => w.label).join(""), length);
+}
 //#endregion
 //#region src/utils/curriculum/lessons.ts
 var LESSONS = [
@@ -1719,12 +1888,22 @@ var CORE_LESSONS = LESSONS.filter((l) => !l.optional);
 function getLessonById(id) {
 	return LESSONS.find((lesson) => lesson.id === id);
 }
+/** Localized lesson metadata — keys live in i18n lessonMeta. */
+function getLessonText(lesson, pick, generate, locale = "en") {
+	if (lesson.adaptive) return generateAdaptiveDrillText() ?? pick(lesson.texts);
+	const pool = locale === "es" && lesson.textsEs?.length ? lesson.textsEs : lesson.texts;
+	if (lesson.generated && lesson.charSet && generate) return generate(lesson.charSet);
+	return pick(pool);
+}
 //#endregion
 //#region src/utils/curriculum/curriculum.ts
 /** Lesson unlock order — first lesson is always available. Optional lessons excluded. */
 var LESSON_ORDER = CORE_LESSONS.map((l) => l.id);
 //#endregion
 //#region src/utils/achievements/badges.ts
+function getUnlockedBadges() {
+	return readJson(STORAGE_KEYS.badges, []);
+}
 function saveUnlockedBadges(ids) {
 	writeJson(STORAGE_KEYS.badges, ids);
 }
@@ -1732,6 +1911,21 @@ function saveUnlockedBadges(ids) {
 function replaceUnlockedBadges(ids) {
 	saveUnlockedBadges(ids);
 	dispatchBadgesUpdated();
+}
+function buildBadgeEvaluationFromLocal() {
+	const progress = getProgress();
+	const completed = getCompletedLessonsMap();
+	const aggregate = getAggregateStats();
+	const hasPerfectRun = getSessionHistory().some((session) => session.accuracy === 100);
+	const masteredLessonCount = LESSON_ORDER.filter((id) => (completed[id]?.bestAccuracy ?? 0) >= 90).length;
+	return {
+		completedLessonCount: Object.keys(completed).length,
+		streak: progress.streak,
+		bestWpm: aggregate.bestWpm,
+		hasPerfectRun,
+		masteredLessonCount,
+		totalCurriculumLessons: LESSON_ORDER.length
+	};
 }
 /** Pure evaluation from session-derived stats — same rules for local and cloud. */
 function evaluateUnlockedBadges(input) {
@@ -1742,6 +1936,13 @@ function evaluateUnlockedBadges(input) {
 	if (input.hasPerfectRun) unlocked.push("perfect-run");
 	if (input.masteredLessonCount >= input.totalCurriculumLessons) unlocked.push("curriculum-done");
 	return unlocked;
+}
+function checkAndUnlockBadges(stats) {
+	const next = evaluateUnlockedBadges(buildBadgeEvaluationFromLocal());
+	const previous = new Set(getUnlockedBadges());
+	const newly = next.filter((id) => !previous.has(id));
+	if (newly.length > 0 || next.length !== previous.size) replaceUnlockedBadges(next);
+	return newly;
 }
 //#endregion
 //#region src/services/supabase/syncBadges.ts
@@ -2464,6 +2665,80 @@ function Icon({ name, size = 16, className = "", ...props }) {
 	});
 }
 //#endregion
+//#region src/components/ui/StarRating.tsx
+function StarRating({ accuracy, wpm, size = 22, showLabel = true, label }) {
+	const stars = calculateStars(accuracy, wpm);
+	return /* @__PURE__ */ jsxs("div", {
+		className: "flex flex-col items-center gap-1",
+		children: [/* @__PURE__ */ jsx("div", {
+			className: "flex gap-1",
+			"aria-label": `${stars} de 3 estrellas`,
+			children: [
+				1,
+				2,
+				3
+			].map((n) => /* @__PURE__ */ jsx(Icon, {
+				name: n <= stars ? "star-filled" : "star",
+				size,
+				className: n <= stars ? "text-[var(--color-key-target)]" : "text-[var(--color-border)]"
+			}, n))
+		}), showLabel && label && /* @__PURE__ */ jsx("p", {
+			className: "text-xs text-[var(--color-text-muted)]",
+			children: label
+		})]
+	});
+}
+//#endregion
+//#region src/components/ui/StatCard.tsx
+var VARIANT_CLASSES = {
+	default: "border-[var(--color-border)] bg-[var(--color-surface-elevated)]",
+	highlight: "border-[var(--color-correct)]/30 bg-[var(--color-correct)]/8",
+	accent: "border-[var(--color-border)] bg-[var(--color-surface-elevated)]",
+	success: "border-[var(--color-correct)]/40 bg-[var(--color-correct)]/5",
+	active: "border-[var(--color-accent)]/30 bg-[var(--color-surface-elevated)] shadow-sm",
+	urgent: "border-[var(--color-incorrect)]/50 bg-[var(--color-incorrect)]/5 animate-pulse motion-reduce:animate-none"
+};
+var VALUE_CLASSES = {
+	default: "text-[var(--color-text)]",
+	highlight: "text-[var(--color-correct)]",
+	accent: "text-[var(--color-accent)]",
+	success: "text-[var(--color-correct)]",
+	active: "text-[var(--color-text)]",
+	urgent: "text-[var(--color-incorrect)]"
+};
+/** Reusable metric pill — stats bar, dashboard, and completion modal. */
+function StatCard({ label, value, variant = "default", size = "md", icon }) {
+	const padding = size === "lg" ? "px-2 py-3 sm:px-3" : "sm:px-4 sm:py-4";
+	const valueSize = size === "lg" ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl";
+	const surface = variant === "highlight" ? "bg-[var(--color-surface)]" : "";
+	return /* @__PURE__ */ jsxs("div", {
+		className: [
+			"relative overflow-hidden rounded-xl border px-3 py-3 text-center transition-all duration-300",
+			padding,
+			VARIANT_CLASSES[variant],
+			surface
+		].join(" "),
+		children: [
+			variant === "active" && /* @__PURE__ */ jsx("span", { className: "absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--color-accent)] animate-pulse motion-reduce:animate-none" }),
+			/* @__PURE__ */ jsx("p", {
+				className: "text-[10px] font-medium uppercase tracking-widest text-[var(--color-text-muted)] sm:text-xs",
+				children: label
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "mt-1 flex items-center justify-center gap-2",
+				children: [/* @__PURE__ */ jsx("p", {
+					className: [
+						"font-mono font-bold",
+						valueSize,
+						VALUE_CLASSES[variant]
+					].join(" "),
+					children: value
+				}), icon]
+			})
+		]
+	});
+}
+//#endregion
 //#region src/components/auth/AuthControls.tsx
 function OAuthIconButton({ provider, label }) {
 	const [loading, setLoading] = useState(false);
@@ -3075,6 +3350,7 @@ function useMultiplayerLobby({ roomId, onAllReady, minPlayers = 2 }) {
 	const [status, setStatus] = useState("idle");
 	const [error, setError] = useState(null);
 	const [isReady, setIsReady] = useState(false);
+	const [channel, setChannel] = useState(null);
 	const channelRef = useRef(null);
 	const presenceRef = useRef(null);
 	const allReadyFiredRef = useRef(false);
@@ -3142,12 +3418,14 @@ function useMultiplayerLobby({ roomId, onAllReady, minPlayers = 2 }) {
 			}
 		});
 		channelRef.current = channel;
+		setChannel(channel);
 		return () => {
 			channel.untrack().finally(() => {
 				supabase.removeChannel(channel);
 			});
 			channelRef.current = null;
 			presenceRef.current = null;
+			setChannel(null);
 		};
 	}, [
 		user,
@@ -3181,6 +3459,7 @@ function useMultiplayerLobby({ roomId, onAllReady, minPlayers = 2 }) {
 		supabase.removeChannel(channel);
 		channelRef.current = null;
 		presenceRef.current = null;
+		setChannel(null);
 		setPlayers([]);
 		setStatus("idle");
 		setIsReady(false);
@@ -3193,7 +3472,8 @@ function useMultiplayerLobby({ roomId, onAllReady, minPlayers = 2 }) {
 		isConnected: status === "connected",
 		toggleReadyStatus,
 		leaveLobby,
-		currentUserId: user?.id ?? null
+		currentUserId: user?.id ?? null,
+		channel
 	};
 }
 //#endregion
@@ -3256,12 +3536,1210 @@ function LobbyPlayerList({ players, currentUserId, readyLabel, waitingLabel, you
 	});
 }
 //#endregion
+//#region src/hooks/useMultiplayerRace.ts
+function clampPercentage(value) {
+	return Math.min(100, Math.max(0, value));
+}
+function useMultiplayerRace({ channel, currentUserId, players, enabled = true }) {
+	const [opponents, setOpponents] = useState([]);
+	const opponentMapRef = useRef(/* @__PURE__ */ new Map());
+	const animationFrameRef = useRef(null);
+	const lastBroadcastAtRef = useRef(0);
+	const playerById = useMemo(() => {
+		return new Map(players.map((player) => [player.userId, player]));
+	}, [players]);
+	const flushOpponents = useCallback(() => {
+		animationFrameRef.current = null;
+		const next = [];
+		for (const progress of opponentMapRef.current.values()) {
+			const player = playerById.get(progress.userId);
+			if (!player || progress.userId === currentUserId) continue;
+			next.push({
+				...progress,
+				name: player.name,
+				avatarUrl: player.avatarUrl,
+				initials: player.initials,
+				avatarSource: player.avatarSource
+			});
+		}
+		next.sort((a, b) => b.percentage - a.percentage || b.wpm - a.wpm);
+		setOpponents(next);
+	}, [currentUserId, playerById]);
+	const scheduleFlush = useCallback(() => {
+		if (animationFrameRef.current !== null) return;
+		animationFrameRef.current = window.requestAnimationFrame(flushOpponents);
+	}, [flushOpponents]);
+	useEffect(() => {
+		if (!channel || !enabled) return;
+		const opponentMap = opponentMapRef.current;
+		channel.on("broadcast", { event: "progress" }, ({ payload }) => {
+			const progress = payload;
+			if (!progress.userId || progress.userId === currentUserId) return;
+			opponentMap.set(progress.userId, {
+				userId: progress.userId,
+				wpm: Math.max(0, Math.round(progress.wpm ?? 0)),
+				percentage: clampPercentage(progress.percentage ?? 0),
+				updatedAt: progress.updatedAt ?? Date.now()
+			});
+			scheduleFlush();
+		});
+		return () => {
+			if (animationFrameRef.current !== null) {
+				window.cancelAnimationFrame(animationFrameRef.current);
+				animationFrameRef.current = null;
+			}
+			opponentMap.clear();
+			setOpponents([]);
+		};
+	}, [
+		channel,
+		currentUserId,
+		enabled,
+		scheduleFlush
+	]);
+	useEffect(() => {
+		scheduleFlush();
+	}, [players, scheduleFlush]);
+	return {
+		opponents,
+		broadcastProgress: useCallback(async (wpm, percentage, force = false) => {
+			if (!channel || !currentUserId || !enabled) return;
+			const now = Date.now();
+			if (!force && now - lastBroadcastAtRef.current < 500) return;
+			lastBroadcastAtRef.current = now;
+			await channel.send({
+				type: "broadcast",
+				event: "progress",
+				payload: {
+					userId: currentUserId,
+					wpm: Math.max(0, Math.round(wpm)),
+					percentage: clampPercentage(percentage),
+					updatedAt: now
+				}
+			});
+		}, [
+			channel,
+			currentUserId,
+			enabled
+		])
+	};
+}
+/** Standard WPM: (correct characters / 5) / minutes elapsed. */
+function calculateWpm(correctChars, elapsedMs) {
+	if (elapsedMs <= 0) return 0;
+	const minutes = elapsedMs / 6e4;
+	return Math.round(correctChars / 5 / minutes);
+}
+/** Test mode WPM with error penalty on effective character count. */
+function calculateTestWpm(correctChars, incorrectChars, elapsedMs) {
+	return calculateWpm(Math.max(0, correctChars - incorrectChars * 2), elapsedMs);
+}
+function calculateAccuracy(correct, incorrect) {
+	const total = correct + incorrect;
+	if (total === 0) return 100;
+	return Math.round(correct / total * 100);
+}
+function buildStats(correctChars, incorrectChars, elapsedMs, testMode = false) {
+	return {
+		wpm: testMode ? calculateTestWpm(correctChars, incorrectChars, elapsedMs) : calculateWpm(correctChars, elapsedMs),
+		accuracy: calculateAccuracy(correctChars, incorrectChars),
+		correctChars,
+		incorrectChars,
+		elapsedSeconds: Math.round(elapsedMs / 1e3)
+	};
+}
+function pickRandomText(texts) {
+	return texts[Math.floor(Math.random() * texts.length)];
+}
+//#endregion
+//#region src/utils/typing/sound.ts
+var audioCtx = null;
+function getCtx() {
+	if (typeof window === "undefined") return null;
+	if (!audioCtx) audioCtx = new AudioContext();
+	return audioCtx;
+}
+function playTone(frequency, duration, volume = .08) {
+	const ctx = getCtx();
+	if (!ctx) return;
+	const osc = ctx.createOscillator();
+	const gain = ctx.createGain();
+	osc.connect(gain);
+	gain.connect(ctx.destination);
+	osc.frequency.value = frequency;
+	osc.type = "sine";
+	gain.gain.setValueAtTime(volume, ctx.currentTime);
+	gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + duration);
+	osc.start(ctx.currentTime);
+	osc.stop(ctx.currentTime + duration);
+}
+function playCorrectSound() {
+	playTone(880, .06);
+}
+function playIncorrectSound() {
+	playTone(220, .1, .1);
+}
+function playCompleteSound() {
+	playTone(523, .1);
+	setTimeout(() => playTone(659, .1), 80);
+	setTimeout(() => playTone(784, .15), 160);
+}
+//#endregion
+//#region src/hooks/useTypingSession.ts
+function resolveInitialText(lesson, locale, customText) {
+	if (customText?.trim()) return customText.trim();
+	return getLessonText(lesson, pickRandomText, (charSet) => lesson.generated ? generateDrillText(charSet, 48) : pickRandomText(lesson.texts), locale);
+}
+function useTypingSession({ lessonId, lessonTitle, lesson, mode, sound, locale = "en", customText }) {
+	const isTestMode = mode === "test";
+	const initialRef = useRef(null);
+	if (!initialRef.current) {
+		const text = isTestMode ? generateTestStream(lesson.charSet ?? "all") : resolveInitialText(lesson, locale, customText);
+		initialRef.current = {
+			text,
+			statuses: text.split("").map(() => "pending")
+		};
+	}
+	const [targetText, setTargetText] = useState(initialRef.current.text);
+	const [input, setInput] = useState("");
+	const [statuses, setStatuses] = useState(initialRef.current.statuses);
+	const [started, setStarted] = useState(false);
+	const [finished, setFinished] = useState(false);
+	const [paused, setPaused] = useState(false);
+	const [finalStats, setFinalStats] = useState(null);
+	const [isNewRecord, setIsNewRecord] = useState(false);
+	const [wpmDelta, setWpmDelta] = useState(0);
+	const [sessionWeakKeys, setSessionWeakKeys] = useState([]);
+	const [startTime, setStartTime] = useState(null);
+	const [elapsedMs, setElapsedMs] = useState(0);
+	const [activeKey, setActiveKey] = useState();
+	const [errorKeystrokes, setErrorKeystrokes] = useState(0);
+	const containerRef = useRef(null);
+	const retryButtonRef = useRef(null);
+	const sessionMissesRef = useRef({});
+	const pausedAtRef = useRef(null);
+	const totalPausedMsRef = useRef(0);
+	const correctChars = statuses.filter((s) => s === "correct").length;
+	const incorrectChars = statuses.filter((s) => s === "incorrect").length;
+	const liveStats = buildStats(correctChars, isTestMode ? errorKeystrokes : incorrectChars, elapsedMs || 1, isTestMode);
+	const stats = finished && finalStats ? finalStats : liveStats;
+	const progress = isTestMode ? elapsedMs / (60 * 1e3) * 100 : targetText.length > 0 ? input.length / targetText.length * 100 : 0;
+	const timeRemaining = Math.max(0, 60 - Math.floor(elapsedMs / 1e3));
+	const nextChar = targetText[input.length];
+	const targetKey = !finished && !paused && nextChar ? charToKeyCode(nextChar) : void 0;
+	const finishSession = useCallback((result) => {
+		const weak = getSessionWeakKeys(sessionMissesRef.current);
+		setSessionWeakKeys(weak);
+		setElapsedMs(result.elapsedSeconds * 1e3);
+		setFinalStats(result);
+		setFinished(true);
+		setPaused(false);
+		const { isNewRecord: record, previousBest } = saveSession(lessonId, lessonTitle, result, mode);
+		setIsNewRecord(record);
+		setWpmDelta(result.wpm - previousBest);
+		dispatchSessionComplete();
+		dispatchKeyStatsUpdated();
+		checkAndUnlockBadges({
+			accuracy: result.accuracy,
+			wpm: result.wpm,
+			lessonId
+		});
+		if (sound) playCompleteSound();
+	}, [
+		lessonId,
+		lessonTitle,
+		mode,
+		sound
+	]);
+	const togglePause = useCallback(() => {
+		if (!isTestMode || !started || finished) return;
+		setPaused((prev) => {
+			if (!prev) {
+				pausedAtRef.current = Date.now();
+				return true;
+			}
+			if (pausedAtRef.current) {
+				totalPausedMsRef.current += Date.now() - pausedAtRef.current;
+				pausedAtRef.current = null;
+			}
+			return false;
+		});
+	}, [
+		isTestMode,
+		started,
+		finished
+	]);
+	const reset = useCallback(() => {
+		sessionMissesRef.current = {};
+		totalPausedMsRef.current = 0;
+		pausedAtRef.current = null;
+		const text = isTestMode ? generateTestStream(lesson.charSet ?? "all") : resolveInitialText(lesson, locale, customText);
+		setTargetText(text);
+		setInput("");
+		setStatuses(text.split("").map(() => "pending"));
+		setStarted(false);
+		setFinished(false);
+		setPaused(false);
+		setFinalStats(null);
+		setIsNewRecord(false);
+		setWpmDelta(0);
+		setSessionWeakKeys([]);
+		setStartTime(null);
+		setElapsedMs(0);
+		setActiveKey(void 0);
+		setErrorKeystrokes(0);
+		requestAnimationFrame(() => containerRef.current?.focus());
+	}, [
+		isTestMode,
+		lesson,
+		locale,
+		customText
+	]);
+	useEffect(() => {
+		if (!started || finished || paused) return;
+		const interval = setInterval(() => {
+			if (!startTime) return;
+			const elapsed = Date.now() - startTime - totalPausedMsRef.current;
+			setElapsedMs(elapsed);
+			if (isTestMode && elapsed >= 60 * 1e3) {
+				const result = buildStats(correctChars, errorKeystrokes, elapsed, true);
+				finishSession(result);
+			}
+		}, 100);
+		return () => clearInterval(interval);
+	}, [
+		started,
+		finished,
+		paused,
+		startTime,
+		isTestMode,
+		correctChars,
+		errorKeystrokes,
+		finishSession
+	]);
+	useEffect(() => {
+		containerRef.current?.focus();
+	}, []);
+	const prevMode = useRef(mode);
+	useEffect(() => {
+		if (prevMode.current !== mode) {
+			prevMode.current = mode;
+			reset();
+		}
+	}, [mode, reset]);
+	useEffect(() => {
+		if (!finished) return;
+		retryButtonRef.current?.focus();
+		const handleRetryKey = (e) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				reset();
+			}
+		};
+		window.addEventListener("keydown", handleRetryKey);
+		return () => window.removeEventListener("keydown", handleRetryKey);
+	}, [finished, reset]);
+	const handleKeyDown = (e) => {
+		if (finished) {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				reset();
+			}
+			return;
+		}
+		if (isTestMode && e.key === "Escape") {
+			e.preventDefault();
+			togglePause();
+			return;
+		}
+		if (paused) return;
+		if (e.key === "Tab" || e.key.startsWith("Arrow")) {
+			e.preventDefault();
+			return;
+		}
+		if (e.key === "Backspace") {
+			e.preventDefault();
+			if (input.length === 0) return;
+			const newInput = input.slice(0, -1);
+			setInput(newInput);
+			setStatuses((prev) => {
+				const next = [...prev];
+				next[newInput.length] = "pending";
+				return next;
+			});
+			return;
+		}
+		if (e.key.length !== 1) return;
+		e.preventDefault();
+		if (!started) {
+			setStarted(true);
+			setStartTime(Date.now());
+		}
+		const expected = targetText[input.length];
+		if (expected === void 0) return;
+		const isCorrect = e.key === expected;
+		const newInput = input + e.key;
+		setInput(newInput);
+		setStatuses((prev) => {
+			const next = [...prev];
+			next[input.length] = isCorrect ? "correct" : "incorrect";
+			return next;
+		});
+		recordKeystroke(e.key, isCorrect);
+		if (!isCorrect) {
+			setErrorKeystrokes((n) => n + 1);
+			sessionMissesRef.current[e.key] = (sessionMissesRef.current[e.key] ?? 0) + 1;
+		}
+		if (sound) if (isCorrect) playCorrectSound();
+		else playIncorrectSound();
+		const code = charToKeyCode(e.key);
+		setActiveKey(code);
+		setTimeout(() => setActiveKey(void 0), 150);
+		if (isTestMode && newInput.length >= targetText.length - 20) {
+			const extension = " " + generateDrillText(lesson.charSet ?? "all", 40);
+			setTargetText((prev) => prev + extension);
+			setStatuses((prev) => [...prev, ...extension.split("").map(() => "pending")]);
+		}
+		if (!isTestMode && newInput.length === targetText.length) {
+			const finalElapsed = startTime ? Date.now() - startTime - totalPausedMsRef.current : elapsedMs;
+			const finalCorrect = isCorrect ? correctChars + 1 : correctChars;
+			const finalIncorrect = isCorrect ? incorrectChars : incorrectChars + 1;
+			finishSession(buildStats(finalCorrect, finalIncorrect, finalElapsed || 1, false));
+		}
+	};
+	return {
+		targetText,
+		input,
+		statuses,
+		started,
+		finished,
+		paused,
+		stats,
+		progress,
+		timeRemaining,
+		targetKey,
+		activeKey,
+		isNewRecord,
+		wpmDelta,
+		sessionWeakKeys,
+		isTestMode,
+		containerRef,
+		retryButtonRef,
+		reset,
+		handleKeyDown,
+		togglePause
+	};
+}
+//#endregion
+//#region src/utils/keyboard/fingers.ts
+var FINGER_CSS_VAR = {
+	lp: "--finger-lp",
+	lr: "--finger-lr",
+	lm: "--finger-lm",
+	li: "--finger-li",
+	ri: "--finger-ri",
+	rm: "--finger-rm",
+	rr: "--finger-rr",
+	rp: "--finger-rp"
+};
+/**
+* Dvorak Simplified Keyboard — finger map by vertical column.
+*
+* Home row: a(LP) o(LR) e(LM) u(LI) i(LI) | d(RI) h(RI) t(RM) n(RR) s(RP)
+* Space is pressed with the thumb — not mapped to a finger.
+*/
+var KEY_FINGERS = {
+	Backquote: "lp",
+	Digit1: "lp",
+	Quote: "lp",
+	KeyA: "lp",
+	Semicolon: "lp",
+	Digit2: "lr",
+	Comma: "lr",
+	KeyO: "lr",
+	KeyQ: "lr",
+	Digit3: "lm",
+	Period: "lm",
+	KeyE: "lm",
+	KeyJ: "lm",
+	Digit4: "li",
+	KeyP: "li",
+	KeyU: "li",
+	KeyK: "li",
+	Digit5: "li",
+	KeyY: "li",
+	KeyI: "li",
+	KeyX: "li",
+	Digit6: "ri",
+	KeyF: "ri",
+	KeyD: "ri",
+	KeyB: "ri",
+	Digit7: "ri",
+	KeyG: "ri",
+	KeyH: "ri",
+	KeyM: "ri",
+	Digit8: "rm",
+	KeyC: "rm",
+	KeyT: "rm",
+	KeyW: "rm",
+	Digit9: "rr",
+	KeyR: "rr",
+	KeyN: "rr",
+	KeyV: "rr",
+	Digit0: "rp",
+	KeyL: "rp",
+	KeyS: "rp",
+	KeyZ: "rp",
+	BracketLeft: "rp",
+	BracketRight: "rp",
+	Slash: "rp",
+	Minus: "rp",
+	Equal: "rp"
+};
+function getFingerForKey(code) {
+	return KEY_FINGERS[code];
+}
+//#endregion
+//#region src/components/typing/HandGuide.tsx
+function FingerSlot({ finger, label, active }) {
+	return /* @__PURE__ */ jsxs("div", {
+		className: ["flex flex-col items-center gap-1 transition-all duration-150", active ? "scale-110" : "opacity-50"].join(" "),
+		children: [/* @__PURE__ */ jsx("div", {
+			className: ["h-10 w-7 rounded-t-full rounded-b-md border-2 sm:h-12 sm:w-8", active ? "border-[var(--color-key-target)] shadow-[0_0_12px_color-mix(in_srgb,var(--color-key-target)_50%,transparent)]" : "border-[var(--color-border)]"].join(" "),
+			style: { background: active ? `color-mix(in srgb, var(${FINGER_CSS_VAR[finger]}) 60%, var(--color-key-target-bg))` : `color-mix(in srgb, var(${FINGER_CSS_VAR[finger]}) 20%, var(--color-key))` }
+		}), /* @__PURE__ */ jsx("span", {
+			className: ["text-[9px] sm:text-[10px]", active ? "font-semibold text-[var(--color-key-target)]" : "text-[var(--color-text-muted)]"].join(" "),
+			children: label
+		})]
+	});
+}
+function ThumbBar({ active }) {
+	return /* @__PURE__ */ jsx("div", {
+		className: ["h-3 w-24 rounded-full transition-all duration-150 sm:w-28", active ? "bg-[var(--color-key-target)] shadow-[0_0_14px_color-mix(in_srgb,var(--color-key-target)_55%,transparent)]" : "bg-[var(--color-border)]"].join(" "),
+		"aria-hidden": "true"
+	});
+}
+function HandGuide({ targetKey }) {
+	const { t } = useApp();
+	const isSpace = targetKey === "Space";
+	const activeFinger = !isSpace && targetKey ? getFingerForKey(targetKey) : void 0;
+	const left = [
+		{
+			finger: "lp",
+			label: t.fingers.lp
+		},
+		{
+			finger: "lr",
+			label: t.fingers.lr
+		},
+		{
+			finger: "lm",
+			label: t.fingers.lm
+		},
+		{
+			finger: "li",
+			label: t.fingers.li
+		}
+	];
+	const right = [
+		{
+			finger: "ri",
+			label: t.fingers.ri
+		},
+		{
+			finger: "rm",
+			label: t.fingers.rm
+		},
+		{
+			finger: "rr",
+			label: t.fingers.rr
+		},
+		{
+			finger: "rp",
+			label: t.fingers.rp
+		}
+	];
+	return /* @__PURE__ */ jsxs("div", {
+		className: "mt-4 flex items-end justify-center gap-6 sm:gap-10",
+		children: [/* @__PURE__ */ jsxs("div", {
+			className: "flex flex-col items-center gap-2",
+			children: [
+				/* @__PURE__ */ jsx("span", {
+					className: "text-[10px] uppercase tracking-widest text-[var(--color-text-muted)]",
+					children: t.typing.leftHand
+				}),
+				/* @__PURE__ */ jsx("div", {
+					className: "flex items-end gap-1 sm:gap-2",
+					children: left.map(({ finger, label }) => /* @__PURE__ */ jsx(FingerSlot, {
+						finger,
+						label,
+						active: activeFinger === finger
+					}, finger))
+				}),
+				/* @__PURE__ */ jsx(ThumbBar, { active: isSpace }),
+				isSpace && /* @__PURE__ */ jsx("span", {
+					className: "text-[9px] font-semibold text-[var(--color-key-target)] sm:text-[10px]",
+					children: t.typing.thumb
+				})
+			]
+		}), /* @__PURE__ */ jsxs("div", {
+			className: "flex flex-col items-center gap-2",
+			children: [
+				/* @__PURE__ */ jsx("span", {
+					className: "text-[10px] uppercase tracking-widest text-[var(--color-text-muted)]",
+					children: t.typing.rightHand
+				}),
+				/* @__PURE__ */ jsx("div", {
+					className: "flex items-end gap-1 sm:gap-2",
+					children: right.map(({ finger, label }) => /* @__PURE__ */ jsx(FingerSlot, {
+						finger,
+						label,
+						active: activeFinger === finger
+					}, finger))
+				}),
+				/* @__PURE__ */ jsx(ThumbBar, { active: isSpace })
+			]
+		})]
+	});
+}
+//#endregion
+//#region src/components/typing/Keyboard.tsx
+function KeyLegend() {
+	const { t, settings } = useApp();
+	return /* @__PURE__ */ jsxs("div", {
+		className: "flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-[11px] text-[var(--color-text-muted)]",
+		children: [
+			/* @__PURE__ */ jsxs("span", {
+				className: "flex items-center gap-1.5",
+				children: [/* @__PURE__ */ jsx("span", { className: "inline-flex h-4 w-4 items-center justify-center rounded border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)]" }), t.typing.nextKey]
+			}),
+			/* @__PURE__ */ jsxs("span", {
+				className: "flex items-center gap-1.5",
+				children: [/* @__PURE__ */ jsx("span", { className: "inline-flex h-4 w-4 rounded bg-[var(--color-key-pressed)]" }), t.typing.pressed]
+			}),
+			/* @__PURE__ */ jsxs("span", {
+				className: "flex items-center gap-1.5",
+				children: [/* @__PURE__ */ jsx("span", {
+					className: "relative inline-flex h-4 w-4 rounded border border-[var(--color-border)] bg-[var(--color-key)]",
+					children: /* @__PURE__ */ jsx("span", { className: "absolute bottom-0.5 left-1/2 h-0.5 w-2 -translate-x-1/2 rounded-full bg-[var(--color-key-mark)]" })
+				}), t.typing.homeGuides]
+			}),
+			settings.fingerColors && /* @__PURE__ */ jsxs("span", {
+				className: "hidden text-[var(--color-text-muted)] sm:inline",
+				children: [t.typing.fingers, " ↓"]
+			})
+		]
+	});
+}
+function FingerColorBar({ fingers }) {
+	const { t } = useApp();
+	return /* @__PURE__ */ jsx("div", {
+		className: "mb-3 hidden flex-wrap justify-center gap-2 sm:flex",
+		children: [...new Set(fingers)].map((f) => /* @__PURE__ */ jsxs("span", {
+			className: "flex items-center gap-1 text-[10px] text-[var(--color-text-muted)]",
+			children: [/* @__PURE__ */ jsx("span", {
+				className: "h-2.5 w-2.5 rounded-sm",
+				style: { background: `var(${FINGER_CSS_VAR[f]})` }
+			}), t.fingers[f]]
+		}, f))
+	});
+}
+function Keyboard({ pressedKey, targetKey }) {
+	const { t, settings } = useApp();
+	const showFingers = settings.fingerColors;
+	const allFingers = DVORAK_ROWS.flatMap((r) => r.keys.map((k) => getFingerForKey(k.code)).filter(Boolean));
+	return /* @__PURE__ */ jsxs("section", {
+		className: "hidden w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 p-4 shadow-sm sm:block sm:p-6",
+		children: [
+			/* @__PURE__ */ jsxs("div", {
+				className: "mb-4 flex items-center justify-between gap-4",
+				children: [/* @__PURE__ */ jsx("h2", {
+					className: "text-sm font-semibold uppercase tracking-widest text-[var(--color-text-muted)]",
+					children: t.typing.dvorakLayout
+				}), /* @__PURE__ */ jsx(KeyLegend, {})]
+			}),
+			showFingers && /* @__PURE__ */ jsx(FingerColorBar, { fingers: allFingers }),
+			/* @__PURE__ */ jsx("div", {
+				className: "mx-auto w-full max-w-3xl select-none motion-reduce:transition-none",
+				"aria-hidden": "true",
+				children: DVORAK_ROWS.map((row, rowIndex) => {
+					const totalUnits = row.keys.reduce((s, k) => s + (k.width ?? 1), 0);
+					return /* @__PURE__ */ jsx("div", {
+						className: "mb-1 flex w-full justify-center",
+						style: { paddingLeft: `${(row.indent ?? 0) * 2.5}%` },
+						children: /* @__PURE__ */ jsx("div", {
+							className: "flex w-full gap-0.5",
+							children: row.keys.map((key) => {
+								const isPressed = pressedKey === key.code;
+								const isTarget = !isPressed && targetKey === key.code;
+								const finger = showFingers ? getFingerForKey(key.code) : void 0;
+								return /* @__PURE__ */ jsxs("div", {
+									style: {
+										width: `${(key.width ?? 1) / totalUnits * 100}%`,
+										...finger && !isPressed && !isTarget ? { background: `color-mix(in srgb, var(${FINGER_CSS_VAR[finger]}) 25%, var(--color-key))` } : {}
+									},
+									className: ["relative flex h-10 items-center justify-center rounded-lg border font-mono text-sm font-medium transition-all duration-75 motion-reduce:animate-none sm:h-11 sm:text-base", isPressed ? "z-10 scale-95 border-[var(--color-key-pressed)] bg-[var(--color-key-pressed)] text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.25)]" : isTarget ? "z-10 border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)] text-[var(--color-key-target)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-key-target)_25%,transparent)] animate-pulse motion-reduce:animate-none" : "border-[var(--color-border)] bg-[var(--color-key)] text-[var(--color-text)]"].join(" "),
+									children: [
+										key.label,
+										key.homeRowMark && !isPressed && /* @__PURE__ */ jsx("span", { className: ["absolute bottom-1 left-1/2 h-1 w-3 -translate-x-1/2 rounded-full sm:w-4", isTarget ? "bg-[var(--color-key-target)]" : "bg-[var(--color-key-mark)]"].join(" ") }),
+										isTarget && /* @__PURE__ */ jsx("span", { className: "absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-4 border-x-transparent border-b-[var(--color-key-target)]" })
+									]
+								}, key.code);
+							})
+						})
+					}, rowIndex);
+				})
+			}),
+			/* @__PURE__ */ jsx(HandGuide, { targetKey })
+		]
+	});
+}
+//#endregion
+//#region src/components/typing/StatsBar.tsx
+function StatsBar({ wpm, accuracy, elapsedSeconds, progress, finished = false, started = false, isTestMode = false, timeRemaining = 0 }) {
+	const { t } = useApp();
+	const formatTime = (seconds) => {
+		return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`;
+	};
+	const timeDisplay = isTestMode ? formatTime(timeRemaining) : formatTime(elapsedSeconds);
+	const timeLabel = isTestMode ? t.lesson.timeRemaining : t.typing.time;
+	const wpmVariant = finished && wpm > 0 ? "success" : started && !finished ? "active" : "default";
+	const accuracyVariant = finished && accuracy === 100 ? "success" : started && !finished ? "active" : "default";
+	const timeVariant = isTestMode && timeRemaining <= 10 && started ? "urgent" : started && !finished ? "active" : "default";
+	return /* @__PURE__ */ jsxs("div", {
+		className: "space-y-4",
+		"aria-live": "polite",
+		"aria-atomic": "true",
+		children: [/* @__PURE__ */ jsxs("div", {
+			className: "grid grid-cols-3 gap-3 sm:gap-4",
+			children: [
+				/* @__PURE__ */ jsx(StatCard, {
+					label: t.typing.wpm,
+					value: wpm.toString(),
+					variant: wpmVariant
+				}),
+				/* @__PURE__ */ jsx(StatCard, {
+					label: t.typing.accuracy,
+					value: `${accuracy}%`,
+					variant: accuracyVariant
+				}),
+				/* @__PURE__ */ jsx(StatCard, {
+					label: timeLabel,
+					value: timeDisplay,
+					variant: timeVariant
+				})
+			]
+		}), /* @__PURE__ */ jsx("div", {
+			className: "relative h-2 w-full overflow-hidden rounded-full bg-[var(--color-border)]",
+			children: /* @__PURE__ */ jsx("div", {
+				className: ["h-full rounded-full transition-all duration-300 ease-out", finished ? "bg-[var(--color-correct)]" : isTestMode ? "bg-[var(--color-key-target)]" : "bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-hover)]"].join(" "),
+				style: { width: `${Math.min(progress, 100)}%` },
+				role: "progressbar",
+				"aria-valuenow": Math.round(progress),
+				"aria-valuemin": 0,
+				"aria-valuemax": 100
+			})
+		})]
+	});
+}
+//#endregion
+//#region src/components/typing/CompletionPanel.tsx
+function formatTime(seconds) {
+	return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`;
+}
+function CompletionPanel({ wpm, accuracy, elapsedSeconds, isNewRecord = false, wpmDelta = 0, weakKeys = [], onRetry, retryButtonRef }) {
+	const { t: t$1, settings } = useApp();
+	const isPerfect = accuracy === 100;
+	useEffect(() => {
+		const prev = document.body.style.overflow;
+		document.body.style.overflow = "hidden";
+		return () => {
+			document.body.style.overflow = prev;
+		};
+	}, []);
+	return /* @__PURE__ */ jsxs("div", {
+		className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+		role: "dialog",
+		"aria-modal": "true",
+		"aria-labelledby": "completion-title",
+		children: [/* @__PURE__ */ jsx("div", {
+			className: "absolute inset-0 bg-[var(--color-surface)]/60 backdrop-blur-sm motion-reduce:backdrop-blur-none",
+			"aria-hidden": "true"
+		}), /* @__PURE__ */ jsxs("div", {
+			className: "completion-enter relative w-full max-w-md overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl shadow-black/20 motion-reduce:animate-none",
+			children: [/* @__PURE__ */ jsx("div", {
+				className: ["h-1 w-full", isPerfect ? "bg-gradient-to-r from-[var(--color-correct)] to-[var(--color-correct)]/50" : "bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent)]/50"].join(" "),
+				"aria-hidden": "true"
+			}), /* @__PURE__ */ jsxs("div", {
+				className: "px-6 py-8 text-center sm:px-8",
+				children: [
+					/* @__PURE__ */ jsx("div", {
+						className: ["mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full", isPerfect ? "bg-[var(--color-correct)]/15 ring-2 ring-[var(--color-correct)]/30" : "bg-[var(--color-accent)]/15 ring-2 ring-[var(--color-accent)]/30"].join(" "),
+						children: isPerfect ? /* @__PURE__ */ jsx("svg", {
+							xmlns: "http://www.w3.org/2000/svg",
+							width: "28",
+							height: "28",
+							viewBox: "0 0 24 24",
+							fill: "none",
+							stroke: "var(--color-correct)",
+							strokeWidth: "2.5",
+							strokeLinecap: "round",
+							strokeLinejoin: "round",
+							children: /* @__PURE__ */ jsx("path", { d: "M20 6 9 17l-5-5" })
+						}) : /* @__PURE__ */ jsxs("svg", {
+							xmlns: "http://www.w3.org/2000/svg",
+							width: "28",
+							height: "28",
+							viewBox: "0 0 24 24",
+							fill: "none",
+							stroke: "var(--color-accent)",
+							strokeWidth: "2",
+							strokeLinecap: "round",
+							strokeLinejoin: "round",
+							children: [/* @__PURE__ */ jsx("path", { d: "M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" }), /* @__PURE__ */ jsx("path", { d: "m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" })]
+						})
+					}),
+					isNewRecord && /* @__PURE__ */ jsx("p", {
+						className: "mb-2 text-sm font-semibold text-[var(--color-key-target)]",
+						children: t$1.completion.newRecord
+					}),
+					/* @__PURE__ */ jsx("h2", {
+						id: "completion-title",
+						className: "text-2xl font-bold tracking-tight text-[var(--color-text)]",
+						children: isPerfect ? t$1.completion.perfect : t$1.completion.complete
+					}),
+					/* @__PURE__ */ jsx("p", {
+						className: "mt-1.5 text-sm text-[var(--color-text-muted)]",
+						children: isPerfect ? t$1.completion.perfectDesc : t$1.completion.keepGoing
+					}),
+					wpmDelta > 0 && !isNewRecord && /* @__PURE__ */ jsx("p", {
+						className: "mt-1 text-xs text-[var(--color-correct)]",
+						children: t(settings.locale, "completion.improved", { delta: wpmDelta })
+					}),
+					/* @__PURE__ */ jsxs("div", {
+						className: "mt-6 grid grid-cols-3 gap-3",
+						children: [
+							/* @__PURE__ */ jsx(StatCard, {
+								label: t$1.typing.wpm,
+								value: wpm.toString(),
+								variant: wpm >= 40 ? "highlight" : "default",
+								size: "lg"
+							}),
+							/* @__PURE__ */ jsx(StatCard, {
+								label: t$1.typing.accuracy,
+								value: `${accuracy}%`,
+								variant: accuracy === 100 ? "highlight" : "default",
+								size: "lg"
+							}),
+							/* @__PURE__ */ jsx(StatCard, {
+								label: t$1.typing.time,
+								value: formatTime(elapsedSeconds),
+								size: "lg"
+							})
+						]
+					}),
+					/* @__PURE__ */ jsx("div", {
+						className: "mt-5",
+						children: /* @__PURE__ */ jsx(StarRating, {
+							accuracy,
+							wpm,
+							label: t$1.completion.starsEarned
+						})
+					}),
+					weakKeys.length > 0 && /* @__PURE__ */ jsxs("div", {
+						className: "mt-5 rounded-xl border border-[var(--color-incorrect)]/20 bg-[var(--color-incorrect)]/5 px-4 py-3 text-left",
+						children: [
+							/* @__PURE__ */ jsx("p", {
+								className: "text-center text-xs font-medium text-[var(--color-text-muted)]",
+								children: t$1.completion.weakKeys
+							}),
+							/* @__PURE__ */ jsx("div", {
+								className: "mt-2.5 flex justify-center gap-2",
+								children: weakKeys.map((key) => /* @__PURE__ */ jsx("kbd", {
+									className: "inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-[var(--color-incorrect)]/25 bg-[var(--color-surface)] font-mono text-base font-semibold text-[var(--color-incorrect)]",
+									children: key === " " ? "␣" : key
+								}, key))
+							}),
+							/* @__PURE__ */ jsx("p", {
+								className: "mt-2 text-center text-[10px] text-[var(--color-text-muted)]",
+								children: t$1.completion.weakKeysHint
+							})
+						]
+					}),
+					/* @__PURE__ */ jsxs("button", {
+						ref: retryButtonRef,
+						type: "button",
+						onClick: onRetry,
+						className: "mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-accent)]/20 transition hover:bg-[var(--color-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-elevated)]",
+						children: [t$1.completion.tryAgain, /* @__PURE__ */ jsx("kbd", {
+							className: "rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-xs font-normal text-white/80",
+							children: "Enter ↵"
+						})]
+					})
+				]
+			})]
+		})]
+	});
+}
+//#endregion
+//#region src/components/typing/ModeToggle.tsx
+function ModeToggle() {
+	const { t, settings, setPracticeMode } = useApp();
+	return /* @__PURE__ */ jsx("div", {
+		className: "flex rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-1",
+		children: ["practice", "test"].map((mode) => /* @__PURE__ */ jsx("button", {
+			type: "button",
+			onClick: () => setPracticeMode(mode),
+			className: ["flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition", settings.practiceMode === mode ? "bg-[var(--color-accent)] text-white shadow-sm" : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"].join(" "),
+			children: mode === "practice" ? t.lesson.practice : t.lesson.test
+		}, mode))
+	});
+}
+function ModeDescription() {
+	const { t, settings } = useApp();
+	return /* @__PURE__ */ jsx("p", {
+		className: "mt-2 text-sm text-[var(--color-text-muted)]",
+		children: settings.practiceMode === "practice" ? t.lesson.practiceDesc : t.lesson.testDesc
+	});
+}
+//#endregion
+//#region src/components/typing/PauseOverlay.tsx
+function PauseOverlay({ onResume }) {
+	const { t } = useApp();
+	return /* @__PURE__ */ jsx("div", {
+		className: "absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-[var(--color-surface)]/80 backdrop-blur-sm",
+		children: /* @__PURE__ */ jsxs("div", {
+			className: "text-center",
+			children: [
+				/* @__PURE__ */ jsx("div", {
+					className: "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-accent)]/15 ring-2 ring-[var(--color-accent)]/25",
+					children: /* @__PURE__ */ jsxs("svg", {
+						xmlns: "http://www.w3.org/2000/svg",
+						width: "28",
+						height: "28",
+						viewBox: "0 0 24 24",
+						fill: "var(--color-accent)",
+						children: [/* @__PURE__ */ jsx("rect", {
+							x: "6",
+							y: "4",
+							width: "4",
+							height: "16",
+							rx: "1"
+						}), /* @__PURE__ */ jsx("rect", {
+							x: "14",
+							y: "4",
+							width: "4",
+							height: "16",
+							rx: "1"
+						})]
+					})
+				}),
+				/* @__PURE__ */ jsx("h3", {
+					className: "text-xl font-bold text-[var(--color-text)]",
+					children: t.lesson.paused
+				}),
+				/* @__PURE__ */ jsx("p", {
+					className: "mt-1.5 text-sm text-[var(--color-text-muted)]",
+					children: t.lesson.pauseHint
+				}),
+				/* @__PURE__ */ jsx("button", {
+					type: "button",
+					onClick: onResume,
+					className: "mt-6 rounded-xl bg-[var(--color-accent)] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-hover)]",
+					children: t.lesson.resume
+				})
+			]
+		})
+	});
+}
+//#endregion
+//#region src/components/typing/TypedChar.tsx
+function TypedChar({ char, status, isCurrent, active }) {
+	if (char === " ") return /* @__PURE__ */ jsx("span", {
+		"aria-hidden": "true",
+		className: [
+			"inline-block align-baseline",
+			"min-w-[0.55em] h-[1em]",
+			spaceClass(status, isCurrent, active)
+		].join(" ")
+	});
+	let className = "text-[var(--color-text-muted)]/60";
+	if (status === "correct") className = "text-[var(--color-correct)]";
+	if (status === "incorrect") className = "text-[var(--color-incorrect)] underline decoration-wavy decoration-[var(--color-incorrect)]/50";
+	if (isCurrent && active) className = "relative text-[var(--color-key-target)] after:absolute after:-bottom-0.5 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-[var(--color-key-target)] after:content-[\"\"]";
+	return /* @__PURE__ */ jsx("span", {
+		className,
+		children: char
+	});
+}
+function spaceClass(status, isCurrent, active) {
+	if (isCurrent && active) return "border-b-2 border-[var(--color-key-target)] caret-blink motion-reduce:animate-none";
+	if (status === "correct") return "border-b border-[var(--color-correct)]/40";
+	if (status === "incorrect") return "border-b-2 border-dashed border-[var(--color-incorrect)]/70";
+	return "border-b border-[var(--color-border)]/30";
+}
+//#endregion
+//#region src/components/typing/TypingTest.tsx
+function TypingTest({ lessonId, lesson, customText, onProgressChange }) {
+	const { t, settings } = useApp();
+	const lessonTitle = getLessonTitle(t, lesson.titleKey);
+	const { targetText, input, statuses, started, finished, paused, stats, progress, timeRemaining, targetKey, activeKey, isNewRecord, wpmDelta, sessionWeakKeys, isTestMode, containerRef, retryButtonRef, reset, handleKeyDown, togglePause } = useTypingSession({
+		lessonId,
+		lessonTitle,
+		lesson,
+		mode: settings.practiceMode,
+		sound: settings.sound,
+		locale: settings.locale,
+		customText
+	});
+	const [keyboardOpen, setKeyboardOpen] = useState(true);
+	useEffect(() => {
+		const mq = window.matchMedia("(max-width: 640px)");
+		setKeyboardOpen(!mq.matches);
+		const handler = (e) => setKeyboardOpen(!e.matches);
+		mq.addEventListener("change", handler);
+		return () => mq.removeEventListener("change", handler);
+	}, []);
+	useEffect(() => {
+		if (!onProgressChange || !started || paused) return;
+		onProgressChange(stats.wpm, progress, finished);
+		if (finished) return;
+		const interval = window.setInterval(() => {
+			onProgressChange(stats.wpm, progress);
+		}, 500);
+		return () => window.clearInterval(interval);
+	}, [
+		onProgressChange,
+		started,
+		paused,
+		finished,
+		stats.wpm,
+		progress
+	]);
+	const showKeyboard = !settings.blindMode && keyboardOpen;
+	return /* @__PURE__ */ jsxs("div", {
+		className: "space-y-6",
+		children: [
+			/* @__PURE__ */ jsx(ModeToggle, {}),
+			/* @__PURE__ */ jsx(ModeDescription, {}),
+			/* @__PURE__ */ jsx(StatsBar, {
+				wpm: stats.wpm,
+				accuracy: stats.accuracy,
+				elapsedSeconds: stats.elapsedSeconds,
+				progress,
+				finished,
+				started,
+				isTestMode,
+				timeRemaining,
+				paused
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				ref: containerRef,
+				tabIndex: 0,
+				onKeyDown: handleKeyDown,
+				onClick: () => !finished && !paused && containerRef.current?.focus(),
+				role: "textbox",
+				"aria-label": lessonTitle,
+				"aria-readonly": "true",
+				className: ["relative min-h-[160px] cursor-text overflow-hidden rounded-2xl border-2 bg-[var(--color-surface-elevated)] p-6 outline-none transition-all duration-300 sm:min-h-[180px] sm:p-8", finished ? "border-[var(--color-correct)]/30" : paused ? "border-[var(--color-key-target)]/40" : "border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:ring-4 focus:ring-[var(--color-accent)]/10"].join(" "),
+				children: [
+					/* @__PURE__ */ jsx("div", {
+						className: "pointer-events-none absolute inset-0 opacity-50",
+						style: {
+							backgroundImage: "linear-gradient(var(--color-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-border) 1px, transparent 1px)",
+							backgroundSize: "24px 24px",
+							maskImage: "linear-gradient(to bottom, black, transparent)"
+						},
+						"aria-hidden": "true"
+					}),
+					/* @__PURE__ */ jsxs("p", {
+						className: "relative font-mono text-xl leading-[2] tracking-wide break-words sm:text-2xl sm:leading-[2.2]",
+						"aria-live": "off",
+						children: [targetText.split("").map((char, i) => /* @__PURE__ */ jsx("span", { children: /* @__PURE__ */ jsx(TypedChar, {
+							char,
+							status: statuses[i],
+							isCurrent: i === input.length,
+							active: !finished && !paused
+						}) }, i)), !finished && !paused && input.length === targetText.length && /* @__PURE__ */ jsx("span", { className: "caret-blink ml-px inline-block h-[1.1em] w-0.5 translate-y-0.5 bg-[var(--color-key-target)] align-middle motion-reduce:animate-none" })]
+					}),
+					!started && !finished && /* @__PURE__ */ jsxs("p", {
+						className: "relative mt-6 flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+						children: [/* @__PURE__ */ jsx("span", { className: "inline-flex h-2 w-2 rounded-full bg-[var(--color-accent)] animate-pulse motion-reduce:animate-none" }), t.lesson.startTyping]
+					}),
+					paused && !finished && /* @__PURE__ */ jsx(PauseOverlay, { onResume: togglePause })
+				]
+			}),
+			finished && /* @__PURE__ */ jsx(CompletionPanel, {
+				wpm: stats.wpm,
+				accuracy: stats.accuracy,
+				elapsedSeconds: stats.elapsedSeconds,
+				isNewRecord,
+				wpmDelta,
+				weakKeys: sessionWeakKeys,
+				onRetry: reset,
+				retryButtonRef
+			}),
+			!settings.blindMode && /* @__PURE__ */ jsx("div", {
+				className: "flex items-center justify-center sm:hidden",
+				children: /* @__PURE__ */ jsxs("button", {
+					type: "button",
+					onClick: () => setKeyboardOpen((v) => !v),
+					className: "flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-4 py-2 text-sm text-[var(--color-text-muted)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+					children: [/* @__PURE__ */ jsxs("svg", {
+						xmlns: "http://www.w3.org/2000/svg",
+						width: "16",
+						height: "16",
+						viewBox: "0 0 24 24",
+						fill: "none",
+						stroke: "currentColor",
+						strokeWidth: "2",
+						children: [/* @__PURE__ */ jsx("rect", {
+							width: "20",
+							height: "16",
+							x: "2",
+							y: "4",
+							rx: "2"
+						}), /* @__PURE__ */ jsx("path", { d: "M6 8h.001M10 8h.001M14 8h.001M18 8h.001" })]
+					}), keyboardOpen ? t.typing.hideKeyboard : t.typing.showKeyboard]
+				})
+			}),
+			showKeyboard && /* @__PURE__ */ jsx("div", {
+				className: ["transition-all duration-500", finished ? "pointer-events-none opacity-40 grayscale-[30%]" : "opacity-100"].join(" "),
+				children: /* @__PURE__ */ jsx("div", {
+					className: "overflow-x-auto",
+					children: /* @__PURE__ */ jsx(Keyboard, {
+						pressedKey: activeKey,
+						targetKey
+					})
+				})
+			}),
+			settings.blindMode && !finished && /* @__PURE__ */ jsxs("p", {
+				className: "text-center text-xs text-[var(--color-text-muted)]",
+				children: ["👁 ", t.settings.blindDesc]
+			}),
+			isTestMode && started && !finished && /* @__PURE__ */ jsx("p", {
+				className: "text-center text-xs text-[var(--color-text-muted)]",
+				children: t.lesson.pauseHint
+			})
+		]
+	});
+}
+//#endregion
+//#region src/components/multiplayer/MultiplayerRaceTrack.tsx
+function RaceRow({ name, avatarUrl, initials, avatarSource, wpm, percentage }) {
+	return /* @__PURE__ */ jsxs("div", {
+		className: "flex items-center gap-3",
+		children: [
+			/* @__PURE__ */ jsx(UserAvatar, {
+				avatarUrl,
+				initials,
+				avatarSource,
+				size: 34
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "min-w-0 flex-1",
+				children: [/* @__PURE__ */ jsxs("div", {
+					className: "mb-1 flex items-center justify-between gap-3 text-sm",
+					children: [/* @__PURE__ */ jsx("span", {
+						className: "truncate font-medium text-[var(--color-text)]",
+						children: name
+					}), /* @__PURE__ */ jsxs("span", {
+						className: "shrink-0 font-mono text-xs text-[var(--color-text-muted)]",
+						children: [Math.round(wpm), " WPM"]
+					})]
+				}), /* @__PURE__ */ jsx("div", {
+					className: "h-3 overflow-hidden rounded-full bg-[var(--color-surface)]",
+					children: /* @__PURE__ */ jsx("div", {
+						className: "h-full rounded-full bg-[var(--color-accent)] transition-[width] duration-300 ease-out",
+						style: { width: `${percentage}%` }
+					})
+				})]
+			}),
+			/* @__PURE__ */ jsxs("span", {
+				className: "w-10 text-right font-mono text-xs text-[var(--color-text-muted)]",
+				children: [Math.round(percentage), "%"]
+			})
+		]
+	});
+}
+function MultiplayerRaceTrack({ localProgress, opponents, title, emptyLabel }) {
+	return /* @__PURE__ */ jsxs("section", {
+		className: "rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-5",
+		children: [/* @__PURE__ */ jsx("h2", {
+			className: "mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]",
+			children: title
+		}), /* @__PURE__ */ jsxs("div", {
+			className: "space-y-4",
+			children: [localProgress.player ? /* @__PURE__ */ jsx(RaceRow, {
+				name: localProgress.player.name,
+				avatarUrl: localProgress.player.avatarUrl,
+				initials: localProgress.player.initials,
+				avatarSource: localProgress.player.avatarSource,
+				wpm: localProgress.wpm,
+				percentage: localProgress.percentage
+			}) : null, opponents.length > 0 ? opponents.map((opponent) => /* @__PURE__ */ jsx(RaceRow, {
+				name: opponent.name,
+				avatarUrl: opponent.avatarUrl,
+				initials: opponent.initials,
+				avatarSource: opponent.avatarSource,
+				wpm: opponent.wpm,
+				percentage: opponent.percentage
+			}, opponent.userId)) : /* @__PURE__ */ jsx("p", {
+				className: "text-sm text-[var(--color-text-muted)]",
+				children: emptyLabel
+			})]
+		})]
+	});
+}
+//#endregion
+//#region src/components/multiplayer/MultiplayerRacePanel.tsx
+function MultiplayerRacePanel({ channel, currentUserId, players }) {
+	const { t } = useApp();
+	const [localProgress, setLocalProgress] = useState({
+		wpm: 0,
+		percentage: 0
+	});
+	const lesson = LESSONS.find((item) => item.id === "all-rows") ?? LESSONS[0];
+	const { opponents, broadcastProgress } = useMultiplayerRace({
+		channel,
+		currentUserId,
+		players,
+		enabled: Boolean(channel && currentUserId)
+	});
+	const localPlayer = useMemo(() => players.find((player) => player.userId === currentUserId) ?? null, [players, currentUserId]);
+	const handleProgressChange = useCallback((wpm, percentage, force = false) => {
+		setLocalProgress({
+			wpm,
+			percentage
+		});
+		broadcastProgress(wpm, percentage, force);
+	}, [broadcastProgress]);
+	return /* @__PURE__ */ jsxs("div", {
+		className: "space-y-6",
+		children: [/* @__PURE__ */ jsx(MultiplayerRaceTrack, {
+			localProgress: {
+				player: localPlayer,
+				wpm: localProgress.wpm,
+				percentage: localProgress.percentage
+			},
+			opponents,
+			title: t.multiplayer.raceProgress,
+			emptyLabel: t.multiplayer.waitingForOpponentProgress
+		}), /* @__PURE__ */ jsx(TypingTest, {
+			lessonId: lesson.id,
+			lesson,
+			customText: lesson.texts[0],
+			onProgressChange: handleProgressChange
+		})]
+	});
+}
+//#endregion
 //#region src/components/multiplayer/LobbyView.tsx
 function LobbyView({ roomId }) {
 	const { t } = useApp();
 	const { user, loading: authLoading, isConfigured } = useAuth();
 	const [matchStarting, setMatchStarting] = useState(false);
-	const { players, status, error, isReady, isConnected, toggleReadyStatus, leaveLobby, currentUserId } = useMultiplayerLobby({
+	const { players, status, error, isReady, isConnected, toggleReadyStatus, leaveLobby, currentUserId, channel } = useMultiplayerLobby({
 		roomId,
 		onAllReady: useCallback(() => {
 			setMatchStarting(true);
@@ -3300,61 +4778,69 @@ function LobbyView({ roomId }) {
 	const readyCount = players.filter((player) => player.isReady).length;
 	return /* @__PURE__ */ jsxs("div", {
 		className: "space-y-6",
-		children: [/* @__PURE__ */ jsxs(Card, {
-			padding: "lg",
-			bleed: true,
-			children: [
-				/* @__PURE__ */ jsxs("div", {
-					className: "flex flex-wrap items-start justify-between gap-4 px-6 pt-6",
-					children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("p", {
-						className: "text-sm font-medium text-[var(--color-text-muted)]",
-						children: t.multiplayer.roomCode
-					}), /* @__PURE__ */ jsx("p", {
-						className: "mt-1 font-mono text-3xl font-bold tracking-widest text-[var(--color-text)]",
-						children: roomId
-					})] }), /* @__PURE__ */ jsxs("div", {
-						className: "text-right",
-						children: [/* @__PURE__ */ jsx("p", {
-							className: "text-sm text-[var(--color-text-muted)]",
-							children: statusLabel
+		children: [
+			/* @__PURE__ */ jsxs(Card, {
+				padding: "lg",
+				bleed: true,
+				children: [
+					/* @__PURE__ */ jsxs("div", {
+						className: "flex flex-wrap items-start justify-between gap-4 px-6 pt-6",
+						children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("p", {
+							className: "text-sm font-medium text-[var(--color-text-muted)]",
+							children: t.multiplayer.roomCode
 						}), /* @__PURE__ */ jsx("p", {
-							className: "mt-1 text-sm font-medium text-[var(--color-text)]",
-							children: t.multiplayer.playersReady.replace("{ready}", String(readyCount)).replace("{total}", String(players.length))
+							className: "mt-1 font-mono text-3xl font-bold tracking-widest text-[var(--color-text)]",
+							children: roomId
+						})] }), /* @__PURE__ */ jsxs("div", {
+							className: "text-right",
+							children: [/* @__PURE__ */ jsx("p", {
+								className: "text-sm text-[var(--color-text-muted)]",
+								children: statusLabel
+							}), /* @__PURE__ */ jsx("p", {
+								className: "mt-1 text-sm font-medium text-[var(--color-text)]",
+								children: t.multiplayer.playersReady.replace("{ready}", String(readyCount)).replace("{total}", String(players.length))
+							})]
 						})]
-					})]
-				}),
-				error ? /* @__PURE__ */ jsx("p", {
-					className: "mx-6 mt-4 rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-incorrect)]/10 px-4 py-3 text-sm text-[var(--color-incorrect)]",
-					children: error === "supabase_not_configured" ? t.multiplayer.notConfigured : error === "channel_error" ? t.multiplayer.connectionError : error === "timed_out" ? t.multiplayer.timedOut : error
-				}) : null,
-				matchStarting ? /* @__PURE__ */ jsx("div", {
-					className: "mx-6 mt-4 rounded-lg border border-[var(--color-correct)]/30 bg-[var(--color-correct)]/10 px-4 py-3 text-sm font-medium text-[var(--color-correct)]",
-					children: t.multiplayer.allReady
-				}) : null,
-				/* @__PURE__ */ jsx("div", {
-					className: "mt-6",
-					children: /* @__PURE__ */ jsx(LobbyPlayerList, {
-						players,
-						currentUserId,
-						readyLabel: t.multiplayer.ready,
-						waitingLabel: t.multiplayer.notReady,
-						youLabel: t.multiplayer.you
+					}),
+					error ? /* @__PURE__ */ jsx("p", {
+						className: "mx-6 mt-4 rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-incorrect)]/10 px-4 py-3 text-sm text-[var(--color-incorrect)]",
+						children: error === "supabase_not_configured" ? t.multiplayer.notConfigured : error === "channel_error" ? t.multiplayer.connectionError : error === "timed_out" ? t.multiplayer.timedOut : error
+					}) : null,
+					matchStarting ? /* @__PURE__ */ jsx("div", {
+						className: "mx-6 mt-4 rounded-lg border border-[var(--color-correct)]/30 bg-[var(--color-correct)]/10 px-4 py-3 text-sm font-medium text-[var(--color-correct)]",
+						children: t.multiplayer.allReady
+					}) : null,
+					/* @__PURE__ */ jsx("div", {
+						className: "mt-6",
+						children: /* @__PURE__ */ jsx(LobbyPlayerList, {
+							players,
+							currentUserId,
+							readyLabel: t.multiplayer.ready,
+							waitingLabel: t.multiplayer.notReady,
+							youLabel: t.multiplayer.you
+						})
 					})
-				})
-			]
-		}), /* @__PURE__ */ jsxs("div", {
-			className: "flex flex-wrap gap-3",
-			children: [/* @__PURE__ */ jsx(Button, {
-				variant: isReady ? "secondary" : "success",
-				onClick: () => void toggleReadyStatus(),
-				disabled: !isConnected || matchStarting,
-				children: isReady ? t.multiplayer.unready : t.multiplayer.markReady
-			}), /* @__PURE__ */ jsx(Button, {
-				variant: "ghost",
-				onClick: () => void handleLeave(),
-				children: t.multiplayer.leaveRoom
-			})]
-		})]
+				]
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "flex flex-wrap gap-3",
+				children: [/* @__PURE__ */ jsx(Button, {
+					variant: isReady ? "secondary" : "success",
+					onClick: () => void toggleReadyStatus(),
+					disabled: !isConnected || matchStarting,
+					children: isReady ? t.multiplayer.unready : t.multiplayer.markReady
+				}), /* @__PURE__ */ jsx(Button, {
+					variant: "ghost",
+					onClick: () => void handleLeave(),
+					children: t.multiplayer.leaveRoom
+				})]
+			}),
+			matchStarting ? /* @__PURE__ */ jsx(MultiplayerRacePanel, {
+				channel,
+				currentUserId,
+				players
+			}) : null
+		]
 	});
 }
 //#endregion

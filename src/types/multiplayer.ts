@@ -12,3 +12,17 @@ export interface LobbyPlayerPresence {
 }
 
 export type LobbyConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error';
+
+export interface RaceProgressPayload {
+  userId: string;
+  wpm: number;
+  percentage: number;
+  updatedAt: number;
+}
+
+export interface RaceOpponentProgress extends RaceProgressPayload {
+  name: string;
+  avatarUrl: string | null;
+  initials: string;
+  avatarSource: AvatarSource;
+}

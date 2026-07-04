@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { useMultiplayerLobby } from '@/hooks/useMultiplayerLobby';
 import { Button, Card } from '@/components/ui';
 import LobbyPlayerList from '@/components/multiplayer/LobbyPlayerList';
+import MultiplayerRacePanel from '@/components/multiplayer/MultiplayerRacePanel';
 
 interface LobbyViewProps {
   roomId: string;
@@ -27,6 +28,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
     toggleReadyStatus,
     leaveLobby,
     currentUserId,
+    channel,
   } = useMultiplayerLobby({
     roomId,
     onAllReady: handleAllReady,
@@ -140,6 +142,14 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
           {t.multiplayer.leaveRoom}
         </Button>
       </div>
+
+      {matchStarting ? (
+        <MultiplayerRacePanel
+          channel={channel}
+          currentUserId={currentUserId}
+          players={players}
+        />
+      ) : null}
     </div>
   );
 }

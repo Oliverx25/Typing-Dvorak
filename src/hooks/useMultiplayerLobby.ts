@@ -46,6 +46,7 @@ export function useMultiplayerLobby({
   const [status, setStatus] = useState<LobbyConnectionStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const presenceRef = useRef<LobbyPlayerPresence | null>(null);
@@ -136,6 +137,7 @@ export function useMultiplayerLobby({
     });
 
     channelRef.current = channel;
+    setChannel(channel);
 
     return () => {
       void channel.untrack().finally(() => {
@@ -143,6 +145,7 @@ export function useMultiplayerLobby({
       });
       channelRef.current = null;
       presenceRef.current = null;
+      setChannel(null);
     };
   }, [user, profile, roomId, syncPlayers]);
 
@@ -173,6 +176,7 @@ export function useMultiplayerLobby({
     supabase.removeChannel(channel);
     channelRef.current = null;
     presenceRef.current = null;
+    setChannel(null);
     setPlayers([]);
     setStatus('idle');
     setIsReady(false);
@@ -187,5 +191,6 @@ export function useMultiplayerLobby({
     toggleReadyStatus,
     leaveLobby,
     currentUserId: user?.id ?? null,
+    channel,
   };
 }

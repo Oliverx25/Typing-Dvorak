@@ -328,6 +328,8 @@ export const en = {
     connectionError: 'Could not connect to the room.',
     timedOut: 'Connection timed out.',
     allReady: 'Everyone is ready — starting match…',
+    raceProgress: 'Race progress',
+    waitingForOpponentProgress: 'Opponent progress will appear when they start typing.',
     signInRequired: 'Sign in to join multiplayer lobbies.',
     notConfigured: 'Multiplayer requires Supabase to be configured.',
   },

@@ -13,9 +13,15 @@ interface TypingTestProps {
   lessonId: string;
   lesson: Lesson;
   customText?: string;
+  onProgressChange?: (wpm: number, percentage: number, force?: boolean) => void;
 }
 
-export default function TypingTest({ lessonId, lesson, customText }: TypingTestProps) {
+export default function TypingTest({
+  lessonId,
+  lesson,
+  customText,
+  onProgressChange,
+}: TypingTestProps) {
   const { t, settings } = useApp();
   const lessonTitle = getLessonTitle(t, lesson.titleKey);
 
@@ -61,6 +67,19 @@ export default function TypingTest({ lessonId, lesson, customText }: TypingTestP
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  useEffect(() => {
+    if (!onProgressChange || !started || paused) return;
+
+    onProgressChange(stats.wpm, progress, finished);
+    if (finished) return;
+
+    const interval = window.setInterval(() => {
+      onProgressChange(stats.wpm, progress);
+    }, 500);
+
+    return () => window.clearInterval(interval);
+  }, [onProgressChange, started, paused, finished, stats.wpm, progress]);
 
   const showKeyboard = !settings.blindMode && keyboardOpen;
 
