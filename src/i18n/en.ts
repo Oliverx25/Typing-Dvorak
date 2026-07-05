@@ -202,6 +202,7 @@ export const en = {
     totalSessions: 'Total sessions',
     bestWpm: 'Best WPM',
     avgAccuracy: 'Avg. accuracy',
+    avgWpm: 'Avg. WPM',
     streak: 'Day streak',
     wpmOverTime: 'WPM over time',
     byLesson: 'By lesson',

@@ -204,6 +204,7 @@ export const es: TranslationKey = {
     totalSessions: 'Sesiones totales',
     bestWpm: 'Mejor PPM',
     avgAccuracy: 'Precisión media',
+    avgWpm: 'PPM medio',
     streak: 'Racha de días',
     wpmOverTime: 'PPM en el tiempo',
     byLesson: 'Por lección',
