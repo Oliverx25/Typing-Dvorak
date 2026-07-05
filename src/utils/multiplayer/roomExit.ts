@@ -21,6 +21,8 @@ export function isRoomExitInProgress(): boolean {
  * Runs the registered disconnect handler (untrack, host transfer/close) then navigates.
  * Safe to call from any leave affordance in the room UI or header.
  */
+const PRESENCE_LEAVE_DELAY_MS = 400;
+
 export async function executeRoomExit(redirectTo = '/multiplayer'): Promise<void> {
   if (exitInProgress) return;
   exitInProgress = true;
@@ -29,6 +31,8 @@ export async function executeRoomExit(redirectTo = '/multiplayer'): Promise<void
     if (exitHandler) {
       await exitHandler();
     }
+    // Give Supabase Realtime time to propagate untrack before the page unloads.
+    await new Promise((resolve) => setTimeout(resolve, PRESENCE_LEAVE_DELAY_MS));
   } finally {
     exitInProgress = false;
     window.location.href = redirectTo;

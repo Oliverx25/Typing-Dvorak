@@ -25,4 +25,10 @@ describe('typing', () => {
     expect(stats.accuracy).toBe(95);
     expect(stats.elapsedSeconds).toBe(30);
   });
+
+  it('accuracy uses cumulative errors, not visible incorrect chars', () => {
+    // 10 correct, 3 mistakes (even if backspace cleared visible errors)
+    expect(calculateAccuracy(10, 3)).toBe(77);
+    expect(calculateAccuracy(50, 5)).toBe(91);
+  });
 });

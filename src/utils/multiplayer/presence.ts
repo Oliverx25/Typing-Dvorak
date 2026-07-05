@@ -31,3 +31,10 @@ export function parsePresenceState(
 
   return Array.from(byUser.values()).sort((a, b) => a.joinedAt - b.joinedAt);
 }
+
+/** In the waiting room, race-finished flags should not affect lobby UI. */
+export function normalizePlayersForLobbyView(
+  players: LobbyPlayerPresence[],
+): LobbyPlayerPresence[] {
+  return players.map((player) => ({ ...player, hasFinished: false }));
+}

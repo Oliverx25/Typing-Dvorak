@@ -93,7 +93,6 @@ export function useTypingSession({
   const totalPausedMsRef = useRef(0);
 
   const correctChars = statuses.filter((s) => s === 'correct').length;
-  const incorrectChars = statuses.filter((s) => s === 'incorrect').length;
   const liveStats = raceMode
     ? {
         wpm: calculateStableRaceWpm(correctChars, elapsedMs),
@@ -104,7 +103,7 @@ export function useTypingSession({
       }
     : buildStats(
         correctChars,
-        isTestMode ? errorKeystrokes : incorrectChars,
+        errorKeystrokes,
         elapsedMs || 1,
         isTestMode,
       );
@@ -286,9 +285,7 @@ export function useTypingSession({
     recordKeystroke(e.key, isCorrect);
     const nextCorrect = isCorrect ? correctChars + 1 : correctChars;
     const nextCombo = isCorrect ? combo + 1 : 0;
-    const nextAccuracy = raceMode
-      ? calculateRaceAccuracy(nextCorrect, nextErrors)
-      : calculateAccuracy(nextCorrect, isCorrect ? incorrectChars : incorrectChars + 1);
+    const nextAccuracy = calculateAccuracy(nextCorrect, nextErrors);
 
     if (isCorrect) {
       setComboBroke(false);
@@ -329,12 +326,8 @@ export function useTypingSession({
         ? Date.now() - startTime - totalPausedMsRef.current
         : elapsedMs;
       const finalCorrect = isCorrect ? correctChars + 1 : correctChars;
-      const finalIncorrect = raceMode
-        ? nextErrors
-        : isCorrect
-          ? incorrectChars
-          : incorrectChars + 1;
-      finishSession(buildStats(finalCorrect, finalIncorrect, finalElapsed || 1, false));
+      const finalErrors = isCorrect ? errorKeystrokes : errorKeystrokes + 1;
+      finishSession(buildStats(finalCorrect, finalErrors, finalElapsed || 1, isTestMode));
     }
   };
 

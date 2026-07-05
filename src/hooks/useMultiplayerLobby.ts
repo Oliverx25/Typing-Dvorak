@@ -15,9 +15,12 @@ import {
   mergeRoomState,
 } from '@/utils/multiplayer/roomConfig';
 import { clearCreateRoomConfig, readCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
-import { parsePresenceState } from '@/utils/multiplayer/presence';
+import { parsePresenceState, normalizePlayersForLobbyView } from '@/utils/multiplayer/presence';
 import { canAdvanceToResults } from '@/utils/multiplayer/raceCompletion';
-import { resolveRaceCountdownSeconds } from '@/utils/multiplayer/raceScoring';
+import {
+  RACE_COUNTDOWN_SECONDS,
+  resolveRaceCountdownSeconds,
+} from '@/utils/multiplayer/raceScoring';
 
 const MAX_CONNECT_RETRIES = 10;
 const RETRY_DELAYS_MS = [800, 1200, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 12000];
@@ -70,8 +73,10 @@ export function useMultiplayerLobby({
   const roomEventHandlerRef = useRef<((event: string, payload: unknown) => void) | null>(null);
   const ownershipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const returnLobbyCheckRef = useRef(false);
-  const readyTogglePendingRef = useRef(false);
+  const pendingReadyRef = useRef<boolean | null>(null);
   const returnedFromResultsRef = useRef(false);
+  const voluntaryDepartRef = useRef(false);
+  const dismissedPlayersRef = useRef<Map<string, number>>(new Map());
 
   returnedFromResultsRef.current = returnedFromResults;
 
@@ -185,35 +190,67 @@ export function useMultiplayerLobby({
     [applyRoomState, broadcastRoomState, user?.id],
   );
 
+  const isInLobbyView = useCallback(() => {
+    const phase = roomStateRef.current?.phase;
+    return phase === 'lobby' || returnedFromResultsRef.current;
+  }, []);
+
   const syncPlayers = useCallback(
     (activeChannel: RealtimeChannel) => {
-      const next = parsePresenceState(
+      const parsed = parsePresenceState(
         activeChannel.presenceState<LobbyPlayerPresence>() as Record<string, unknown[]>,
       );
+
+      for (const [userId] of dismissedPlayersRef.current) {
+        if (!parsed.some((player) => player.userId === userId)) {
+          dismissedPlayersRef.current.delete(userId);
+        }
+      }
+
+      const isHost = user?.id === roomStateRef.current?.ownerId;
+      const visible = isHost
+        ? parsed.filter((player) => {
+            const kickedAt = dismissedPlayersRef.current.get(player.userId);
+            if (kickedAt === undefined) return true;
+            if (player.joinedAt > kickedAt) {
+              dismissedPlayersRef.current.delete(player.userId);
+              return true;
+            }
+            return false;
+          })
+        : parsed;
+
+      const inLobbyView = isInLobbyView();
+      const next = inLobbyView ? normalizePlayersForLobbyView(visible) : visible;
       setPlayers(next);
 
       if (user?.id) {
-        const self = next.find((player) => player.userId === user.id);
+        const self = parsed.find((player) => player.userId === user.id);
         if (self) {
-          if (!readyTogglePendingRef.current) {
-            setIsReady(self.isReady);
+          let ready = self.isReady;
+          if (pendingReadyRef.current !== null) {
+            ready = pendingReadyRef.current;
+            if (self.isReady === pendingReadyRef.current) {
+              pendingReadyRef.current = null;
+            }
           }
+
+          setIsReady(ready);
+
           if (presenceRef.current) {
             presenceRef.current = {
               ...presenceRef.current,
-              isReady: readyTogglePendingRef.current
-                ? presenceRef.current.isReady
-                : self.isReady,
-              hasFinished: self.hasFinished,
+              isReady: ready,
+              hasFinished: inLobbyView ? false : self.hasFinished,
             };
           }
         }
       }
 
-      maybeTransferOwnership(next);
-      maybeAdvanceToResults(next);
+      maybeTransferOwnership(parsed);
+      maybeAdvanceToResults(parsed);
     },
-    [maybeAdvanceToResults, maybeTransferOwnership, user?.id],
+    [isInLobbyView, maybeAdvanceToResults, maybeTransferOwnership, user?.id],
   );
 
   const syncPlayersRef = useRef(syncPlayers);
@@ -282,9 +319,14 @@ export function useMultiplayerLobby({
       return;
     }
 
+    // Local, per-client countdown: every player sees the full window regardless
+    // of broadcast latency or clock skew. Anchored to when this client enters
+    // the racing view, not to the shared timestamp.
+    const localDeadline = Date.now() + RACE_COUNTDOWN_SECONDS * 1000;
+
     const tick = () => {
       const { countdownSeconds: nextCountdown, raceActive: nextActive } =
-        resolveRaceCountdownSeconds(startedAt);
+        resolveRaceCountdownSeconds(localDeadline);
       setCountdownSeconds(nextCountdown);
       setRaceActive(nextActive);
     };
@@ -296,6 +338,7 @@ export function useMultiplayerLobby({
 
   useEffect(() => {
     const onPageHide = () => {
+      if (voluntaryDepartRef.current) return;
       const ch = channelRef.current;
       if (ch) void ch.untrack();
     };
@@ -335,6 +378,9 @@ export function useMultiplayerLobby({
     setCountdownSeconds(null);
     returnLobbyCheckRef.current = false;
     setReturnedFromResults(false);
+    voluntaryDepartRef.current = false;
+    pendingReadyRef.current = null;
+    dismissedPlayersRef.current.clear();
 
     const cleanupChannel = (ch: RealtimeChannel | null) => {
       if (!ch) return;
@@ -430,7 +476,9 @@ export function useMultiplayerLobby({
       cancelled = true;
       if (retryTimer) clearTimeout(retryTimer);
       if (ownershipTimerRef.current) clearTimeout(ownershipTimerRef.current);
-      cleanupChannel(channelRef.current);
+      if (!voluntaryDepartRef.current) {
+        cleanupChannel(channelRef.current);
+      }
       channelRef.current = null;
       presenceRef.current = null;
       progressHandlerRef.current = null;
@@ -442,6 +490,7 @@ export function useMultiplayerLobby({
   useEffect(() => {
     const activeChannel = channelRef.current;
     if (status !== 'connected' || !user || !activeChannel || !presenceRef.current) return;
+    if (pendingReadyRef.current !== null) return;
 
     const presenceDisplay = getMultiplayerPresenceDisplay(user, profile);
     const updated: LobbyPlayerPresence = {
@@ -459,13 +508,13 @@ export function useMultiplayerLobby({
     const activeChannel = channelRef.current;
     const presence = presenceRef.current;
     if (!activeChannel || !presence || !canUseLobbyActions()) return;
-    if (readyTogglePendingRef.current) return;
+    if (pendingReadyRef.current !== null) return;
 
     const previousPresence = presence;
     const previousReady = presence.isReady;
     const nextReady = !previousReady;
 
-    readyTogglePendingRef.current = true;
+    pendingReadyRef.current = nextReady;
     const updated: LobbyPlayerPresence = { ...presence, isReady: nextReady, hasFinished: false };
     presenceRef.current = updated;
     setIsReady(nextReady);
@@ -473,17 +522,20 @@ export function useMultiplayerLobby({
     try {
       const { error: trackError } = await activeChannel.track(updated);
       if (trackError) {
+        pendingReadyRef.current = null;
         presenceRef.current = previousPresence;
         setIsReady(previousReady);
         setError(trackError.message);
+        return;
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      syncPlayersRef.current(activeChannel);
     } catch (err) {
+      pendingReadyRef.current = null;
       presenceRef.current = previousPresence;
       setIsReady(previousReady);
       setError(err instanceof Error ? err.message : 'track_failed');
-    } finally {
-      readyTogglePendingRef.current = false;
-      syncPlayersRef.current(activeChannel);
     }
   }, [canUseLobbyActions]);
 
@@ -511,7 +563,7 @@ export function useMultiplayerLobby({
     const phase = roomStateRef.current?.phase;
     if (phase !== 'lobby' && phase !== 'results') return;
 
-    const raceStartedAt = Date.now() + 3000;
+    const raceStartedAt = Date.now();
     const next: RoomBroadcastState = {
       ...roomStateRef.current!,
       phase: 'racing',
@@ -550,11 +602,22 @@ export function useMultiplayerLobby({
       const activeChannel = channelRef.current;
       if (!activeChannel) return;
 
-      await activeChannel.send({
-        type: 'broadcast',
-        event: 'room:kick',
-        payload: { targetUserId },
-      });
+      dismissedPlayersRef.current.set(targetUserId, Date.now());
+
+      const connected = parsePresenceState(
+        activeChannel.presenceState<LobbyPlayerPresence>() as Record<string, unknown[]>,
+      );
+      const targetOnline = connected.some((player) => player.userId === targetUserId);
+
+      if (targetOnline) {
+        await activeChannel.send({
+          type: 'broadcast',
+          event: 'room:kick',
+          payload: { targetUserId },
+        });
+      }
+
+      syncPlayersRef.current(activeChannel);
     },
     [user?.id],
   );
@@ -572,8 +635,25 @@ export function useMultiplayerLobby({
     const supabase = getSupabaseClient();
     if (!activeChannel || !supabase) return;
 
-    await activeChannel.untrack();
-    await new Promise((resolve) => window.setTimeout(resolve, 120));
+    voluntaryDepartRef.current = true;
+    pendingReadyRef.current = null;
+
+    if (presenceRef.current) {
+      const cleanPresence: LobbyPlayerPresence = {
+        ...presenceRef.current,
+        isReady: false,
+        hasFinished: false,
+      };
+      await activeChannel.track(cleanPresence);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    const { error: untrackError } = await activeChannel.untrack();
+    if (untrackError) {
+      console.warn('[multiplayer] untrack failed:', untrackError.message);
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
     supabase.removeChannel(activeChannel);
     channelRef.current = null;
     presenceRef.current = null;
