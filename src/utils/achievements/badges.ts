@@ -1,3 +1,4 @@
+import type { IconName } from '@/components/ui/icons/Icon';
 import { dispatchBadgesUpdated } from '../app/events';
 import { STORAGE_KEYS } from '../progress/keys';
 import { readJson, writeJson } from '../progress/localStorage';
@@ -20,7 +21,7 @@ export interface Badge {
   id: string;
   family: AchievementFamily;
   tier?: AchievementTier;
-  icon: string;
+  icon: IconName;
   titleKey: string;
   descKey: string;
 }

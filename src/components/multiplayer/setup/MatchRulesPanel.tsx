@@ -1,8 +1,8 @@
 import { useApp } from '@/contexts/AppProvider';
 import ModBadge from '@/components/multiplayer/setup/ModBadge';
+import ModifierIcon from '@/components/multiplayer/setup/ModifierIcon';
 import {
   ALL_MODIFIERS,
-  MODIFIER_ICONS,
   SONG_ONLY_MODIFIERS,
   VICTORY_CONDITIONS,
   VICTORY_CONDITION_ICONS,
@@ -41,40 +41,6 @@ const winDescKeys: Record<
   first_finish: 'winConditionFirstFinishDesc',
   highest_wpm: 'winConditionHighestWpmDesc',
   max_score: 'winConditionMaxScoreDesc',
-};
-
-const modifierLabelKeys: Record<
-  RaceModifier,
-  | 'modifierSuddenDeath'
-  | 'modifierBlindMode'
-  | 'modifierStrict'
-  | 'modifierFlashlight'
-  | 'modifierDoubleTime'
-  | 'modifierRhythmLock'
-> = {
-  sudden_death: 'modifierSuddenDeath',
-  blind_mode: 'modifierBlindMode',
-  strict: 'modifierStrict',
-  flashlight: 'modifierFlashlight',
-  double_time: 'modifierDoubleTime',
-  rhythm_lock: 'modifierRhythmLock',
-};
-
-const modifierDescKeys: Record<
-  RaceModifier,
-  | 'modifierSuddenDeathDesc'
-  | 'modifierBlindModeDesc'
-  | 'modifierStrictDesc'
-  | 'modifierFlashlightDesc'
-  | 'modifierDoubleTimeDesc'
-  | 'modifierRhythmLockDesc'
-> = {
-  sudden_death: 'modifierSuddenDeathDesc',
-  blind_mode: 'modifierBlindModeDesc',
-  strict: 'modifierStrictDesc',
-  flashlight: 'modifierFlashlightDesc',
-  double_time: 'modifierDoubleTimeDesc',
-  rhythm_lock: 'modifierRhythmLockDesc',
 };
 
 export default function MatchRulesPanel({
@@ -129,15 +95,11 @@ export default function MatchRulesPanel({
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           {t.multiplayer.modifiers}
         </p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-4 gap-2 md:grid-cols-5">
           {ALL_MODIFIERS.filter((mod) => modifierOptions.includes(mod)).map((modifier) => (
-            <ModBadge
+            <ModifierIcon
               key={modifier}
-              variant="tile"
-              tone={modifier}
-              icon={MODIFIER_ICONS[modifier]}
-              title={t.multiplayer[modifierLabelKeys[modifier]]}
-              description={t.multiplayer[modifierDescKeys[modifier]]}
+              modifier={modifier}
               isActive={selectedModifiers.includes(modifier)}
               disabled={disabled}
               onClick={() => toggleModifier(modifier)}

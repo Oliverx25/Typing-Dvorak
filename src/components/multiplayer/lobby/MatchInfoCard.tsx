@@ -1,15 +1,14 @@
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { Button } from '@/components/ui';
 import ModBadge from '@/components/multiplayer/setup/ModBadge';
+import ModifierIcon from '@/components/multiplayer/setup/ModifierIcon';
 import Icon from '@/components/ui/icons/Icon';
 import ActiveTrackCard from '@/components/multiplayer/setup/ActiveTrackCard';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import {
-  MODIFIER_ICONS,
   VICTORY_CONDITION_ICONS,
   normalizeModifiers,
   normalizeWinCondition,
-  type RaceModifier,
   type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
 import type { RoomBroadcastState } from '@/types/multiplayer';
@@ -28,40 +27,6 @@ const winLabelKeys: Record<
   first_finish: 'winConditionFirstFinish',
   highest_wpm: 'winConditionHighestWpm',
   max_score: 'winConditionMaxScore',
-};
-
-const modifierLabelKeys: Record<
-  RaceModifier,
-  | 'modifierSuddenDeath'
-  | 'modifierBlindMode'
-  | 'modifierStrict'
-  | 'modifierFlashlight'
-  | 'modifierDoubleTime'
-  | 'modifierRhythmLock'
-> = {
-  sudden_death: 'modifierSuddenDeath',
-  blind_mode: 'modifierBlindMode',
-  strict: 'modifierStrict',
-  flashlight: 'modifierFlashlight',
-  double_time: 'modifierDoubleTime',
-  rhythm_lock: 'modifierRhythmLock',
-};
-
-const modifierDescKeys: Record<
-  RaceModifier,
-  | 'modifierSuddenDeathDesc'
-  | 'modifierBlindModeDesc'
-  | 'modifierStrictDesc'
-  | 'modifierFlashlightDesc'
-  | 'modifierDoubleTimeDesc'
-  | 'modifierRhythmLockDesc'
-> = {
-  sudden_death: 'modifierSuddenDeathDesc',
-  blind_mode: 'modifierBlindModeDesc',
-  strict: 'modifierStrictDesc',
-  flashlight: 'modifierFlashlightDesc',
-  double_time: 'modifierDoubleTimeDesc',
-  rhythm_lock: 'modifierRhythmLockDesc',
 };
 
 export default function MatchInfoCard({
@@ -157,17 +122,13 @@ export default function MatchInfoCard({
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                 {t.multiplayer.modifiers}
               </p>
-              <div className="grid w-full grid-cols-2 gap-2 md:grid-cols-3">
+              <div className="flex flex-wrap gap-2">
                 {modifiers.map((modifier) => (
-                  <ModBadge
+                  <ModifierIcon
                     key={modifier}
-                    variant="chip"
-                    readOnly
-                    tone={modifier}
+                    modifier={modifier}
                     isActive
-                    icon={MODIFIER_ICONS[modifier]}
-                    title={t.multiplayer[modifierLabelKeys[modifier]]}
-                    description={t.multiplayer[modifierDescKeys[modifier]]}
+                    readOnly
                   />
                 ))}
               </div>

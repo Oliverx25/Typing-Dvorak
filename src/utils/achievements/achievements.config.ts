@@ -1,3 +1,4 @@
+import type { IconName } from '@/components/ui/icons/Icon';
 import { LESSON_ORDER } from '../curriculum/curriculum';
 import { UNLOCK_ACCURACY } from '../curriculum/constants';
 import type { BadgeProgressState } from './badges';
@@ -39,14 +40,14 @@ export interface AchievementDefinition {
   progress: (stats: UserAchievementStats) => BadgeProgressState;
 }
 
-export const ACHIEVEMENT_FAMILY_ICONS: Record<AchievementFamily, string> = {
-  speed: '/badges/speed.svg',
-  accuracy: '/badges/accuracy.svg',
-  streak: '/badges/streak.svg',
-  endurance: '/badges/endurance.svg',
-  combo: '/badges/combo.svg',
-  multiplayer: '/badges/multiplayer.svg',
-  special: '/badges/special.svg',
+export const ACHIEVEMENT_FAMILY_ICONS: Record<AchievementFamily, IconName> = {
+  speed: 'zap',
+  accuracy: 'target',
+  streak: 'flame',
+  endurance: 'book-open',
+  combo: 'keyboard',
+  multiplayer: 'trophy',
+  special: 'star-filled',
 };
 
 export const ACHIEVEMENT_FAMILIES: AchievementFamily[] = [

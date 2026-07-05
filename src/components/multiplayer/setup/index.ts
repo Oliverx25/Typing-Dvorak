@@ -6,6 +6,7 @@ export { default as LessonGrid } from './LessonGrid';
 export { default as LessonCard } from './LessonCard';
 export { default as MatchRulesPanel } from './MatchRulesPanel';
 export { default as ModBadge } from './ModBadge';
+export { default as ModifierIcon } from './ModifierIcon';
 export { default as RoomConfigPanel } from './RoomConfigPanel';
 export { default as RoomSetupModal } from './RoomSetupModal';
 export { default as SongCard } from './SongCard';

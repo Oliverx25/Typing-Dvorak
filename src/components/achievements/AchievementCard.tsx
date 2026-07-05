@@ -1,8 +1,5 @@
-import { BadgeIcon, Icon } from '@/components/ui';
-import {
-  ACHIEVEMENT_FAMILY_ICONS,
-  type AchievementTier,
-} from '@/utils/achievements/achievements.config';
+import { Icon } from '@/components/ui';
+import type { AchievementTier } from '@/utils/achievements/achievements.config';
 import { SPECIAL_ACHIEVEMENT_STYLE, TIER_STYLES } from '@/utils/achievements/tierStyles';
 import type { Badge } from '@/utils/achievements/badges';
 
@@ -30,7 +27,6 @@ export default function AchievementCard({
   tierLabel,
 }: AchievementCardProps) {
   const tierStyle = badge.tier ? TIER_STYLES[badge.tier] : SPECIAL_ACHIEVEMENT_STYLE;
-  const iconSrc = ACHIEVEMENT_FAMILY_ICONS[badge.family];
   const progressPct =
     progress && progress.target > 0
       ? Math.round((progress.current / progress.target) * 100)
@@ -54,11 +50,10 @@ export default function AchievementCard({
               : `${tierStyle.border} bg-[var(--color-surface)]/50 opacity-45 grayscale`,
           ].join(' ')}
         >
-          <BadgeIcon
-            src={iconSrc}
+          <Icon
+            name={badge.icon}
             size={30}
             className={isUnlocked ? tierStyle.icon : 'text-[var(--color-text-muted)]'}
-            inheritColor
           />
         </div>
 

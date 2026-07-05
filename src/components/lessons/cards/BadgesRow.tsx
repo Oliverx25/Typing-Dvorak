@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { BADGES, getUnlockedBadges } from '@/utils/achievements/badges';
 import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
-import { BadgeIcon } from '@/components/ui';
+import { Icon } from '@/components/ui';
 
 export default function BadgesRow() {
   const { t } = useApp();
@@ -35,7 +35,7 @@ export default function BadgesRow() {
             title={t.badges[badge.descKey as keyof typeof t.badges]}
             className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3 py-1.5"
           >
-            <BadgeIcon src={badge.icon} size={18} />
+            <Icon name={badge.icon} size={18} className="text-[var(--color-highlight)]" />
             <span className="text-xs font-medium text-[var(--color-text)]">
               {t.badges[badge.titleKey as keyof typeof t.badges]}
             </span>

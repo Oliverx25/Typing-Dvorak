@@ -12,7 +12,6 @@ export type { SelectOption } from './controls/CustomSelect';
 export { default as StarRating } from './display/StarRating';
 export { default as StatCard } from './display/StatCard';
 export { default as LockIcon } from './icons/LockIcon';
-export { default as BadgeIcon } from './icons/BadgeIcon';
 export { default as SvgIcon } from './icons/SvgIcon';
 export { default as StreakIcon } from './icons/StreakIcon';
 export { default as CircularProgress } from './display/CircularProgress';

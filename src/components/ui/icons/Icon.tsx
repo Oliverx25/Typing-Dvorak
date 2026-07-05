@@ -1,6 +1,7 @@
 import type { IconType } from 'react-icons';
 import type { SVGProps } from 'react';
 import {
+  LuBookOpen,
   LuCamera,
   LuChartLine,
   LuCheck,
@@ -24,6 +25,7 @@ import {
   LuSkull,
   LuStar,
   LuSun,
+  LuTarget,
   LuTimer,
   LuTrophy,
   LuUser,
@@ -62,7 +64,10 @@ export type IconName =
   | 'flashlight'
   | 'double-time'
   | 'rhythm-lock'
-  | 'join';
+  | 'join'
+  | 'zap'
+  | 'target'
+  | 'book-open';
 
 const ICONS: Record<IconName, IconType> = {
   'chevron-down': LuChevronDown,
@@ -96,6 +101,9 @@ const ICONS: Record<IconName, IconType> = {
   'double-time': LuZap,
   'rhythm-lock': LuMusic,
   join: LuLogIn,
+  zap: LuZap,
+  target: LuTarget,
+  'book-open': LuBookOpen,
 };
 
 interface IconProps extends SVGProps<SVGSVGElement> {
