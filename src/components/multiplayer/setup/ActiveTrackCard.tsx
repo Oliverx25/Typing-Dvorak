@@ -9,11 +9,18 @@ import type { SelectedSongMeta } from '@/utils/lyrics/types';
 interface ActiveTrackCardProps {
   song: SelectedSongMeta;
   disabled?: boolean;
-  onChangeTrack: () => void;
+  /** Hide the change-track button (lobby guests). */
+  readonly?: boolean;
+  onChangeTrack?: () => void;
 }
 
 /** Beatmap-style card shown once a song is selected for the race. */
-export default function ActiveTrackCard({ song, disabled = false, onChangeTrack }: ActiveTrackCardProps) {
+export default function ActiveTrackCard({
+  song,
+  disabled = false,
+  readonly = false,
+  onChangeTrack,
+}: ActiveTrackCardProps) {
   const { t } = useApp();
   const [coverFailed, setCoverFailed] = useState(false);
   const coverSrc = song.coverArt && !coverFailed ? song.coverArt : null;
@@ -80,16 +87,18 @@ export default function ActiveTrackCard({ song, disabled = false, onChangeTrack 
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onChangeTrack}
-        disabled={disabled}
-        aria-label={t.multiplayer.lyricsChangeTrack}
-        title={t.multiplayer.lyricsChangeTrack}
-        className="relative z-10 shrink-0 self-start rounded-lg border border-slate-700 bg-slate-900/70 p-2 text-slate-300 transition hover:border-[var(--color-highlight)] hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <Icon name="refresh" size={18} />
-      </button>
+      {!readonly && onChangeTrack ? (
+        <button
+          type="button"
+          onClick={onChangeTrack}
+          disabled={disabled}
+          aria-label={t.multiplayer.lyricsChangeTrack}
+          title={t.multiplayer.lyricsChangeTrack}
+          className="relative z-10 shrink-0 self-start rounded-lg border border-slate-700 bg-slate-900/70 p-2 text-slate-300 transition hover:border-[var(--color-highlight)] hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Icon name="refresh" size={18} />
+        </button>
+      ) : null}
     </div>
   );
 }

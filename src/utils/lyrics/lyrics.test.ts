@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { sanitizeLyrics } from './sanitizeLyrics';
+import { isTypableLatinLyrics, nonLatinCharRatio } from './latinScript';
 import { calculateTypingDifficulty, computeTrackWpm, countLyricWords } from './typingDifficulty';
 
 describe('sanitizeLyrics', () => {
@@ -56,5 +57,23 @@ describe('sanitizeLyrics newline handling', () => {
   it('keeps full lyrics when no cap is given', () => {
     const raw = Array.from({ length: 300 }, (_, i) => `word${i}`).join(' ');
     expect(sanitizeLyrics(raw).split(/\s+/)).toHaveLength(300);
+  });
+});
+
+describe('isTypableLatinLyrics', () => {
+  it('accepts English and accented Latin text', () => {
+    expect(isTypableLatinLyrics('hello world this is fine')).toBe(true);
+    expect(isTypableLatinLyrics('café résumé naïve')).toBe(true);
+  });
+
+  it('rejects mostly non-Latin scripts', () => {
+    expect(isTypableLatinLyrics('君のせいで 僕は')).toBe(false);
+    expect(isTypableLatinLyrics('안녕하세요 세계')).toBe(false);
+    expect(isTypableLatinLyrics('Привет мир')).toBe(false);
+  });
+
+  it('reports non-Latin ratio', () => {
+    expect(nonLatinCharRatio('abcdef')).toBe(0);
+    expect(nonLatinCharRatio('你好世界')).toBeGreaterThan(0.5);
   });
 });

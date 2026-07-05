@@ -1,6 +1,7 @@
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { Button } from '@/components/ui';
 import ModBadge from '@/components/multiplayer/setup/ModBadge';
+import ActiveTrackCard from '@/components/multiplayer/setup/ActiveTrackCard';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import {
   BLIND_MODE_ICON,
@@ -58,33 +59,39 @@ export default function MatchInfoCard({
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 space-y-4">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
             {t.multiplayer.currentMatch}
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-[var(--color-text)] sm:text-3xl">{title}</h2>
-          {isSong ? (
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              {roomState.songMeta?.artist}
-            </p>
-          ) : null}
-          {isCustom ? (
-            <p className="mt-2 line-clamp-2 font-mono text-sm text-[var(--color-text-muted)]">
-              {roomState.customText.trim()}
-            </p>
-          ) : null}
-          <div className="mt-3 flex flex-wrap gap-2">
-            {category ? (
-              <span className="rounded-md bg-[var(--color-highlight)]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-highlight)]">
-                {category}
-              </span>
-            ) : null}
-            {difficulty ? (
-              <span className="rounded-md bg-[var(--color-surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)]">
-                {difficulty}
-              </span>
-            ) : null}
-          </div>
+
+          {isSong && roomState.songMeta ? (
+            <ActiveTrackCard
+              song={roomState.songMeta}
+              readonly={!isOwner}
+              onChangeTrack={isOwner && onEditSettings ? () => onEditSettings() : undefined}
+            />
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-[var(--color-text)] sm:text-3xl">{title}</h2>
+              {isCustom ? (
+                <p className="line-clamp-2 font-mono text-sm text-[var(--color-text-muted)]">
+                  {roomState.customText.trim()}
+                </p>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {category ? (
+                  <span className="rounded-md bg-[var(--color-highlight)]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-highlight)]">
+                    {category}
+                  </span>
+                ) : null}
+                {difficulty ? (
+                  <span className="rounded-md bg-[var(--color-surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)]">
+                    {difficulty}
+                  </span>
+                ) : null}
+              </div>
+            </>
+          )}
         </div>
 
         {isOwner && onEditSettings ? (

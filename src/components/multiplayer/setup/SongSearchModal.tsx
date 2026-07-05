@@ -99,16 +99,27 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
     !isSearching && !error && debouncedQuery.length >= 2 && results.length === 0;
   const showHint = debouncedQuery.length < 2 && !isSearching;
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+    if (event.target === dialogRef.current) {
+      onClose();
+    }
+  };
+
   return (
     <dialog
       ref={dialogRef}
       onClose={onClose}
       onCancel={onClose}
+      onClick={handleBackdropClick}
       aria-labelledby="song-search-title"
-      className="modal-enter m-auto w-[min(100%-1.5rem,56rem)] max-h-[min(90vh,52rem)] rounded-2xl border border-slate-700 bg-slate-900 p-0 text-slate-100 shadow-2xl backdrop:bg-black/70"
+      className="modal-enter fixed inset-0 m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70"
     >
-      <div className="flex max-h-[min(90vh,52rem)] flex-col">
-        <div className="relative border-b border-slate-800 px-4 py-4">
+      <div
+        role="document"
+        className="flex h-[min(90vh,52rem)] w-[min(100%,56rem)] flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="shrink-0 border-b border-slate-800 px-4 py-4">
           <label id="song-search-title" htmlFor="song-search-input" className="sr-only">
             {t.multiplayer.lyricsSearchPlaceholder}
           </label>
@@ -157,11 +168,15 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
           {error ? (
             <p className="p-4 py-12 text-center text-sm text-red-400">{error}</p>
           ) : showHint ? (
-            <p className="p-4 py-12 text-center text-sm text-slate-500">{t.multiplayer.lyricsSearchHint}</p>
+            <p className="p-4 py-12 text-center text-sm text-slate-500">
+              {t.multiplayer.lyricsSearchHint}
+            </p>
           ) : showEmpty ? (
-            <p className="p-4 py-12 text-center text-sm text-slate-500">{t.multiplayer.lyricsSearchEmpty}</p>
+            <p className="p-4 py-12 text-center text-sm text-slate-500">
+              {t.multiplayer.lyricsSearchEmpty}
+            </p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 overflow-y-auto p-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
               {isSearching
                 ? Array.from({ length: SKELETON_COUNT }, (_, index) => (
                     <SongCardSkeleton key={`sk-${index}`} />
