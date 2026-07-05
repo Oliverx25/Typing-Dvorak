@@ -69,7 +69,7 @@ export default function CreateRoomSettings({
   const [songSearchOpen, setSongSearchOpen] = useState(false);
 
   useEffect(() => {
-    if (value.textSource !== 'song') {
+    if (value.textSource === 'custom') {
       setCustomText(value.customText);
     }
   }, [value.customText, value.textSource]);
@@ -79,15 +79,7 @@ export default function CreateRoomSettings({
 
   const handleTabChange = (nextSource: TextSource) => {
     if (nextSource === value.textSource) return;
-    if (nextSource === 'lesson') {
-      setCustomText('');
-      onChange({ textSource: 'lesson', customText: '', songMeta: null });
-    } else if (nextSource === 'custom') {
-      setCustomText('');
-      onChange({ textSource: 'custom', customText: '', songMeta: null });
-    } else {
-      onChange({ textSource: 'song' });
-    }
+    onChange({ textSource: nextSource });
   };
 
   const handleCustomTextChange = (next: string) => {

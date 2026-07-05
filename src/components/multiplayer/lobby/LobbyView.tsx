@@ -10,8 +10,10 @@ import LobbyPlayerGrid from '@/components/multiplayer/lobby/LobbyPlayerGrid';
 import MatchInfoCard from '@/components/multiplayer/lobby/MatchInfoCard';
 import MultiplayerRacePanel from '@/components/multiplayer/race/MultiplayerRacePanel';
 import RoomSetupModal from '@/components/multiplayer/setup/RoomSetupModal';
+import SongSearchModal from '@/components/multiplayer/setup/SongSearchModal';
 import { roomUrl } from '@/utils/multiplayer/roomCode';
 import { registerRoomExitHandler } from '@/utils/multiplayer/roomExit';
+import type { LyricSongResult } from '@/utils/lyrics/types';
 
 interface LobbyViewProps {
   roomId: string;
@@ -22,6 +24,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
   const { user, loading: authLoading, isConfigured } = useAuth();
   const [connectAttempt, setConnectAttempt] = useState(0);
   const [setupOpen, setSetupOpen] = useState(false);
+  const [songSearchOpen, setSongSearchOpen] = useState(false);
   const [readyLoading, setReadyLoading] = useState(false);
 
   const {
@@ -96,6 +99,26 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
       setReadyLoading(false);
     }
   };
+
+  const handleSongSelect = useCallback(
+    (song: LyricSongResult) => {
+      void updateRoomConfig({
+        textSource: 'song',
+        customText: song.plainLyrics,
+        songMeta: {
+          id: song.id,
+          title: song.title,
+          artist: song.artist,
+          coverArt: song.coverArt,
+          difficulty: song.difficulty,
+          durationMs: song.durationMs,
+          trackWpm: song.trackWpm,
+        },
+      });
+      setSongSearchOpen(false);
+    },
+    [updateRoomConfig],
+  );
 
   if (!isConfigured) {
     return (
@@ -212,6 +235,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
                 roomState={roomState}
                 isOwner={isOwner}
                 onEditSettings={isOwner ? () => setSetupOpen(true) : undefined}
+                onChangeTrack={isOwner ? () => setSongSearchOpen(true) : undefined}
               />
 
               <section className="min-h-[280px]">
@@ -239,6 +263,14 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
                 onClose={() => setSetupOpen(false)}
                 onSave={(partial) => void updateRoomConfig(partial)}
               />
+
+              {songSearchOpen ? (
+                <SongSearchModal
+                  open
+                  onClose={() => setSongSearchOpen(false)}
+                  onSelect={handleSongSelect}
+                />
+              ) : null}
             </>
           ) : null}
 
