@@ -5,10 +5,13 @@ import { replaceLocalProgress } from '@/utils/progress/storage';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
-import type { AppSettings, PracticeMode } from '@/utils/app/settings';
-import { clampPacerWpm, saveSettings } from '@/utils/app/settings';
 import type { Locale } from '@/i18n';
+import type { AppSettings, PracticeMode } from '@/utils/app/settings';
+import { getSettings, saveSettings } from '@/utils/app/settings';
+import { appPreferencesFromProfile } from '@/utils/app/settingsSync';
 import { dispatchSessionComplete, dispatchKeyStatsUpdated, dispatchProfilePreferencesSynced } from '@/utils/app/events';
+import { applyHighlightTheme } from '@/utils/app/highlightTheme';
+import { setStoredTheme } from '@/utils/progress/storage';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { updateProfileStreak } from './syncProgress';
 import { syncBadgesFromSessionRows } from './syncBadges';
@@ -31,6 +34,12 @@ export interface UserProfileRow {
   ghost_mode_enabled?: boolean;
   pacer_enabled?: boolean;
   pacer_target_wpm?: number;
+  sound_enabled?: boolean;
+  blind_mode_enabled?: boolean;
+  finger_colors_enabled?: boolean;
+  practice_mode?: PracticeMode;
+  highlight_theme?: string;
+  theme?: 'light' | 'dark';
 }
 
 function mapSessionRow(row: {
@@ -125,27 +134,25 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
   return profile;
 }
 
-/** Sync locale + gameplay preferences from profile to local settings after login. */
+/** Sync all app settings + theme from profile to local storage after login. */
 export async function restoreProfilePreferencesFromProfile(): Promise<void> {
   const profile = (await fetchUserProfile()) as UserProfileRow | null;
   if (!profile) return;
 
-  const partial: Partial<AppSettings> = {};
+  const { settings, theme } = appPreferencesFromProfile(profile);
+  if (Object.keys(settings).length === 0 && !theme) return;
 
-  if (profile.locale === 'en' || profile.locale === 'es') {
-    partial.locale = profile.locale;
-  }
-  if (typeof profile.zen_mode_enabled === 'boolean') partial.zenMode = profile.zen_mode_enabled;
-  if (typeof profile.ghost_mode_enabled === 'boolean') partial.ghostMode = profile.ghost_mode_enabled;
-  if (typeof profile.pacer_enabled === 'boolean') partial.pacerEnabled = profile.pacer_enabled;
-  if (typeof profile.pacer_target_wpm === 'number') {
-    partial.pacerTargetWpm = clampPacerWpm(profile.pacer_target_wpm);
+  if (Object.keys(settings).length > 0) {
+    saveSettings(settings);
+    if (settings.locale) document.documentElement.lang = settings.locale;
   }
 
-  if (Object.keys(partial).length === 0) return;
+  if (theme) {
+    setStoredTheme(theme);
+    const merged = getSettings();
+    applyHighlightTheme(merged.highlightTheme, theme);
+  }
 
-  saveSettings(partial);
-  if (partial.locale) document.documentElement.lang = partial.locale;
   dispatchProfilePreferencesSynced();
 }
 

@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
-import type { Locale } from '@/i18n';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { updatePassword } from '@/services/supabase/auth';
 import {
@@ -12,8 +11,6 @@ import {
 } from '@/services/supabase/accountData';
 import { removeCustomUserAvatar, uploadUserAvatar } from '@/services/supabase/avatar';
 import { updateUserProfile } from '@/services/supabase/profile';
-import { dispatchProfilePreferencesSynced } from '@/utils/app/events';
-import { saveSettings } from '@/utils/app/settings';
 import {
   MULTIPLAYER_PRIVACY_OPTIONS,
   type MultiplayerPrivacy,
@@ -47,7 +44,7 @@ const panelClassName =
 export default function EditProfileModal({ user, onClose }: EditProfileModalProps) {
   useLockBodyScroll();
 
-  const { t, settings } = useApp();
+  const { t } = useApp();
   const { refreshUser, profile } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const display = getUserDisplay(user, profile);
@@ -56,9 +53,6 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
     profile?.display_name?.trim() || display.name,
   );
   const [username, setUsername] = useState(profile?.username?.trim() ?? '');
-  const [locale, setLocale] = useState<Locale>(
-    profile?.locale === 'es' || profile?.locale === 'en' ? profile.locale : settings.locale,
-  );
   const [multiplayerPrivacy, setMultiplayerPrivacy] = useState<MultiplayerPrivacy>(
     profile?.multiplayer_privacy ?? 'public',
   );
@@ -111,12 +105,6 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
     await refreshUser();
   };
 
-  const syncLocaleLocally = (nextLocale: Locale) => {
-    saveSettings({ locale: nextLocale });
-    document.documentElement.lang = nextLocale;
-    dispatchProfilePreferencesSynced();
-  };
-
   const handleSave = async () => {
     setErrorKey(null);
     setActionMessage(null);
@@ -124,7 +112,6 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
     const { error } = await updateUserProfile({
       displayName,
       username,
-      locale,
       multiplayerPrivacy,
     });
     setLoading(false);
@@ -134,7 +121,6 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
       return;
     }
 
-    syncLocaleLocally(locale);
     await refreshUser();
     onClose();
   };
@@ -307,30 +293,7 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
                 <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{t.auth.usernameHint}</p>
               </div>
 
-              <div>
-                <p className="mb-1 text-sm font-medium text-[var(--color-text)]">{t.auth.profileLocale}</p>
-                <div className="flex gap-1">
-                  {(['en', 'es'] as Locale[]).map((loc) => (
-                    <button
-                      key={loc}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => setLocale(loc)}
-                      className={[
-                        'rounded-md px-3 py-1.5 text-xs font-medium uppercase transition',
-                        locale === loc
-                          ? 'bg-[var(--color-highlight)] text-white'
-                          : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
-                      ].join(' ')}
-                    >
-                      {loc}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{t.auth.profileLocaleHint}</p>
-              </div>
-
-              <div>
+              <div className="sm:col-span-2">
                 <p className="mb-1 text-sm font-medium text-[var(--color-text)]">{t.auth.multiplayerPrivacy}</p>
                 <div className="flex flex-wrap gap-1">
                   {MULTIPLAYER_PRIVACY_OPTIONS.map((option) => (

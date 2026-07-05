@@ -1,19 +1,14 @@
-import type { Locale } from '@/i18n';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
 import { validateDisplayName, validateUsername } from '@/utils/user/profileValidation';
-import { clampPacerWpm } from '@/utils/app/settings';
+import type { AppSettings } from '@/utils/app/settings';
+import { profilePayloadFromAppPreferences } from '@/utils/app/settingsSync';
+import type { Theme } from '@/utils/progress/storage';
 
-export interface GameplayPreferencesInput {
-  zenMode?: boolean;
-  ghostMode?: boolean;
-  pacerEnabled?: boolean;
-  pacerTargetWpm?: number;
-}
-
-/** Persists practice-mode preferences to the user's profile. No-op when offline/guest. */
-export async function updateGameplayPreferences(
-  input: GameplayPreferencesInput,
+/** Persists all app settings + theme to the user's profile. No-op when offline/guest. */
+export async function syncAppSettingsToProfile(
+  settings: AppSettings,
+  theme: Theme,
 ): Promise<{ error: string | null }> {
   const supabase = getSupabaseClient();
   if (!supabase) return { error: null };
@@ -21,19 +16,11 @@ export async function updateGameplayPreferences(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: null };
 
-  const payload: Record<string, boolean | number> = {};
-  if (typeof input.zenMode === 'boolean') payload.zen_mode_enabled = input.zenMode;
-  if (typeof input.ghostMode === 'boolean') payload.ghost_mode_enabled = input.ghostMode;
-  if (typeof input.pacerEnabled === 'boolean') payload.pacer_enabled = input.pacerEnabled;
-  if (typeof input.pacerTargetWpm === 'number') {
-    payload.pacer_target_wpm = clampPacerWpm(input.pacerTargetWpm);
-  }
-
-  if (Object.keys(payload).length === 0) return { error: null };
+  const payload = profilePayloadFromAppPreferences(settings, theme);
 
   const { error } = await supabase.from('profiles').update(payload).eq('id', user.id);
   if (error) {
-    console.warn('[sync] gameplay preferences update failed:', error.message);
+    console.warn('[sync] app settings update failed:', error.message);
     return { error: error.message };
   }
   return { error: null };
@@ -42,7 +29,6 @@ export async function updateGameplayPreferences(
 export interface ProfileUpdateInput {
   displayName: string;
   username?: string;
-  locale?: Locale;
   multiplayerPrivacy?: MultiplayerPrivacy;
 }
 
@@ -94,7 +80,6 @@ export async function updateUserProfile(input: ProfileUpdateInput): Promise<{ er
       display_name: displayName,
       display_name_custom: true,
       username: username || null,
-      ...(input.locale ? { locale: input.locale } : {}),
       ...(input.multiplayerPrivacy ? { multiplayer_privacy: input.multiplayerPrivacy } : {}),
     })
     .eq('id', user.id);

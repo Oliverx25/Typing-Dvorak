@@ -4,9 +4,7 @@ import { getSettings, saveSettings, type AppSettings, type PracticeMode } from '
 import { getStoredTheme, setStoredTheme, type Theme } from '../utils/progress/storage';
 import { applyHighlightTheme } from '../utils/app/highlightTheme';
 import { PROFILE_PREFERENCES_SYNCED_EVENT } from '../utils/app/events';
-import { updateGameplayPreferences } from '../services/supabase/profile';
-
-const GAMEPLAY_KEYS: (keyof AppSettings)[] = ['zenMode', 'ghostMode', 'pacerEnabled', 'pacerTargetWpm'];
+import { syncAppSettingsToProfile } from '../services/supabase/profile';
 
 interface AppContextValue {
   locale: Locale;
@@ -48,7 +46,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const syncFromStorage = () => setSettings(getSettings());
+    const syncFromStorage = () => {
+      const storedSettings = getSettings();
+      const storedTheme = getStoredTheme();
+      setSettings(storedSettings);
+      setTheme(storedTheme);
+      applyHighlightTheme(storedSettings.highlightTheme, storedTheme);
+    };
     window.addEventListener(PROFILE_PREFERENCES_SYNCED_EVENT, syncFromStorage);
     return () => window.removeEventListener(PROFILE_PREFERENCES_SYNCED_EVENT, syncFromStorage);
   }, []);
@@ -56,16 +60,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateSettings = useCallback((partial: Partial<AppSettings>) => {
     const next = saveSettings(partial);
     setSettings(next);
-
-    const touchesGameplay = GAMEPLAY_KEYS.some((key) => key in partial);
-    if (touchesGameplay) {
-      void updateGameplayPreferences({
-        zenMode: next.zenMode,
-        ghostMode: next.ghostMode,
-        pacerEnabled: next.pacerEnabled,
-        pacerTargetWpm: next.pacerTargetWpm,
-      });
-    }
+    void syncAppSettingsToProfile(next, getStoredTheme());
   }, []);
 
   const setLocale = useCallback((locale: Locale) => {
@@ -77,7 +72,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTheme(next);
     setStoredTheme(next);
     applyHighlightTheme(settings.highlightTheme, next);
-  }, [theme, settings.highlightTheme]);
+    void syncAppSettingsToProfile(settings, next);
+  }, [theme, settings]);
 
   const setPracticeMode = useCallback((mode: PracticeMode) => {
     updateSettings({ practiceMode: mode });
