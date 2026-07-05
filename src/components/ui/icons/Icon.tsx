@@ -9,10 +9,12 @@ import {
   LuChevronRight,
   LuChevronUp,
   LuChrome,
+  LuDroplet,
   LuEyeOff,
   LuFlame,
   LuFlashlight,
   LuGauge,
+  LuGhost,
   LuGithub,
   LuKeyboard,
   LuLock,
@@ -21,6 +23,7 @@ import {
   LuMoon,
   LuMusic,
   LuRefreshCw,
+  LuRewind,
   LuSearch,
   LuSettings,
   LuSkull,
@@ -66,6 +69,9 @@ export type IconName =
   | 'flashlight'
   | 'double-time'
   | 'rhythm-lock'
+  | 'vampire'
+  | 'hidden'
+  | 'half-time'
   | 'join'
   | 'zap'
   | 'target'
@@ -103,6 +109,9 @@ const ICONS: Record<IconName, IconType> = {
   flashlight: LuFlashlight,
   'double-time': LuZap,
   'rhythm-lock': LuMusic,
+  vampire: LuDroplet,
+  hidden: LuGhost,
+  'half-time': LuRewind,
   join: LuLogIn,
   zap: LuZap,
   target: LuTarget,

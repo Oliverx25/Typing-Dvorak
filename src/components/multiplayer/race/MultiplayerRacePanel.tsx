@@ -69,7 +69,9 @@ export default function MultiplayerRacePanel({
   );
 
   const musicPacerWpm =
-    roomState.textSource === 'song' ? (roomState.songMeta?.trackWpm ?? null) : null;
+    roomState.textSource === 'song'
+      ? (roomState.songMeta?.avgWpm ?? roomState.songMeta?.trackWpm ?? null)
+      : null;
   const musicTimeline =
     roomState.textSource === 'song' ? (roomState.songMeta?.lyricTimeline ?? null) : null;
 

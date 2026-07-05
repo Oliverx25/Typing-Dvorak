@@ -18,7 +18,10 @@ export type RaceModifier =
   | 'strict'
   | 'flashlight'
   | 'double_time'
-  | 'rhythm_lock';
+  | 'rhythm_lock'
+  | 'vampire'
+  | 'hidden'
+  | 'half_time';
 
 /** @deprecated Legacy alias — use VictoryCondition or RaceModifier. */
 export type WinCondition = VictoryCondition | 'sudden_death';
@@ -34,11 +37,18 @@ export const ALL_MODIFIERS: RaceModifier[] = [
   'blind_mode',
   'strict',
   'flashlight',
+  'vampire',
+  'hidden',
   'double_time',
   'rhythm_lock',
+  'half_time',
 ];
 
-export const SONG_ONLY_MODIFIERS: RaceModifier[] = ['double_time', 'rhythm_lock'];
+export const SONG_ONLY_MODIFIERS: RaceModifier[] = [
+  'double_time',
+  'rhythm_lock',
+  'half_time',
+];
 
 export const DEFAULT_WIN_CONDITION: VictoryCondition = 'max_score';
 
@@ -64,6 +74,34 @@ export const MODIFIER_ICONS: Record<RaceModifier, string> = {
   flashlight: 'flashlight',
   double_time: 'double-time',
   rhythm_lock: 'rhythm-lock',
+  vampire: 'vampire',
+  hidden: 'hidden',
+  half_time: 'half-time',
+};
+
+/** i18n keys under `t.multiplayer` for modifier labels and descriptions. */
+export const MODIFIER_TITLE_KEYS: Record<RaceModifier, string> = {
+  sudden_death: 'modifierSuddenDeath',
+  blind_mode: 'modifierBlindMode',
+  strict: 'modifierStrict',
+  flashlight: 'modifierFlashlight',
+  double_time: 'modifierDoubleTime',
+  rhythm_lock: 'modifierRhythmLock',
+  vampire: 'modifierVampire',
+  hidden: 'modifierHidden',
+  half_time: 'modifierHalfTime',
+};
+
+export const MODIFIER_DESC_KEYS: Record<RaceModifier, string> = {
+  sudden_death: 'modifierSuddenDeathDesc',
+  blind_mode: 'modifierBlindModeDesc',
+  strict: 'modifierStrictDesc',
+  flashlight: 'modifierFlashlightDesc',
+  double_time: 'modifierDoubleTimeDesc',
+  rhythm_lock: 'modifierRhythmLockDesc',
+  vampire: 'modifierVampireDesc',
+  hidden: 'modifierHiddenDesc',
+  half_time: 'modifierHalfTimeDesc',
 };
 
 /** @deprecated Use VICTORY_CONDITION_ICONS + MODIFIER_ICONS (IconName keys) */
@@ -82,6 +120,9 @@ export const MODIFIER_ACTIVE_CLASSES: Record<RaceModifier, string> = {
   flashlight: 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400',
   double_time: 'bg-fuchsia-500/10 border-fuchsia-500/50 text-fuchsia-400',
   rhythm_lock: 'bg-pink-500/10 border-pink-500/50 text-pink-400',
+  vampire: 'bg-red-500/10 border-red-500/50 text-red-500',
+  hidden: 'bg-slate-500/10 border-slate-500/50 text-slate-300',
+  half_time: 'bg-sky-500/10 border-sky-500/50 text-sky-400',
 };
 
 /** Hover-state Tailwind classes per modifier (border + icon only). */
@@ -92,6 +133,9 @@ export const MODIFIER_HOVER_CLASSES: Record<RaceModifier, string> = {
   flashlight: 'hover:border-cyan-500/50 hover:text-cyan-400',
   double_time: 'hover:border-fuchsia-500/50 hover:text-fuchsia-400',
   rhythm_lock: 'hover:border-pink-500/50 hover:text-pink-400',
+  vampire: 'hover:border-red-500/50 hover:text-red-500',
+  hidden: 'hover:border-slate-500/50 hover:text-slate-300',
+  half_time: 'hover:border-sky-500/50 hover:text-sky-400',
 };
 
 export function normalizeWinCondition(value: unknown): VictoryCondition {

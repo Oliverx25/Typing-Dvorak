@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import type { TranslationKey } from '@/i18n';
 import Icon from '@/components/ui/icons/Icon';
+import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
 import type { LyricSongResult } from '@/utils/lyrics/types';
 import { countLyricWords, DIFFICULTY_BADGE_CLASSES } from '@/utils/lyrics/typingDifficulty';
 
 interface SongCardProps {
   song: LyricSongResult;
   tierLabel: string;
+  isSelected?: boolean;
   onSelect: (song: LyricSongResult) => void;
 }
 
@@ -47,19 +49,25 @@ function Thumbnail({ src, title }: { src: string | null; title: string }) {
 }
 
 /** Immersive osu-style song card for lyric search results. */
-export default function SongCard({ song, tierLabel, onSelect }: SongCardProps) {
+export default function SongCard({ song, tierLabel, isSelected = false, onSelect }: SongCardProps) {
   const { t } = useApp();
   const [coverFailed, setCoverFailed] = useState(false);
   const coverSrc = song.coverArt && !coverFailed ? song.coverArt : null;
   const badgeClass = DIFFICULTY_BADGE_CLASSES[song.difficulty.color];
   const wordCount = countLyricWords(song.plainLyrics);
   const wordLabel = t.multiplayer.lyricsWordCount.replace('{count}', String(wordCount));
+  const wpmUnit = t.multiplayer.lyricsWpmUnit;
 
   return (
     <button
       type="button"
       onClick={() => onSelect(song)}
-      className="group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800 transition-all duration-200 hover:scale-[1.02] hover:border-[var(--color-highlight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-highlight)]/50"
+      className={[
+        'group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border bg-slate-800 transition-all duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-highlight)]/50',
+        isSelected
+          ? 'border-[var(--color-highlight)] ring-2 ring-[var(--color-highlight)]/30'
+          : 'border-slate-700/50 hover:border-[var(--color-highlight)]',
+      ].join(' ')}
     >
       {song.coverArt && !coverFailed ? (
         <img
@@ -92,6 +100,12 @@ export default function SongCard({ song, tierLabel, onSelect }: SongCardProps) {
             {tierLabel}
           </span>
           <span className="font-mono text-xs text-slate-500">{wordLabel}</span>
+          <SongWpmDisplay
+            avgWpm={song.avgWpm ?? song.trackWpm}
+            maxWpm={song.maxWpm}
+            wpmUnit={wpmUnit}
+            className="justify-end"
+          />
         </div>
       </div>
     </button>

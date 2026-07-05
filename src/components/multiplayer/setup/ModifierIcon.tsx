@@ -3,44 +3,12 @@ import HoverTooltip from '@/components/ui/HoverTooltip';
 import Icon, { type IconName } from '@/components/ui/icons/Icon';
 import {
   MODIFIER_ACTIVE_CLASSES,
+  MODIFIER_DESC_KEYS,
   MODIFIER_HOVER_CLASSES,
   MODIFIER_ICONS,
+  MODIFIER_TITLE_KEYS,
   type RaceModifier,
 } from '@/utils/multiplayer/roomConfig';
-
-const modifierLabelKeys: Record<
-  RaceModifier,
-  | 'modifierSuddenDeath'
-  | 'modifierBlindMode'
-  | 'modifierStrict'
-  | 'modifierFlashlight'
-  | 'modifierDoubleTime'
-  | 'modifierRhythmLock'
-> = {
-  sudden_death: 'modifierSuddenDeath',
-  blind_mode: 'modifierBlindMode',
-  strict: 'modifierStrict',
-  flashlight: 'modifierFlashlight',
-  double_time: 'modifierDoubleTime',
-  rhythm_lock: 'modifierRhythmLock',
-};
-
-const modifierDescKeys: Record<
-  RaceModifier,
-  | 'modifierSuddenDeathDesc'
-  | 'modifierBlindModeDesc'
-  | 'modifierStrictDesc'
-  | 'modifierFlashlightDesc'
-  | 'modifierDoubleTimeDesc'
-  | 'modifierRhythmLockDesc'
-> = {
-  sudden_death: 'modifierSuddenDeathDesc',
-  blind_mode: 'modifierBlindModeDesc',
-  strict: 'modifierStrictDesc',
-  flashlight: 'modifierFlashlightDesc',
-  double_time: 'modifierDoubleTimeDesc',
-  rhythm_lock: 'modifierRhythmLockDesc',
-};
 
 interface ModifierIconProps {
   modifier: RaceModifier;
@@ -50,7 +18,7 @@ interface ModifierIconProps {
   onClick?: () => void;
 }
 
-/** Square icon-only modifier button/badge with semantic colors and custom tooltip. */
+/** Square icon-only modifier button/badge — styles and i18n keys from roomConfig. */
 export default function ModifierIcon({
   modifier,
   isActive = false,
@@ -59,8 +27,10 @@ export default function ModifierIcon({
   onClick,
 }: ModifierIconProps) {
   const { t } = useApp();
-  const name = t.multiplayer[modifierLabelKeys[modifier]];
-  const description = t.multiplayer[modifierDescKeys[modifier]];
+  const titleKey = MODIFIER_TITLE_KEYS[modifier];
+  const descKey = MODIFIER_DESC_KEYS[modifier];
+  const name = t.multiplayer[titleKey as keyof typeof t.multiplayer] as string;
+  const description = t.multiplayer[descKey as keyof typeof t.multiplayer] as string;
   const ariaLabel = `${name}: ${description}`;
   const icon = MODIFIER_ICONS[modifier] as IconName;
 

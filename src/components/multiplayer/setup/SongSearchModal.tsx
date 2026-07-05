@@ -10,12 +10,19 @@ interface SongSearchModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (song: LyricSongResult) => void;
+  /** Highlights the currently selected track in the results grid. */
+  selectedSongId?: number | null;
 }
 
 const SKELETON_COUNT = 6;
 const DEBOUNCE_MS = 400;
 
-export default function SongSearchModal({ open, onClose, onSelect }: SongSearchModalProps) {
+export default function SongSearchModal({
+  open,
+  onClose,
+  onSelect,
+  selectedSongId = null,
+}: SongSearchModalProps) {
   const { t } = useApp();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState('');
@@ -29,25 +36,14 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
   useLockBodyScroll(open);
 
   useEffect(() => {
-    if (!open) return;
-
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    setQuery('');
-    setResults([]);
-    setError(null);
-    setIsSearching(false);
-
-    if (!dialog.open) {
+    if (open && !dialog.open) {
       dialog.showModal();
+    } else if (!open && dialog.open) {
+      dialog.close();
     }
-
-    return () => {
-      if (dialog.open) {
-        dialog.close();
-      }
-    };
   }, [open]);
 
   useEffect(() => {
@@ -106,20 +102,19 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
     onClose();
   };
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+    if (!open) return;
+    if (event.target === dialogRef.current) {
+      onClose();
+    }
+  };
+
   const showEmpty =
     !isSearching && !error && debouncedQuery.length >= 2 && results.length === 0;
   const isPendingSearch = query.trim().length >= 2 && debouncedQuery.length < 2;
   const showResultsArea = query.trim().length >= 2 || isSearching;
   const needsScroll =
     isSearching || isPendingSearch || results.length > 6;
-
-  const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
-    if (event.target === dialogRef.current) {
-      onClose();
-    }
-  };
-
-  if (!open) return null;
 
   return (
     <dialog
@@ -128,7 +123,11 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
       onCancel={handleDialogClose}
       onClick={handleBackdropClick}
       aria-labelledby="song-search-title"
-      className="modal-enter fixed inset-0 z-[200] m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70"
+      aria-hidden={!open}
+      className={[
+        'modal-enter fixed inset-0 z-[200] m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70',
+        open ? '' : 'pointer-events-none invisible',
+      ].join(' ')}
     >
       <div
         role="document"
@@ -214,6 +213,7 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
                     key={song.id}
                     song={song}
                     tierLabel={difficultyTierLabel(song.difficulty.tier, t)}
+                    isSelected={selectedSongId !== null && song.id === selectedSongId}
                     onSelect={handleSelect}
                   />
                 ))}

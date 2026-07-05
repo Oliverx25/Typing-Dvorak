@@ -11,6 +11,7 @@ import {
 } from '@/utils/lyrics/typingDifficulty';
 import { fetchItunesMetadata } from '@/utils/lyrics/itunesMetadata';
 import type { LyricSongResult } from '@/utils/lyrics/types';
+import { resolveSongWpmStats } from '@/utils/lyrics/types';
 
 const LRCLIB_SEARCH = 'https://lrclib.net/api/search';
 const USER_AGENT = 'TypingDvorak/2.0 (lyrics-practice; +https://typing-dvorak.vercel.app)';
@@ -150,7 +151,10 @@ function enrichSongMetrics(
   plainLyrics: string,
   durationMs: number | null,
   fallbackPool: LrcLibHit[],
-): Pick<LyricSongResult, 'trackWpm' | 'difficulty' | 'lyricTimeline'> {
+): Pick<
+  LyricSongResult,
+  'avgWpm' | 'maxWpm' | 'trackWpm' | 'difficulty' | 'lyricTimeline'
+> {
   const resolvedDuration = resolveDurationMs(hit, durationMs);
   const synced = resolveSyncedLyrics(hit, fallbackPool);
   const lrcLines = synced ? parseLrc(synced) : [];
@@ -159,12 +163,11 @@ function enrichSongMetrics(
       ? buildLyricTimelineFromLrc(lrcLines, plainLyrics, resolvedDuration)
       : null;
 
-  const trackWpm =
-    built?.wpmProfile.activeWpm ??
-    computeTrackWpm(countLyricWords(plainLyrics), resolvedDuration);
+  const fallbackWpm = computeTrackWpm(countLyricWords(plainLyrics), resolvedDuration);
+  const wpmStats = resolveSongWpmStats(built?.wpmProfile, fallbackWpm);
 
   return {
-    trackWpm,
+    ...wpmStats,
     difficulty: calculateTypingDifficulty(plainLyrics, built?.wpmProfile ?? null),
     lyricTimeline: built?.timeline ?? [],
   };
@@ -182,11 +185,15 @@ async function enrichWithCoverArt(
       const durationMs = itunes.durationMs ?? item.durationMs;
       const metrics = hit
         ? enrichSongMetrics(hit, item.plainLyrics, durationMs, fallbackPool)
-        : {
-            trackWpm: computeTrackWpm(countLyricWords(item.plainLyrics), durationMs),
-            difficulty: item.difficulty,
-            lyricTimeline: item.lyricTimeline,
-          };
+        : (() => {
+            const fallbackWpm = computeTrackWpm(countLyricWords(item.plainLyrics), durationMs);
+            const wpmStats = resolveSongWpmStats(null, fallbackWpm);
+            return {
+              ...wpmStats,
+              difficulty: item.difficulty,
+              lyricTimeline: item.lyricTimeline,
+            };
+          })();
 
       return {
         ...item,

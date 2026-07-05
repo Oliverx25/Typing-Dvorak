@@ -112,6 +112,8 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
           coverArt: song.coverArt,
           difficulty: song.difficulty,
           durationMs: song.durationMs,
+          avgWpm: song.avgWpm,
+          maxWpm: song.maxWpm,
           trackWpm: song.trackWpm,
           lyricTimeline: song.lyricTimeline,
         },
@@ -265,13 +267,12 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
                 onSave={(partial) => void updateRoomConfig(partial)}
               />
 
-              {songSearchOpen ? (
-                <SongSearchModal
-                  open
-                  onClose={() => setSongSearchOpen(false)}
-                  onSelect={handleSongSelect}
-                />
-              ) : null}
+              <SongSearchModal
+                open={songSearchOpen}
+                selectedSongId={roomState.songMeta?.id ?? null}
+                onClose={() => setSongSearchOpen(false)}
+                onSelect={handleSongSelect}
+              />
             </>
           ) : null}
 

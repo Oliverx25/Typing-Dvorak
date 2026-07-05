@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import Icon from '@/components/ui/icons/Icon';
 import { difficultyTierLabel } from '@/components/multiplayer/setup/SongCard';
+import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
 import { DIFFICULTY_BADGE_CLASSES } from '@/utils/lyrics/typingDifficulty';
 import { formatDurationMs } from '@/utils/lyrics/itunesMetadata';
 import type { SelectedSongMeta } from '@/utils/lyrics/types';
@@ -79,11 +80,11 @@ export default function ActiveTrackCard({
           {duration ? (
             <span className="font-mono text-xs text-slate-500">{duration}</span>
           ) : null}
-          {song.trackWpm ? (
-            <span className="font-mono text-xs text-[var(--color-highlight)]">
-              {t.multiplayer.lyricsTrackPace.replace('{wpm}', String(song.trackWpm))}
-            </span>
-          ) : null}
+          <SongWpmDisplay
+            avgWpm={song.avgWpm ?? song.trackWpm}
+            maxWpm={song.maxWpm}
+            wpmUnit={t.multiplayer.lyricsWpmUnit}
+          />
         </div>
       </div>
 

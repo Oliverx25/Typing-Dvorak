@@ -56,6 +56,8 @@ function toSongMeta(song: LyricSongResult): SelectedSongMeta {
     coverArt: song.coverArt,
     difficulty: song.difficulty,
     durationMs: song.durationMs,
+    avgWpm: song.avgWpm,
+    maxWpm: song.maxWpm,
     trackWpm: song.trackWpm,
     lyricTimeline: song.lyricTimeline,
   };
@@ -106,7 +108,6 @@ export default function CreateRoomSettings({
   };
 
   const handleChangeTrack = () => {
-    onChange({ textSource: 'song', customText: '', songMeta: null });
     setSongSearchOpen(true);
   };
 
@@ -210,13 +211,14 @@ export default function CreateRoomSettings({
     />
   );
 
-  const songSearchModal = songSearchOpen ? (
+  const songSearchModal = (
     <SongSearchModal
-      open
+      open={songSearchOpen}
+      selectedSongId={value.songMeta?.id ?? null}
       onClose={() => setSongSearchOpen(false)}
       onSelect={handleSongSelect}
     />
-  ) : null;
+  );
 
   if (variant === 'content') {
     return (
