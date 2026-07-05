@@ -63,6 +63,26 @@ export function formatRaceScore(score: number): string {
   return score.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
+/** Estimates correct keystrokes vs cumulative errors for results display. */
+export function estimateRaceHitBreakdown(
+  accuracy: number,
+  percentage: number,
+  raceCharCount: number,
+  finished: boolean,
+): { correct: number; errors: number } {
+  const safeAccuracy = Math.max(0, Math.min(100, accuracy));
+  const progressChars = finished
+    ? raceCharCount
+    : Math.max(0, Math.round((raceCharCount * percentage) / 100));
+
+  if (progressChars <= 0) return { correct: 0, errors: 0 };
+  if (safeAccuracy >= 100) return { correct: progressChars, errors: 0 };
+
+  const correct = Math.round((progressChars * safeAccuracy) / 100);
+  const errors = Math.max(0, Math.round(correct * ((100 - safeAccuracy) / safeAccuracy)));
+  return { correct, errors };
+}
+
 /** Theoretical max race score if every keystroke is perfect with growing combo. */
 export function estimateMaxRaceScore(charCount: number, scoreMultiplier = 1): number {
   if (charCount <= 0) return 1;

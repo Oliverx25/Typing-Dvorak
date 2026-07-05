@@ -15,6 +15,7 @@ interface ModifierIconProps {
   isActive?: boolean;
   readOnly?: boolean;
   disabled?: boolean;
+  size?: 'md' | 'sm';
   onClick?: () => void;
 }
 
@@ -24,6 +25,7 @@ export default function ModifierIcon({
   isActive = false,
   readOnly = false,
   disabled = false,
+  size = 'md',
   onClick,
 }: ModifierIconProps) {
   const { t } = useApp();
@@ -42,14 +44,17 @@ export default function ModifierIcon({
       ].join(' ');
 
   const shellClass = [
-    'group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border text-xl transition-all duration-200',
+    'group relative flex shrink-0 items-center justify-center rounded-lg border text-xl transition-all duration-200',
+    size === 'sm' ? 'h-7 w-7' : 'h-11 w-11',
     stateClass,
     disabled ? 'cursor-not-allowed opacity-50' : readOnly ? '' : 'cursor-pointer',
   ].join(' ');
 
+  const iconSize = size === 'sm' ? 14 : 20;
+
   const content = (
     <>
-      <Icon name={icon} size={20} className="text-current" />
+      <Icon name={icon} size={iconSize} className="text-current" />
       <HoverTooltip title={name} description={description} />
     </>
   );

@@ -198,8 +198,14 @@ export default function MultiplayerRacePanel({
         returnToLobbyLabel={t.multiplayer.returnToWaitingRoom}
         swipeHint={t.multiplayer.raceResultsSwipe}
         leaveLabel={t.multiplayer.leaveRoom}
+        correctLabel={t.multiplayer.raceResultsCorrect}
+        errorsLabel={t.multiplayer.raceResultsErrors}
+        rankLabel={t.multiplayer.raceResultsRank}
         totalMultiplier={totalMultiplier}
         raceCharCount={raceText.length}
+        modifiers={roomState.modifiers}
+        trackTitle={roomState.textSource === 'song' ? roomState.songMeta?.title : null}
+        trackArtist={roomState.textSource === 'song' ? roomState.songMeta?.artist : null}
         onReturnToLobby={onReturnToLobby}
       />
     );
