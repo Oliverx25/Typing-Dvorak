@@ -4,6 +4,8 @@ interface BadgeIconProps {
   src: string;
   size?: number;
   className?: string;
+  /** When true, icon color comes from Tailwind text-* classes on className. */
+  inheritColor?: boolean;
 }
 
 const cache = new Map<string, string>();
@@ -12,7 +14,7 @@ const cache = new Map<string, string>();
  * Loads a badge SVG inline so its `currentColor` strokes/fills inherit the
  * app accent color and adapt to light/dark themes. Falls back to <img> on SSR.
  */
-export default function BadgeIcon({ src, size = 18, className = '' }: BadgeIconProps) {
+export default function BadgeIcon({ src, size = 18, className = '', inheritColor = false }: BadgeIconProps) {
   const [markup, setMarkup] = useState<string | null>(() => cache.get(src) ?? null);
 
   useEffect(() => {
@@ -31,7 +33,9 @@ export default function BadgeIcon({ src, size = 18, className = '' }: BadgeIconP
     };
   }, [src, markup]);
 
-  const style = { width: size, height: size, color: 'var(--color-highlight)' };
+  const style = inheritColor
+    ? { width: size, height: size }
+    : { width: size, height: size, color: 'var(--color-highlight)' };
 
   if (markup) {
     return (

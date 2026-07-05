@@ -1,42 +1,60 @@
-import { getAggregateStats, getCompletedLessonsMap, getProgress, getSessionHistory } from '../progress/storage';
-import { LESSON_ORDER } from '../curriculum/curriculum';
-import { UNLOCK_ACCURACY } from '../curriculum/constants';
 import { dispatchBadgesUpdated } from '../app/events';
 import { STORAGE_KEYS } from '../progress/keys';
 import { readJson, writeJson } from '../progress/localStorage';
-
-export interface Badge {
-  id: string;
-  /** Path to the SVG icon in /public/badges. */
-  icon: string;
-  titleKey: string;
-  descKey: string;
-}
-
-export const BADGES: Badge[] = [
-  { id: 'first-lesson', icon: '/badges/first-lesson.svg', titleKey: 'firstLesson', descKey: 'firstLessonDesc' },
-  { id: 'streak-7', icon: '/badges/streak-7.svg', titleKey: 'streak7', descKey: 'streak7Desc' },
-  { id: 'wpm-50', icon: '/badges/wpm-50.svg', titleKey: 'wpm50', descKey: 'wpm50Desc' },
-  { id: 'perfect-run', icon: '/badges/perfect-run.svg', titleKey: 'perfectRun', descKey: 'perfectRunDesc' },
-  { id: 'curriculum-done', icon: '/badges/curriculum-done.svg', titleKey: 'curriculumDone', descKey: 'curriculumDoneDesc' },
-];
-
-export interface BadgeEvaluationInput {
-  completedLessonCount: number;
-  streak: number;
-  bestWpm: number;
-  hasPerfectRun: boolean;
-  masteredLessonCount: number;
-  totalCurriculumLessons: number;
-}
+import {
+  ACHIEVEMENTS,
+  ACHIEVEMENT_FAMILY_ICONS,
+  getAchievementById,
+  type AchievementDefinition,
+  type AchievementFamily,
+  type AchievementTier,
+} from './achievements.config';
+import { buildUserAchievementStatsFromLocal } from './userStats';
 
 export interface BadgeProgressState {
   current: number;
   target: number;
 }
 
+export interface Badge {
+  id: string;
+  family: AchievementFamily;
+  tier?: AchievementTier;
+  icon: string;
+  titleKey: string;
+  descKey: string;
+}
+
+const LEGACY_BADGE_IDS = new Set([
+  'first-lesson',
+  'streak-7',
+  'wpm-50',
+  'perfect-run',
+  'curriculum-done',
+]);
+
+/** @deprecated Use ACHIEVEMENTS — kept for backward-compatible imports. */
+export const BADGES: Badge[] = ACHIEVEMENTS.map(toBadgeView);
+
+function toBadgeView(definition: AchievementDefinition): Badge {
+  return {
+    id: definition.id,
+    family: definition.family,
+    tier: definition.tier,
+    icon: ACHIEVEMENT_FAMILY_ICONS[definition.family],
+    titleKey: definition.titleKey,
+    descKey: definition.descKey,
+  };
+}
+
 export function getUnlockedBadges(): string[] {
-  return readJson(STORAGE_KEYS.badges, [] as string[]);
+  const stored = readJson(STORAGE_KEYS.badges, [] as string[]);
+  if (stored.some((id) => LEGACY_BADGE_IDS.has(id))) {
+    const next = evaluateUnlockedBadges(buildUserAchievementStatsFromLocal());
+    saveUnlockedBadges(next);
+    return next;
+  }
+  return stored;
 }
 
 function saveUnlockedBadges(ids: string[]): void {
@@ -49,69 +67,36 @@ export function replaceUnlockedBadges(ids: string[]): void {
   dispatchBadgesUpdated();
 }
 
-export function buildBadgeEvaluationFromLocal(): BadgeEvaluationInput {
-  const progress = getProgress();
-  const completed = getCompletedLessonsMap();
-  const aggregate = getAggregateStats();
-  const hasPerfectRun = getSessionHistory().some((session) => session.accuracy === 100);
-  const masteredLessonCount = LESSON_ORDER.filter(
-    (id) => (completed[id]?.bestAccuracy ?? 0) >= UNLOCK_ACCURACY,
-  ).length;
-
-  return {
-    completedLessonCount: Object.keys(completed).length,
-    streak: progress.streak,
-    bestWpm: aggregate.bestWpm,
-    hasPerfectRun,
-    masteredLessonCount,
-    totalCurriculumLessons: LESSON_ORDER.length,
-  };
+/** @deprecated Use buildUserAchievementStatsFromLocal */
+export function buildBadgeEvaluationFromLocal() {
+  return buildUserAchievementStatsFromLocal();
 }
 
-/** Pure evaluation from session-derived stats — same rules for local and cloud. */
-export function evaluateUnlockedBadges(input: BadgeEvaluationInput): string[] {
-  const unlocked: string[] = [];
-
-  if (input.completedLessonCount > 0) unlocked.push('first-lesson');
-  if (input.streak >= 7) unlocked.push('streak-7');
-  if (input.bestWpm >= 50) unlocked.push('wpm-50');
-  if (input.hasPerfectRun) unlocked.push('perfect-run');
-  if (input.masteredLessonCount >= input.totalCurriculumLessons) unlocked.push('curriculum-done');
-
-  return unlocked;
+/** Pure evaluation — iterates achievement config instead of isolated conditionals. */
+export function evaluateUnlockedBadges(stats: ReturnType<typeof buildUserAchievementStatsFromLocal>): string[] {
+  return ACHIEVEMENTS.filter((achievement) => achievement.condition(stats)).map(
+    (achievement) => achievement.id,
+  );
 }
 
 export function getBadgeProgressState(
   badgeId: string,
-  input: BadgeEvaluationInput,
+  stats: ReturnType<typeof buildUserAchievementStatsFromLocal>,
 ): BadgeProgressState | null {
-  switch (badgeId) {
-    case 'first-lesson':
-      return { current: Math.min(input.completedLessonCount, 1), target: 1 };
-    case 'streak-7':
-      return { current: Math.min(input.streak, 7), target: 7 };
-    case 'wpm-50':
-      return { current: Math.min(input.bestWpm, 50), target: 50 };
-    case 'perfect-run':
-      return { current: input.hasPerfectRun ? 1 : 0, target: 1 };
-    case 'curriculum-done':
-      return {
-        current: Math.min(input.masteredLessonCount, input.totalCurriculumLessons),
-        target: input.totalCurriculumLessons,
-      };
-    default:
-      return null;
-  }
+  const achievement = getAchievementById(badgeId);
+  if (!achievement) return null;
+  return achievement.progress(stats);
 }
 
-export function checkAndUnlockBadges(stats?: {
+export function checkAndUnlockBadges(_session?: {
   accuracy?: number;
   wpm?: number;
   lessonId?: string;
+  maxCombo?: number;
 }): string[] {
-  void stats;
-  const input = buildBadgeEvaluationFromLocal();
-  const next = evaluateUnlockedBadges(input);
+  void _session;
+  const stats = buildUserAchievementStatsFromLocal();
+  const next = evaluateUnlockedBadges(stats);
   const previous = new Set(getUnlockedBadges());
   const newly = next.filter((id) => !previous.has(id));
 
@@ -120,4 +105,14 @@ export function checkAndUnlockBadges(stats?: {
   }
 
   return newly;
+}
+
+export function checkAchievements(
+  stats: ReturnType<typeof buildUserAchievementStatsFromLocal>,
+  alreadyUnlocked: string[],
+): string[] {
+  const owned = new Set(alreadyUnlocked);
+  return ACHIEVEMENTS.filter(
+    (achievement) => !owned.has(achievement.id) && achievement.condition(stats),
+  ).map((achievement) => achievement.id);
 }

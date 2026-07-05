@@ -119,8 +119,12 @@ export function useTypingSession({
   const nextChar = targetText[input.length];
   const targetKey = !finished && !paused && nextChar ? charToKeyCode(nextChar) : undefined;
 
+  const maxComboRef = useRef(0);
+  maxComboRef.current = maxCombo;
+
   const finishSession = useCallback(
     (result: TypingStats) => {
+      const sessionMaxCombo = maxComboRef.current;
       const weak = getSessionWeakKeys(sessionMissesRef.current);
       setSessionWeakKeys(weak);
       setElapsedMs(result.elapsedSeconds * 1000);
@@ -132,12 +136,18 @@ export function useTypingSession({
         lessonTitle,
         result,
         mode,
+        sessionMaxCombo,
       );
       setIsNewRecord(record);
       setWpmDelta(result.wpm - previousBest);
       dispatchSessionComplete();
       dispatchKeyStatsUpdated();
-      checkAndUnlockBadges({ accuracy: result.accuracy, wpm: result.wpm, lessonId });
+      checkAndUnlockBadges({
+        accuracy: result.accuracy,
+        wpm: result.wpm,
+        lessonId,
+        maxCombo: sessionMaxCombo,
+      });
       if (sound) playCompleteSound();
     },
     [lessonId, lessonTitle, mode, sound],

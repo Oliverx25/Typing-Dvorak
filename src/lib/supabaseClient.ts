@@ -68,6 +68,56 @@ export type Database = {
         };
         Update: Partial<Database['public']['Tables']['user_badges']['Insert']>;
       };
+      user_stats: {
+        Row: {
+          user_id: string;
+          total_sessions_played: number;
+          total_perfect_sessions: number;
+          highest_wpm_ever: number;
+          highest_combo_ever: number;
+          current_day_streak: number;
+          total_multiplayer_matches: number;
+          total_multiplayer_wins: number;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          total_sessions_played?: number;
+          total_perfect_sessions?: number;
+          highest_wpm_ever?: number;
+          highest_combo_ever?: number;
+          current_day_streak?: number;
+          total_multiplayer_matches?: number;
+          total_multiplayer_wins?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['user_stats']['Insert']>;
+      };
+      race_results: {
+        Row: {
+          id: string;
+          user_id: string;
+          room_code: string;
+          wpm: number;
+          accuracy: number;
+          max_combo: number;
+          finished: boolean;
+          win_condition: string;
+          placement: number | null;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          room_code: string;
+          wpm: number;
+          accuracy: number;
+          max_combo?: number;
+          finished?: boolean;
+          win_condition?: string;
+          placement?: number | null;
+        };
+        Update: Partial<Database['public']['Tables']['race_results']['Insert']>;
+      };
       rooms: {
         Row: {
           id: string;

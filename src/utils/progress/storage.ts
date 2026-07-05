@@ -12,6 +12,7 @@ export interface SessionRecord {
   elapsedSeconds: number;
   mode: PracticeMode;
   completedAt: string;
+  maxCombo?: number;
 }
 
 export interface LessonProgress {
@@ -59,6 +60,7 @@ export function saveSession(
   lessonTitle: string,
   stats: TypingStats,
   mode: PracticeMode = 'practice',
+  maxCombo = 0,
 ): { isNewRecord: boolean; previousBest: number } {
   const record: SessionRecord = {
     lessonId,
@@ -68,6 +70,7 @@ export function saveSession(
     elapsedSeconds: stats.elapsedSeconds,
     mode,
     completedAt: new Date().toISOString(),
+    maxCombo: maxCombo > 0 ? maxCombo : undefined,
   };
 
   const history = [record, ...getSessionHistory()].slice(0, MAX_RECORDS);

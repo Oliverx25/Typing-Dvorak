@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
+import AchievementCard from '@/components/achievements/AchievementCard';
+import {
+  ACHIEVEMENT_FAMILIES,
+  FAMILY_TITLE_KEYS,
+  getAchievementsByFamily,
+} from '@/utils/achievements/achievements.config';
 import {
   BADGES,
   buildBadgeEvaluationFromLocal,
   getBadgeProgressState,
   getUnlockedBadges,
 } from '@/utils/achievements/badges';
+import { TIER_STYLES } from '@/utils/achievements/tierStyles';
 import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
-import { BadgeIcon, Icon } from '@/components/ui';
 
 export default function AchievementsGrid() {
   const { t } = useApp();
@@ -44,74 +50,45 @@ export default function AchievementsGrid() {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {BADGES.map((badge) => {
-          const isUnlocked = unlocked.includes(badge.id);
-          const progress = getBadgeProgressState(badge.id, evaluation);
-          const title = t.badges[badge.titleKey as keyof typeof t.badges];
-          const description = t.badges[badge.descKey as keyof typeof t.badges];
-          const progressPct =
-            progress && progress.target > 0
-              ? Math.round((progress.current / progress.target) * 100)
-              : 0;
+      <div className="space-y-10">
+        {ACHIEVEMENT_FAMILIES.map((family, index) => {
+          const familyBadges = getAchievementsByFamily(family).map((definition) =>
+            BADGES.find((badge) => badge.id === definition.id)!,
+          );
 
           return (
-            <article
-              key={badge.id}
-              className={[
-                'relative overflow-hidden rounded-2xl border p-5 transition',
-                isUnlocked
-                  ? 'border-[var(--color-highlight)]/35 bg-[var(--color-highlight)]/8 shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-highlight)_12%,transparent)]'
-                  : 'border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60',
-              ].join(' ')}
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className={[
-                    'flex size-14 shrink-0 items-center justify-center rounded-2xl border',
-                    isUnlocked
-                      ? 'border-[var(--color-highlight)]/25 bg-[var(--color-surface)]'
-                      : 'border-[var(--color-border)] bg-[var(--color-surface)]/50 opacity-45 grayscale',
-                  ].join(' ')}
-                >
-                  <BadgeIcon src={badge.icon} size={30} />
-                </div>
+            <section key={family}>
+              {index > 0 ? <hr className="mb-10 border-[var(--color-border)]" /> : null}
+              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+                {t.achievements[FAMILY_TITLE_KEYS[family] as keyof typeof t.achievements]}
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {familyBadges.map((badge) => {
+                  const isUnlocked = unlocked.includes(badge.id);
+                  const progress = getBadgeProgressState(badge.id, evaluation);
+                  const title = t.badges[badge.titleKey as keyof typeof t.badges];
+                  const description = t.badges[badge.descKey as keyof typeof t.badges];
+                  const tierLabel = badge.tier
+                    ? t.achievements[TIER_STYLES[badge.tier].labelKey]
+                    : undefined;
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base font-semibold text-[var(--color-text)]">{title}</h2>
-                    {isUnlocked ? (
-                      <span className="rounded-full bg-[var(--color-highlight)]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-highlight)]">
-                        {t.achievements.unlockedLabel}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
-                        <Icon name="lock" size={10} />
-                        {t.achievements.lockedLabel}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm leading-relaxed text-[var(--color-text-muted)]">{description}</p>
-                </div>
-              </div>
-
-              {!isUnlocked && progress && (
-                <div className="mt-4">
-                  <div className="mb-1.5 flex items-center justify-between text-xs text-[var(--color-text-muted)]">
-                    <span>{t.achievements.progressLabel}</span>
-                    <span className="font-mono">
-                      {progress.current}/{progress.target}
-                    </span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[var(--color-border)]/60">
-                    <div
-                      className="h-full rounded-full bg-[var(--color-highlight)] transition-all"
-                      style={{ width: `${progressPct}%` }}
+                  return (
+                    <AchievementCard
+                      key={badge.id}
+                      badge={badge}
+                      title={title}
+                      description={description}
+                      isUnlocked={isUnlocked}
+                      progress={progress}
+                      unlockedLabel={t.achievements.unlockedLabel}
+                      lockedLabel={t.achievements.lockedLabel}
+                      progressLabel={t.achievements.progressLabel}
+                      tierLabel={tierLabel}
                     />
-                  </div>
-                </div>
-              )}
-            </article>
+                  );
+                })}
+              </div>
+            </section>
           );
         })}
       </div>

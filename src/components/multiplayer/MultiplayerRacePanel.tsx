@@ -8,6 +8,7 @@ import { getLessonById } from '@/utils/curriculum/lessons';
 import { resolveRaceText } from '@/utils/multiplayer/roomConfig';
 import { mergePeakRaceProgress } from '@/utils/multiplayer/raceScoring';
 import { countPendingPlayers } from '@/utils/multiplayer/raceCompletion';
+import { recordMultiplayerMatch } from '@/utils/achievements/multiplayerStats';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { LobbyPlayerPresence, RoomBroadcastState, RoomPhase } from '@/types/multiplayer';
 import type { RefObject } from 'react';
@@ -126,6 +127,18 @@ export default function MultiplayerRacePanel({
     () => countPendingPlayers(players, currentUserId),
     [players, currentUserId],
   );
+
+  const recordedResultsRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (phase !== 'results' || !currentUserId || !roomState.raceStartedAt) return;
+    const resultKey = `${roomState.raceStartedAt}-${roomState.version}`;
+    if (recordedResultsRef.current === resultKey) return;
+    recordedResultsRef.current = resultKey;
+
+    const winnerId = leaderboard[0]?.userId ?? null;
+    recordMultiplayerMatch(winnerId === currentUserId);
+  }, [phase, currentUserId, leaderboard, roomState.raceStartedAt, roomState.version]);
 
   const waitingDetail =
     pendingOpponents > 0

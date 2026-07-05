@@ -2,52 +2,15 @@ import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   evaluateUnlockedBadges,
   replaceUnlockedBadges,
-  type BadgeEvaluationInput,
 } from '../../utils/achievements/badges';
-import { LESSON_ORDER } from '../../utils/curriculum/curriculum';
-import { UNLOCK_ACCURACY } from '../../utils/curriculum/constants';
+import {
+  buildUserAchievementStatsFromSessions,
+  type SessionSummaryForStats,
+} from '../../utils/achievements/userStats';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '../../utils/progress/streak';
 import { fetchAllUserSessionSummaries, fetchUserSessionTimestamps } from './queries';
 
-export interface SessionSummary {
-  lesson_id: string;
-  wpm: number;
-  accuracy: number;
-}
-
-export function buildBadgeEvaluationFromSessions(
-  sessions: SessionSummary[],
-  streak: number,
-): BadgeEvaluationInput {
-  const lessonBests: Record<string, { bestAccuracy: number; bestWpm: number }> = {};
-  let bestWpm = 0;
-  let hasPerfectRun = false;
-
-  for (const session of sessions) {
-    const accuracy = Number(session.accuracy);
-    bestWpm = Math.max(bestWpm, session.wpm);
-    if (accuracy === 100) hasPerfectRun = true;
-
-    const existing = lessonBests[session.lesson_id];
-    lessonBests[session.lesson_id] = {
-      bestWpm: Math.max(existing?.bestWpm ?? 0, session.wpm),
-      bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, accuracy),
-    };
-  }
-
-  const masteredLessonCount = LESSON_ORDER.filter(
-    (id) => (lessonBests[id]?.bestAccuracy ?? 0) >= UNLOCK_ACCURACY,
-  ).length;
-
-  return {
-    completedLessonCount: Object.keys(lessonBests).length,
-    streak,
-    bestWpm,
-    hasPerfectRun,
-    masteredLessonCount,
-    totalCurriculumLessons: LESSON_ORDER.length,
-  };
-}
+export type SessionSummary = SessionSummaryForStats;
 
 async function persistUserBadges(userId: string, badgeIds: string[]): Promise<void> {
   const supabase = getSupabaseClient();
@@ -62,15 +25,45 @@ async function persistUserBadges(userId: string, badgeIds: string[]): Promise<vo
   }
 }
 
+async function fetchCloudMultiplayerStats(userId: string): Promise<{ matches: number; wins: number }> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return { matches: 0, wins: 0 };
+
+  const { count: matches, error: matchError } = await supabase
+    .from('race_results')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (matchError) {
+    console.warn('[sync] race_results count failed:', matchError.message);
+    return { matches: 0, wins: 0 };
+  }
+
+  const { count: wins, error: winError } = await supabase
+    .from('race_results')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('placement', 1);
+
+  if (winError) {
+    console.warn('[sync] race_results wins count failed:', winError.message);
+    return { matches: matches ?? 0, wins: 0 };
+  }
+
+  return { matches: matches ?? 0, wins: wins ?? 0 };
+}
+
 /** Recompute badges from all cloud sessions, persist, and mirror to localStorage. */
 export async function syncBadgesToCloud(userId: string): Promise<string[]> {
-  const [sessions, timestamps] = await Promise.all([
+  const [sessions, timestamps, mpStats] = await Promise.all([
     fetchAllUserSessionSummaries(),
     fetchUserSessionTimestamps(),
+    fetchCloudMultiplayerStats(userId),
   ]);
 
   const streak = computeStreakFromPracticeDates(collectPracticeDates(timestamps)).streak;
-  const unlocked = evaluateUnlockedBadges(buildBadgeEvaluationFromSessions(sessions, streak));
+  const stats = buildUserAchievementStatsFromSessions(sessions, streak, mpStats);
+  const unlocked = evaluateUnlockedBadges(stats);
 
   await persistUserBadges(userId, unlocked);
   replaceUnlockedBadges(unlocked);
@@ -84,7 +77,9 @@ export async function syncBadgesFromSessionRows(
   sessions: SessionSummary[],
   streak: number,
 ): Promise<string[]> {
-  const unlocked = evaluateUnlockedBadges(buildBadgeEvaluationFromSessions(sessions, streak));
+  const mpStats = await fetchCloudMultiplayerStats(userId);
+  const stats = buildUserAchievementStatsFromSessions(sessions, streak, mpStats);
+  const unlocked = evaluateUnlockedBadges(stats);
   await persistUserBadges(userId, unlocked);
   replaceUnlockedBadges(unlocked);
   return unlocked;
