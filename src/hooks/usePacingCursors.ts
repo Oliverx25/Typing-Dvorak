@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { getBestWpmForLesson } from '../utils/progress/storage';
-import { pacingCursorIndex } from '../utils/typing/pacingCursor';
+import { pacingCursorIndex, timelineCursorIndex, type TimelinePoint } from '../utils/typing/pacingCursor';
 
 interface UsePacingCursorsOptions {
   started: boolean;
@@ -13,10 +13,11 @@ interface UsePacingCursorsOptions {
   pacerTargetWpm: number;
   ghostEnabled: boolean;
   /**
-   * Forced pacer WPM (the "musical hare"). When > 0 it overrides pacerEnabled/
-   * pacerTargetWpm so the pacer follows the song cadence even in race mode.
+   * Forced pacer WPM fallback when no LRC timeline is available.
    */
   musicPacerWpm?: number | null;
+  /** LRC word timestamps — true ghost pacing for song races. */
+  musicTimeline?: TimelinePoint[] | null;
 }
 
 interface PacingCursorsState {
@@ -26,8 +27,7 @@ interface PacingCursorsState {
 
 /**
  * Drives pacer (hare) and ghost cursors with requestAnimationFrame.
- * Both use the same WPM-based pacing math; ghost WPM is the lesson best
- * captured when the session starts.
+ * Song races use LRC timeline sync when available; otherwise linear WPM pacing.
  */
 export function usePacingCursors({
   started,
@@ -40,6 +40,7 @@ export function usePacingCursors({
   pacerTargetWpm,
   ghostEnabled,
   musicPacerWpm = null,
+  musicTimeline = null,
 }: UsePacingCursorsOptions): PacingCursorsState {
   const [state, setState] = useState<PacingCursorsState>({ pacerIndex: null, ghostIndex: null });
   const [ghostWpm, setGhostWpm] = useState<number | null>(null);
@@ -53,10 +54,12 @@ export function usePacingCursors({
     const best = getBestWpmForLesson(lessonId);
     setGhostWpm(best && best > 0 ? best : null);
   }, [started, lessonId]);
+
   const active = started && !finished && !paused && startTime !== null;
   const runGhost = ghostEnabled && ghostWpm !== null && ghostWpm > 0;
-  const useMusicPacer = musicPacerWpm !== null && musicPacerWpm > 0;
-  const runPacer = useMusicPacer || pacerEnabled;
+  const useMusicTimeline = Boolean(musicTimeline && musicTimeline.length > 0);
+  const useMusicPacer = !useMusicTimeline && musicPacerWpm !== null && musicPacerWpm > 0;
+  const runPacer = useMusicTimeline || useMusicPacer || pacerEnabled;
   const effectivePacerWpm = useMusicPacer ? (musicPacerWpm as number) : pacerTargetWpm;
 
   useEffect(() => {
@@ -69,7 +72,9 @@ export function usePacingCursors({
       const elapsed = Date.now() - (startTime as number);
 
       const pacerIndex = runPacer
-        ? pacingCursorIndex(elapsed, effectivePacerWpm, totalChars)
+        ? useMusicTimeline
+          ? timelineCursorIndex(elapsed, musicTimeline as TimelinePoint[], totalChars)
+          : pacingCursorIndex(elapsed, effectivePacerWpm, totalChars)
         : null;
 
       const ghostIndex = runGhost
@@ -89,7 +94,17 @@ export function usePacingCursors({
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
-  }, [active, runPacer, runGhost, effectivePacerWpm, ghostWpm, totalChars, startTime]);
+  }, [
+    active,
+    runPacer,
+    runGhost,
+    useMusicTimeline,
+    effectivePacerWpm,
+    ghostWpm,
+    totalChars,
+    startTime,
+    musicTimeline,
+  ]);
 
   return state;
 }

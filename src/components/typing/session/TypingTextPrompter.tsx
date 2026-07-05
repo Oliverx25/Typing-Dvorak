@@ -1,10 +1,14 @@
 import type { CharStatus } from '@/hooks/useTypingSession';
-import TypedChar from './TypedChar';
+import { useVirtualizedTeleprompter } from '@/hooks/useVirtualizedTeleprompter';
 import {
   TELEPROMPTER_TEXT_CLASS,
   TELEPROMPTER_VIEWPORT_CLASS,
-  useTeleprompterScroll,
 } from '@/hooks/useTeleprompterScroll';
+import TypedChar from './TypedChar';
+import {
+  InlinePacingCursorMarker,
+  PacingCursorEdgeHint,
+} from './PacingCursorOverlay';
 
 interface TypingTextPrompterProps {
   targetText: string;
@@ -25,45 +29,82 @@ export default function TypingTextPrompter({
   pacerIndex,
   ghostIndex,
 }: TypingTextPrompterProps) {
-  const { viewportRef, innerRef, assignActiveRef, offsetY } = useTeleprompterScroll({
+  const {
+    viewportRef,
+    innerRef,
+    assignActiveRef,
+    offsetY,
+    lineHeight,
+    visibleBounds,
+    hiddenLinesAbove,
+    hiddenLinesBelow,
+    getCursorVisibility,
+  } = useVirtualizedTeleprompter({
+    targetText,
     activeIndex: inputLength,
-    textLength: targetText.length,
   });
+
+  const pacerVisibility = getCursorVisibility(pacerIndex);
+  const ghostVisibility = getCursorVisibility(ghostIndex);
+  const topSpacerHeight = hiddenLinesAbove * lineHeight;
+  const bottomSpacerHeight = hiddenLinesBelow * lineHeight;
+
+  const visibleChars: Array<{ index: number; char: string }> = [];
+  for (let i = visibleBounds.from; i < visibleBounds.to; i += 1) {
+    visibleChars.push({ index: i, char: targetText[i] ?? '' });
+  }
 
   return (
     <div
       ref={viewportRef}
       className={['relative overflow-hidden', TELEPROMPTER_VIEWPORT_CLASS].join(' ')}
     >
+      <PacingCursorEdgeHint
+        variant="pacer"
+        charIndex={pacerIndex}
+        visibility={pacerVisibility}
+      />
+      <PacingCursorEdgeHint
+        variant="ghost"
+        charIndex={ghostIndex}
+        visibility={ghostVisibility}
+      />
+
       <div
         ref={innerRef}
         className="relative transition-transform duration-200 ease-out motion-reduce:transition-none"
         style={{ transform: `translateY(-${offsetY}px)` }}
       >
+        {topSpacerHeight > 0 ? (
+          <div aria-hidden="true" style={{ height: topSpacerHeight }} />
+        ) : null}
+
         <p className={TELEPROMPTER_TEXT_CLASS} aria-live="off">
-          {targetText.split('').map((char, i) => {
-            const isCurrent = i === inputLength;
+          {visibleChars.map(({ index, char }) => {
+            const isCurrent = index === inputLength;
             return (
               <span
-                key={i}
+                key={index}
                 ref={isCurrent ? assignActiveRef : undefined}
                 className="relative"
               >
-                {pacerIndex === i && i !== inputLength && (
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -bottom-0.5 left-0 top-0 w-0.5 border-b-2 border-amber-500 bg-amber-500/30"
-                  />
-                )}
-                {ghostIndex === i && i !== inputLength && (
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -bottom-0.5 left-0 top-0 w-0.5 bg-gray-400/20 outline-1 outline-gray-500"
-                  />
-                )}
+                <InlinePacingCursorMarker
+                  variant="pacer"
+                  charIndex={pacerIndex}
+                  playerIndex={inputLength}
+                  index={index}
+                  visibility={pacerVisibility}
+                />
+                <InlinePacingCursorMarker
+                  variant="ghost"
+                  charIndex={ghostIndex}
+                  playerIndex={inputLength}
+                  index={index}
+                  visibility={ghostVisibility}
+                />
                 <TypedChar
                   char={char}
-                  status={statuses[i]}
+                  status={statuses[index]}
                   isCurrent={isCurrent}
                   active={!finished && !paused}
                 />
@@ -74,6 +115,10 @@ export default function TypingTextPrompter({
             <span className="caret-blink ml-px inline-block h-[1.1em] w-0.5 translate-y-0.5 bg-[var(--color-key-target)] align-middle motion-reduce:animate-none" />
           )}
         </p>
+
+        {bottomSpacerHeight > 0 ? (
+          <div aria-hidden="true" style={{ height: bottomSpacerHeight }} />
+        ) : null}
       </div>
     </div>
   );

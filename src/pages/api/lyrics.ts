@@ -1,4 +1,6 @@
 import type { APIRoute } from 'astro';
+import { buildLyricTimelineFromLrc } from '@/utils/lyrics/buildLyricTimeline';
+import { parseLrc } from '@/utils/lyrics/parseLrc';
 import { sanitizeLyrics } from '@/utils/lyrics/sanitizeLyrics';
 import { isTypableLatinLyrics } from '@/utils/lyrics/latinScript';
 import { lyricsToTypableRomaji } from '@/utils/lyrics/toRomajiLyrics';
@@ -20,6 +22,7 @@ interface LrcLibHit {
   artistName?: string;
   albumName?: string;
   plainLyrics?: string | null;
+  syncedLyrics?: string | null;
   instrumental?: boolean;
   duration?: number;
 }
@@ -124,26 +127,84 @@ async function fetchFallbackPool(query: string): Promise<LrcLibHit[]> {
   return merged;
 }
 
-async function enrichWithCoverArt(results: LyricSongResult[]): Promise<LyricSongResult[]> {
+function resolveDurationMs(hit: LrcLibHit, durationMs: number | null): number | null {
+  if (durationMs && durationMs > 0) return durationMs;
+  if (typeof hit.duration === 'number' && hit.duration > 0) {
+    return Math.round(hit.duration * 1000);
+  }
+  return null;
+}
+
+function resolveSyncedLyrics(hit: LrcLibHit, fallbackPool: LrcLibHit[]): string | null {
+  if (hit.syncedLyrics?.trim()) return hit.syncedLyrics;
+  const key = trackKey(hit.name?.trim() ?? '', hit.artistName?.trim() ?? '');
+  for (const alt of fallbackPool) {
+    if (trackKey(alt.name?.trim() ?? '', alt.artistName?.trim() ?? '') !== key) continue;
+    if (alt.syncedLyrics?.trim()) return alt.syncedLyrics;
+  }
+  return null;
+}
+
+function enrichSongMetrics(
+  hit: LrcLibHit,
+  plainLyrics: string,
+  durationMs: number | null,
+  fallbackPool: LrcLibHit[],
+): Pick<LyricSongResult, 'trackWpm' | 'difficulty' | 'lyricTimeline'> {
+  const resolvedDuration = resolveDurationMs(hit, durationMs);
+  const synced = resolveSyncedLyrics(hit, fallbackPool);
+  const lrcLines = synced ? parseLrc(synced) : [];
+  const built =
+    lrcLines.length > 0
+      ? buildLyricTimelineFromLrc(lrcLines, plainLyrics, resolvedDuration)
+      : null;
+
+  const trackWpm =
+    built?.wpmProfile.activeWpm ??
+    computeTrackWpm(countLyricWords(plainLyrics), resolvedDuration);
+
+  return {
+    trackWpm,
+    difficulty: calculateTypingDifficulty(plainLyrics, built?.wpmProfile ?? null),
+    lyricTimeline: built?.timeline ?? [],
+  };
+}
+
+async function enrichWithCoverArt(
+  results: LyricSongResult[],
+  fallbackPool: LrcLibHit[],
+  hitById: Map<number, LrcLibHit>,
+): Promise<LyricSongResult[]> {
   return Promise.all(
     results.map(async (item) => {
+      const hit = hitById.get(item.id);
       const itunes = await fetchItunesMetadata(item.title, item.artist);
       const durationMs = itunes.durationMs ?? item.durationMs;
+      const metrics = hit
+        ? enrichSongMetrics(hit, item.plainLyrics, durationMs, fallbackPool)
+        : {
+            trackWpm: computeTrackWpm(countLyricWords(item.plainLyrics), durationMs),
+            difficulty: item.difficulty,
+            lyricTimeline: item.lyricTimeline,
+          };
+
       return {
         ...item,
         coverArt: itunes.coverArt,
         durationMs,
-        trackWpm: computeTrackWpm(countLyricWords(item.plainLyrics), durationMs),
+        ...metrics,
       };
     }),
   );
 }
 
-function toResult(hit: LrcLibHit, plainLyrics: string): LyricSongResult {
-  const durationMs =
-    typeof hit.duration === 'number' && hit.duration > 0
-      ? Math.round(hit.duration * 1000)
-      : null;
+function toResult(
+  hit: LrcLibHit,
+  plainLyrics: string,
+  fallbackPool: LrcLibHit[],
+): LyricSongResult {
+  const durationMs = resolveDurationMs(hit, null);
+  const metrics = enrichSongMetrics(hit, plainLyrics, durationMs, fallbackPool);
 
   return {
     id: hit.id,
@@ -151,10 +212,9 @@ function toResult(hit: LrcLibHit, plainLyrics: string): LyricSongResult {
     artist: hit.artistName?.trim() || 'Unknown artist',
     album: hit.albumName?.trim() || null,
     plainLyrics,
-    difficulty: calculateTypingDifficulty(plainLyrics),
     coverArt: null,
     durationMs,
-    trackWpm: computeTrackWpm(countLyricWords(plainLyrics), durationMs),
+    ...metrics,
   };
 }
 
@@ -162,14 +222,16 @@ async function buildResults(
   primaryHits: LrcLibHit[],
   fallbackPool: LrcLibHit[],
   query: string,
-): Promise<LyricSongResult[]> {
+): Promise<{ results: LyricSongResult[]; hitById: Map<number, LrcLibHit> }> {
   const seen = new Set<number>();
   const results: LyricSongResult[] = [];
+  const hitById = new Map<number, LrcLibHit>();
 
   const pushHit = (hit: LrcLibHit, plainLyrics: string) => {
     if (!hit.id || seen.has(hit.id) || results.length >= MAX_RESULTS) return;
     seen.add(hit.id);
-    results.push(toResult(hit, plainLyrics));
+    hitById.set(hit.id, hit);
+    results.push(toResult(hit, plainLyrics, fallbackPool));
   };
 
   await Promise.all(
@@ -192,7 +254,7 @@ async function buildResults(
     pushHit(hit, plainLyrics);
   }
 
-  return results;
+  return { results, hitById };
 }
 
 export const GET: APIRoute = async ({ request }) => {
@@ -209,8 +271,8 @@ export const GET: APIRoute = async ({ request }) => {
     const needsFallback = primaryHits.some(hitNeedsFallback);
     const fallbackPool = needsFallback ? await fetchFallbackPool(query) : [];
 
-    const results = await buildResults(primaryHits, fallbackPool, query);
-    const enriched = await enrichWithCoverArt(results);
+    const { results, hitById } = await buildResults(primaryHits, fallbackPool, query);
+    const enriched = await enrichWithCoverArt(results, fallbackPool, hitById);
 
     return Response.json({ results: enriched });
   } catch (error) {

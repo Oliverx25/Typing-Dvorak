@@ -1,10 +1,16 @@
-import type { TypingDifficulty } from './types';
+import type { TypingDifficulty, WpmProfile } from './types';
 
 const LETTER = /[a-zA-Z\u00C0-\u024F]/g;
 const PUNCTUATION = /[.,!?;:'"—–()[\]{}/\\@#$%^&*+=<>~`|-]/g;
 
-/** Estimates typing difficulty from cleaned lyric text. */
-export function calculateTypingDifficulty(text: string): TypingDifficulty {
+export const PEAK_WPM_HARD_THRESHOLD = 110;
+export const PEAK_WPM_EXPERT_THRESHOLD = 140;
+
+/** Estimates typing difficulty from cleaned lyric text and optional LRC WPM profile. */
+export function calculateTypingDifficulty(
+  text: string,
+  wpmProfile?: WpmProfile | null,
+): TypingDifficulty {
   const letters = text.match(LETTER)?.length ?? 0;
   const punctuation = text.match(PUNCTUATION)?.length ?? 0;
   const words = text.trim().split(/\s+/).filter(Boolean);
@@ -22,10 +28,35 @@ export function calculateTypingDifficulty(text: string): TypingDifficulty {
   score += Math.min(20, words.length / 15);
   score = Math.round(Math.min(100, Math.max(0, score)));
 
-  if (score < 25) return { tier: 'easy', color: 'green', score };
-  if (score < 45) return { tier: 'normal', color: 'blue', score };
-  if (score < 65) return { tier: 'hard', color: 'orange', score };
-  return { tier: 'expert', color: 'purple', score };
+  let tier: TypingDifficulty['tier'];
+  let color: TypingDifficulty['color'];
+
+  if (score < 25) {
+    tier = 'easy';
+    color = 'green';
+  } else if (score < 45) {
+    tier = 'normal';
+    color = 'blue';
+  } else if (score < 65) {
+    tier = 'hard';
+    color = 'orange';
+  } else {
+    tier = 'expert';
+    color = 'purple';
+  }
+
+  const peakWpm = wpmProfile?.peakWpm ?? null;
+  if (peakWpm !== null && peakWpm > PEAK_WPM_HARD_THRESHOLD) {
+    if (peakWpm >= PEAK_WPM_EXPERT_THRESHOLD || tier === 'expert') {
+      tier = 'expert';
+      color = 'purple';
+    } else {
+      tier = 'hard';
+      color = 'orange';
+    }
+  }
+
+  return { tier, color, score };
 }
 
 /** Counts whitespace-separated tokens in lyric text. */
@@ -34,8 +65,8 @@ export function countLyricWords(text: string): number {
 }
 
 /**
- * Target WPM at which the artist "sings" the lyrics.
- * Used as the musical pacer (hare) so the cursor tracks the song's cadence.
+ * Fallback target WPM when no LRC vocal profile is available.
+ * Prefer {@link WpmProfile.activeWpm} from synced lyrics when present.
  */
 export function computeTrackWpm(wordCount: number, durationMs: number | null): number | null {
   if (!durationMs || durationMs <= 0 || wordCount <= 0) return null;

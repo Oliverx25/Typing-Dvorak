@@ -7,6 +7,7 @@ import {
   LuCheck,
   LuChevronDown,
   LuChevronRight,
+  LuChevronUp,
   LuChrome,
   LuEyeOff,
   LuFlame,
@@ -35,6 +36,7 @@ import {
 
 export type IconName =
   | 'chevron-down'
+  | 'chevron-up'
   | 'chevron-right'
   | 'star'
   | 'star-filled'
@@ -71,6 +73,7 @@ export type IconName =
 
 const ICONS: Record<IconName, IconType> = {
   'chevron-down': LuChevronDown,
+  'chevron-up': LuChevronUp,
   'chevron-right': LuChevronRight,
   star: LuStar,
   'star-filled': LuStar,

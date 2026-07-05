@@ -15,6 +15,7 @@ import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { useZenMode } from '@/hooks/useZenMode';
 import { usePacingCursors } from '@/hooks/usePacingCursors';
+import type { LyricWordTiming } from '@/utils/lyrics/types';
 
 export interface TypingProgressUpdate {
   wpm: number;
@@ -35,8 +36,10 @@ interface TypingTestProps {
   hideCompletionPanel?: boolean;
   ariaLabel?: string;
   raceMode?: boolean;
-  /** Musical pacer WPM (hare) that follows the song cadence in a song race. */
+  /** Musical pacer WPM fallback when no LRC timeline is stored. */
   musicPacerWpm?: number | null;
+  /** LRC word timestamps for true ghost pacing in song races. */
+  musicTimeline?: LyricWordTiming[] | null;
   sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
 }
@@ -52,6 +55,7 @@ export default function TypingTest({
   ariaLabel,
   raceMode = false,
   musicPacerWpm = null,
+  musicTimeline = null,
   sessionPersist,
   onProgressChange,
 }: TypingTestProps) {
@@ -118,6 +122,7 @@ export default function TypingTest({
     pacerTargetWpm: settings.pacerTargetWpm,
     ghostEnabled: !raceMode && settings.ghostMode,
     musicPacerWpm,
+    musicTimeline,
   });
 
   useEffect(() => {

@@ -113,6 +113,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
           difficulty: song.difficulty,
           durationMs: song.durationMs,
           trackWpm: song.trackWpm,
+          lyricTimeline: song.lyricTimeline,
         },
       });
       setSongSearchOpen(false);

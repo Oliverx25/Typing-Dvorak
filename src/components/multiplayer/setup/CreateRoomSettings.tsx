@@ -57,6 +57,7 @@ function toSongMeta(song: LyricSongResult): SelectedSongMeta {
     difficulty: song.difficulty,
     durationMs: song.durationMs,
     trackWpm: song.trackWpm,
+    lyricTimeline: song.lyricTimeline,
   };
 }
 

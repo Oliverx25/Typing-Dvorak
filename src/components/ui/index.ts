@@ -15,4 +15,5 @@ export { default as LockIcon } from './icons/LockIcon';
 export { default as SvgIcon } from './icons/SvgIcon';
 export { default as StreakIcon } from './icons/StreakIcon';
 export { default as CircularProgress } from './display/CircularProgress';
+export { default as HoverTooltip } from './HoverTooltip';
 export type { AccordionItem } from './controls/Accordion';

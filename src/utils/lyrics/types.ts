@@ -7,6 +7,18 @@ export interface TypingDifficulty {
   score: number;
 }
 
+/** WPM stats derived from LRC vocal segments (ignores instrumental gaps). */
+export interface WpmProfile {
+  activeWpm: number | null;
+  peakWpm: number | null;
+}
+
+/** Word-level sync point for the musical pacer (hare). */
+export interface LyricWordTiming {
+  timeMs: number;
+  charIndex: number;
+}
+
 export interface LyricSongResult {
   id: number;
   title: string;
@@ -16,8 +28,10 @@ export interface LyricSongResult {
   difficulty: TypingDifficulty;
   coverArt: string | null;
   durationMs: number | null;
-  /** WPM the artist "sings" the lyrics at — drives the musical pacer. */
+  /** Average WPM during vocal segments — drives the musical pacer when no timeline. */
   trackWpm: number | null;
+  /** LRC-derived word timestamps for true ghost pacing. */
+  lyricTimeline: LyricWordTiming[];
 }
 
 /** Lightweight song snapshot persisted in room state for the race. */
@@ -29,4 +43,5 @@ export interface SelectedSongMeta {
   difficulty: TypingDifficulty;
   durationMs: number | null;
   trackWpm: number | null;
+  lyricTimeline: LyricWordTiming[];
 }
