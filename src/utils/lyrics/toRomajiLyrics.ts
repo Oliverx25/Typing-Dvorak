@@ -1,7 +1,22 @@
+import { createRequire } from 'node:module';
+import { join } from 'node:path';
 import Kuroshiro from 'kuroshiro-enhance';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
 import { sanitizeLyrics } from './sanitizeLyrics';
 import { isTypableLatinLyrics } from './latinScript';
+
+const require = createRequire(import.meta.url);
+
+/** Resolve kuromoji dict path for local dev and Vercel (/var/task). */
+function resolveKuromojiDictPath(): string {
+  const fromCwd = join(process.cwd(), 'node_modules/kuromoji/dict');
+  try {
+    const pkgPath = require.resolve('kuromoji/package.json');
+    return join(pkgPath, '..', 'dict');
+  } catch {
+    return fromCwd;
+  }
+}
 
 let initPromise: Promise<Kuroshiro> | null = null;
 
@@ -9,7 +24,9 @@ async function getKuroshiro(): Promise<Kuroshiro> {
   if (!initPromise) {
     initPromise = (async () => {
       const kuroshiro = new Kuroshiro();
-      await kuroshiro.init(new KuromojiAnalyzer());
+      await kuroshiro.init(
+        new KuromojiAnalyzer({ dictPath: resolveKuromojiDictPath() }),
+      );
       return kuroshiro;
     })();
   }
