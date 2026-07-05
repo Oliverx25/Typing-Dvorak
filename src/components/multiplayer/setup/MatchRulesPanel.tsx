@@ -91,11 +91,11 @@ export default function MatchRulesPanel({
         </div>
       </section>
 
-      <section>
+      <section className="overflow-visible">
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           {t.multiplayer.modifiers}
         </p>
-        <div className="grid grid-cols-4 gap-2 md:grid-cols-5">
+        <div className="grid grid-cols-4 gap-2 overflow-visible md:grid-cols-5">
           {ALL_MODIFIERS.filter((mod) => modifierOptions.includes(mod)).map((modifier) => (
             <ModifierIcon
               key={modifier}

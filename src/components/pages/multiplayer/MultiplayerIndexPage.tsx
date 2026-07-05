@@ -118,7 +118,7 @@ function MultiplayerIndexContent() {
           </section>
 
           <aside className="lg:col-span-1">
-            <Card padding="lg" variant="elevated" className="lg:sticky lg:top-8">
+            <Card padding="lg" variant="elevated" clipContent={false} className="lg:sticky lg:top-8">
               <div className="space-y-6">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">

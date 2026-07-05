@@ -10,6 +10,7 @@ interface CardProps {
   description?: string;
   variant?: CardVariant;
   padding?: CardPadding;
+  clipContent?: boolean;
   className?: string;
   headerClassName?: string;
   bodyClassName?: string;
@@ -56,12 +57,14 @@ export default function Card({
   headerClassName = '',
   bodyClassName = '',
   bleed = false,
+  clipContent = true,
   as: Tag = 'div',
   href,
   onClick,
 }: CardProps) {
   const base = [
-    'rounded-xl border transition-all duration-300 overflow-hidden',
+    'rounded-xl border transition-all duration-300',
+    clipContent ? 'overflow-hidden' : 'overflow-visible',
     VARIANT[variant],
     bleed ? '' : PADDING[padding],
     className,

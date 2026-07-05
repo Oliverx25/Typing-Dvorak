@@ -76,12 +76,22 @@ export const BLIND_MODE_ICON = MODIFIER_ICONS.blind_mode;
 
 /** Active-state Tailwind classes per modifier (muted semantic palette). */
 export const MODIFIER_ACTIVE_CLASSES: Record<RaceModifier, string> = {
-  sudden_death: 'bg-rose-500/10 border-rose-500/30 text-rose-400',
-  strict: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
-  blind_mode: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
-  flashlight: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400',
-  double_time: 'bg-fuchsia-500/10 border-fuchsia-500/30 text-fuchsia-400',
-  rhythm_lock: 'bg-pink-500/10 border-pink-500/30 text-pink-400',
+  sudden_death: 'bg-rose-500/10 border-rose-500/50 text-rose-400',
+  strict: 'bg-amber-500/10 border-amber-500/50 text-amber-400',
+  blind_mode: 'bg-purple-500/10 border-purple-500/50 text-purple-400',
+  flashlight: 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400',
+  double_time: 'bg-fuchsia-500/10 border-fuchsia-500/50 text-fuchsia-400',
+  rhythm_lock: 'bg-pink-500/10 border-pink-500/50 text-pink-400',
+};
+
+/** Hover-state Tailwind classes per modifier (border + icon only). */
+export const MODIFIER_HOVER_CLASSES: Record<RaceModifier, string> = {
+  sudden_death: 'hover:border-rose-500/50 hover:text-rose-400',
+  strict: 'hover:border-amber-500/50 hover:text-amber-400',
+  blind_mode: 'hover:border-purple-500/50 hover:text-purple-400',
+  flashlight: 'hover:border-cyan-500/50 hover:text-cyan-400',
+  double_time: 'hover:border-fuchsia-500/50 hover:text-fuchsia-400',
+  rhythm_lock: 'hover:border-pink-500/50 hover:text-pink-400',
 };
 
 export function normalizeWinCondition(value: unknown): VictoryCondition {

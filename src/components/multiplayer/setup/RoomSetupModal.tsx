@@ -118,16 +118,15 @@ export default function RoomSetupModal({
         </button>
       </div>
 
-      <div className="max-h-[min(70vh,640px)] overflow-y-auto px-6 py-5">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
-          <section className="lg:col-span-2">
+      <div className="grid max-h-[min(70vh,640px)] grid-cols-1 gap-8 overflow-visible px-6 py-5 lg:grid-cols-3 lg:gap-10">
+          <section className="min-h-0 overflow-y-auto lg:col-span-2">
             <CreateRoomSettings
               value={draft}
               variant="content"
               onChange={(partial) => setDraft((prev) => ({ ...prev, ...partial }))}
             />
           </section>
-          <aside className="flex lg:col-span-1 lg:min-h-[20rem]">
+          <aside className="overflow-visible lg:col-span-1 lg:min-h-[20rem]">
             <CreateRoomSettings
               value={draft}
               variant="settings"
@@ -135,7 +134,6 @@ export default function RoomSetupModal({
             />
           </aside>
         </div>
-      </div>
 
       <div className="flex justify-end gap-3 border-t border-[var(--color-border)] px-6 py-4">
         <Button variant="ghost" onClick={onClose}>

@@ -2,6 +2,7 @@ import { useApp } from '@/contexts/AppProvider';
 import Icon, { type IconName } from '@/components/ui/icons/Icon';
 import {
   MODIFIER_ACTIVE_CLASSES,
+  MODIFIER_HOVER_CLASSES,
   MODIFIER_ICONS,
   type RaceModifier,
 } from '@/utils/multiplayer/roomConfig';
@@ -52,13 +53,13 @@ function ModifierTooltip({ name, description }: { name: string; description: str
   return (
     <div
       className={[
-        'pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-[200px]',
+        'pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-48',
         '-translate-x-1/2 origin-bottom rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 shadow-xl',
         'scale-95 opacity-0 transition-all duration-200',
         'group-hover:scale-100 group-hover:opacity-100 group-hover:delay-150',
       ].join(' ')}
     >
-      <p className="text-sm font-semibold text-slate-200">{name}</p>
+      <p className="whitespace-nowrap text-sm font-semibold text-slate-200">{name}</p>
       <p className="mt-1 text-center text-xs leading-tight text-slate-400">{description}</p>
       <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
       <div className="absolute left-1/2 top-full -mt-px -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
@@ -80,14 +81,16 @@ export default function ModifierIcon({
   const ariaLabel = `${name}: ${description}`;
   const icon = MODIFIER_ICONS[modifier] as IconName;
 
-  const activeClass = isActive
+  const stateClass = isActive
     ? MODIFIER_ACTIVE_CLASSES[modifier]
-    : 'border-slate-700 bg-transparent text-slate-500';
+    : [
+        'border-slate-700 bg-transparent text-slate-500',
+        !readOnly && !disabled ? MODIFIER_HOVER_CLASSES[modifier] : '',
+      ].join(' ');
 
   const shellClass = [
     'group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border text-xl transition-all duration-200',
-    activeClass,
-    readOnly ? '' : isActive ? '' : 'hover:border-slate-600 hover:bg-slate-800 hover:text-slate-300',
+    stateClass,
     disabled ? 'cursor-not-allowed opacity-50' : readOnly ? '' : 'cursor-pointer',
   ].join(' ');
 
