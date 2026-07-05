@@ -8,13 +8,16 @@ interface RoomConfigPanelProps {
   isOwner: boolean;
   disabled?: boolean;
   onChange: (
-    partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winConditions'>,
+    partial: Pick<
+      RoomBroadcastState,
+      'lessonId' | 'customText' | 'textSource' | 'blindMode' | 'winConditions'
+    >,
   ) => void;
 }
 
 function toSettingsValue(roomState: RoomBroadcastState): CreateRoomSettingsValue {
   return {
-    textSource: roomState.customText.trim() ? 'custom' : 'lesson',
+    textSource: roomState.textSource ?? (roomState.customText.trim() ? 'custom' : 'lesson'),
     lessonId: roomState.lessonId,
     customText: roomState.customText,
     blindMode: roomState.blindMode,
@@ -34,6 +37,7 @@ export default function RoomConfigPanel({
     const next = { ...toSettingsValue(roomState), ...partial };
     onChange({
       lessonId: next.lessonId,
+      textSource: next.textSource,
       customText: next.textSource === 'custom' ? next.customText : '',
       blindMode: next.blindMode,
       winConditions: next.winConditions,

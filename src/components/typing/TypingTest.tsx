@@ -11,6 +11,7 @@ import ComboCounter from './ComboCounter';
 import TypingTextPrompter from './TypingTextPrompter';
 
 import type { PracticeMode } from '@/utils/app/settings';
+import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { useZenMode } from '@/hooks/useZenMode';
 import { usePacingCursors } from '@/hooks/usePacingCursors';
@@ -34,6 +35,7 @@ interface TypingTestProps {
   hideCompletionPanel?: boolean;
   ariaLabel?: string;
   raceMode?: boolean;
+  sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
 }
 
@@ -47,6 +49,7 @@ export default function TypingTest({
   hideCompletionPanel = false,
   ariaLabel,
   raceMode = false,
+  sessionPersist,
   onProgressChange,
 }: TypingTestProps) {
   const { t, settings } = useApp();
@@ -63,6 +66,7 @@ export default function TypingTest({
     locale: settings.locale,
     customText,
     raceMode,
+    sessionPersist,
   });
 
   const {

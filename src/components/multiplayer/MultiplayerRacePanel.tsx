@@ -6,6 +6,7 @@ import RaceLeaderboard from '@/components/multiplayer/RaceLeaderboard';
 import RaceResultsPanel from '@/components/multiplayer/RaceResultsPanel';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import { resolveRaceText } from '@/utils/multiplayer/roomConfig';
+import { resolveRaceTextSource, MULTIPLAYER_LESSON_ID } from '@/utils/stats/sessionDisplay';
 import { mergePeakRaceProgress } from '@/utils/multiplayer/raceScoring';
 import { countPendingPlayers } from '@/utils/multiplayer/raceCompletion';
 import { recordMultiplayerMatch } from '@/utils/achievements/multiplayerStats';
@@ -60,6 +61,20 @@ export default function MultiplayerRacePanel({
   const raceText = useMemo(
     () => resolveRaceText(roomState, locale),
     [roomState, locale],
+  );
+
+  const raceTextSource = useMemo(
+    () => resolveRaceTextSource(roomState),
+    [roomState],
+  );
+
+  const sessionPersist = useMemo(
+    () => ({
+      lessonId: MULTIPLAYER_LESSON_ID,
+      lessonTitle: MULTIPLAYER_LESSON_ID,
+      multiplayerSource: raceTextSource,
+    }),
+    [raceTextSource],
   );
 
   const raceSessionActive = phase === 'racing' || phase === 'results';
@@ -194,6 +209,7 @@ export default function MultiplayerRacePanel({
           hideModeToggle
           hideCompletionPanel
           raceMode
+          sessionPersist={sessionPersist}
           onProgressChange={handleProgressChange}
           ariaLabel={lessonTitle}
         />

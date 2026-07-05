@@ -47,6 +47,8 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
     accuracy: record.accuracy,
     stars: calculateStars(record.accuracy, record.wpm),
     mode: record.mode,
+    max_combo: record.maxCombo ?? 0,
+    race_source: record.multiplayerSource ?? null,
   });
 
   if (error) {
@@ -93,6 +95,8 @@ export async function migrateLocalSessionsToCloud(userId: string, history: Sessi
     accuracy: r.accuracy,
     stars: calculateStars(r.accuracy, r.wpm),
     mode: r.mode,
+    max_combo: r.maxCombo ?? 0,
+    race_source: r.multiplayerSource ?? null,
     created_at: r.completedAt,
   }));
 

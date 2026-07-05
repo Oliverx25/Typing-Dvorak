@@ -1,5 +1,6 @@
 import type { AvatarSource } from '@/utils/user/userDisplay';
 import type { WinCondition } from '@/utils/multiplayer/roomConfig';
+import type { TextSource } from '@/utils/multiplayer/roomStorage';
 
 /** Payload tracked in Supabase Realtime Presence for each lobby player. */
 export interface LobbyPlayerPresence {
@@ -27,6 +28,7 @@ export interface RoomBroadcastState {
   ownerId: string;
   lessonId: string;
   customText: string;
+  textSource: TextSource;
   blindMode: boolean;
   winConditions: WinCondition[];
   phase: RoomPhase;

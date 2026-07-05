@@ -135,6 +135,7 @@ export function useMultiplayerLobby({
 
     if (createConfig) {
       next.lessonId = createConfig.lessonId;
+      next.textSource = createConfig.textSource;
       next.customText =
         createConfig.textSource === 'custom' ? createConfig.customText : '';
       next.blindMode = createConfig.blindMode;
@@ -540,7 +541,7 @@ export function useMultiplayerLobby({
   }, [canUseLobbyActions]);
 
   const updateRoomConfig = useCallback(
-    async (partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winConditions'>) => {
+    async (partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'textSource' | 'blindMode' | 'winConditions'>) => {
       const current = roomStateRef.current;
       if (!user?.id || !current || current.ownerId !== user.id) return;
       if (!canUseLobbyActions()) return;

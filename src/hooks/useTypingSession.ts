@@ -20,6 +20,7 @@ import {
 } from '../utils/multiplayer/raceScoring';
 import type { PracticeMode } from '../utils/app/settings';
 import type { Lesson } from '../utils/curriculum/lessons';
+import type { SessionPersistOptions } from '../utils/stats/sessionTypes';
 import { getLessonText } from '../utils/curriculum/lessons';
 import type { Locale } from '../i18n';
 
@@ -35,6 +36,8 @@ interface UseTypingSessionOptions {
   customText?: string;
   /** Multiplayer race: stable WPM + osu-style cumulative score. */
   raceMode?: boolean;
+  /** Override lesson id/title when persisting (e.g. multiplayer). */
+  sessionPersist?: SessionPersistOptions;
 }
 
 function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string): string {
@@ -57,6 +60,7 @@ export function useTypingSession({
   locale = 'en',
   customText,
   raceMode = false,
+  sessionPersist,
 }: UseTypingSessionOptions) {
   const isTestMode = mode === 'test';
 
@@ -89,6 +93,7 @@ export function useTypingSession({
   const containerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const sessionMissesRef = useRef<Record<string, number>>({});
+  const sessionSavedRef = useRef(false);
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedMsRef = useRef(0);
   const startTimeRef = useRef<number | null>(null);
@@ -125,6 +130,12 @@ export function useTypingSession({
 
   const finishSession = useCallback(
     (result: TypingStats) => {
+      if (sessionSavedRef.current) return;
+      sessionSavedRef.current = true;
+
+      const persistLessonId = sessionPersist?.lessonId ?? lessonId;
+      const persistLessonTitle = sessionPersist?.lessonTitle ?? lessonTitle;
+
       const sessionMaxCombo = maxComboRef.current;
       const weak = getSessionWeakKeys(sessionMissesRef.current);
       setSessionWeakKeys(weak);
@@ -133,27 +144,30 @@ export function useTypingSession({
       setFinished(true);
       setPaused(false);
 
-      const { isNewRecord: record, previousBest } = saveSession(
-        lessonId,
-        lessonTitle,
+      const { isNewRecord: record, previousBest, record: savedRecord } = saveSession(
+        persistLessonId,
+        persistLessonTitle,
         result,
         mode,
         sessionMaxCombo,
+        sessionPersist?.multiplayerSource
+          ? { multiplayerSource: sessionPersist.multiplayerSource }
+          : undefined,
       );
       setIsNewRecord(record);
       setWpmDelta(result.wpm - previousBest);
 
-      dispatchSessionComplete();
+      dispatchSessionComplete(savedRecord);
       dispatchKeyStatsUpdated();
       checkAndUnlockBadges({
         accuracy: result.accuracy,
         wpm: result.wpm,
-        lessonId,
+        lessonId: persistLessonId,
         maxCombo: sessionMaxCombo,
       });
       if (sound) playCompleteSound();
     },
-    [lessonId, lessonTitle, mode, sound, raceMode],
+    [lessonId, lessonTitle, mode, sound, sessionPersist],
   );
 
   const togglePause = useCallback(() => {
@@ -173,6 +187,7 @@ export function useTypingSession({
 
   const reset = useCallback(() => {
     sessionMissesRef.current = {};
+    sessionSavedRef.current = false;
     totalPausedMsRef.current = 0;
     pausedAtRef.current = null;
     startTimeRef.current = null;

@@ -218,9 +218,11 @@ export const es: TranslationKey = {
     heatmapKeyNoData: '{label}: sin datos',
     heatmapKeyTooltip: '{label}: {accuracy}% precisión ({hits} aciertos, {errors} errores)',
     heatmapNoData: 'Completa una lección para generar datos del mapa.',
-    chartHint: 'PPM histórico de tus últimas sesiones.',
+    chartHint: 'PPM de tus últimas sesiones completadas (máx. 20).',
     chartSession: 'Sesión {n}',
     sessionsRecorded: 'sesiones registradas',
+    multiplayerSession: 'Multijugador',
+    multiplayerSourceSong: 'Canción',
   },
   settings: {
     title: 'Ajustes',

@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import type { Locale } from '@/i18n';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { downloadExport, importProgress } from '@/utils/progress/exportImport';
-import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/app/events';
+import { dispatchSessionComplete, dispatchKeyStatsUpdated } from '@/utils/app/events';
 import { HIGHLIGHT_THEME_IDS, HIGHLIGHT_THEMES, type HighlightThemeId } from '@/utils/app/highlightTheme';
 import {
   clampPacerWpm,
@@ -73,8 +73,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
       const ok = importProgress(reader.result as string);
       setImportMsg(ok ? 'success' : 'error');
       if (ok) {
-        window.dispatchEvent(new CustomEvent(SESSION_COMPLETE_EVENT));
-        window.dispatchEvent(new CustomEvent(KEY_STATS_UPDATED_EVENT));
+        dispatchSessionComplete();
+        dispatchKeyStatsUpdated();
       }
       setTimeout(() => setImportMsg(null), 3000);
     };

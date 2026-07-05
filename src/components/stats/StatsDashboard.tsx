@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { getAggregateStats, getSessionHistory, getBestWpmForLesson } from '@/utils/progress/storage';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
+import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
+import { buildChartPoints } from '@/utils/stats/sessionDisplay';
 import { Card, StreakIcon } from '@/components/ui';
 import ProgressChart, { type ChartPoint } from './ProgressChart';
 import KeyHeatmap from './KeyHeatmap';
@@ -11,22 +13,16 @@ export default function StatsDashboard() {
   const [aggregate, setAggregate] = useState({ totalSessions: 0, bestWpm: 0, avgAccuracy: 0, streak: 0 });
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     setAggregate(getAggregateStats());
-    const history = getSessionHistory().slice(0, 20).reverse();
-    setChartData(
-      history.map((r, index) => {
-        const completed = new Date(r.completedAt);
-        return {
-          session: index + 1,
-          date: completed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-          time: completed.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
-          wpm: r.wpm,
-          lessonTitle: r.lessonTitle,
-        };
-      }),
-    );
-  }, []);
+    setChartData(buildChartPoints(getSessionHistory(), t, getLessonTitle));
+  }, [t]);
+
+  useEffect(() => {
+    refresh();
+    window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
+    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
+  }, [refresh]);
 
   return (
     <div className="space-y-8">

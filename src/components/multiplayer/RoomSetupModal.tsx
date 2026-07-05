@@ -14,13 +14,16 @@ interface RoomSetupModalProps {
   roomState: RoomBroadcastState;
   onClose: () => void;
   onSave: (
-    partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winConditions'>,
+    partial: Pick<
+      RoomBroadcastState,
+      'lessonId' | 'customText' | 'textSource' | 'blindMode' | 'winConditions'
+    >,
   ) => void;
 }
 
 function toSettingsValue(roomState: RoomBroadcastState): CreateRoomSettingsValue {
   return {
-    textSource: roomState.customText.trim() ? 'custom' : 'lesson',
+    textSource: roomState.textSource ?? (roomState.customText.trim() ? 'custom' : 'lesson'),
     lessonId: roomState.lessonId,
     customText: roomState.customText,
     blindMode: roomState.blindMode,
@@ -66,6 +69,7 @@ export default function RoomSetupModal({
     if (!canSave) return;
     onSave({
       lessonId: draft.lessonId,
+      textSource: draft.textSource,
       customText: draft.textSource === 'custom' ? draft.customText.trim() : '',
       blindMode: draft.blindMode,
       winConditions: draft.winConditions,

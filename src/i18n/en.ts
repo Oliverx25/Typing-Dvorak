@@ -216,9 +216,11 @@ export const en = {
     heatmapKeyNoData: '{label}: no data',
     heatmapKeyTooltip: '{label}: {accuracy}% accuracy ({hits} hits, {errors} errors)',
     heatmapNoData: 'Complete a lesson to generate heatmap data.',
-    chartHint: 'Historical WPM from your last sessions.',
+    chartHint: 'WPM from your last completed sessions (max 20).',
     chartSession: 'Session {n}',
     sessionsRecorded: 'sessions recorded',
+    multiplayerSession: 'Multiplayer',
+    multiplayerSourceSong: 'Song',
   },
   settings: {
     title: 'Settings',

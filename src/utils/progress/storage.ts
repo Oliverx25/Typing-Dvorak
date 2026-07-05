@@ -1,5 +1,7 @@
 import type { TypingStats } from '../typing/typing';
 import type { PracticeMode } from '../app/settings';
+import type { RaceTextSource } from '../stats/sessionTypes';
+import { MULTIPLAYER_LESSON_ID } from '../stats/sessionDisplay';
 import { collectPracticeDates, computeStreakFromPracticeDates } from './streak';
 import { STORAGE_KEYS } from './keys';
 import { readJson, writeJson, readString, writeString } from './localStorage';
@@ -13,6 +15,8 @@ export interface SessionRecord {
   mode: PracticeMode;
   completedAt: string;
   maxCombo?: number;
+  /** Set when lessonId is multiplayer — origin of race text. */
+  multiplayerSource?: RaceTextSource;
 }
 
 export interface LessonProgress {
@@ -61,7 +65,8 @@ export function saveSession(
   stats: TypingStats,
   mode: PracticeMode = 'practice',
   maxCombo = 0,
-): { isNewRecord: boolean; previousBest: number } {
+  options?: { multiplayerSource?: RaceTextSource },
+): { isNewRecord: boolean; previousBest: number; record: SessionRecord } {
   const record: SessionRecord = {
     lessonId,
     lessonTitle,
@@ -71,25 +76,28 @@ export function saveSession(
     mode,
     completedAt: new Date().toISOString(),
     maxCombo: maxCombo > 0 ? maxCombo : undefined,
+    multiplayerSource: options?.multiplayerSource,
   };
 
   const history = [record, ...getSessionHistory()].slice(0, MAX_RECORDS);
   writeJson(STORAGE_KEYS.history, history);
 
   const progress = updateStreak(getProgress());
-  const existing = progress.lessons[lessonId];
-  const previousBest = existing?.bestWpm ?? 0;
-  const isNewRecord = stats.wpm > previousBest;
+  const previousBest = progress.lessons[lessonId]?.bestWpm ?? 0;
+  const isNewRecord = lessonId !== MULTIPLAYER_LESSON_ID && stats.wpm > previousBest;
 
-  progress.lessons[lessonId] = {
-    bestWpm: Math.max(previousBest, stats.wpm),
-    bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, stats.accuracy),
-    attempts: (existing?.attempts ?? 0) + 1,
-    lastPlayedAt: record.completedAt,
-  };
+  if (lessonId !== MULTIPLAYER_LESSON_ID) {
+    const existing = progress.lessons[lessonId];
+    progress.lessons[lessonId] = {
+      bestWpm: Math.max(previousBest, stats.wpm),
+      bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, stats.accuracy),
+      attempts: (existing?.attempts ?? 0) + 1,
+      lastPlayedAt: record.completedAt,
+    };
+  }
 
   saveProgress(progress);
-  return { isNewRecord, previousBest };
+  return { isNewRecord, previousBest, record };
 }
 
 export function getBestWpmForLesson(lessonId: string): number | null {

@@ -89,6 +89,7 @@ export function createDefaultRoomState(ownerId: string): RoomBroadcastState {
     ownerId,
     lessonId: DEFAULT_RACE_LESSON_ID,
     customText: '',
+    textSource: 'lesson',
     blindMode: false,
     winConditions: [...DEFAULT_WIN_CONDITIONS],
     phase: 'lobby',
@@ -121,6 +122,10 @@ export function mergeRoomState(
       ownerId: incoming.ownerId,
       lessonId: incoming.lessonId ?? current?.lessonId ?? DEFAULT_RACE_LESSON_ID,
       customText: incoming.customText ?? current?.customText ?? '',
+      textSource:
+        incoming.textSource ??
+        current?.textSource ??
+        ((incoming.customText ?? current?.customText)?.trim() ? 'custom' : 'lesson'),
       blindMode: incoming.blindMode ?? current?.blindMode ?? false,
       winConditions: normalizeWinConditions(
         incoming.winConditions ?? current?.winConditions,

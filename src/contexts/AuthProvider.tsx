@@ -1,8 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabaseClient';
-import { SESSION_COMPLETE_EVENT, dispatchSessionComplete, dispatchKeyStatsUpdated } from '../utils/app/events';
-import { getSessionHistory } from '../utils/progress/storage';
+import { SESSION_COMPLETE_EVENT, dispatchKeyStatsUpdated, dispatchSessionComplete, sessionCompleteDetail } from '../utils/app/events';
 import { clearGuestProgress } from '../utils/progress/guestProgress';
 import { syncSessionToCloud, syncKeyErrorsToCloud } from '../services/supabase/syncProgress';
 import { syncBadgesToCloud } from '../services/supabase/syncBadges';
@@ -31,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfileRow | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured());
   const lastLoadedUserIdRef = useRef<string | null>(null);
+  const syncedSessionKeysRef = useRef(new Set<string>());
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) {
       lastLoadedUserIdRef.current = null;
+      syncedSessionKeysRef.current.clear();
       setProfile(null);
       return;
     }
@@ -94,17 +95,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [userId]);
 
-  /** Background sync on session complete — cloud mirrors authenticated sessions. */
+  /** Background sync only when a session actually completes (event carries the record). */
   useEffect(() => {
     if (!user) return;
 
-    const handler = () => {
-      const latest = getSessionHistory()[0];
-      if (latest) {
-        syncSessionToCloud(user.id, latest);
-        syncKeyErrorsToCloud(user.id);
-        syncBadgesToCloud(user.id);
-      }
+    const handler = (event: Event) => {
+      const { record } = sessionCompleteDetail(event);
+      if (!record) return;
+
+      const syncKey = record.completedAt;
+      if (syncedSessionKeysRef.current.has(syncKey)) return;
+      syncedSessionKeysRef.current.add(syncKey);
+
+      syncSessionToCloud(user.id, record);
+      syncKeyErrorsToCloud(user.id);
+      syncBadgesToCloud(user.id);
     };
 
     window.addEventListener(SESSION_COMPLETE_EVENT, handler);
