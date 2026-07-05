@@ -87,11 +87,13 @@ export type Database = {
           user_id: string;
           key_char: string;
           error_count: number;
+          hit_count: number;
         };
         Insert: {
           user_id: string;
           key_char: string;
           error_count?: number;
+          hit_count?: number;
         };
         Update: Partial<Database['public']['Tables']['key_errors']['Insert']>;
       };

@@ -64,13 +64,17 @@ function buildProgressFromSessions(
   };
 }
 
-function mapKeyErrors(rows: { key_char: string; error_count: number }[]): KeyStatsData {
+function mapKeyErrors(rows: { key_char: string; error_count: number; hit_count?: number }[]): KeyStatsData {
+  const hits: Record<string, number> = {};
   const misses: Record<string, number> = {};
   for (const row of rows) {
     const code = charToKeyCode(row.key_char) ?? row.key_char;
-    misses[code] = row.error_count;
+    const hitCount = row.hit_count ?? 0;
+    const errorCount = row.error_count ?? 0;
+    if (hitCount > 0) hits[code] = hitCount;
+    if (errorCount > 0) misses[code] = errorCount;
   }
-  return { hits: {}, misses };
+  return { hits, misses };
 }
 
 /** Replace local progress with this account's cloud data. Call after clearing guest keys. */

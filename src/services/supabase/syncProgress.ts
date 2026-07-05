@@ -57,19 +57,21 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
   await syncStreakToProfile(userId);
 }
 
-/** Upserts aggregated key errors from local heatmap data. */
+/** Upserts aggregated key stats (hits + errors) from local heatmap data. */
 export async function syncKeyErrorsToCloud(userId: string): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
   const stats = getKeyStats();
-  const rows = Object.entries(stats.misses).map(([code, count]) => ({
+  const codes = new Set([...Object.keys(stats.hits), ...Object.keys(stats.misses)]);
+  if (codes.size === 0) return;
+
+  const rows = [...codes].map((code) => ({
     user_id: userId,
     key_char: code.slice(-1),
-    error_count: count,
+    hit_count: stats.hits[code] ?? 0,
+    error_count: stats.misses[code] ?? 0,
   }));
-
-  if (rows.length === 0) return;
 
   for (const row of rows) {
     const { error } = await supabase.from('key_errors').upsert(row, {

@@ -52,6 +52,9 @@ export function recordKeystroke(char: string, isCorrect: boolean): void {
   dispatchKeyStatsUpdated();
 }
 
+/** Minimum keystrokes before heatmap uses full red/green intensity. */
+export const HEATMAP_MIN_SAMPLES = 5;
+
 /** Returns error rate 0–1 for a key code (0 = perfect, 1 = all misses). */
 export function getKeyErrorRate(code: string, stats: KeyStatsData): number {
   const hits = stats.hits[code] ?? 0;
@@ -59,6 +62,22 @@ export function getKeyErrorRate(code: string, stats: KeyStatsData): number {
   const total = hits + misses;
   if (total === 0) return 0;
   return misses / total;
+}
+
+export function getKeyAttemptCount(code: string, stats: KeyStatsData): number {
+  return (stats.hits[code] ?? 0) + (stats.misses[code] ?? 0);
+}
+
+/** 0–1 accuracy for heatmap coloring (1 = perfect). */
+export function getKeyAccuracy(code: string, stats: KeyStatsData): number {
+  return 1 - getKeyErrorRate(code, stats);
+}
+
+/** Confidence 0–1 based on sample size (ramps up to HEATMAP_MIN_SAMPLES). */
+export function getKeySampleConfidence(code: string, stats: KeyStatsData): number {
+  const total = getKeyAttemptCount(code, stats);
+  if (total === 0) return 0;
+  return Math.min(1, total / HEATMAP_MIN_SAMPLES);
 }
 
 export function hasKeyStats(stats: KeyStatsData): boolean {

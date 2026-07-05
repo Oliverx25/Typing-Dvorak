@@ -37,6 +37,23 @@ export default function KeyHeatmap({
   const resolvedTitle = title ?? t.stats.heatmapTitle;
   const resolvedDescription = description ?? t.stats.heatmapDesc;
 
+  const formatKeyTooltip = (
+    label: string,
+    hits: number,
+    misses: number,
+    accuracyPct: number,
+    attempts: number,
+  ) => {
+    if (attempts === 0) {
+      return t.stats.heatmapKeyNoData.replace('{label}', label);
+    }
+    return t.stats.heatmapKeyTooltip
+      .replace('{label}', label)
+      .replace('{accuracy}', String(accuracyPct))
+      .replace('{hits}', String(hits))
+      .replace('{errors}', String(misses));
+  };
+
   if (!hasKeyStats(stats)) {
     if (emptyMode === 'hide') return null;
     return (
@@ -48,7 +65,7 @@ export default function KeyHeatmap({
 
   return (
     <Card title={resolvedTitle} description={resolvedDescription} padding="lg" className={className}>
-      <HeatmapGrid stats={stats} />
+      <HeatmapGrid stats={stats} formatKeyTooltip={formatKeyTooltip} />
       <HeatmapLegend
         noDataLabel={t.home.heatmapNoData}
         goodLabel={t.home.heatmapGood}
