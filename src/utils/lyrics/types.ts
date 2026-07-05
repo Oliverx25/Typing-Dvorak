@@ -14,4 +14,6 @@ export interface LyricSongResult {
   album: string | null;
   plainLyrics: string;
   difficulty: TypingDifficulty;
+  coverArt: string | null;
+  durationMs: number | null;
 }

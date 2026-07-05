@@ -20,7 +20,8 @@ export type IconName =
   | 'flame'
   | 'search'
   | 'music-note'
-  | 'x';
+  | 'x'
+  | 'check';
 
 const PATHS: Record<IconName, ReactNode> = {
   'chevron-down': <path d="m6 9 6 6 6-6" />,
@@ -119,6 +120,7 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="m6 6 12 12" />
     </>
   ),
+  check: <path d="M20 6 9 17l-5-5" />,
 };
 
 interface IconProps extends SVGProps<SVGSVGElement> {

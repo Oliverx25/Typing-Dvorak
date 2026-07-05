@@ -12,7 +12,7 @@ interface SongSearchModalProps {
   onSelect: (lyrics: string) => void;
 }
 
-const SKELETON_COUNT = 6;
+const SKELETON_COUNT = 5;
 const DEBOUNCE_MS = 400;
 
 export default function SongSearchModal({ open, onClose, onSelect }: SongSearchModalProps) {
@@ -24,6 +24,7 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
   const [error, setError] = useState<string | null>(null);
 
   const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS);
+  const hasQuery = query.length > 0;
 
   useLockBodyScroll(open);
 
@@ -104,59 +105,54 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
       onClose={onClose}
       onCancel={onClose}
       aria-labelledby="song-search-title"
-      className="modal-enter m-auto w-[min(100%-1.5rem,56rem)] max-h-[min(90vh,52rem)] rounded-2xl border border-slate-700 bg-slate-900 p-0 text-slate-100 shadow-2xl backdrop:bg-black/70"
+      className="modal-enter m-auto w-[min(100%-1.5rem,42rem)] max-h-[min(90vh,52rem)] rounded-2xl border border-slate-700 bg-slate-900 p-0 text-slate-100 shadow-2xl backdrop:bg-black/70"
     >
       <div className="flex max-h-[min(90vh,52rem)] flex-col">
-        <div className="relative border-b border-slate-800">
-          <label htmlFor="song-search-input" className="sr-only">
+        <div className="relative border-b border-slate-800 px-4 py-4">
+          <label id="song-search-title" htmlFor="song-search-input" className="sr-only">
             {t.multiplayer.lyricsSearchPlaceholder}
           </label>
-          <input
-            id="song-search-input"
-            type="search"
-            autoFocus
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t.multiplayer.lyricsSearchPlaceholder}
-            className="w-full rounded-t-2xl bg-slate-800 py-6 pr-14 pl-6 text-xl text-slate-50 placeholder:text-slate-500 outline-none sm:text-2xl"
-            autoComplete="off"
-            spellCheck={false}
-          />
-          <div className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-slate-500">
-            {isSearching ? (
-              <span
-                className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-slate-600 border-t-cyan-400"
-                aria-hidden="true"
-              />
-            ) : (
-              <Icon name="search" size={22} className="text-slate-500" />
-            )}
+          <div className="relative">
+            <input
+              id="song-search-input"
+              type="search"
+              autoFocus
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t.multiplayer.lyricsSearchPlaceholder}
+              className={[
+                'w-full rounded-xl bg-slate-800 py-4 text-lg text-slate-50 placeholder:text-slate-500 outline-none sm:text-xl',
+                hasQuery ? 'pl-5 pr-24' : 'px-5 pr-14',
+              ].join(' ')}
+              autoComplete="off"
+              spellCheck={false}
+            />
+
+            <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
+              {hasQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  aria-label={t.multiplayer.lyricsClearSearch}
+                  className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-slate-100"
+                >
+                  <Icon name="x" size={18} />
+                </button>
+              ) : null}
+
+              {isSearching ? (
+                <span
+                  className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-slate-600 border-t-cyan-400"
+                  aria-hidden="true"
+                />
+              ) : (
+                <Icon name="search" size={20} className="text-slate-500" />
+              )}
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t.multiplayer.close}
-            className="absolute top-3 right-3 rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-700 hover:text-slate-200 sm:hidden"
-          >
-            <Icon name="x" size={18} />
-          </button>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-2">
-          <h2 id="song-search-title" className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-            {t.multiplayer.lyricsSearchTitle}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t.multiplayer.close}
-            className="hidden rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-800 hover:text-slate-200 sm:inline-flex"
-          >
-            <Icon name="x" size={18} />
-          </button>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-b-2xl bg-slate-900 p-4">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-b-2xl bg-slate-900/80 p-4">
           {error ? (
             <p className="py-12 text-center text-sm text-red-400">{error}</p>
           ) : showHint ? (
@@ -164,7 +160,7 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
           ) : showEmpty ? (
             <p className="py-12 text-center text-sm text-slate-500">{t.multiplayer.lyricsSearchEmpty}</p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-col gap-2">
               {isSearching
                 ? Array.from({ length: SKELETON_COUNT }, (_, index) => (
                     <SongCardSkeleton key={`sk-${index}`} />

@@ -534,6 +534,7 @@ export const en = {
     lyricsSearchHint: 'Type at least 2 characters to search lyrics.',
     lyricsSearchEmpty: 'No lyrics found for that query.',
     lyricsSearchError: 'Could not search lyrics. Please try again.',
+    lyricsClearSearch: 'Clear search',
     lyricsDifficultyEasy: 'Easy',
     lyricsDifficultyNormal: 'Normal',
     lyricsDifficultyHard: 'Hard',

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { sanitizeLyrics } from './sanitizeLyrics';
 import { calculateTypingDifficulty } from './typingDifficulty';
+import { formatDurationMs } from './itunesMetadata';
 
 describe('sanitizeLyrics', () => {
   it('removes bracket and parenthesis tags', () => {
@@ -23,5 +24,12 @@ describe('calculateTypingDifficulty', () => {
     const complex = calculateTypingDifficulty("Don't stop! (Never) — it's fine... ok?");
     expect(simple.score).toBeLessThan(complex.score);
     expect(simple.tier).not.toBe('expert');
+  });
+});
+
+describe('formatDurationMs', () => {
+  it('formats milliseconds as m:ss', () => {
+    expect(formatDurationMs(215000)).toBe('3:35');
+    expect(formatDurationMs(null)).toBeNull();
   });
 });

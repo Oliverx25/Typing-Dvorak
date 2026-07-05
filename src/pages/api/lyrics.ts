@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { sanitizeLyrics } from '@/utils/lyrics/sanitizeLyrics';
 import { calculateTypingDifficulty } from '@/utils/lyrics/typingDifficulty';
+import { fetchItunesMetadata } from '@/utils/lyrics/itunesMetadata';
 import type { LyricSongResult } from '@/utils/lyrics/types';
 
 const LRCLIB_SEARCH = 'https://lrclib.net/api/search';
@@ -13,6 +14,20 @@ interface LrcLibHit {
   albumName?: string;
   plainLyrics?: string | null;
   instrumental?: boolean;
+  duration?: number;
+}
+
+async function enrichWithCoverArt(results: LyricSongResult[]): Promise<LyricSongResult[]> {
+  return Promise.all(
+    results.map(async (item) => {
+      const itunes = await fetchItunesMetadata(item.title, item.artist);
+      return {
+        ...item,
+        coverArt: itunes.coverArt,
+        durationMs: itunes.durationMs ?? item.durationMs,
+      };
+    }),
+  );
 }
 
 export const GET: APIRoute = async ({ request }) => {
@@ -51,6 +66,11 @@ export const GET: APIRoute = async ({ request }) => {
       if (plainLyrics.length < 20) continue;
 
       seen.add(hit.id);
+      const durationMs =
+        typeof hit.duration === 'number' && hit.duration > 0
+          ? Math.round(hit.duration * 1000)
+          : null;
+
       results.push({
         id: hit.id,
         title: hit.name?.trim() || 'Unknown track',
@@ -58,12 +78,16 @@ export const GET: APIRoute = async ({ request }) => {
         album: hit.albumName?.trim() || null,
         plainLyrics,
         difficulty: calculateTypingDifficulty(plainLyrics),
+        coverArt: null,
+        durationMs,
       });
 
       if (results.length >= 24) break;
     }
 
-    return Response.json({ results });
+    const enriched = await enrichWithCoverArt(results);
+
+    return Response.json({ results: enriched });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return Response.json({ error: 'search_failed', message }, { status: 500 });
