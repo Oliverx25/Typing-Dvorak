@@ -7,8 +7,8 @@ import StatsBar from './StatsBar';
 import CompletionPanel from './CompletionPanel';
 import ModeToggle, { ModeDescription } from './ModeToggle';
 import PauseOverlay from './PauseOverlay';
-import TypedChar from './TypedChar';
 import ComboCounter from './ComboCounter';
+import TypingTextPrompter from './TypingTextPrompter';
 
 import type { PracticeMode } from '@/utils/app/settings';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
@@ -178,10 +178,12 @@ export default function TypingTest({
   ]);
 
   const showKeyboard = !effectiveBlindMode && keyboardOpen;
+  const isCustomPractice = lessonId === 'custom-practice';
+  const showModeToggle = !hideModeToggle && !isCustomPractice;
 
   return (
     <div className="space-y-6">
-      {!hideModeToggle ? (
+      {showModeToggle ? (
         <>
           <ModeToggle />
           <ModeDescription />
@@ -209,7 +211,7 @@ export default function TypingTest({
         aria-label={lessonTitle}
         aria-readonly="true"
         className={[
-          'relative min-h-[160px] cursor-text overflow-hidden rounded-2xl border-2 bg-[var(--color-surface-elevated)] p-6 outline-none transition-all duration-300 sm:min-h-[180px] sm:p-8',
+          'relative cursor-text overflow-hidden rounded-2xl border-2 bg-[var(--color-surface-elevated)] p-6 outline-none transition-all duration-300 sm:p-8',
           finished ? 'border-[var(--color-correct)]/30' : paused ? 'border-[var(--color-key-target)]/40' : 'border-[var(--color-border)] focus:border-[var(--color-highlight)]/50 focus:ring-4 focus:ring-[var(--color-highlight)]/10',
         ].join(' ')}
       >
@@ -234,33 +236,15 @@ export default function TypingTest({
           </div>
         )}
 
-        <p className="relative font-mono text-xl leading-[2] tracking-wide break-words sm:text-2xl sm:leading-[2.2]" aria-live="off">
-          {targetText.split('').map((char, i) => (
-            <span key={i} className="relative">
-              {pacerIndex === i && i !== input.length && (
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -bottom-0.5 left-0 top-0 w-0.5 border-b-2 border-amber-500 bg-amber-500/30"
-                />
-              )}
-              {ghostIndex === i && i !== input.length && (
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -bottom-0.5 left-0 top-0 w-0.5 bg-gray-400/20 outline-1 outline-gray-500"
-                />
-              )}
-              <TypedChar
-                char={char}
-                status={statuses[i]}
-                isCurrent={i === input.length}
-                active={!finished && !paused}
-              />
-            </span>
-          ))}
-          {!finished && !paused && input.length === targetText.length && (
-            <span className="caret-blink ml-px inline-block h-[1.1em] w-0.5 translate-y-0.5 bg-[var(--color-key-target)] align-middle motion-reduce:animate-none" />
-          )}
-        </p>
+        <TypingTextPrompter
+          targetText={targetText}
+          inputLength={input.length}
+          statuses={statuses}
+          finished={finished}
+          paused={paused}
+          pacerIndex={pacerIndex}
+          ghostIndex={ghostIndex}
+        />
 
         {!started && !finished && (
           <p className="relative mt-6 flex items-center gap-2 text-sm text-[var(--color-text-muted)]">

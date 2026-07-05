@@ -115,7 +115,12 @@ export default function CustomPracticePage() {
         </button>
       </nav>
 
-      <TypingTest lessonId="custom-practice" lesson={CUSTOM_LESSON} customText={getCustomText()} />
+      <TypingTest
+        lessonId="custom-practice"
+        lesson={CUSTOM_LESSON}
+        customText={getCustomText()}
+        hideModeToggle
+      />
     </>
   );
 }
