@@ -38,7 +38,7 @@ export default function RoomConfigPanel({
     onChange({
       lessonId: next.lessonId,
       textSource: next.textSource,
-      customText: next.textSource === 'custom' ? next.customText : '',
+      customText: next.textSource === 'lesson' ? '' : next.customText,
       blindMode: next.blindMode,
       winConditions: next.winConditions,
     });

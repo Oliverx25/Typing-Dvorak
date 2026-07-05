@@ -51,7 +51,7 @@ function MultiplayerIndexContent() {
       saveCreateRoomConfig(code, {
         lessonId: roomSettings.lessonId,
         customText:
-          roomSettings.textSource === 'custom' ? roomSettings.customText.trim() : '',
+          roomSettings.textSource === 'lesson' ? '' : roomSettings.customText.trim(),
         blindMode: roomSettings.blindMode,
         winConditions: roomSettings.winConditions,
         textSource: roomSettings.textSource,

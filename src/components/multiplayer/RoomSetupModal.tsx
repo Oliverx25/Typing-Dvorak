@@ -70,7 +70,7 @@ export default function RoomSetupModal({
     onSave({
       lessonId: draft.lessonId,
       textSource: draft.textSource,
-      customText: draft.textSource === 'custom' ? draft.customText.trim() : '',
+      customText: draft.textSource === 'lesson' ? '' : draft.customText.trim(),
       blindMode: draft.blindMode,
       winConditions: draft.winConditions,
     });

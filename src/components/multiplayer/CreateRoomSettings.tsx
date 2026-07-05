@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { Accordion, SegmentedControl } from '@/components/ui';
+import { Accordion, SegmentedControl, Button } from '@/components/ui';
+import Icon from '@/components/ui/Icon';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 import LessonGrid from '@/components/multiplayer/LessonGrid';
 import MatchRulesPanel from '@/components/multiplayer/MatchRulesPanel';
+import SongSearchModal from '@/components/multiplayer/SongSearchModal';
 import {
   CUSTOM_RACE_TEXT_MAX,
   CUSTOM_RACE_TEXT_MIN,
@@ -40,6 +42,7 @@ export default function CreateRoomSettings({
 }: CreateRoomSettingsProps) {
   const { t } = useApp();
   const [customText, setCustomText] = useState(value.customText);
+  const [songSearchOpen, setSongSearchOpen] = useState(false);
 
   useEffect(() => {
     setCustomText(value.customText);
@@ -47,24 +50,33 @@ export default function CreateRoomSettings({
 
   const customLength = customText.length;
   const customInvalid =
-    value.textSource === 'custom' &&
+    value.textSource !== 'lesson' &&
     customText.trim().length > 0 &&
     !isCustomTextValid(customText);
 
   const handleCustomTextChange = (next: string) => {
     const clipped = next.slice(0, CUSTOM_RACE_TEXT_MAX);
     setCustomText(clipped);
-    onChange({ customText: clipped });
+    onChange({
+      customText: clipped,
+      textSource: value.textSource === 'song' ? 'custom' : value.textSource,
+    });
+  };
+
+  const handleSongSelect = (lyrics: string) => {
+    const clipped = lyrics.slice(0, CUSTOM_RACE_TEXT_MAX);
+    setCustomText(clipped);
+    onChange({ customText: clipped, textSource: 'song' });
   };
 
   const contentSection = (
     <div className="space-y-5">
       <SegmentedControl
-        value={value.textSource}
+        value={value.textSource === 'lesson' ? 'lesson' : 'custom'}
         disabled={disabled}
         onChange={(textSource) => {
           onChange({
-            textSource,
+            textSource: textSource as TextSource,
             ...(textSource === 'lesson' ? { customText: '' } : {}),
           });
           if (textSource === 'lesson') setCustomText('');
@@ -76,7 +88,7 @@ export default function CreateRoomSettings({
       />
 
       <div
-        key={value.textSource}
+        key={value.textSource === 'lesson' ? 'lesson' : 'custom'}
         className="mp-fade-in transition-opacity duration-300 ease-in-out"
       >
         {value.textSource === 'lesson' ? (
@@ -88,7 +100,23 @@ export default function CreateRoomSettings({
             t={t}
           />
         ) : (
-          <div>
+          <div className="space-y-3">
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={disabled}
+              onClick={() => setSongSearchOpen(true)}
+              className="w-full justify-center gap-2 border-slate-700 bg-slate-800/80 text-slate-100 hover:border-cyan-500/40 hover:bg-slate-700/90"
+            >
+              <Icon name="music-note" size={18} className="text-cyan-400" />
+              {t.multiplayer.searchSongLyrics}
+            </Button>
+
+            {value.textSource === 'song' && customText.trim() ? (
+              <p className="text-xs text-cyan-400/90">{t.multiplayer.lyricsLoadedHint}</p>
+            ) : null}
+
+            <div>
             <label htmlFor="create-custom-text" className="mb-1.5 block text-sm font-medium text-[var(--color-text)]">
               {t.multiplayer.customRaceText}
             </label>
@@ -126,6 +154,7 @@ export default function CreateRoomSettings({
               </p>
             )}
           </div>
+          </div>
         )}
       </div>
     </div>
@@ -140,12 +169,28 @@ export default function CreateRoomSettings({
     />
   );
 
-  if (variant === 'content') return contentSection;
+  const songSearchModal = (
+    <SongSearchModal
+      open={songSearchOpen}
+      onClose={() => setSongSearchOpen(false)}
+      onSelect={handleSongSelect}
+    />
+  );
+
+  if (variant === 'content') {
+    return (
+      <>
+        {contentSection}
+        {songSearchModal}
+      </>
+    );
+  }
   if (variant === 'settings') return settingsFields;
 
   return (
     <div className="space-y-5">
       {contentSection}
+      {songSearchModal}
 
       <Accordion
         items={[

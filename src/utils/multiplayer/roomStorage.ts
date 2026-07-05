@@ -1,6 +1,6 @@
 import { normalizeWinConditions, type WinCondition } from '@/utils/multiplayer/roomConfig';
 
-export type TextSource = 'lesson' | 'custom';
+export type TextSource = 'lesson' | 'custom' | 'song';
 
 export interface CreateRoomConfig {
   lessonId: string;
@@ -33,7 +33,12 @@ export function readCreateRoomConfig(roomCode: string): CreateRoomConfig | null 
       customText: parsed.customText?.trim() ?? '',
       blindMode: Boolean(parsed.blindMode),
       winConditions: normalizeWinConditions(parsed.winConditions ?? parsed.winCondition),
-      textSource: parsed.textSource === 'custom' ? 'custom' : 'lesson',
+      textSource:
+        parsed.textSource === 'song'
+          ? 'song'
+          : parsed.textSource === 'custom'
+            ? 'custom'
+            : 'lesson',
     };
   } catch {
     return null;

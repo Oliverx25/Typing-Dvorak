@@ -137,7 +137,7 @@ export function useMultiplayerLobby({
       next.lessonId = createConfig.lessonId;
       next.textSource = createConfig.textSource;
       next.customText =
-        createConfig.textSource === 'custom' ? createConfig.customText : '';
+        createConfig.textSource === 'lesson' ? '' : createConfig.customText;
       next.blindMode = createConfig.blindMode;
       next.winConditions = createConfig.winConditions;
       clearCreateRoomConfig(roomId);
