@@ -12,7 +12,7 @@ interface SongSearchModalProps {
   onSelect: (lyrics: string) => void;
 }
 
-const SKELETON_COUNT = 5;
+const SKELETON_COUNT = 6;
 const DEBOUNCE_MS = 400;
 
 export default function SongSearchModal({ open, onClose, onSelect }: SongSearchModalProps) {
@@ -105,7 +105,7 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
       onClose={onClose}
       onCancel={onClose}
       aria-labelledby="song-search-title"
-      className="modal-enter m-auto w-[min(100%-1.5rem,42rem)] max-h-[min(90vh,52rem)] rounded-2xl border border-slate-700 bg-slate-900 p-0 text-slate-100 shadow-2xl backdrop:bg-black/70"
+      className="modal-enter m-auto w-[min(100%-1.5rem,56rem)] max-h-[min(90vh,52rem)] rounded-2xl border border-slate-700 bg-slate-900 p-0 text-slate-100 shadow-2xl backdrop:bg-black/70"
     >
       <div className="flex max-h-[min(90vh,52rem)] flex-col">
         <div className="relative border-b border-slate-800 px-4 py-4">
@@ -152,15 +152,15 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-b-2xl bg-slate-900/80 p-4">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-b-2xl bg-slate-900/80">
           {error ? (
-            <p className="py-12 text-center text-sm text-red-400">{error}</p>
+            <p className="p-4 py-12 text-center text-sm text-red-400">{error}</p>
           ) : showHint ? (
-            <p className="py-12 text-center text-sm text-slate-500">{t.multiplayer.lyricsSearchHint}</p>
+            <p className="p-4 py-12 text-center text-sm text-slate-500">{t.multiplayer.lyricsSearchHint}</p>
           ) : showEmpty ? (
-            <p className="py-12 text-center text-sm text-slate-500">{t.multiplayer.lyricsSearchEmpty}</p>
+            <p className="p-4 py-12 text-center text-sm text-slate-500">{t.multiplayer.lyricsSearchEmpty}</p>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 gap-4 overflow-y-auto p-4 md:grid-cols-2">
               {isSearching
                 ? Array.from({ length: SKELETON_COUNT }, (_, index) => (
                     <SongCardSkeleton key={`sk-${index}`} />

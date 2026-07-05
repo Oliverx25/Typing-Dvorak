@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { sanitizeLyrics } from './sanitizeLyrics';
-import { calculateTypingDifficulty } from './typingDifficulty';
-import { formatDurationMs } from './itunesMetadata';
+import { calculateTypingDifficulty, countLyricWords } from './typingDifficulty';
 
 describe('sanitizeLyrics', () => {
   it('removes bracket and parenthesis tags', () => {
@@ -27,9 +26,10 @@ describe('calculateTypingDifficulty', () => {
   });
 });
 
-describe('formatDurationMs', () => {
-  it('formats milliseconds as m:ss', () => {
-    expect(formatDurationMs(215000)).toBe('3:35');
-    expect(formatDurationMs(null)).toBeNull();
+describe('countLyricWords', () => {
+  it('counts whitespace-separated tokens', () => {
+    expect(countLyricWords('hello world')).toBe(2);
+    expect(countLyricWords('  one   two  three  ')).toBe(3);
+    expect(countLyricWords('')).toBe(0);
   });
 });

@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { useApp } from '@/contexts/AppProvider';
 import type { TranslationKey } from '@/i18n';
 import Icon from '@/components/ui/icons/Icon';
 import type { LyricSongResult } from '@/utils/lyrics/types';
-import { formatDurationMs } from '@/utils/lyrics/itunesMetadata';
-import { DIFFICULTY_BADGE_CLASSES } from '@/utils/lyrics/typingDifficulty';
+import { countLyricWords, DIFFICULTY_BADGE_CLASSES } from '@/utils/lyrics/typingDifficulty';
 
 interface SongCardProps {
   song: LyricSongResult;
@@ -11,66 +11,88 @@ interface SongCardProps {
   onSelect: (song: LyricSongResult) => void;
 }
 
-function CoverArt({ src, title }: { src: string | null; title: string }) {
-  const [failed, setFailed] = useState(false);
-  const showImage = Boolean(src) && !failed;
+function BlurredBackdrop({ src }: { src: string | null }) {
+  if (!src) {
+    return (
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-br from-slate-700/60 to-slate-900 opacity-80"
+      />
+    );
+  }
 
   return (
-    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-slate-900">
-      {showImage ? (
-        <img
-          src={src!}
-          alt=""
-          loading="lazy"
-          className="h-full w-full object-cover"
-          onError={() => setFailed(true)}
-        />
+    <img
+      src={src}
+      alt=""
+      aria-hidden="true"
+      className="absolute inset-0 h-full w-full scale-110 object-cover opacity-20 blur-md transition-opacity duration-200 group-hover:opacity-30"
+    />
+  );
+}
+
+function Thumbnail({ src, title }: { src: string | null; title: string }) {
+  return (
+    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-slate-900 shadow-lg">
+      {src ? (
+        <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-slate-600">
           <Icon name="music-note" size={28} />
         </div>
       )}
-      <div
-        className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-        aria-hidden="true"
-      >
-        <Icon name="check" size={22} className="text-cyan-300" />
-      </div>
       <span className="sr-only">{title}</span>
     </div>
   );
 }
 
-/** Horizontal list-row song card for lyric search results. */
+/** Immersive osu-style song card for lyric search results. */
 export default function SongCard({ song, tierLabel, onSelect }: SongCardProps) {
+  const { t } = useApp();
+  const [coverFailed, setCoverFailed] = useState(false);
+  const coverSrc = song.coverArt && !coverFailed ? song.coverArt : null;
   const badgeClass = DIFFICULTY_BADGE_CLASSES[song.difficulty.color];
-  const duration = formatDurationMs(song.durationMs);
+  const wordCount = countLyricWords(song.plainLyrics);
+  const wordLabel = t.multiplayer.lyricsWordCount.replace('{count}', String(wordCount));
 
   return (
     <button
       type="button"
       onClick={() => onSelect(song)}
-      className="group flex w-full items-center gap-4 rounded-xl border border-transparent bg-slate-800/40 p-3 text-left transition-all hover:border-slate-600 hover:bg-slate-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50"
+      className="group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800 transition-all duration-200 hover:scale-[1.02] hover:border-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50"
     >
-      <CoverArt src={song.coverArt} title={song.title} />
+      {song.coverArt && !coverFailed ? (
+        <img
+          src={song.coverArt}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute h-0 w-0 opacity-0"
+          onError={() => setCoverFailed(true)}
+        />
+      ) : null}
+      <BlurredBackdrop src={coverSrc} />
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-slate-200 group-hover:text-white">{song.title}</p>
-        <p className="truncate text-sm text-slate-400">{song.artist}</p>
-      </div>
+      <div className="relative z-10 flex h-full w-full items-center gap-4 p-3">
+        <Thumbnail src={coverSrc} title={song.title} />
 
-      <div className="flex shrink-0 flex-col items-end gap-1.5">
-        <span
-          className={[
-            'inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-            badgeClass,
-          ].join(' ')}
-        >
-          {tierLabel}
-        </span>
-        {duration ? (
-          <span className="font-mono text-xs tabular-nums text-slate-500">{duration}</span>
-        ) : null}
+        <div className="flex min-w-0 flex-grow flex-col">
+          <p className="truncate text-base font-bold text-slate-100 group-hover:text-white">
+            {song.title}
+          </p>
+          <p className="truncate text-sm text-slate-400">{song.artist}</p>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end justify-center gap-1">
+          <span
+            className={[
+              'inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+              badgeClass,
+            ].join(' ')}
+          >
+            {tierLabel}
+          </span>
+          <span className="font-mono text-xs text-slate-500">{wordLabel}</span>
+        </div>
       </div>
     </button>
   );
@@ -79,15 +101,20 @@ export default function SongCard({ song, tierLabel, onSelect }: SongCardProps) {
 export function SongCardSkeleton() {
   return (
     <div
-      className="flex animate-pulse items-center gap-4 rounded-xl bg-slate-800/40 p-3"
+      className="relative flex h-24 animate-pulse overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800"
       aria-hidden="true"
     >
-      <div className="h-16 w-16 shrink-0 rounded-md bg-slate-700/80" />
-      <div className="min-w-0 flex-1 space-y-2">
-        <div className="h-4 w-3/5 rounded bg-slate-700/80" />
-        <div className="h-3 w-2/5 rounded bg-slate-700/60" />
+      <div className="relative z-10 flex h-full w-full items-center gap-4 p-3">
+        <div className="h-16 w-16 shrink-0 rounded-md bg-slate-700/80" />
+        <div className="min-w-0 flex-grow space-y-2">
+          <div className="h-4 w-4/5 rounded bg-slate-700/80" />
+          <div className="h-3 w-3/5 rounded bg-slate-700/60" />
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <div className="h-5 w-16 rounded-full bg-slate-700/70" />
+          <div className="h-3 w-12 rounded bg-slate-700/50" />
+        </div>
       </div>
-      <div className="h-6 w-16 shrink-0 rounded-full bg-slate-700/70" />
     </div>
   );
 }

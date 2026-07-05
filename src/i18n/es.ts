@@ -537,6 +537,7 @@ export const es: TranslationKey = {
     lyricsSearchEmpty: 'No se encontraron letras con ese término.',
     lyricsSearchError: 'No se pudo buscar letras. Inténtalo de nuevo.',
     lyricsClearSearch: 'Limpiar búsqueda',
+    lyricsWordCount: '{count} palabras',
     lyricsDifficultyEasy: 'Fácil',
     lyricsDifficultyNormal: 'Normal',
     lyricsDifficultyHard: 'Difícil',

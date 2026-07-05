@@ -28,6 +28,11 @@ export function calculateTypingDifficulty(text: string): TypingDifficulty {
   return { tier: 'expert', color: 'purple', score };
 }
 
+/** Counts whitespace-separated tokens in lyric text. */
+export function countLyricWords(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
 export const DIFFICULTY_BADGE_CLASSES: Record<TypingDifficulty['color'], string> = {
   green: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
   blue: 'border-sky-500/40 bg-sky-500/15 text-sky-300',
