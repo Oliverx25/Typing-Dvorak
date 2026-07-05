@@ -1,27 +1,21 @@
 import type { Locale } from '@/i18n';
 import type { RoomBroadcastState } from '@/types/multiplayer';
 import { CORE_LESSONS, getLessonById, getLessonText } from '@/utils/curriculum/lessons';
+import {
+  MODIFIER_EXCLUSIVE_PAIRS,
+  resolveModifierConflicts,
+  toggleRaceModifier,
+} from '@/utils/multiplayer/modifierExclusive';
+import type { RaceModifier, VictoryCondition } from '@/utils/multiplayer/roomConfig.types';
+
+export type { RaceModifier, VictoryCondition } from '@/utils/multiplayer/roomConfig.types';
+export { MODIFIER_EXCLUSIVE_PAIRS, resolveModifierConflicts, toggleRaceModifier };
 
 export const DEFAULT_RACE_LESSON_ID = 'common-words';
 
 export const RACE_LESSONS = CORE_LESSONS.filter(
   (lesson) => !lesson.adaptive && lesson.texts.length > 0,
 );
-
-/** Mutually exclusive — how the winner is determined. */
-export type VictoryCondition = 'max_score' | 'first_finish' | 'highest_wpm';
-
-/** Stackable rule modifiers (osu!-style). */
-export type RaceModifier =
-  | 'sudden_death'
-  | 'blind_mode'
-  | 'strict'
-  | 'flashlight'
-  | 'double_time'
-  | 'rhythm_lock'
-  | 'vampire'
-  | 'hidden'
-  | 'half_time';
 
 /** @deprecated Legacy alias — use VictoryCondition or RaceModifier. */
 export type WinCondition = VictoryCondition | 'sudden_death';
@@ -48,6 +42,15 @@ export const SONG_ONLY_MODIFIERS: RaceModifier[] = [
   'double_time',
   'rhythm_lock',
   'half_time',
+];
+
+export const GENERAL_MODIFIERS: RaceModifier[] = [
+  'sudden_death',
+  'blind_mode',
+  'strict',
+  'flashlight',
+  'vampire',
+  'hidden',
 ];
 
 export const DEFAULT_WIN_CONDITION: VictoryCondition = 'max_score';
@@ -121,7 +124,7 @@ export const MODIFIER_ACTIVE_CLASSES: Record<RaceModifier, string> = {
   double_time: 'bg-fuchsia-500/10 border-fuchsia-500/50 text-fuchsia-400',
   rhythm_lock: 'bg-pink-500/10 border-pink-500/50 text-pink-400',
   vampire: 'bg-red-500/10 border-red-500/50 text-red-500',
-  hidden: 'bg-slate-500/10 border-slate-500/50 text-slate-300',
+  hidden: 'bg-teal-500/10 border-teal-500/50 text-teal-400',
   half_time: 'bg-sky-500/10 border-sky-500/50 text-sky-400',
 };
 
@@ -134,7 +137,7 @@ export const MODIFIER_HOVER_CLASSES: Record<RaceModifier, string> = {
   double_time: 'hover:border-fuchsia-500/50 hover:text-fuchsia-400',
   rhythm_lock: 'hover:border-pink-500/50 hover:text-pink-400',
   vampire: 'hover:border-red-500/50 hover:text-red-500',
-  hidden: 'hover:border-slate-500/50 hover:text-slate-300',
+  hidden: 'hover:border-teal-500/50 hover:text-teal-400',
   half_time: 'hover:border-sky-500/50 hover:text-sky-400',
 };
 
@@ -175,7 +178,7 @@ export function normalizeModifiers(
 
   if (legacyBlindMode) push('blind_mode');
 
-  return ALL_MODIFIERS.filter((mod) => seen.has(mod));
+  return resolveModifierConflicts(ALL_MODIFIERS.filter((mod) => seen.has(mod)));
 }
 
 /** Parse legacy winConditions[] into modifiers (sudden_death only). */

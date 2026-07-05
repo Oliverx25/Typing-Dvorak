@@ -473,6 +473,8 @@ export const en = {
     modifierHiddenDesc: 'Opponent progress is invisible.',
     modifierHalfTime: 'Half Time',
     modifierHalfTimeDesc: 'Slower musical pace — song mode only.',
+    modifierGeneralSection: 'General',
+    modifierSongSection: 'Song mode',
     songOnlyModifiersHint: 'Double Time, Rhythm Lock, and Half Time are available in song mode.',
     maxComboTieBreaker:
       'If there is a tie, the highest correct-key streak (Max Combo) decides the winner.',

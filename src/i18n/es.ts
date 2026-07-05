@@ -475,6 +475,8 @@ export const es: TranslationKey = {
     modifierHiddenDesc: 'El progreso del oponente es invisible.',
     modifierHalfTime: 'Half Time',
     modifierHalfTimeDesc: 'Ritmo musical más lento — solo en modo canción.',
+    modifierGeneralSection: 'Generales',
+    modifierSongSection: 'Modo canción',
     songOnlyModifiersHint: 'Double Time, Rhythm Lock y Half Time están disponibles en modo canción.',
     maxComboTieBreaker:
       'En caso de empate, la Racha Máxima (Max Combo) de teclas correctas definirá al ganador.',

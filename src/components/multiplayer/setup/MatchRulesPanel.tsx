@@ -2,13 +2,13 @@ import { useApp } from '@/contexts/AppProvider';
 import ModBadge from '@/components/multiplayer/setup/ModBadge';
 import ModifierIcon from '@/components/multiplayer/setup/ModifierIcon';
 import {
-  ALL_MODIFIERS,
+  GENERAL_MODIFIERS,
   SONG_ONLY_MODIFIERS,
   VICTORY_CONDITIONS,
   VICTORY_CONDITION_ICONS,
-  availableModifiers,
   normalizeModifiers,
   normalizeWinCondition,
+  toggleRaceModifier,
   type RaceModifier,
   type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
@@ -43,6 +43,29 @@ const winDescKeys: Record<
   max_score: 'winConditionMaxScoreDesc',
 };
 
+interface ModifierGridProps {
+  mods: RaceModifier[];
+  selectedModifiers: RaceModifier[];
+  disabled: boolean;
+  onToggle: (modifier: RaceModifier) => void;
+}
+
+function ModifierGrid({ mods, selectedModifiers, disabled, onToggle }: ModifierGridProps) {
+  return (
+    <div className="grid grid-cols-3 gap-2 overflow-visible">
+      {mods.map((modifier) => (
+        <ModifierIcon
+          key={modifier}
+          modifier={modifier}
+          isActive={selectedModifiers.includes(modifier)}
+          disabled={disabled}
+          onClick={() => onToggle(modifier)}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function MatchRulesPanel({
   winCondition,
   modifiers,
@@ -53,7 +76,7 @@ export default function MatchRulesPanel({
   const { t } = useApp();
   const selectedCondition = normalizeWinCondition(winCondition);
   const selectedModifiers = normalizeModifiers(modifiers);
-  const modifierOptions = availableModifiers(textSource);
+  const isSongMode = textSource === 'song';
 
   const selectWinCondition = (condition: VictoryCondition) => {
     if (disabled) return;
@@ -62,11 +85,7 @@ export default function MatchRulesPanel({
 
   const toggleModifier = (modifier: RaceModifier) => {
     if (disabled) return;
-    const isActive = selectedModifiers.includes(modifier);
-    const next = isActive
-      ? selectedModifiers.filter((m) => m !== modifier)
-      : [...selectedModifiers, modifier];
-    onChange({ modifiers: normalizeModifiers(next) });
+    onChange({ modifiers: normalizeModifiers(toggleRaceModifier(selectedModifiers, modifier)) });
   };
 
   return (
@@ -92,25 +111,41 @@ export default function MatchRulesPanel({
       </section>
 
       <section className="overflow-visible">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           {t.multiplayer.modifiers}
         </p>
-        <div className="grid grid-cols-3 gap-2 overflow-visible sm:grid-cols-5">
-          {ALL_MODIFIERS.filter((mod) => modifierOptions.includes(mod)).map((modifier) => (
-            <ModifierIcon
-              key={modifier}
-              modifier={modifier}
-              isActive={selectedModifiers.includes(modifier)}
+
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold tracking-wider text-slate-500">
+              {t.multiplayer.modifierGeneralSection}
+            </p>
+            <ModifierGrid
+              mods={GENERAL_MODIFIERS}
+              selectedModifiers={selectedModifiers}
               disabled={disabled}
-              onClick={() => toggleModifier(modifier)}
+              onToggle={toggleModifier}
             />
-          ))}
+          </div>
+
+          {isSongMode ? (
+            <div className="mt-1 flex flex-col gap-2">
+              <p className="text-xs font-semibold tracking-wider text-slate-500">
+                {t.multiplayer.modifierSongSection}
+              </p>
+              <ModifierGrid
+                mods={SONG_ONLY_MODIFIERS}
+                selectedModifiers={selectedModifiers}
+                disabled={disabled}
+                onToggle={toggleModifier}
+              />
+            </div>
+          ) : (
+            <p className="text-[10px] text-slate-500">
+              {t.multiplayer.songOnlyModifiersHint}
+            </p>
+          )}
         </div>
-        {textSource !== 'song' && SONG_ONLY_MODIFIERS.length > 0 ? (
-          <p className="mt-2 text-[10px] text-slate-500">
-            {t.multiplayer.songOnlyModifiersHint}
-          </p>
-        ) : null}
       </section>
     </div>
   );
