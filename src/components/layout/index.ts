@@ -5,4 +5,5 @@ export { default as PublicShell } from './PublicShell';
 export { default as HeaderActions } from './HeaderActions';
 export { default as ThemeToggle } from './ThemeToggle';
 export { default as SettingsPanel } from './SettingsPanel';
+export { default as SettingsModal } from './SettingsModal';
 export { default as BackLink } from './BackLink';

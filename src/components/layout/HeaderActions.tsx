@@ -51,7 +51,10 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
 
   if (isLanding && !user && !loading) {
     return (
-      <nav className="flex shrink-0 items-center justify-end" aria-label={t.nav.settings}>
+      <nav className="flex shrink-0 items-center justify-end gap-2 sm:gap-3" aria-label={t.nav.settings}>
+        <SettingsPanel />
+        <ThemeToggle />
+        <div className={headerDividerClassName} aria-hidden="true" />
         <AuthControls variant="landing" />
       </nav>
     );

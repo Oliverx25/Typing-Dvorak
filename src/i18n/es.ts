@@ -222,6 +222,10 @@ export const es: TranslationKey = {
   },
   settings: {
     title: 'Ajustes',
+    modalTitle: 'Ajustes de la aplicación',
+    modalDesc: 'Personaliza idioma, modos de práctica y apariencia. Los cambios se aplican al guardar.',
+    saveSettings: 'Guardar ajustes',
+    guestHint: 'Los ajustes se guardan en este dispositivo. Inicia sesión para sincronizar los modos de práctica entre dispositivos.',
     sectionPreferences: 'Preferencias',
     sectionAppearance: 'Apariencia',
     sectionData: 'Datos',

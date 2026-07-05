@@ -220,6 +220,10 @@ export const en = {
   },
   settings: {
     title: 'Settings',
+    modalTitle: 'Application settings',
+    modalDesc: 'Customize language, practice modes, and appearance. Changes apply when you save.',
+    saveSettings: 'Save settings',
+    guestHint: 'Settings are saved on this device. Sign in to sync practice modes across devices.',
     sectionPreferences: 'Preferences',
     sectionAppearance: 'Appearance',
     sectionData: 'Data',
