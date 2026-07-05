@@ -7,13 +7,13 @@ import {
   formatRaceScore,
   gradeAccent,
 } from '@/utils/multiplayer/raceScoring';
-import type { WinCondition } from '@/utils/multiplayer/roomConfig';
+import type { VictoryCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
 
 interface RaceResultsPanelProps {
   entries: RaceParticipantProgress[];
   currentUserId: string | null;
-  primaryVictory: WinCondition;
+  primaryVictory: VictoryCondition;
   title: string;
   youLabel: string;
   winnerLabel: string;

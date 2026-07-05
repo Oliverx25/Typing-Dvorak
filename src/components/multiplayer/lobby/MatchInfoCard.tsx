@@ -4,12 +4,12 @@ import ModBadge from '@/components/multiplayer/setup/ModBadge';
 import ActiveTrackCard from '@/components/multiplayer/setup/ActiveTrackCard';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import {
-  BLIND_MODE_ICON,
-  MODIFIER_WIN_CONDITIONS,
-  VICTORY_CONDITIONS,
-  WIN_CONDITION_ICONS,
-  normalizeWinConditions,
-  type WinCondition,
+  MODIFIER_ICONS,
+  VICTORY_CONDITION_ICONS,
+  normalizeModifiers,
+  normalizeWinCondition,
+  type RaceModifier,
+  type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
 import type { RoomBroadcastState } from '@/types/multiplayer';
 
@@ -21,16 +21,29 @@ interface MatchInfoCardProps {
 }
 
 const winLabelKeys: Record<
-  WinCondition,
-  | 'winConditionFirstFinish'
-  | 'winConditionHighestWpm'
-  | 'winConditionMaxScore'
-  | 'winConditionSuddenDeath'
+  VictoryCondition,
+  'winConditionFirstFinish' | 'winConditionHighestWpm' | 'winConditionMaxScore'
 > = {
   first_finish: 'winConditionFirstFinish',
   highest_wpm: 'winConditionHighestWpm',
   max_score: 'winConditionMaxScore',
-  sudden_death: 'winConditionSuddenDeath',
+};
+
+const modifierLabelKeys: Record<
+  RaceModifier,
+  | 'modifierSuddenDeath'
+  | 'modifierBlindMode'
+  | 'modifierStrict'
+  | 'modifierFlashlight'
+  | 'modifierDoubleTime'
+  | 'modifierRhythmLock'
+> = {
+  sudden_death: 'modifierSuddenDeath',
+  blind_mode: 'modifierBlindMode',
+  strict: 'modifierStrict',
+  flashlight: 'modifierFlashlight',
+  double_time: 'modifierDoubleTime',
+  rhythm_lock: 'modifierRhythmLock',
 };
 
 export default function MatchInfoCard({
@@ -40,9 +53,8 @@ export default function MatchInfoCard({
   onChangeTrack,
 }: MatchInfoCardProps) {
   const { t } = useApp();
-  const winConditions = normalizeWinConditions(roomState.winConditions);
-  const victoryConditions = winConditions.filter((c) => VICTORY_CONDITIONS.includes(c));
-  const modifierConditions = winConditions.filter((c) => MODIFIER_WIN_CONDITIONS.includes(c));
+  const winCondition = normalizeWinCondition(roomState.winCondition);
+  const modifiers = normalizeModifiers(roomState.modifiers);
   const isSong = roomState.textSource === 'song' && Boolean(roomState.songMeta);
   const isCustom = !isSong && roomState.customText.trim().length > 0;
   const lesson = !isCustom && !isSong ? getLessonById(roomState.lessonId) : undefined;
@@ -57,7 +69,6 @@ export default function MatchInfoCard({
 
   const difficulty = lesson ? t.difficulty[lesson.difficulty] : null;
   const category = lesson ? t.categories[lesson.category] : null;
-  const showModifiers = modifierConditions.length > 0 || roomState.blindMode;
 
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6 shadow-sm">
@@ -89,7 +100,7 @@ export default function MatchInfoCard({
         ) : null}
       </div>
 
-      <div className="mt-5 flex flex-col gap-6 md:flex-row">
+      <div className="mt-5 flex flex-col gap-6 md:flex-row md:items-center">
         <div className="flex min-w-0 flex-grow flex-col gap-2">
           {isSong && roomState.songMeta ? (
             <ActiveTrackCard
@@ -127,44 +138,34 @@ export default function MatchInfoCard({
               {t.multiplayer.winCondition}
             </p>
             <div className="flex flex-wrap gap-2">
-              {victoryConditions.map((condition) => (
-                <ModBadge
-                  key={condition}
-                  compact
-                  readOnly
-                  isActive
-                  icon={WIN_CONDITION_ICONS[condition]}
-                  title={t.multiplayer[winLabelKeys[condition]]}
-                />
-              ))}
+              <ModBadge
+                compact
+                readOnly
+                tone="victory"
+                isActive
+                icon={VICTORY_CONDITION_ICONS[winCondition]}
+                title={t.multiplayer[winLabelKeys[winCondition]]}
+              />
             </div>
           </section>
 
-          {showModifiers ? (
+          {modifiers.length > 0 ? (
             <section>
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                 {t.multiplayer.modifiers}
               </p>
               <div className="flex flex-wrap gap-2">
-                {modifierConditions.map((condition) => (
+                {modifiers.map((modifier) => (
                   <ModBadge
-                    key={condition}
+                    key={modifier}
                     compact
                     readOnly
+                    tone={modifier}
                     isActive
-                    icon={WIN_CONDITION_ICONS[condition]}
-                    title={t.multiplayer[winLabelKeys[condition]]}
+                    icon={MODIFIER_ICONS[modifier]}
+                    title={t.multiplayer[modifierLabelKeys[modifier]]}
                   />
                 ))}
-                {roomState.blindMode ? (
-                  <ModBadge
-                    compact
-                    readOnly
-                    isActive
-                    icon={BLIND_MODE_ICON}
-                    title={t.multiplayer.blindModeMod}
-                  />
-                ) : null}
               </div>
             </section>
           ) : null}

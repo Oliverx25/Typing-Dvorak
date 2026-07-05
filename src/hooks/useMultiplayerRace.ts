@@ -8,7 +8,7 @@ import type {
 import { calculateMaxScore, mergePeakRaceProgress } from '@/utils/multiplayer/raceScoring';
 import {
   getPrimaryVictoryCondition,
-  type WinCondition,
+  type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
 
 export interface LocalRaceProgress {
@@ -27,7 +27,7 @@ interface UseMultiplayerRaceOptions {
   currentUserId: string | null;
   players: LobbyPlayerPresence[];
   localProgress: LocalRaceProgress;
-  winConditions: WinCondition[];
+  winCondition: VictoryCondition;
   enabled?: boolean;
 }
 
@@ -77,7 +77,7 @@ function normalizeProgressPayload(
 function compareParticipants(
   a: RaceParticipantProgress,
   b: RaceParticipantProgress,
-  primaryVictory: WinCondition,
+  primaryVictory: VictoryCondition,
 ): number {
   if (a.finished !== b.finished) return a.finished ? -1 : 1;
 
@@ -98,7 +98,7 @@ export function useMultiplayerRace({
   currentUserId,
   players,
   localProgress,
-  winConditions,
+  winCondition,
   enabled = true,
 }: UseMultiplayerRaceOptions) {
   const [remoteProgress, setRemoteProgress] = useState<RaceParticipantProgress[]>([]);
@@ -107,8 +107,8 @@ export function useMultiplayerRace({
   const lastBroadcastAtRef = useRef(0);
 
   const primaryVictory = useMemo(
-    () => getPrimaryVictoryCondition(winConditions),
-    [winConditions],
+    () => getPrimaryVictoryCondition(winCondition),
+    [winCondition],
   );
 
   const playerById = useMemo(() => {

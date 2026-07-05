@@ -1,4 +1,4 @@
-import { normalizeWinConditions, type WinCondition } from '@/utils/multiplayer/roomConfig';
+import { normalizeWinCondition, normalizeModifiers, stripSongOnlyModifiers, type RaceModifier, type VictoryCondition } from '@/utils/multiplayer/roomConfig';
 import type { SelectedSongMeta } from '@/utils/lyrics/types';
 
 export type TextSource = 'lesson' | 'custom' | 'song';
@@ -6,8 +6,8 @@ export type TextSource = 'lesson' | 'custom' | 'song';
 export interface CreateRoomConfig {
   lessonId: string;
   customText: string;
-  blindMode: boolean;
-  winConditions: WinCondition[];
+  winCondition: VictoryCondition;
+  modifiers: RaceModifier[];
   textSource: TextSource;
   songMeta: SelectedSongMeta | null;
 }
@@ -27,7 +27,9 @@ export function readCreateRoomConfig(roomCode: string): CreateRoomConfig | null 
     const raw = sessionStorage.getItem(`${PREFIX}${roomCode}`);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<CreateRoomConfig> & {
-      winCondition?: WinCondition;
+      winCondition?: VictoryCondition;
+      winConditions?: unknown;
+      blindMode?: boolean;
     };
     if (!parsed.lessonId) return null;
     const textSource: TextSource =
@@ -36,11 +38,26 @@ export function readCreateRoomConfig(roomCode: string): CreateRoomConfig | null 
         : parsed.textSource === 'custom'
           ? 'custom'
           : 'lesson';
+
+    const winCondition = normalizeWinCondition(
+      parsed.winCondition ?? parsed.winConditions,
+    );
+    const modifiers = normalizeModifiers(
+      [
+        ...(Array.isArray(parsed.modifiers) ? parsed.modifiers : []),
+        ...(Array.isArray(parsed.winConditions)
+          ? parsed.winConditions.filter((v) => v === 'sudden_death')
+          : []),
+      ],
+      Boolean(parsed.blindMode),
+    );
+
     return {
       lessonId: parsed.lessonId,
       customText: parsed.customText ?? '',
-      blindMode: Boolean(parsed.blindMode),
-      winConditions: normalizeWinConditions(parsed.winConditions ?? parsed.winCondition),
+      winCondition,
+      modifiers:
+        textSource === 'song' ? modifiers : stripSongOnlyModifiers(modifiers),
       textSource,
       songMeta: textSource === 'song' ? (parsed.songMeta ?? null) : null,
     };

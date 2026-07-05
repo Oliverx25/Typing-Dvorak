@@ -6,7 +6,11 @@ import CreateRoomSettings, {
 } from '@/components/multiplayer/setup/CreateRoomSettings';
 import { Button } from '@/components/ui';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
-import { normalizeWinConditions } from '@/utils/multiplayer/roomConfig';
+import {
+  normalizeModifiers,
+  normalizeWinCondition,
+  stripSongOnlyModifiers,
+} from '@/utils/multiplayer/roomConfig';
 import type { RoomBroadcastState } from '@/types/multiplayer';
 
 interface RoomSetupModalProps {
@@ -16,7 +20,7 @@ interface RoomSetupModalProps {
   onSave: (
     partial: Pick<
       RoomBroadcastState,
-      'lessonId' | 'customText' | 'textSource' | 'songMeta' | 'blindMode' | 'winConditions'
+      'lessonId' | 'customText' | 'textSource' | 'songMeta' | 'winCondition' | 'modifiers'
     >,
   ) => void;
 }
@@ -27,8 +31,8 @@ function toSettingsValue(roomState: RoomBroadcastState): CreateRoomSettingsValue
     lessonId: roomState.lessonId,
     customText: roomState.customText,
     songMeta: roomState.songMeta ?? null,
-    blindMode: roomState.blindMode,
-    winConditions: normalizeWinConditions(roomState.winConditions),
+    winCondition: normalizeWinCondition(roomState.winCondition),
+    modifiers: normalizeModifiers(roomState.modifiers),
   };
 }
 
@@ -65,6 +69,11 @@ export default function RoomSetupModal({
 
   const handleSave = () => {
     if (!canSave) return;
+    const modifiers =
+      draft.textSource === 'song'
+        ? draft.modifiers
+        : stripSongOnlyModifiers(draft.modifiers);
+
     onSave({
       lessonId: draft.lessonId,
       textSource: draft.textSource,
@@ -75,8 +84,8 @@ export default function RoomSetupModal({
             ? draft.customText
             : draft.customText.trim(),
       songMeta: draft.textSource === 'song' ? draft.songMeta : null,
-      blindMode: draft.blindMode,
-      winConditions: draft.winConditions,
+      winCondition: draft.winCondition,
+      modifiers,
     });
     onClose();
   };

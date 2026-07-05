@@ -11,7 +11,9 @@ import {
   CUSTOM_RACE_TEXT_MAX,
   CUSTOM_RACE_TEXT_MIN,
   RACE_LESSONS,
-  type WinCondition,
+  stripSongOnlyModifiers,
+  type RaceModifier,
+  type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
 import type { TextSource } from '@/utils/multiplayer/roomStorage';
 import type { LyricSongResult, SelectedSongMeta } from '@/utils/lyrics/types';
@@ -21,8 +23,8 @@ export interface CreateRoomSettingsValue {
   lessonId: string;
   customText: string;
   songMeta: SelectedSongMeta | null;
-  blindMode: boolean;
-  winConditions: WinCondition[];
+  winCondition: VictoryCondition;
+  modifiers: RaceModifier[];
 }
 
 interface CreateRoomSettingsProps {
@@ -79,7 +81,13 @@ export default function CreateRoomSettings({
 
   const handleTabChange = (nextSource: TextSource) => {
     if (nextSource === value.textSource) return;
-    onChange({ textSource: nextSource });
+    onChange({
+      textSource: nextSource,
+      modifiers:
+        nextSource !== 'song'
+          ? stripSongOnlyModifiers(value.modifiers)
+          : value.modifiers,
+    });
   };
 
   const handleCustomTextChange = (next: string) => {
@@ -193,8 +201,9 @@ export default function CreateRoomSettings({
 
   const settingsFields = (
     <MatchRulesPanel
-      winConditions={value.winConditions}
-      blindMode={value.blindMode}
+      winCondition={value.winCondition}
+      modifiers={value.modifiers}
+      textSource={value.textSource}
       disabled={disabled}
       onChange={(partial) => onChange(partial)}
     />

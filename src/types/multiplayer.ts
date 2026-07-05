@@ -1,5 +1,5 @@
 import type { AvatarSource } from '@/utils/user/userDisplay';
-import type { WinCondition } from '@/utils/multiplayer/roomConfig';
+import type { RaceModifier, VictoryCondition } from '@/utils/multiplayer/roomConfig';
 import type { TextSource } from '@/utils/multiplayer/roomStorage';
 import type { SelectedSongMeta } from '@/utils/lyrics/types';
 
@@ -32,8 +32,10 @@ export interface RoomBroadcastState {
   textSource: TextSource;
   /** Song snapshot when textSource === 'song' (drives cover art + musical pacer). */
   songMeta: SelectedSongMeta | null;
-  blindMode: boolean;
-  winConditions: WinCondition[];
+  /** Mutually exclusive victory rule. */
+  winCondition: VictoryCondition;
+  /** Stackable osu!-style modifiers. */
+  modifiers: RaceModifier[];
   phase: RoomPhase;
   raceStartedAt: number | null;
   version: number;

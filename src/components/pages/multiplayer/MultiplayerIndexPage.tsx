@@ -10,7 +10,7 @@ import CreateRoomSettings, {
 import JoinRoomModal from '@/components/multiplayer/lobby/JoinRoomModal';
 import { Button, Card, SvgIcon } from '@/components/ui';
 import { createRoom } from '@/services/supabase/rooms';
-import { DEFAULT_RACE_LESSON_ID } from '@/utils/multiplayer/roomConfig';
+import { DEFAULT_RACE_LESSON_ID, DEFAULT_WIN_CONDITION } from '@/utils/multiplayer/roomConfig';
 import { generateRoomCode, roomUrl } from '@/utils/multiplayer/roomCode';
 import { saveCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
 
@@ -24,8 +24,8 @@ function MultiplayerIndexContent() {
     lessonId: DEFAULT_RACE_LESSON_ID,
     customText: '',
     songMeta: null,
-    blindMode: false,
-    winConditions: ['max_score'],
+    winCondition: DEFAULT_WIN_CONDITION,
+    modifiers: [],
   });
 
   const canCreateRoom = isRoomContentReady(roomSettings);
@@ -54,8 +54,8 @@ function MultiplayerIndexContent() {
             : roomSettings.textSource === 'song'
               ? roomSettings.customText
               : roomSettings.customText.trim(),
-        blindMode: roomSettings.blindMode,
-        winConditions: roomSettings.winConditions,
+        winCondition: roomSettings.winCondition,
+        modifiers: roomSettings.modifiers,
         textSource: roomSettings.textSource,
         songMeta: roomSettings.textSource === 'song' ? roomSettings.songMeta : null,
       });

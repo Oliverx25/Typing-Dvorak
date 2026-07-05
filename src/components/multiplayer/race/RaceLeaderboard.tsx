@@ -1,13 +1,13 @@
 import UserAvatar from '@/components/auth/profile/UserAvatar';
 import LeaveRoomButton from '@/components/multiplayer/lobby/LeaveRoomControls';
 import { formatRaceScore } from '@/utils/multiplayer/raceScoring';
-import type { WinCondition } from '@/utils/multiplayer/roomConfig';
+import type { VictoryCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
 
 interface RaceLeaderboardProps {
   entries: RaceParticipantProgress[];
   currentUserId: string | null;
-  primaryVictory: WinCondition;
+  primaryVictory: VictoryCondition;
   title: string;
   youLabel: string;
   finishedLabel: string;

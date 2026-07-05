@@ -5,7 +5,7 @@ import TypingTest from '@/components/typing/session/TypingTest';
 import RaceLeaderboard from '@/components/multiplayer/race/RaceLeaderboard';
 import RaceResultsPanel from '@/components/multiplayer/race/RaceResultsPanel';
 import { getLessonById } from '@/utils/curriculum/lessons';
-import { resolveRaceText } from '@/utils/multiplayer/roomConfig';
+import { resolveRaceText, isBlindModeActive } from '@/utils/multiplayer/roomConfig';
 import { resolveRaceTextSource, MULTIPLAYER_LESSON_ID } from '@/utils/stats/sessionDisplay';
 import { mergePeakRaceProgress } from '@/utils/multiplayer/raceScoring';
 import { countPendingPlayers } from '@/utils/multiplayer/raceCompletion';
@@ -88,7 +88,7 @@ export default function MultiplayerRacePanel({
     currentUserId,
     players,
     localProgress,
-    winConditions: roomState.winConditions,
+    winCondition: roomState.winCondition,
     enabled: Boolean(channel && currentUserId && raceSessionActive),
   });
 
@@ -208,7 +208,7 @@ export default function MultiplayerRacePanel({
           lesson={lesson}
           customText={raceText}
           practiceMode="practice"
-          blindModeOverride={roomState.blindMode}
+          blindModeOverride={isBlindModeActive(roomState.modifiers)}
           hideModeToggle
           hideCompletionPanel
           raceMode

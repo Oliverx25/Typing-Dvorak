@@ -1,62 +1,106 @@
 import { useApp } from '@/contexts/AppProvider';
 import ModBadge from '@/components/multiplayer/setup/ModBadge';
 import {
-  BLIND_MODE_ICON,
-  MODIFIER_WIN_CONDITIONS,
+  ALL_MODIFIERS,
+  MODIFIER_ICONS,
+  SONG_ONLY_MODIFIERS,
   VICTORY_CONDITIONS,
-  WIN_CONDITION_ICONS,
-  normalizeWinConditions,
-  type WinCondition,
+  VICTORY_CONDITION_ICONS,
+  availableModifiers,
+  normalizeModifiers,
+  normalizeWinCondition,
+  type RaceModifier,
+  type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
+import type { TextSource } from '@/utils/multiplayer/roomStorage';
 
 interface MatchRulesPanelProps {
-  winConditions: WinCondition[];
-  blindMode: boolean;
+  winCondition: VictoryCondition;
+  modifiers: RaceModifier[];
+  textSource?: TextSource;
   disabled?: boolean;
-  onChange: (partial: { winConditions?: WinCondition[]; blindMode?: boolean }) => void;
+  onChange: (partial: {
+    winCondition?: VictoryCondition;
+    modifiers?: RaceModifier[];
+  }) => void;
 }
 
 const winLabelKeys: Record<
-  WinCondition,
-  | 'winConditionFirstFinish'
-  | 'winConditionHighestWpm'
-  | 'winConditionMaxScore'
-  | 'winConditionSuddenDeath'
+  VictoryCondition,
+  'winConditionFirstFinish' | 'winConditionHighestWpm' | 'winConditionMaxScore'
 > = {
   first_finish: 'winConditionFirstFinish',
   highest_wpm: 'winConditionHighestWpm',
   max_score: 'winConditionMaxScore',
-  sudden_death: 'winConditionSuddenDeath',
 };
 
 const winDescKeys: Record<
-  WinCondition,
-  | 'winConditionFirstFinishDesc'
-  | 'winConditionHighestWpmDesc'
-  | 'winConditionMaxScoreDesc'
-  | 'winConditionSuddenDeathDesc'
+  VictoryCondition,
+  'winConditionFirstFinishDesc' | 'winConditionHighestWpmDesc' | 'winConditionMaxScoreDesc'
 > = {
   first_finish: 'winConditionFirstFinishDesc',
   highest_wpm: 'winConditionHighestWpmDesc',
   max_score: 'winConditionMaxScoreDesc',
-  sudden_death: 'winConditionSuddenDeathDesc',
+};
+
+const modifierLabelKeys: Record<
+  RaceModifier,
+  | 'modifierSuddenDeath'
+  | 'modifierBlindMode'
+  | 'modifierStrict'
+  | 'modifierFlashlight'
+  | 'modifierDoubleTime'
+  | 'modifierRhythmLock'
+> = {
+  sudden_death: 'modifierSuddenDeath',
+  blind_mode: 'modifierBlindMode',
+  strict: 'modifierStrict',
+  flashlight: 'modifierFlashlight',
+  double_time: 'modifierDoubleTime',
+  rhythm_lock: 'modifierRhythmLock',
+};
+
+const modifierDescKeys: Record<
+  RaceModifier,
+  | 'modifierSuddenDeathDesc'
+  | 'modifierBlindModeDesc'
+  | 'modifierStrictDesc'
+  | 'modifierFlashlightDesc'
+  | 'modifierDoubleTimeDesc'
+  | 'modifierRhythmLockDesc'
+> = {
+  sudden_death: 'modifierSuddenDeathDesc',
+  blind_mode: 'modifierBlindModeDesc',
+  strict: 'modifierStrictDesc',
+  flashlight: 'modifierFlashlightDesc',
+  double_time: 'modifierDoubleTimeDesc',
+  rhythm_lock: 'modifierRhythmLockDesc',
 };
 
 export default function MatchRulesPanel({
-  winConditions,
-  blindMode,
+  winCondition,
+  modifiers,
+  textSource = 'lesson',
   disabled = false,
   onChange,
 }: MatchRulesPanelProps) {
   const { t } = useApp();
-  const selected = normalizeWinConditions(winConditions);
+  const selectedCondition = normalizeWinCondition(winCondition);
+  const selectedModifiers = normalizeModifiers(modifiers);
+  const modifierOptions = availableModifiers(textSource);
 
-  const toggleWinCondition = (condition: WinCondition) => {
+  const selectWinCondition = (condition: VictoryCondition) => {
     if (disabled) return;
-    const isActive = selected.includes(condition);
-    const without = selected.filter((c) => c !== condition);
-    const next = isActive ? without : [...selected, condition];
-    onChange({ winConditions: normalizeWinConditions(next) });
+    onChange({ winCondition: condition });
+  };
+
+  const toggleModifier = (modifier: RaceModifier) => {
+    if (disabled) return;
+    const isActive = selectedModifiers.includes(modifier);
+    const next = isActive
+      ? selectedModifiers.filter((m) => m !== modifier)
+      : [...selectedModifiers, modifier];
+    onChange({ modifiers: normalizeModifiers(next) });
   };
 
   return (
@@ -69,12 +113,13 @@ export default function MatchRulesPanel({
           {VICTORY_CONDITIONS.map((condition) => (
             <ModBadge
               key={condition}
-              icon={WIN_CONDITION_ICONS[condition]}
+              tone="victory"
+              icon={VICTORY_CONDITION_ICONS[condition]}
               title={t.multiplayer[winLabelKeys[condition]]}
               description={t.multiplayer[winDescKeys[condition]]}
-              isActive={selected.includes(condition)}
+              isActive={selectedCondition === condition}
               disabled={disabled}
-              onClick={() => toggleWinCondition(condition)}
+              onClick={() => selectWinCondition(condition)}
             />
           ))}
         </div>
@@ -85,26 +130,24 @@ export default function MatchRulesPanel({
           {t.multiplayer.modifiers}
         </p>
         <div className="flex flex-col gap-2">
-          {MODIFIER_WIN_CONDITIONS.map((condition) => (
+          {ALL_MODIFIERS.filter((mod) => modifierOptions.includes(mod)).map((modifier) => (
             <ModBadge
-              key={condition}
-              icon={WIN_CONDITION_ICONS[condition]}
-              title={t.multiplayer[winLabelKeys[condition]]}
-              description={t.multiplayer[winDescKeys[condition]]}
-              isActive={selected.includes(condition)}
+              key={modifier}
+              tone={modifier}
+              icon={MODIFIER_ICONS[modifier]}
+              title={t.multiplayer[modifierLabelKeys[modifier]]}
+              description={t.multiplayer[modifierDescKeys[modifier]]}
+              isActive={selectedModifiers.includes(modifier)}
               disabled={disabled}
-              onClick={() => toggleWinCondition(condition)}
+              onClick={() => toggleModifier(modifier)}
             />
           ))}
-          <ModBadge
-            icon={BLIND_MODE_ICON}
-            title={t.multiplayer.blindModeMod}
-            description={t.multiplayer.blindModeModDesc}
-            isActive={blindMode}
-            disabled={disabled}
-            onClick={() => onChange({ blindMode: !blindMode })}
-          />
         </div>
+        {textSource !== 'song' && SONG_ONLY_MODIFIERS.length > 0 ? (
+          <p className="mt-2 text-[10px] text-slate-500">
+            {t.multiplayer.songOnlyModifiersHint}
+          </p>
+        ) : null}
       </section>
     </div>
   );
