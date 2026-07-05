@@ -9,6 +9,7 @@ import {
   normalizeModifiers,
   normalizeWinCondition,
   toggleRaceModifier,
+  totalModifierMultiplier,
   type RaceModifier,
   type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
@@ -77,6 +78,7 @@ export default function MatchRulesPanel({
   const selectedCondition = normalizeWinCondition(winCondition);
   const selectedModifiers = normalizeModifiers(modifiers);
   const isSongMode = textSource === 'song';
+  const totalMultiplier = totalModifierMultiplier(selectedModifiers);
 
   const selectWinCondition = (condition: VictoryCondition) => {
     if (disabled) return;
@@ -145,6 +147,15 @@ export default function MatchRulesPanel({
               {t.multiplayer.songOnlyModifiersHint}
             </p>
           )}
+
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-400/15 bg-emerald-400/5 px-3 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              {t.multiplayer.totalMultiplier}
+            </span>
+            <span className="rounded bg-emerald-400/10 px-2 py-0.5 font-mono text-xs text-emerald-400">
+              x{totalMultiplier.toFixed(2)}
+            </span>
+          </div>
         </div>
       </section>
     </div>

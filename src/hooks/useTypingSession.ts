@@ -36,6 +36,8 @@ interface UseTypingSessionOptions {
   customText?: string;
   /** Multiplayer race: stable WPM + osu-style cumulative score. */
   raceMode?: boolean;
+  /** Risk/reward multiplier from active modifiers. */
+  scoreMultiplier?: number;
   /** Override lesson id/title when persisting (e.g. multiplayer). */
   sessionPersist?: SessionPersistOptions;
 }
@@ -60,6 +62,7 @@ export function useTypingSession({
   locale = 'en',
   customText,
   raceMode = false,
+  scoreMultiplier = 1,
   sessionPersist,
 }: UseTypingSessionOptions) {
   const isTestMode = mode === 'test';
@@ -337,7 +340,9 @@ export function useTypingSession({
         return next;
       });
       if (raceMode) {
-        setRaceScore((prev) => prev + scoreIncrementForHit(nextCombo, nextAccuracy));
+        setRaceScore(
+          (prev) => prev + Math.round(scoreIncrementForHit(nextCombo, nextAccuracy) * scoreMultiplier),
+        );
       }
     } else {
       setErrorKeystrokes((n) => n + 1);

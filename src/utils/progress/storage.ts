@@ -5,6 +5,7 @@ import { MULTIPLAYER_LESSON_ID } from '../stats/sessionDisplay';
 import { collectPracticeDates, computeStreakFromPracticeDates } from './streak';
 import { STORAGE_KEYS } from './keys';
 import { readJson, writeJson, readString, writeString } from './localStorage';
+import { calculateGrade, bestGrade } from '../grading';
 
 export interface SessionRecord {
   lessonId: string;
@@ -15,6 +16,8 @@ export interface SessionRecord {
   mode: PracticeMode;
   completedAt: string;
   maxCombo?: number;
+  grade?: string;
+  score?: number;
   /** Set when lessonId is multiplayer — origin of race text. */
   multiplayerSource?: RaceTextSource;
 }
@@ -24,6 +27,9 @@ export interface LessonProgress {
   bestAccuracy: number;
   attempts: number;
   lastPlayedAt: string;
+  highestGrade?: string;
+  highestScore?: number;
+  maxWpm?: number;
 }
 
 export interface UserProgress {
@@ -67,6 +73,8 @@ export function saveSession(
   maxCombo = 0,
   options?: { multiplayerSource?: RaceTextSource },
 ): { isNewRecord: boolean; previousBest: number; record: SessionRecord } {
+  const grade = calculateGrade(stats.accuracy);
+  const score = Math.round(stats.wpm * 10 * (stats.accuracy / 100) + maxCombo * 5);
   const record: SessionRecord = {
     lessonId,
     lessonTitle,
@@ -76,6 +84,8 @@ export function saveSession(
     mode,
     completedAt: new Date().toISOString(),
     maxCombo: maxCombo > 0 ? maxCombo : undefined,
+    grade,
+    score,
     multiplayerSource: options?.multiplayerSource,
   };
 
@@ -93,6 +103,9 @@ export function saveSession(
       bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, stats.accuracy),
       attempts: (existing?.attempts ?? 0) + 1,
       lastPlayedAt: record.completedAt,
+      highestGrade: bestGrade(existing?.highestGrade, grade) ?? grade,
+      highestScore: Math.max(existing?.highestScore ?? 0, score),
+      maxWpm: Math.max(existing?.maxWpm ?? 0, stats.wpm),
     };
   }
 

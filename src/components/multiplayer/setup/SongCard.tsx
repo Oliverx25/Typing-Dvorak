@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import type { TranslationKey } from '@/i18n';
+import { GradeBadge } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
 import type { LyricSongResult } from '@/utils/lyrics/types';
@@ -79,6 +80,9 @@ export default function SongCard({ song, tierLabel, isSelected = false, onSelect
         />
       ) : null}
       <BlurredBackdrop src={coverSrc} />
+      <div className="absolute right-2 top-2 z-20">
+        <GradeBadge grade={song.highestGrade} />
+      </div>
 
       <div className="relative z-10 flex h-full w-full items-center gap-4 p-3">
         <Thumbnail src={coverSrc} title={song.title} />

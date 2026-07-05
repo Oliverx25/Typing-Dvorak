@@ -106,6 +106,7 @@ export interface SessionSummaryRow {
   wpm: number;
   accuracy: number;
   max_combo?: number;
+  grade?: string | null;
   created_at?: string;
 }
 
@@ -124,7 +125,7 @@ export async function fetchAllUserSessionSummaries(): Promise<SessionSummaryRow[
   while (true) {
     const { data, error } = await supabase
       .from('typing_sessions')
-      .select('lesson_id, wpm, accuracy, max_combo, created_at')
+      .select('lesson_id, wpm, accuracy, max_combo, grade, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(from, from + PAGE - 1);
@@ -142,6 +143,7 @@ export async function fetchAllUserSessionSummaries(): Promise<SessionSummaryRow[
         wpm: row.wpm as number,
         accuracy: Number(row.accuracy),
         max_combo: (row.max_combo as number | null) ?? undefined,
+        grade: (row.grade as string | null) ?? undefined,
         created_at: row.created_at as string | undefined,
       })),
     );

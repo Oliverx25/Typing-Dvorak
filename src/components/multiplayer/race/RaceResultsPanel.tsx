@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import UserAvatar from '@/components/auth/profile/UserAvatar';
 import LeaveRoomButton from '@/components/multiplayer/lobby/LeaveRoomControls';
 import { Button } from '@/components/ui';
 import {
-  accuracyGrade,
   formatRaceScore,
-  gradeAccent,
 } from '@/utils/multiplayer/raceScoring';
+import { calculateGrade, gradeRingClass } from '@/utils/grading';
 import type { VictoryCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
 
@@ -26,7 +25,31 @@ interface RaceResultsPanelProps {
   returnToLobbyLabel: string;
   swipeHint: string;
   leaveLabel: string;
+  totalMultiplier?: number;
   onReturnToLobby: () => void;
+}
+
+function useAnimatedScore(score: number, activeKey: string | number): number {
+  const [displayScore, setDisplayScore] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const start = performance.now();
+    const duration = 1500;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayScore(Math.round(score * eased));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+
+    setDisplayScore(0);
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [score, activeKey]);
+
+  return displayScore;
 }
 
 export default function RaceResultsPanel({
@@ -44,11 +67,13 @@ export default function RaceResultsPanel({
   returnToLobbyLabel,
   swipeHint,
   leaveLabel,
+  totalMultiplier = 1,
   onReturnToLobby,
 }: RaceResultsPanelProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const entry = entries[activeIndex] ?? entries[0];
-  const grade = entry ? accuracyGrade(entry.accuracy) : 'D';
+  const grade = entry ? calculateGrade(entry.accuracy, totalMultiplier) : 'D';
+  const animatedScore = useAnimatedScore(entry?.score ?? 0, `${activeIndex}-${entry?.userId ?? ''}`);
 
   if (!entry) {
     return null;
@@ -64,7 +89,12 @@ export default function RaceResultsPanel({
         aria-hidden
       />
 
-      <div className="overflow-hidden rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/95 shadow-2xl shadow-black/30 backdrop-blur-md">
+      <div
+        className={[
+          'overflow-hidden rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/95 backdrop-blur-md',
+          'scale-100 opacity-100 shadow-2xl shadow-black/30 transition-all duration-500 ease-out',
+        ].join(' ')}
+      >
         <div className="border-b border-[var(--color-border)] px-5 py-4 text-center">
           <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--color-highlight)]">
             {isWinner ? winnerLabel : `#${activeIndex + 1}`}
@@ -94,14 +124,14 @@ export default function RaceResultsPanel({
           <div
             className={[
               'relative flex h-36 w-36 items-center justify-center rounded-full bg-gradient-to-br p-[3px]',
-              gradeAccent(grade),
+              gradeRingClass(grade),
             ].join(' ')}
           >
             <div className="flex h-full w-full items-center justify-center rounded-full bg-[var(--color-surface)]">
               <span
                 className={[
                   'text-5xl font-black tracking-tight text-transparent bg-gradient-to-br bg-clip-text',
-                  gradeAccent(grade),
+                  gradeRingClass(grade),
                 ].join(' ')}
               >
                 {grade}
@@ -110,7 +140,7 @@ export default function RaceResultsPanel({
           </div>
 
           <p className="mt-6 font-mono text-4xl font-bold tabular-nums tracking-tight text-[var(--color-text)]">
-            {formatRaceScore(entry.score)}
+            {formatRaceScore(animatedScore)}
           </p>
           <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
             {scoreLabel}

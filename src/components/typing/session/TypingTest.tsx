@@ -40,6 +40,7 @@ interface TypingTestProps {
   musicPacerWpm?: number | null;
   /** LRC word timestamps for true ghost pacing in song races. */
   musicTimeline?: LyricWordTiming[] | null;
+  scoreMultiplier?: number;
   sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
 }
@@ -56,6 +57,7 @@ export default function TypingTest({
   raceMode = false,
   musicPacerWpm = null,
   musicTimeline = null,
+  scoreMultiplier = 1,
   sessionPersist,
   onProgressChange,
 }: TypingTestProps) {
@@ -73,6 +75,7 @@ export default function TypingTest({
     locale: settings.locale,
     customText,
     raceMode,
+    scoreMultiplier,
     sessionPersist,
   });
 

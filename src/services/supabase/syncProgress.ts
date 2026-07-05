@@ -1,6 +1,7 @@
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import type { SessionRecord } from '../../utils/progress/storage';
 import { calculateStars } from '../../utils/curriculum/stars';
+import { calculateGrade } from '../../utils/grading';
 import { getKeyStats } from '../../utils/stats/keyStats';
 import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '../../utils/progress/streak';
 import { fetchUserSessionTimestamps } from './queries';
@@ -46,6 +47,9 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
     wpm: record.wpm,
     accuracy: record.accuracy,
     stars: calculateStars(record.accuracy, record.wpm),
+    grade: record.grade ?? calculateGrade(record.accuracy),
+    score: record.score ?? 0,
+    max_wpm: record.wpm,
     mode: record.mode,
     max_combo: record.maxCombo ?? 0,
     race_source: record.multiplayerSource ?? null,
@@ -94,6 +98,9 @@ export async function migrateLocalSessionsToCloud(userId: string, history: Sessi
     wpm: r.wpm,
     accuracy: r.accuracy,
     stars: calculateStars(r.accuracy, r.wpm),
+    grade: r.grade ?? calculateGrade(r.accuracy),
+    score: r.score ?? 0,
+    max_wpm: r.wpm,
     mode: r.mode,
     max_combo: r.maxCombo ?? 0,
     race_source: r.multiplayerSource ?? null,

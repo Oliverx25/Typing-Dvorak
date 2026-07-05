@@ -141,6 +141,28 @@ export const MODIFIER_HOVER_CLASSES: Record<RaceModifier, string> = {
   half_time: 'hover:border-sky-500/50 hover:text-sky-400',
 };
 
+/** Risk/reward score multipliers. Values below 1 reduce reward for easier settings. */
+export const MODIFIER_MULTIPLIERS: Record<RaceModifier, number> = {
+  sudden_death: 1.2,
+  blind_mode: 1.15,
+  strict: 1.1,
+  flashlight: 1.15,
+  vampire: 1.15,
+  hidden: 1.1,
+  double_time: 1.2,
+  rhythm_lock: 1.15,
+  half_time: 0.5,
+};
+
+export function totalModifierMultiplier(modifiers: RaceModifier[]): number {
+  const normalized = normalizeModifiers(modifiers);
+  const total = normalized.reduce(
+    (product, modifier) => product * MODIFIER_MULTIPLIERS[modifier],
+    1,
+  );
+  return Math.round(total * 100) / 100;
+}
+
 export function normalizeWinCondition(value: unknown): VictoryCondition {
   if (typeof value === 'string' && VICTORY_CONDITIONS.includes(value as VictoryCondition)) {
     return value as VictoryCondition;

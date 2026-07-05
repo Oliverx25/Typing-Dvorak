@@ -304,6 +304,7 @@ export const es: TranslationKey = {
     improved: 'Mejoraste {delta} PPM',
     weakKeys: 'Teclas a reforzar',
     weakKeysHint: 'Estas teclas causaron más errores en esta sesión.',
+    gradeEarned: 'Rango obtenido',
     starsEarned: 'Estrellas obtenidas',
   },
   fingers: {

@@ -9,6 +9,7 @@ import {
   LuChevronRight,
   LuChevronUp,
   LuChrome,
+  LuCrown,
   LuDroplet,
   LuEyeOff,
   LuFlame,
@@ -27,6 +28,7 @@ import {
   LuSearch,
   LuSettings,
   LuSkull,
+  LuSparkles,
   LuStar,
   LuSun,
   LuTarget,
@@ -75,7 +77,9 @@ export type IconName =
   | 'join'
   | 'zap'
   | 'target'
-  | 'book-open';
+  | 'book-open'
+  | 'crown'
+  | 'sparkles';
 
 const ICONS: Record<IconName, IconType> = {
   'chevron-down': LuChevronDown,
@@ -116,6 +120,8 @@ const ICONS: Record<IconName, IconType> = {
   zap: LuZap,
   target: LuTarget,
   'book-open': LuBookOpen,
+  crown: LuCrown,
+  sparkles: LuSparkles,
 };
 
 interface IconProps extends SVGProps<SVGSVGElement> {

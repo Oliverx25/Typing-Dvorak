@@ -6,6 +6,9 @@ export interface SongWpmStats {
   maxWpm: number | null;
   /** @deprecated Use avgWpm — kept for pacing fallback in older room state. */
   trackWpm: number | null;
+  highestGrade?: string | null;
+  highestScore?: number | null;
+  maxWpm?: number | null;
 }
 
 export type DifficultyTier = 'easy' | 'normal' | 'hard' | 'expert';

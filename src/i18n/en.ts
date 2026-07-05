@@ -302,6 +302,7 @@ export const en = {
     improved: 'Improved by {delta} WPM',
     weakKeys: 'Keys to focus on',
     weakKeysHint: 'These keys caused the most errors in this session.',
+    gradeEarned: 'Grade earned',
     starsEarned: 'Stars earned',
   },
   fingers: {

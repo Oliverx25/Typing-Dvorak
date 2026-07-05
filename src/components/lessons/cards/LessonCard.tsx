@@ -6,7 +6,7 @@ import type { Lesson } from '@/utils/curriculum/lessons';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
-import { Card, Badge, LockIcon } from '@/components/ui';
+import { Card, Badge, GradeBadge, LockIcon } from '@/components/ui';
 
 interface LessonCardProps {
   lesson: Lesson;
@@ -70,6 +70,7 @@ function UnlockedLessonCard({
   difficultyLabel,
   recommended,
   bestWpm,
+  highestGrade,
   startLabel,
   bestWpmLabel,
 }: {
@@ -80,6 +81,7 @@ function UnlockedLessonCard({
   difficultyLabel: string;
   recommended?: boolean;
   bestWpm: number | null;
+  highestGrade: string | null;
   startLabel: string;
   bestWpmLabel: string;
 }) {
@@ -89,8 +91,11 @@ function UnlockedLessonCard({
       href={`/lesson/${lesson.id}`}
       variant={recommended ? 'highlight' : 'default'}
       padding="md"
-      className="group block no-underline hover:shadow-md"
+      className="group relative block no-underline hover:shadow-md"
     >
+      <div className="absolute right-2 top-2">
+        <GradeBadge grade={highestGrade} />
+      </div>
       <CardMeta
         locked={false}
         categoryLabel={categoryLabel}
@@ -116,7 +121,7 @@ function UnlockedLessonCard({
 
 export default function LessonCard({ lesson, recommended = false }: LessonCardProps) {
   const { t } = useApp();
-  const { unlocked, bestWpm } = useLessonCardState(lesson.id);
+  const { unlocked, bestWpm, highestGrade } = useLessonCardState(lesson.id);
 
   const title = getLessonTitle(t, lesson.titleKey);
   const description = getLessonDescription(t, lesson.descriptionKey);
@@ -143,6 +148,7 @@ export default function LessonCard({ lesson, recommended = false }: LessonCardPr
       difficultyLabel={difficultyLabel}
       recommended={recommended}
       bestWpm={bestWpm}
+      highestGrade={highestGrade}
       startLabel={t.home.startLesson}
       bestWpmLabel={t.home.bestWpm}
     />

@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { t as translate } from '@/i18n';
-import { StarRating, StatCard } from '@/components/ui';
+import { GradeBadge, StatCard } from '@/components/ui';
+import { calculateGrade } from '@/utils/grading';
 
 interface CompletionPanelProps {
   wpm: number;
@@ -32,6 +33,7 @@ export default function CompletionPanel({
 }: CompletionPanelProps) {
   const { t, settings } = useApp();
   const isPerfect = accuracy === 100;
+  const grade = calculateGrade(accuracy);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -110,8 +112,11 @@ export default function CompletionPanel({
             <StatCard label={t.typing.time} value={formatTime(elapsedSeconds)} size="lg" />
           </div>
 
-          <div className="mt-5">
-            <StarRating accuracy={accuracy} wpm={wpm} label={t.completion.starsEarned} />
+          <div className="mt-5 flex flex-col items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+              {t.completion.gradeEarned}
+            </p>
+            <GradeBadge grade={grade} className="h-10 min-w-10 text-lg" />
           </div>
 
           {weakKeys.length > 0 && (

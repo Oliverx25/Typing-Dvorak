@@ -5,7 +5,11 @@ import TypingTest from '@/components/typing/session/TypingTest';
 import RaceLeaderboard from '@/components/multiplayer/race/RaceLeaderboard';
 import RaceResultsPanel from '@/components/multiplayer/race/RaceResultsPanel';
 import { getLessonById } from '@/utils/curriculum/lessons';
-import { resolveRaceText, isBlindModeActive } from '@/utils/multiplayer/roomConfig';
+import {
+  resolveRaceText,
+  isBlindModeActive,
+  totalModifierMultiplier,
+} from '@/utils/multiplayer/roomConfig';
 import { resolveRaceTextSource, MULTIPLAYER_LESSON_ID } from '@/utils/stats/sessionDisplay';
 import { mergePeakRaceProgress } from '@/utils/multiplayer/raceScoring';
 import { countPendingPlayers } from '@/utils/multiplayer/raceCompletion';
@@ -74,6 +78,7 @@ export default function MultiplayerRacePanel({
       : null;
   const musicTimeline =
     roomState.textSource === 'song' ? (roomState.songMeta?.lyricTimeline ?? null) : null;
+  const totalMultiplier = totalModifierMultiplier(roomState.modifiers);
 
   const sessionPersist = useMemo(
     () => ({
@@ -185,6 +190,7 @@ export default function MultiplayerRacePanel({
         returnToLobbyLabel={t.multiplayer.returnToWaitingRoom}
         swipeHint={t.multiplayer.raceResultsSwipe}
         leaveLabel={t.multiplayer.leaveRoom}
+        totalMultiplier={totalMultiplier}
         onReturnToLobby={onReturnToLobby}
       />
     );
@@ -218,6 +224,7 @@ export default function MultiplayerRacePanel({
           raceMode
           musicPacerWpm={musicPacerWpm}
           musicTimeline={musicTimeline}
+          scoreMultiplier={totalMultiplier}
           sessionPersist={sessionPersist}
           onProgressChange={handleProgressChange}
           ariaLabel={lessonTitle}

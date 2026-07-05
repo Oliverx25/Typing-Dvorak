@@ -66,6 +66,9 @@ export type Database = {
           wpm: number;
           accuracy: number;
           stars: number;
+          grade?: string | null;
+          score?: number;
+          max_wpm?: number;
           mode: string;
           created_at: string;
           max_combo: number;
@@ -77,6 +80,9 @@ export type Database = {
           wpm: number;
           accuracy: number;
           stars: number;
+          grade?: string | null;
+          score?: number;
+          max_wpm?: number;
           mode?: string;
           max_combo?: number;
           race_source?: 'lesson' | 'custom' | 'song' | null;
@@ -147,6 +153,10 @@ export type Database = {
           wpm: number;
           accuracy: number;
           max_combo: number;
+          score?: number;
+          grade?: string | null;
+          max_wpm?: number;
+          total_multiplier?: number;
           finished: boolean;
           win_condition: string;
           placement: number | null;
@@ -158,6 +168,10 @@ export type Database = {
           wpm: number;
           accuracy: number;
           max_combo?: number;
+          score?: number;
+          grade?: string | null;
+          max_wpm?: number;
+          total_multiplier?: number;
           finished?: boolean;
           win_condition?: string;
           placement?: number | null;

@@ -1,4 +1,5 @@
 import { calculateWpm, calculateAccuracy } from '../typing/typing';
+import { calculateGrade, gradeRingClass } from '../grading';
 
 /** Minimum typing window before WPM is reported in races. */
 export const RACE_MIN_ELAPSED_MS = 2_000;
@@ -75,27 +76,11 @@ export function mergePeakRaceProgress(
 
 /** Letter grade from accuracy for results screen. */
 export function accuracyGrade(accuracy: number): string {
-  if (accuracy >= 99.5) return 'SS';
-  if (accuracy >= 98) return 'S';
-  if (accuracy >= 95) return 'A';
-  if (accuracy >= 90) return 'B';
-  if (accuracy >= 80) return 'C';
-  return 'D';
+  return calculateGrade(accuracy);
 }
 
 export function gradeAccent(grade: string): string {
-  switch (grade) {
-    case 'SS':
-      return 'from-fuchsia-400 via-pink-400 to-rose-400';
-    case 'S':
-      return 'from-emerald-400 via-teal-400 to-cyan-400';
-    case 'A':
-      return 'from-lime-400 via-green-400 to-emerald-400';
-    case 'B':
-      return 'from-amber-400 via-yellow-400 to-orange-400';
-    default:
-      return 'from-slate-400 via-zinc-400 to-neutral-400';
-  }
+  return gradeRingClass(grade);
 }
 
 /** Clamp countdown to the expected pre-race window. */

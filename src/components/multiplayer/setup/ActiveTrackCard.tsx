@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
+import { GradeBadge } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import { difficultyTierLabel } from '@/components/multiplayer/setup/SongCard';
 import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
@@ -66,7 +67,10 @@ export default function ActiveTrackCard({
       </div>
 
       <div className="relative z-10 flex min-w-0 flex-grow flex-col gap-1.5">
-        <p className="truncate text-lg font-bold text-slate-100">{song.title}</p>
+        <div className="flex min-w-0 items-center gap-2">
+          <p className="truncate text-lg font-bold text-slate-100">{song.title}</p>
+          <GradeBadge grade={song.highestGrade} />
+        </div>
         <p className="truncate text-sm text-slate-400">{song.artist}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <span

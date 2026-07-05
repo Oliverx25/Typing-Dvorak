@@ -7,6 +7,7 @@ import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 import type { PracticeMode } from '@/utils/app/settings';
+import { calculateGrade, bestGrade } from '@/utils/grading';
 import { getSettings, saveSettings } from '@/utils/app/settings';
 import { appPreferencesFromUserSettings } from '@/utils/app/settingsSync';
 import { dispatchSessionComplete, dispatchKeyStatsUpdated, dispatchProfilePreferencesSynced } from '@/utils/app/events';
@@ -26,6 +27,9 @@ function mapSessionRow(row: {
   mode: string;
   created_at: string;
   race_source?: string | null;
+  grade?: string | null;
+  score?: number | null;
+  max_combo?: number | null;
 }): SessionRecord {
   const isMultiplayer = row.lesson_id === 'multiplayer';
   const lesson = isMultiplayer ? null : getLessonById(row.lesson_id);
@@ -38,6 +42,9 @@ function mapSessionRow(row: {
     elapsedSeconds: 0,
     mode: (row.mode === 'test' ? 'test' : 'practice') as PracticeMode,
     completedAt: row.created_at,
+    maxCombo: row.max_combo ?? undefined,
+    grade: row.grade ?? calculateGrade(Number(row.accuracy)),
+    score: row.score ?? undefined,
     multiplayerSource: raceSource ?? undefined,
   };
 }
@@ -59,6 +66,9 @@ function buildProgressFromSessions(
         !existing || session.completedAt > existing.lastPlayedAt
           ? session.completedAt
           : existing.lastPlayedAt,
+      highestGrade: bestGrade(existing?.highestGrade, session.grade) ?? undefined,
+      highestScore: Math.max(existing?.highestScore ?? 0, session.score ?? 0),
+      maxWpm: Math.max(existing?.maxWpm ?? 0, session.wpm),
     };
   }
 
