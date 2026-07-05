@@ -77,3 +77,14 @@ describe('isTypableLatinLyrics', () => {
     expect(nonLatinCharRatio('你好世界')).toBeGreaterThan(0.5);
   });
 });
+
+describe('lyricsToTypableRomaji', () => {
+  it('converts Japanese lyrics to typable romaji', async () => {
+    const { lyricsToTypableRomaji } = await import('./toRomajiLyrics');
+    const raw = 'うっせぇわ\n'.repeat(5);
+    const romaji = await lyricsToTypableRomaji(raw);
+    expect(romaji).toBeTruthy();
+    expect(isTypableLatinLyrics(romaji!)).toBe(true);
+    expect(romaji).not.toMatch(/[\u3040-\u30ff\u4e00-\u9fff]/);
+  }, 15000);
+});

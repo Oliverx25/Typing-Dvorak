@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { sanitizeLyrics } from '@/utils/lyrics/sanitizeLyrics';
 import { isTypableLatinLyrics } from '@/utils/lyrics/latinScript';
+import { lyricsToTypableRomaji } from '@/utils/lyrics/toRomajiLyrics';
 import {
   calculateTypingDifficulty,
   computeTrackWpm,
@@ -80,10 +81,21 @@ function findSameTrackFallback(hit: LrcLibHit, fallbackPool: LrcLibHit[]): strin
   return null;
 }
 
-function resolveTypableLyrics(hit: LrcLibHit, fallbackPool: LrcLibHit[]): string | null {
+async function resolveTypableLyrics(
+  hit: LrcLibHit,
+  fallbackPool: LrcLibHit[],
+): Promise<string | null> {
   const direct = extractTypableLyrics(hit.plainLyrics);
   if (direct) return direct;
-  return findSameTrackFallback(hit, fallbackPool);
+
+  const fallback = findSameTrackFallback(hit, fallbackPool);
+  if (fallback) return fallback;
+
+  if (!hit.plainLyrics?.trim() || hit.instrumental) return null;
+  const sanitized = sanitizeLyrics(hit.plainLyrics);
+  if (sanitized.length < 20 || isTypableLatinLyrics(sanitized)) return null;
+
+  return lyricsToTypableRomaji(hit.plainLyrics);
 }
 
 function hitNeedsFallback(hit: LrcLibHit): boolean {
@@ -146,11 +158,11 @@ function toResult(hit: LrcLibHit, plainLyrics: string): LyricSongResult {
   };
 }
 
-function buildResults(
+async function buildResults(
   primaryHits: LrcLibHit[],
   fallbackPool: LrcLibHit[],
   query: string,
-): LyricSongResult[] {
+): Promise<LyricSongResult[]> {
   const seen = new Set<number>();
   const results: LyricSongResult[] = [];
 
@@ -160,10 +172,17 @@ function buildResults(
     results.push(toResult(hit, plainLyrics));
   };
 
-  for (const hit of primaryHits) {
-    const plainLyrics = resolveTypableLyrics(hit, fallbackPool);
-    if (plainLyrics) pushHit(hit, plainLyrics);
-  }
+  await Promise.all(
+    primaryHits.map(async (hit) => {
+      const plainLyrics = await resolveTypableLyrics(hit, fallbackPool);
+      return plainLyrics ? { hit, plainLyrics } : null;
+    }),
+  ).then((resolved) => {
+    for (const item of resolved) {
+      if (!item) continue;
+      pushHit(item.hit, item.plainLyrics);
+    }
+  });
 
   for (const hit of fallbackPool) {
     if (seen.has(hit.id)) continue;
@@ -190,7 +209,7 @@ export const GET: APIRoute = async ({ request }) => {
     const needsFallback = primaryHits.some(hitNeedsFallback);
     const fallbackPool = needsFallback ? await fetchFallbackPool(query) : [];
 
-    const results = buildResults(primaryHits, fallbackPool, query);
+    const results = await buildResults(primaryHits, fallbackPool, query);
     const enriched = await enrichWithCoverArt(results);
 
     return Response.json({ results: enriched });

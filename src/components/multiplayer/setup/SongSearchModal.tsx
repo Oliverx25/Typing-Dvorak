@@ -108,7 +108,10 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
 
   const showEmpty =
     !isSearching && !error && debouncedQuery.length >= 2 && results.length === 0;
-  const showHint = debouncedQuery.length < 2 && !isSearching;
+  const isPendingSearch = query.trim().length >= 2 && debouncedQuery.length < 2;
+  const showResultsArea = query.trim().length >= 2 || isSearching;
+  const needsScroll =
+    isSearching || isPendingSearch || results.length > 6;
 
   const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
     if (event.target === dialogRef.current) {
@@ -129,10 +132,18 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
     >
       <div
         role="document"
-        className="flex h-[min(90vh,52rem)] w-[min(100%,56rem)] flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl"
+        className={[
+          'flex w-[min(100%,56rem)] flex-col rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl',
+          needsScroll ? 'max-h-[min(90vh,52rem)] overflow-hidden' : '',
+        ].join(' ')}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="shrink-0 border-b border-slate-800 px-4 py-4">
+        <div
+          className={[
+            'shrink-0 px-4',
+            showResultsArea ? 'border-b border-slate-800 py-4' : 'py-3',
+          ].join(' ')}
+        >
           <label id="song-search-title" htmlFor="song-search-input" className="sr-only">
             {t.multiplayer.lyricsSearchPlaceholder}
           </label>
@@ -177,34 +188,39 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-b-2xl bg-slate-900/80">
-          {error ? (
-            <p className="p-4 py-12 text-center text-sm text-red-400">{error}</p>
-          ) : showHint ? (
-            <p className="p-4 py-12 text-center text-sm text-slate-500">
-              {t.multiplayer.lyricsSearchHint}
-            </p>
-          ) : showEmpty ? (
-            <p className="p-4 py-12 text-center text-sm text-slate-500">
-              {t.multiplayer.lyricsSearchEmpty}
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
-              {isSearching
-                ? Array.from({ length: SKELETON_COUNT }, (_, index) => (
-                    <SongCardSkeleton key={`sk-${index}`} />
-                  ))
-                : results.map((song) => (
-                    <SongCard
-                      key={song.id}
-                      song={song}
-                      tierLabel={difficultyTierLabel(song.difficulty.tier, t)}
-                      onSelect={handleSelect}
-                    />
-                  ))}
-            </div>
-          )}
-        </div>
+        {showResultsArea ? (
+          <div
+            className={[
+              'rounded-b-2xl bg-slate-900/80',
+              needsScroll ? 'max-h-[min(calc(90vh-5rem),46rem)] overflow-y-auto' : '',
+            ].join(' ')}
+          >
+            {error ? (
+              <p className="px-4 py-6 text-center text-sm text-red-400">{error}</p>
+            ) : showEmpty ? (
+              <p className="px-4 py-6 text-center text-sm text-slate-500">
+                {t.multiplayer.lyricsSearchEmpty}
+              </p>
+            ) : isSearching || isPendingSearch ? (
+              <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
+                {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+                  <SongCardSkeleton key={`sk-${index}`} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
+                {results.map((song) => (
+                  <SongCard
+                    key={song.id}
+                    song={song}
+                    tierLabel={difficultyTierLabel(song.difficulty.tier, t)}
+                    onSelect={handleSelect}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </dialog>
   );
