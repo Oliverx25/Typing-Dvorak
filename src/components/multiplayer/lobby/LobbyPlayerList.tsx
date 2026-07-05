@@ -1,5 +1,6 @@
 import UserAvatar from '@/components/auth/profile/UserAvatar';
 import { Button } from '@/components/ui';
+import Icon from '@/components/ui/icons/Icon';
 import type { LobbyPlayerPresence } from '@/types/multiplayer';
 
 interface LobbyPlayerListProps {
@@ -103,20 +104,7 @@ export default function LobbyPlayerList({
                 aria-label={statusLabel}
               >
                 {player.isReady || player.hasFinished ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={16}
-                    height={16}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
+                  <Icon name="check" size={16} strokeWidth={2.5} />
                 ) : (
                   <span className="h-2 w-2 rounded-full bg-current opacity-40" />
                 )}

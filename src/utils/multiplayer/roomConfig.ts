@@ -52,21 +52,21 @@ export const WIN_CONDITIONS: WinCondition[] = [...VICTORY_CONDITIONS, 'sudden_de
 export const MODIFIER_WIN_CONDITIONS: WinCondition[] = ['sudden_death'];
 
 export const VICTORY_CONDITION_ICONS: Record<VictoryCondition, string> = {
-  first_finish: '/icons/timer.svg',
-  highest_wpm: '/icons/speed.svg',
-  max_score: '/icons/max-score.svg',
+  first_finish: 'timer',
+  highest_wpm: 'speed',
+  max_score: 'max-score',
 };
 
 export const MODIFIER_ICONS: Record<RaceModifier, string> = {
-  sudden_death: '/icons/skull.svg',
-  blind_mode: '/icons/blind-mode.svg',
-  strict: '/icons/lock.svg',
-  flashlight: '/icons/flashlight.svg',
-  double_time: '/icons/double-time.svg',
-  rhythm_lock: '/icons/rhythm-lock.svg',
+  sudden_death: 'skull',
+  blind_mode: 'blind-mode',
+  strict: 'lock',
+  flashlight: 'flashlight',
+  double_time: 'double-time',
+  rhythm_lock: 'rhythm-lock',
 };
 
-/** @deprecated Use VICTORY_CONDITION_ICONS + MODIFIER_ICONS */
+/** @deprecated Use VICTORY_CONDITION_ICONS + MODIFIER_ICONS (IconName keys) */
 export const WIN_CONDITION_ICONS: Record<WinCondition, string> = {
   ...VICTORY_CONDITION_ICONS,
   sudden_death: MODIFIER_ICONS.sudden_death,

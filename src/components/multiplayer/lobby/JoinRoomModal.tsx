@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { Button } from '@/components/ui';
+import Icon from '@/components/ui/icons/Icon';
 import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import { fetchRoomByCode, isRoomJoinable } from '@/services/supabase/rooms';
 import { normalizeRoomCode } from '@/utils/multiplayer/roomCode';
@@ -87,21 +88,7 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
           aria-label={t.multiplayer.close}
           className="rounded-lg p-1.5 text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
+          <Icon name="x" size={20} />
         </button>
       </div>
 

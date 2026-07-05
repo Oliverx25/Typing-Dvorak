@@ -1,6 +1,7 @@
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { Button } from '@/components/ui';
 import ModBadge from '@/components/multiplayer/setup/ModBadge';
+import Icon from '@/components/ui/icons/Icon';
 import ActiveTrackCard from '@/components/multiplayer/setup/ActiveTrackCard';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import {
@@ -96,22 +97,7 @@ export default function MatchInfoCard({
 
         {isOwner && onEditSettings ? (
           <Button variant="secondary" size="sm" onClick={onEditSettings}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-[var(--color-highlight)]"
-              aria-hidden="true"
-            >
-              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
+            <Icon name="settings" size={14} className="text-[var(--color-highlight)]" />
             {t.multiplayer.changeMatchSettings}
           </Button>
         ) : null}

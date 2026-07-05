@@ -1,4 +1,4 @@
-import SvgIcon from '@/components/ui/icons/SvgIcon';
+import Icon, { type IconName } from '@/components/ui/icons/Icon';
 import type { RaceModifier } from '@/utils/multiplayer/roomConfig';
 import { MODIFIER_ACTIVE_CLASSES } from '@/utils/multiplayer/roomConfig';
 
@@ -8,7 +8,7 @@ export type ModBadgeVariant = 'card' | 'tile' | 'chip';
 interface ModBadgeProps {
   title: string;
   description?: string;
-  icon: string;
+  icon: IconName | string;
   isActive?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
@@ -44,6 +44,10 @@ function resolveVariant(compact: boolean, variant?: ModBadgeVariant): ModBadgeVa
   return compact ? 'chip' : 'card';
 }
 
+function ModIcon({ icon, size, className }: { icon: IconName | string; size: number; className?: string }) {
+  return <Icon name={icon as IconName} size={size} className={className} />;
+}
+
 export default function ModBadge({
   title,
   description,
@@ -73,7 +77,7 @@ export default function ModBadge({
     const content = (
       <>
         <span className="flex h-4 w-4 shrink-0 items-center justify-center">
-          <SvgIcon src={icon} size={16} className="text-current" />
+          <ModIcon icon={icon} size={16} className="text-current" />
         </span>
         <span className="truncate text-sm font-medium">{title}</span>
       </>
@@ -115,7 +119,7 @@ export default function ModBadge({
     return (
       <div className={shellClass} aria-label={ariaLabel} title={tooltip}>
         <span className="flex h-4 w-4 shrink-0 items-center justify-center">
-          <SvgIcon src={icon} size={14} className="text-current" />
+          <ModIcon icon={icon} size={14} className="text-current" />
         </span>
         <span className="truncate text-xs font-medium">{title}</span>
       </div>
@@ -132,7 +136,7 @@ export default function ModBadge({
         ].join(' ')}
       >
         <span className="flex h-5 w-5 items-center justify-center">
-          <SvgIcon src={icon} size={20} className="text-current" />
+          <ModIcon icon={icon} size={20} className="text-current" />
         </span>
       </div>
       <div

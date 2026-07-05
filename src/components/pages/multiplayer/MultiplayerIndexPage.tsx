@@ -8,7 +8,8 @@ import CreateRoomSettings, {
   type CreateRoomSettingsValue,
 } from '@/components/multiplayer/setup/CreateRoomSettings';
 import JoinRoomModal from '@/components/multiplayer/lobby/JoinRoomModal';
-import { Button, Card, SvgIcon } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
+import Icon from '@/components/ui/icons/Icon';
 import { createRoom } from '@/services/supabase/rooms';
 import { DEFAULT_RACE_LESSON_ID, DEFAULT_WIN_CONDITION } from '@/utils/multiplayer/roomConfig';
 import { generateRoomCode, roomUrl } from '@/utils/multiplayer/roomCode';
@@ -90,11 +91,7 @@ function MultiplayerIndexContent() {
             </p>
           </div>
           <Button variant="secondary" onClick={() => setJoinOpen(true)}>
-            <SvgIcon
-              src="/icons/join.svg"
-              size={16}
-              className="text-[var(--color-highlight)]"
-            />
+            <Icon name="join" size={16} className="text-[var(--color-highlight)]" />
             {t.multiplayer.joinWithCode}
           </Button>
         </header>

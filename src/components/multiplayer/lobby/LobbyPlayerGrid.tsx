@@ -1,5 +1,6 @@
 import UserAvatar from '@/components/auth/profile/UserAvatar';
 import { Button } from '@/components/ui';
+import Icon from '@/components/ui/icons/Icon';
 import type { LobbyPlayerPresence } from '@/types/multiplayer';
 
 interface LobbyPlayerGridProps {
@@ -102,20 +103,7 @@ export default function LobbyPlayerGrid({
               ].join(' ')}
             >
               {isReady || isFinished ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
+                <Icon name="check" size={12} strokeWidth={3} />
               ) : (
                 <span className="h-1.5 w-1.5 rounded-full bg-current opacity-60" />
               )}
