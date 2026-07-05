@@ -29,18 +29,25 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
   useLockBodyScroll(open);
 
   useEffect(() => {
+    if (!open) return;
+
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (open && !dialog.open) {
+    setQuery('');
+    setResults([]);
+    setError(null);
+    setIsSearching(false);
+
+    if (!dialog.open) {
       dialog.showModal();
-      setQuery('');
-      setResults([]);
-      setError(null);
-      setIsSearching(false);
-    } else if (!open && dialog.open) {
-      dialog.close();
     }
+
+    return () => {
+      if (dialog.open) {
+        dialog.close();
+      }
+    };
   }, [open]);
 
   useEffect(() => {
@@ -95,6 +102,10 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
     [onClose, onSelect],
   );
 
+  const handleDialogClose = () => {
+    onClose();
+  };
+
   const showEmpty =
     !isSearching && !error && debouncedQuery.length >= 2 && results.length === 0;
   const showHint = debouncedQuery.length < 2 && !isSearching;
@@ -105,14 +116,16 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
     }
   };
 
+  if (!open) return null;
+
   return (
     <dialog
       ref={dialogRef}
-      onClose={onClose}
-      onCancel={onClose}
+      onClose={handleDialogClose}
+      onCancel={handleDialogClose}
       onClick={handleBackdropClick}
       aria-labelledby="song-search-title"
-      className="modal-enter fixed inset-0 m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70"
+      className="modal-enter fixed inset-0 z-[200] m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70"
     >
       <div
         role="document"

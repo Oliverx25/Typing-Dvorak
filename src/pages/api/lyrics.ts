@@ -27,6 +27,10 @@ function trackKey(title: string, artist: string): string {
   return `${title.toLowerCase().trim()}|${artist.toLowerCase().trim()}`;
 }
 
+function normalizeToken(value: string): string {
+  return value.toLowerCase().trim();
+}
+
 async function fetchLrcLibHits(query: string): Promise<LrcLibHit[]> {
   const response = await fetch(`${LRCLIB_SEARCH}?q=${encodeURIComponent(query)}`, {
     headers: {
@@ -39,33 +43,73 @@ async function fetchLrcLibHits(query: string): Promise<LrcLibHit[]> {
   return (await response.json()) as LrcLibHit[];
 }
 
-function resolveTypableLyrics(hit: LrcLibHit, fallbackPool: LrcLibHit[]): string | null {
-  const candidates: LrcLibHit[] = [hit];
+function extractTypableLyrics(raw: string | null | undefined): string | null {
+  if (!raw?.trim()) return null;
+  const plainLyrics = sanitizeLyrics(raw);
+  if (plainLyrics.length < 20) return null;
+  if (!isTypableLatinLyrics(plainLyrics)) return null;
+  return plainLyrics;
+}
 
+/** True when the hit plausibly matches the user's search term. */
+function isRelevantToQuery(hit: LrcLibHit, query: string): boolean {
+  const q = normalizeToken(query);
+  if (!q) return false;
+
+  const title = normalizeToken(hit.name ?? '');
+  const artist = normalizeToken(hit.artistName ?? '');
+
+  if (title.includes(q) || artist.includes(q)) return true;
+
+  const queryTokens = q.split(/\s+/).filter((token) => token.length >= 2);
+  return queryTokens.some(
+    (token) => title.includes(token) || artist.includes(token),
+  );
+}
+
+function findSameTrackFallback(hit: LrcLibHit, fallbackPool: LrcLibHit[]): string | null {
   const key = trackKey(hit.name?.trim() ?? '', hit.artistName?.trim() ?? '');
-  for (const alt of fallbackPool) {
-    if (alt.id === hit.id) {
-      candidates.push(alt);
-      continue;
-    }
-    const altKey = trackKey(alt.name?.trim() ?? '', alt.artistName?.trim() ?? '');
-    if (altKey === key) candidates.push(alt);
-  }
 
-  for (const candidate of candidates) {
-    if (!candidate.plainLyrics?.trim() || candidate.instrumental) continue;
-    const plainLyrics = sanitizeLyrics(candidate.plainLyrics);
-    if (plainLyrics.length < 20) continue;
-    if (isTypableLatinLyrics(plainLyrics)) return plainLyrics;
+  for (const alt of fallbackPool) {
+    const altKey = trackKey(alt.name?.trim() ?? '', alt.artistName?.trim() ?? '');
+    if (altKey !== key) continue;
+    const lyrics = extractTypableLyrics(alt.plainLyrics);
+    if (lyrics) return lyrics;
   }
 
   return null;
+}
+
+function resolveTypableLyrics(hit: LrcLibHit, fallbackPool: LrcLibHit[]): string | null {
+  const direct = extractTypableLyrics(hit.plainLyrics);
+  if (direct) return direct;
+  return findSameTrackFallback(hit, fallbackPool);
 }
 
 function hitNeedsFallback(hit: LrcLibHit): boolean {
   if (!hit.plainLyrics?.trim() || hit.instrumental) return false;
   const plainLyrics = sanitizeLyrics(hit.plainLyrics);
   return plainLyrics.length >= 20 && !isTypableLatinLyrics(plainLyrics);
+}
+
+async function fetchFallbackPool(query: string): Promise<LrcLibHit[]> {
+  const suffixes = ['romaji', 'english', 'english lyrics'];
+  const searches = await Promise.all(
+    suffixes.map((suffix) => fetchLrcLibHits(`${query} ${suffix}`)),
+  );
+
+  const seen = new Set<number>();
+  const merged: LrcLibHit[] = [];
+
+  for (const hits of searches) {
+    for (const hit of hits) {
+      if (!hit.id || seen.has(hit.id)) continue;
+      seen.add(hit.id);
+      merged.push(hit);
+    }
+  }
+
+  return merged;
 }
 
 async function enrichWithCoverArt(results: LyricSongResult[]): Promise<LyricSongResult[]> {
@@ -83,35 +127,50 @@ async function enrichWithCoverArt(results: LyricSongResult[]): Promise<LyricSong
   );
 }
 
-function buildResults(hits: LrcLibHit[], fallbackPool: LrcLibHit[]): LyricSongResult[] {
+function toResult(hit: LrcLibHit, plainLyrics: string): LyricSongResult {
+  const durationMs =
+    typeof hit.duration === 'number' && hit.duration > 0
+      ? Math.round(hit.duration * 1000)
+      : null;
+
+  return {
+    id: hit.id,
+    title: hit.name?.trim() || 'Unknown track',
+    artist: hit.artistName?.trim() || 'Unknown artist',
+    album: hit.albumName?.trim() || null,
+    plainLyrics,
+    difficulty: calculateTypingDifficulty(plainLyrics),
+    coverArt: null,
+    durationMs,
+    trackWpm: computeTrackWpm(countLyricWords(plainLyrics), durationMs),
+  };
+}
+
+function buildResults(
+  primaryHits: LrcLibHit[],
+  fallbackPool: LrcLibHit[],
+  query: string,
+): LyricSongResult[] {
   const seen = new Set<number>();
   const results: LyricSongResult[] = [];
 
-  for (const hit of hits) {
-    if (!hit.id || seen.has(hit.id)) continue;
-
-    const plainLyrics = resolveTypableLyrics(hit, fallbackPool);
-    if (!plainLyrics) continue;
-
+  const pushHit = (hit: LrcLibHit, plainLyrics: string) => {
+    if (!hit.id || seen.has(hit.id) || results.length >= MAX_RESULTS) return;
     seen.add(hit.id);
-    const durationMs =
-      typeof hit.duration === 'number' && hit.duration > 0
-        ? Math.round(hit.duration * 1000)
-        : null;
+    results.push(toResult(hit, plainLyrics));
+  };
 
-    results.push({
-      id: hit.id,
-      title: hit.name?.trim() || 'Unknown track',
-      artist: hit.artistName?.trim() || 'Unknown artist',
-      album: hit.albumName?.trim() || null,
-      plainLyrics,
-      difficulty: calculateTypingDifficulty(plainLyrics),
-      coverArt: null,
-      durationMs,
-      trackWpm: computeTrackWpm(countLyricWords(plainLyrics), durationMs),
-    });
+  for (const hit of primaryHits) {
+    const plainLyrics = resolveTypableLyrics(hit, fallbackPool);
+    if (plainLyrics) pushHit(hit, plainLyrics);
+  }
 
-    if (results.length >= MAX_RESULTS) break;
+  for (const hit of fallbackPool) {
+    if (seen.has(hit.id)) continue;
+    const plainLyrics = extractTypableLyrics(hit.plainLyrics);
+    if (!plainLyrics) continue;
+    if (!isRelevantToQuery(hit, query)) continue;
+    pushHit(hit, plainLyrics);
   }
 
   return results;
@@ -129,17 +188,9 @@ export const GET: APIRoute = async ({ request }) => {
     const primaryHits = await fetchLrcLibHits(query);
 
     const needsFallback = primaryHits.some(hitNeedsFallback);
-    let fallbackPool: LrcLibHit[] = [];
+    const fallbackPool = needsFallback ? await fetchFallbackPool(query) : [];
 
-    if (needsFallback) {
-      const [romajiHits, englishHits] = await Promise.all([
-        fetchLrcLibHits(`${query} romaji`),
-        fetchLrcLibHits(`${query} english`),
-      ]);
-      fallbackPool = [...romajiHits, ...englishHits];
-    }
-
-    const results = buildResults(primaryHits, fallbackPool);
+    const results = buildResults(primaryHits, fallbackPool, query);
     const enriched = await enrichWithCoverArt(results);
 
     return Response.json({ results: enriched });

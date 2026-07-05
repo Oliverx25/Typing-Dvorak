@@ -208,13 +208,13 @@ export default function CreateRoomSettings({
     />
   );
 
-  const songSearchModal = (
+  const songSearchModal = songSearchOpen ? (
     <SongSearchModal
-      open={songSearchOpen}
+      open
       onClose={() => setSongSearchOpen(false)}
       onSelect={handleSongSelect}
     />
-  );
+  ) : null;
 
   if (variant === 'content') {
     return (
