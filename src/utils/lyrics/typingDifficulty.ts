@@ -1,7 +1,7 @@
 import type { TypingDifficulty } from './types';
 
 const LETTER = /[a-zA-Z\u00C0-\u024F]/g;
-const PUNCTUATION = /[.,!?;:'"—–\-()[\]{}\/\\@#$%^&*+=<>~`|]/g;
+const PUNCTUATION = /[.,!?;:'"—–()[\]{}/\\@#$%^&*+=<>~`|-]/g;
 
 /** Estimates typing difficulty from cleaned lyric text. */
 export function calculateTypingDifficulty(text: string): TypingDifficulty {

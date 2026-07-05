@@ -1,6 +1,6 @@
 import type { TranslationKey } from '@/i18n';
 import type { SessionRecord } from '@/utils/progress/storage';
-import type { ChartPoint } from '@/components/stats/ProgressChart';
+import type { ChartPoint } from '@/components/stats/charts/ProgressChart';
 import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 
 export const MULTIPLAYER_LESSON_ID = 'multiplayer';

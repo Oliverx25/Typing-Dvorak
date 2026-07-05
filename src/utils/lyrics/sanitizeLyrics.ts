@@ -1,5 +1,5 @@
-const META_LINE = /^\s*[\[(][^\])]*[\])]\s*$/gm;
-const INLINE_META = /[\[(][^\])]*[\])]/g;
+const META_LINE = /^\s*(?:\[[^\]]*]|\([^)]*\))\s*$/gm;
+const INLINE_META = /\[[^\]]*]|\([^)]*\)/g;
 const TRIPLE_NEWLINE = /\n{3,}/g;
 
 /** Removes section tags, collapses whitespace, and caps word count for races. */

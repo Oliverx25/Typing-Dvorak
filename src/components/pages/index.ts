@@ -1,6 +1,11 @@
-export { default as HomePage } from './HomePage';
-export { default as HomePageWithProvider } from './HomePageWithProvider';
-export { default as LessonPage } from './LessonPage';
-export { default as StatsPage } from './StatsPage';
-export { default as CustomPracticePage } from './CustomPracticePage';
-export { default as CustomPracticeShell } from './CustomPracticeShell';
+export { default as LandingPage } from './landing/LandingPage';
+export { default as LandingFeatureCard } from './landing/LandingFeatureCard';
+export { default as HomePage } from './home/HomePage';
+export { default as HomePageWithProvider } from './home/HomePageWithProvider';
+export { default as LessonPage } from './lessons/LessonPage';
+export { default as CustomPracticePage } from './practice/CustomPracticePage';
+export { default as CustomPracticeShell } from './practice/CustomPracticeShell';
+export { default as StatsPage } from './stats/StatsPage';
+export { default as AchievementsPage } from './achievements/AchievementsPage';
+export { default as MultiplayerIndexPage } from './multiplayer/MultiplayerIndexPage';
+export { default as MultiplayerLobbyPage } from './multiplayer/MultiplayerLobbyPage';
