@@ -3,6 +3,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 /** Visible lines in the teleprompter viewport. */
 export const TELEPROMPTER_VISIBLE_LINES = 3;
 
+/** Active line is pinned to this visual row (1 = top). Row 2 keeps one line of context above. */
+export const TELEPROMPTER_ACTIVE_LINE_ROW = 2;
+
 interface UseTeleprompterScrollOptions {
   activeIndex: number;
   textLength: number;
@@ -10,8 +13,8 @@ interface UseTeleprompterScrollOptions {
 
 /**
  * Tracks the active character and returns a translateY offset so the current
- * line stays near the top of a fixed-height viewport. Uses DOM measurement +
- * CSS transform (no scrollTop / no React re-render loop).
+ * line stays on the second visual row (one line of context above). Uses DOM
+ * measurement + CSS transform (no scrollTop / no React re-render loop).
  */
 export function useTeleprompterScroll({ activeIndex, textLength }: UseTeleprompterScrollOptions) {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -31,9 +34,15 @@ export function useTeleprompterScroll({ activeIndex, textLength }: UseTeleprompt
       return;
     }
 
+    const textBlock = active.closest('p');
+    const lineHeight = textBlock
+      ? parseFloat(getComputedStyle(textBlock).lineHeight)
+      : active.getBoundingClientRect().height;
+
+    const contextOffset = lineHeight * (TELEPROMPTER_ACTIVE_LINE_ROW - 1);
     const activeTop = active.getBoundingClientRect().top;
     const innerTop = inner.getBoundingClientRect().top;
-    setOffsetY(Math.max(0, activeTop - innerTop));
+    setOffsetY(Math.max(0, activeTop - innerTop - contextOffset));
   }, []);
 
   useEffect(() => {
