@@ -7,6 +7,7 @@ import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
 import { DIFFICULTY_BADGE_CLASSES } from '@/utils/lyrics/typingDifficulty';
 import { formatDurationMs } from '@/utils/lyrics/itunesMetadata';
 import type { SelectedSongMeta } from '@/utils/lyrics/types';
+import { getSongProgress } from '@/utils/progress/songProgress';
 
 interface ActiveTrackCardProps {
   song: SelectedSongMeta;
@@ -25,6 +26,8 @@ export default function ActiveTrackCard({
 }: ActiveTrackCardProps) {
   const { t } = useApp();
   const [coverFailed, setCoverFailed] = useState(false);
+  const stored = getSongProgress(song.id);
+  const displayGrade = song.highestGrade ?? stored?.highestGrade ?? null;
   const coverSrc = song.coverArt && !coverFailed ? song.coverArt : null;
   const badgeClass = DIFFICULTY_BADGE_CLASSES[song.difficulty.color];
   const tierLabel = difficultyTierLabel(song.difficulty.tier, t);
@@ -69,7 +72,7 @@ export default function ActiveTrackCard({
       <div className="relative z-10 flex min-w-0 flex-grow flex-col gap-1.5">
         <div className="flex min-w-0 items-center gap-2">
           <p className="truncate text-lg font-bold text-slate-100">{song.title}</p>
-          <GradeBadge grade={song.highestGrade} />
+          <GradeBadge grade={displayGrade} />
         </div>
         <p className="truncate text-sm text-slate-400">{song.artist}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">

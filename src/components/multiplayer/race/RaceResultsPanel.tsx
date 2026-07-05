@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import UserAvatar from '@/components/auth/profile/UserAvatar';
 import LeaveRoomButton from '@/components/multiplayer/lobby/LeaveRoomControls';
-import { Button } from '@/components/ui';
-import {
-  formatRaceScore,
-} from '@/utils/multiplayer/raceScoring';
-import { calculateGrade, gradeRingClass } from '@/utils/grading';
+import { Button, GradeScoreRing } from '@/components/ui';
+import { calculateGrade } from '@/utils/grading';
+import { estimateMaxRaceScore } from '@/utils/multiplayer/raceScoring';
 import type { VictoryCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
 
@@ -26,30 +24,8 @@ interface RaceResultsPanelProps {
   swipeHint: string;
   leaveLabel: string;
   totalMultiplier?: number;
+  raceCharCount?: number;
   onReturnToLobby: () => void;
-}
-
-function useAnimatedScore(score: number, activeKey: string | number): number {
-  const [displayScore, setDisplayScore] = useState(0);
-
-  useEffect(() => {
-    let frame = 0;
-    const start = performance.now();
-    const duration = 1500;
-
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayScore(Math.round(score * eased));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-
-    setDisplayScore(0);
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [score, activeKey]);
-
-  return displayScore;
 }
 
 export default function RaceResultsPanel({
@@ -68,12 +44,13 @@ export default function RaceResultsPanel({
   swipeHint,
   leaveLabel,
   totalMultiplier = 1,
+  raceCharCount = 0,
   onReturnToLobby,
 }: RaceResultsPanelProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const entry = entries[activeIndex] ?? entries[0];
   const grade = entry ? calculateGrade(entry.accuracy, totalMultiplier) : 'D';
-  const animatedScore = useAnimatedScore(entry?.score ?? 0, `${activeIndex}-${entry?.userId ?? ''}`);
+  const maxScore = estimateMaxRaceScore(raceCharCount, totalMultiplier);
 
   if (!entry) {
     return null;
@@ -121,30 +98,14 @@ export default function RaceResultsPanel({
         </div>
 
         <div className="flex flex-col items-center px-6 py-8">
-          <div
-            className={[
-              'relative flex h-36 w-36 items-center justify-center rounded-full bg-gradient-to-br p-[3px]',
-              gradeRingClass(grade),
-            ].join(' ')}
-          >
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-[var(--color-surface)]">
-              <span
-                className={[
-                  'text-5xl font-black tracking-tight text-transparent bg-gradient-to-br bg-clip-text',
-                  gradeRingClass(grade),
-                ].join(' ')}
-              >
-                {grade}
-              </span>
-            </div>
-          </div>
-
-          <p className="mt-6 font-mono text-4xl font-bold tabular-nums tracking-tight text-[var(--color-text)]">
-            {formatRaceScore(animatedScore)}
-          </p>
-          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
-            {scoreLabel}
-          </p>
+          <GradeScoreRing
+            score={entry.score}
+            maxScore={maxScore}
+            finalGrade={grade}
+            totalMultiplier={totalMultiplier}
+            scoreLabel={scoreLabel}
+            animateKey={`${activeIndex}-${entry.userId}`}
+          />
         </div>
 
         <div className="grid grid-cols-3 gap-px border-t border-[var(--color-border)] bg-[var(--color-border)]">

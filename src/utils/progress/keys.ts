@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   customText: 'typing-dvorak-custom-text',
   settings: 'typing-dvorak-settings',
   cloudMigrated: 'typing-dvorak-cloud-migrated',
+  songProgress: 'typing-dvorak-song-progress',
 } as const;
 
 /** Cleared on login/logout to avoid cross-account bleed. */
@@ -19,6 +20,7 @@ export const GUEST_PROGRESS_KEYS = [
   STORAGE_KEYS.badges,
   STORAGE_KEYS.customText,
   STORAGE_KEYS.cloudMigrated,
+  STORAGE_KEYS.songProgress,
 ] as const;
 
 /** Keys included in export/import backup bundles. */

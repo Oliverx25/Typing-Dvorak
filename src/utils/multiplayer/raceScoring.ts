@@ -63,6 +63,16 @@ export function formatRaceScore(score: number): string {
   return score.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
+/** Theoretical max race score if every keystroke is perfect with growing combo. */
+export function estimateMaxRaceScore(charCount: number, scoreMultiplier = 1): number {
+  if (charCount <= 0) return 1;
+  let total = 0;
+  for (let combo = 1; combo <= charCount; combo++) {
+    total += Math.round(scoreIncrementForHit(combo, 100) * scoreMultiplier);
+  }
+  return Math.max(total, 1);
+}
+
 /** Score and WPM only increase during a race — never decrease mid-run. */
 export function mergePeakRaceProgress(
   previous: { wpm: number; score: number } | undefined,

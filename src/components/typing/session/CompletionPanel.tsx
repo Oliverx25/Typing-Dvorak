@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { t as translate } from '@/i18n';
-import { GradeBadge, StatCard } from '@/components/ui';
+import { GradeScoreRing } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
+import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 
 interface CompletionPanelProps {
   wpm: number;
   accuracy: number;
   elapsedSeconds: number;
+  maxCombo?: number;
   isNewRecord?: boolean;
   wpmDelta?: number;
   weakKeys?: string[];
@@ -25,6 +27,7 @@ export default function CompletionPanel({
   wpm,
   accuracy,
   elapsedSeconds,
+  maxCombo = 0,
   isNewRecord = false,
   wpmDelta = 0,
   weakKeys = [],
@@ -34,6 +37,8 @@ export default function CompletionPanel({
   const { t, settings } = useApp();
   const isPerfect = accuracy === 100;
   const grade = calculateGrade(accuracy);
+  const score = calculateMaxScore(wpm, accuracy, maxCombo);
+  const maxScore = Math.max(calculateMaxScore(wpm, 100, maxCombo), score, 1);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -50,77 +55,82 @@ export default function CompletionPanel({
       aria-modal="true"
       aria-labelledby="completion-title"
     >
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-[var(--color-surface)]/60 backdrop-blur-sm motion-reduce:backdrop-blur-none"
         aria-hidden="true"
       />
 
-      {/* Modal card */}
-      <div className="completion-enter relative w-full max-w-md overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl shadow-black/20 motion-reduce:animate-none">
+      <div className="completion-enter relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/95 shadow-2xl shadow-black/30 backdrop-blur-md motion-reduce:animate-none">
         <div
           className={[
-            'h-1 w-full',
-            isPerfect
-              ? 'bg-gradient-to-r from-[var(--color-correct)] to-[var(--color-correct)]/50'
-              : 'bg-gradient-to-r from-[var(--color-highlight)] to-[var(--color-highlight)]/50',
+            'border-b border-[var(--color-border)] px-5 py-4 text-center',
+            isPerfect ? 'bg-[var(--color-correct)]/5' : 'bg-[var(--color-highlight)]/5',
           ].join(' ')}
-          aria-hidden="true"
-        />
+        >
+          {isNewRecord ? (
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-key-target)]">
+              {t.completion.newRecord}
+            </p>
+          ) : null}
 
-        <div className="px-6 py-8 text-center sm:px-8">
-          <div
-            className={[
-              'mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full',
-              isPerfect
-                ? 'bg-[var(--color-correct)]/15 ring-2 ring-[var(--color-correct)]/30'
-                : 'bg-[var(--color-highlight)]/15 ring-2 ring-[var(--color-highlight)]/30',
-            ].join(' ')}
-          >
-            {isPerfect ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-correct)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-highlight)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
-                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
-              </svg>
-            )}
-          </div>
-
-          {isNewRecord && (
-            <p className="mb-2 text-sm font-semibold text-[var(--color-key-target)]">{t.completion.newRecord}</p>
-          )}
-
-          <h2 id="completion-title" className="text-2xl font-bold tracking-tight text-[var(--color-text)]">
+          <h2 id="completion-title" className="mt-1 text-xl font-bold tracking-tight text-[var(--color-text)]">
             {isPerfect ? t.completion.perfect : t.completion.complete}
           </h2>
-          <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">
+          <p className="mt-1 text-xs text-[var(--color-text-muted)]">
             {isPerfect ? t.completion.perfectDesc : t.completion.keepGoing}
           </p>
 
-          {wpmDelta > 0 && !isNewRecord && (
+          {wpmDelta > 0 && !isNewRecord ? (
             <p className="mt-1 text-xs text-[var(--color-correct)]">
               {translate(settings.locale, 'completion.improved', { delta: wpmDelta })}
             </p>
-          )}
+          ) : null}
+        </div>
 
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            <StatCard label={t.typing.wpm} value={wpm.toString()} variant={wpm >= 40 ? 'highlight' : 'default'} size="lg" />
-            <StatCard label={t.typing.accuracy} value={`${accuracy}%`} variant={accuracy === 100 ? 'highlight' : 'default'} size="lg" />
-            <StatCard label={t.typing.time} value={formatTime(elapsedSeconds)} size="lg" />
-          </div>
+        <div className="flex flex-col items-center px-6 py-6">
+          <GradeScoreRing
+            score={score}
+            maxScore={maxScore}
+            finalGrade={grade}
+            scoreLabel={t.completion.gradeEarned}
+            animateKey={`${score}-${grade}`}
+            size="md"
+          />
+        </div>
 
-          <div className="mt-5 flex flex-col items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-              {t.completion.gradeEarned}
+        <div className="grid grid-cols-3 gap-px border-t border-[var(--color-border)] bg-[var(--color-border)]">
+          <div className="bg-[var(--color-surface-elevated)] px-3 py-4 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+              {t.typing.wpm}
             </p>
-            <GradeBadge grade={grade} className="h-10 min-w-10 text-lg" />
+            <p className="mt-1 font-mono text-xl font-bold text-[var(--color-text)]">{wpm}</p>
           </div>
+          <div className="bg-[var(--color-surface-elevated)] px-3 py-4 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+              {t.typing.accuracy}
+            </p>
+            <p
+              className={[
+                'mt-1 font-mono text-xl font-bold',
+                accuracy === 100 ? 'text-[var(--color-correct)]' : 'text-[var(--color-text)]',
+              ].join(' ')}
+            >
+              {accuracy}%
+            </p>
+          </div>
+          <div className="bg-[var(--color-surface-elevated)] px-3 py-4 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+              {t.typing.time}
+            </p>
+            <p className="mt-1 font-mono text-xl font-bold text-[var(--color-text)]">
+              {formatTime(elapsedSeconds)}
+            </p>
+          </div>
+        </div>
 
-          {weakKeys.length > 0 && (
-            <div className="mt-5 rounded-xl border border-[var(--color-incorrect)]/20 bg-[var(--color-incorrect)]/5 px-4 py-3 text-left">
+        {weakKeys.length > 0 ? (
+          <div className="border-t border-[var(--color-border)] px-5 py-4">
+            <div className="rounded-xl border border-[var(--color-incorrect)]/20 bg-[var(--color-incorrect)]/5 px-4 py-3 text-left">
               <p className="text-center text-xs font-medium text-[var(--color-text-muted)]">{t.completion.weakKeys}</p>
               <div className="mt-2.5 flex justify-center gap-2">
                 {weakKeys.map((key) => (
@@ -134,13 +144,15 @@ export default function CompletionPanel({
               </div>
               <p className="mt-2 text-center text-[10px] text-[var(--color-text-muted)]">{t.completion.weakKeysHint}</p>
             </div>
-          )}
+          </div>
+        ) : null}
 
+        <div className="border-t border-[var(--color-border)] px-5 py-4">
           <button
             ref={retryButtonRef}
             type="button"
             onClick={onRetry}
-            className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-highlight)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-highlight)]/20 transition hover:bg-[var(--color-highlight-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-highlight)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-elevated)]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-highlight)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--color-highlight)]/20 transition hover:bg-[var(--color-highlight-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-highlight)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-elevated)]"
           >
             {t.completion.tryAgain}
             <kbd className="rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-xs font-normal text-white/80">

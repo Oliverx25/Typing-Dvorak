@@ -6,6 +6,7 @@ import { collectPracticeDates, computeStreakFromPracticeDates } from './streak';
 import { STORAGE_KEYS } from './keys';
 import { readJson, writeJson, readString, writeString } from './localStorage';
 import { calculateGrade, bestGrade } from '../grading';
+import { saveSongProgress } from './songProgress';
 
 export interface SessionRecord {
   lessonId: string;
@@ -71,10 +72,19 @@ export function saveSession(
   stats: TypingStats,
   mode: PracticeMode = 'practice',
   maxCombo = 0,
-  options?: { multiplayerSource?: RaceTextSource },
+  options?: {
+    multiplayerSource?: RaceTextSource;
+    songId?: number;
+    scoreOverride?: number;
+    gradeOverride?: string;
+    totalMultiplier?: number;
+  },
 ): { isNewRecord: boolean; previousBest: number; record: SessionRecord } {
-  const grade = calculateGrade(stats.accuracy);
-  const score = Math.round(stats.wpm * 10 * (stats.accuracy / 100) + maxCombo * 5);
+  const grade =
+    options?.gradeOverride ?? calculateGrade(stats.accuracy, options?.totalMultiplier ?? 1);
+  const score =
+    options?.scoreOverride ??
+    Math.round(stats.wpm * 10 * (stats.accuracy / 100) + maxCombo * 5);
   const record: SessionRecord = {
     lessonId,
     lessonTitle,
@@ -110,6 +120,16 @@ export function saveSession(
   }
 
   saveProgress(progress);
+
+  if (options?.songId != null) {
+    saveSongProgress(options.songId, {
+      wpm: stats.wpm,
+      accuracy: stats.accuracy,
+      score,
+      totalMultiplier: options.totalMultiplier,
+    });
+  }
+
   return { isNewRecord, previousBest, record };
 }
 

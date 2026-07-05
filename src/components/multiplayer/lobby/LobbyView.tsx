@@ -14,6 +14,7 @@ import SongSearchModal from '@/components/multiplayer/setup/SongSearchModal';
 import { roomUrl } from '@/utils/multiplayer/roomCode';
 import { registerRoomExitHandler } from '@/utils/multiplayer/roomExit';
 import type { LyricSongResult } from '@/utils/lyrics/types';
+import { getSongProgress } from '@/utils/progress/songProgress';
 
 interface LobbyViewProps {
   roomId: string;
@@ -102,6 +103,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
 
   const handleSongSelect = useCallback(
     (song: LyricSongResult) => {
+      const stored = getSongProgress(song.id);
       void updateRoomConfig({
         textSource: 'song',
         customText: song.plainLyrics,
@@ -116,6 +118,8 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
           maxWpm: song.maxWpm,
           trackWpm: song.trackWpm,
           lyricTimeline: song.lyricTimeline,
+          highestGrade: song.highestGrade ?? stored?.highestGrade ?? null,
+          highestScore: song.highestScore ?? stored?.highestScore ?? null,
         },
       });
       setSongSearchOpen(false);

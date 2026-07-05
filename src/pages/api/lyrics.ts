@@ -3,6 +3,7 @@ import { buildLyricTimelineFromLrc } from '@/utils/lyrics/buildLyricTimeline';
 import { parseLrc } from '@/utils/lyrics/parseLrc';
 import { sanitizeLyrics } from '@/utils/lyrics/sanitizeLyrics';
 import { isTypableLatinLyrics } from '@/utils/lyrics/latinScript';
+import { stripMacrons } from '@/utils/lyrics/stripMacrons';
 import { lyricsToTypableRomaji } from '@/utils/lyrics/toRomajiLyrics';
 import {
   calculateTypingDifficulty,
@@ -50,7 +51,7 @@ async function fetchLrcLibHits(query: string): Promise<LrcLibHit[]> {
 
 function extractTypableLyrics(raw: string | null | undefined): string | null {
   if (!raw?.trim()) return null;
-  const plainLyrics = sanitizeLyrics(raw);
+  const plainLyrics = sanitizeLyrics(stripMacrons(raw));
   if (plainLyrics.length < 20) return null;
   if (!isTypableLatinLyrics(plainLyrics)) return null;
   return plainLyrics;
@@ -96,7 +97,7 @@ async function resolveTypableLyrics(
   if (fallback) return fallback;
 
   if (!hit.plainLyrics?.trim() || hit.instrumental) return null;
-  const sanitized = sanitizeLyrics(hit.plainLyrics);
+  const sanitized = sanitizeLyrics(stripMacrons(hit.plainLyrics));
   if (sanitized.length < 20 || isTypableLatinLyrics(sanitized)) return null;
 
   return lyricsToTypableRomaji(hit.plainLyrics);
@@ -104,7 +105,7 @@ async function resolveTypableLyrics(
 
 function hitNeedsFallback(hit: LrcLibHit): boolean {
   if (!hit.plainLyrics?.trim() || hit.instrumental) return false;
-  const plainLyrics = sanitizeLyrics(hit.plainLyrics);
+  const plainLyrics = sanitizeLyrics(stripMacrons(hit.plainLyrics));
   return plainLyrics.length >= 20 && !isTypableLatinLyrics(plainLyrics);
 }
 

@@ -5,6 +5,8 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import Icon from '@/components/ui/icons/Icon';
 import SongCard, { SongCardSkeleton, difficultyTierLabel } from '@/components/multiplayer/setup/SongCard';
 import type { LyricSongResult } from '@/utils/lyrics/types';
+import { mergeSongProgress } from '@/utils/progress/songProgress';
+import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
 interface SongSearchModalProps {
   open: boolean;
@@ -73,7 +75,7 @@ export default function SongSearchModal({
         return data.results ?? [];
       })
       .then((next) => {
-        if (!cancelled) setResults(next);
+        if (!cancelled) setResults(mergeSongProgress(next));
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -89,6 +91,13 @@ export default function SongSearchModal({
       cancelled = true;
     };
   }, [debouncedQuery, open, t.multiplayer.lyricsSearchError]);
+
+  useEffect(() => {
+    if (!open) return;
+    const refresh = () => setResults((prev) => mergeSongProgress(prev));
+    window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
+    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
+  }, [open]);
 
   const handleSelect = useCallback(
     (song: LyricSongResult) => {

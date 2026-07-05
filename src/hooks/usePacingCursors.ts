@@ -12,6 +12,8 @@ interface UsePacingCursorsOptions {
   pacerEnabled: boolean;
   pacerTargetWpm: number;
   ghostEnabled: boolean;
+  /** Enables LRC / song WPM pacing (e.g. rhythm_lock modifier in races). */
+  musicPacerEnabled?: boolean;
   /**
    * Forced pacer WPM fallback when no LRC timeline is available.
    */
@@ -39,6 +41,7 @@ export function usePacingCursors({
   pacerEnabled,
   pacerTargetWpm,
   ghostEnabled,
+  musicPacerEnabled = false,
   musicPacerWpm = null,
   musicTimeline = null,
 }: UsePacingCursorsOptions): PacingCursorsState {
@@ -57,9 +60,10 @@ export function usePacingCursors({
 
   const active = started && !finished && !paused && startTime !== null;
   const runGhost = ghostEnabled && ghostWpm !== null && ghostWpm > 0;
-  const useMusicTimeline = Boolean(musicTimeline && musicTimeline.length > 0);
-  const useMusicPacer = !useMusicTimeline && musicPacerWpm !== null && musicPacerWpm > 0;
-  const runPacer = useMusicTimeline || useMusicPacer || pacerEnabled;
+  const useMusicTimeline = musicPacerEnabled && Boolean(musicTimeline && musicTimeline.length > 0);
+  const useMusicPacer =
+    musicPacerEnabled && !useMusicTimeline && musicPacerWpm !== null && musicPacerWpm > 0;
+  const runPacer = pacerEnabled || useMusicTimeline || useMusicPacer;
   const effectivePacerWpm = useMusicPacer ? (musicPacerWpm as number) : pacerTargetWpm;
 
   useEffect(() => {
@@ -99,11 +103,13 @@ export function usePacingCursors({
     runPacer,
     runGhost,
     useMusicTimeline,
+    useMusicPacer,
     effectivePacerWpm,
     ghostWpm,
     totalChars,
     startTime,
     musicTimeline,
+    musicPacerEnabled,
   ]);
 
   return state;

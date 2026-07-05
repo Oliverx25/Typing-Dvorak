@@ -11,6 +11,7 @@ export { default as SettingsToggle } from './controls/SettingsToggle';
 export type { SelectOption } from './controls/CustomSelect';
 export { default as StarRating } from './display/StarRating';
 export { default as GradeBadge } from './display/GradeBadge';
+export { default as GradeScoreRing } from './display/GradeScoreRing';
 export { default as StatCard } from './display/StatCard';
 export { default as LockIcon } from './icons/LockIcon';
 export { default as SvgIcon } from './icons/SvgIcon';

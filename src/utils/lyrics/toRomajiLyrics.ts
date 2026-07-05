@@ -4,6 +4,7 @@ import Kuroshiro from 'kuroshiro-enhance';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
 import { sanitizeLyrics } from './sanitizeLyrics';
 import { isTypableLatinLyrics } from './latinScript';
+import { stripMacrons } from './stripMacrons';
 
 const require = createRequire(import.meta.url);
 
@@ -42,7 +43,7 @@ export async function lyricsToTypableRomaji(raw: string): Promise<string | null>
 
   const kuroshiro = await getKuroshiro();
   const romaji = await kuroshiro.convert(raw, { to: 'romaji', mode: 'normal' });
-  const plainLyrics = sanitizeLyrics(romaji);
+  const plainLyrics = sanitizeLyrics(stripMacrons(romaji));
 
   if (plainLyrics.length < 20) return null;
   if (!isTypableLatinLyrics(plainLyrics)) return null;

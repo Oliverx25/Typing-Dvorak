@@ -17,6 +17,7 @@ import {
 } from '@/utils/multiplayer/roomConfig';
 import type { TextSource } from '@/utils/multiplayer/roomStorage';
 import type { LyricSongResult, SelectedSongMeta } from '@/utils/lyrics/types';
+import { getSongProgress } from '@/utils/progress/songProgress';
 
 export interface CreateRoomSettingsValue {
   textSource: TextSource;
@@ -49,6 +50,7 @@ export function isRoomContentReady(value: CreateRoomSettingsValue): boolean {
 }
 
 function toSongMeta(song: LyricSongResult): SelectedSongMeta {
+  const stored = getSongProgress(song.id);
   return {
     id: song.id,
     title: song.title,
@@ -60,6 +62,8 @@ function toSongMeta(song: LyricSongResult): SelectedSongMeta {
     maxWpm: song.maxWpm,
     trackWpm: song.trackWpm,
     lyricTimeline: song.lyricTimeline,
+    highestGrade: song.highestGrade ?? stored?.highestGrade ?? null,
+    highestScore: song.highestScore ?? stored?.highestScore ?? null,
   };
 }
 

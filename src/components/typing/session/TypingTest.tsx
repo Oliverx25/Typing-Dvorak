@@ -40,6 +40,8 @@ interface TypingTestProps {
   musicPacerWpm?: number | null;
   /** LRC word timestamps for true ghost pacing in song races. */
   musicTimeline?: LyricWordTiming[] | null;
+  /** When true, song LRC / WPM pacing is active (rhythm_lock in races). */
+  musicPacerEnabled?: boolean;
   scoreMultiplier?: number;
   sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
@@ -57,6 +59,7 @@ export default function TypingTest({
   raceMode = false,
   musicPacerWpm = null,
   musicTimeline = null,
+  musicPacerEnabled = false,
   scoreMultiplier = 1,
   sessionPersist,
   onProgressChange,
@@ -124,6 +127,7 @@ export default function TypingTest({
     pacerEnabled: !raceMode && settings.pacerEnabled,
     pacerTargetWpm: settings.pacerTargetWpm,
     ghostEnabled: !raceMode && settings.ghostMode,
+    musicPacerEnabled,
     musicPacerWpm,
     musicTimeline,
   });
@@ -267,6 +271,7 @@ export default function TypingTest({
           wpm={stats.wpm}
           accuracy={stats.accuracy}
           elapsedSeconds={stats.elapsedSeconds}
+          maxCombo={maxCombo}
           isNewRecord={isNewRecord}
           wpmDelta={wpmDelta}
           weakKeys={sessionWeakKeys}

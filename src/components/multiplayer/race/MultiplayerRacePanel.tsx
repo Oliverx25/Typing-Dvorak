@@ -73,11 +73,14 @@ export default function MultiplayerRacePanel({
   );
 
   const musicPacerWpm =
-    roomState.textSource === 'song'
+    roomState.textSource === 'song' && roomState.modifiers.includes('rhythm_lock')
       ? (roomState.songMeta?.avgWpm ?? roomState.songMeta?.trackWpm ?? null)
       : null;
   const musicTimeline =
-    roomState.textSource === 'song' ? (roomState.songMeta?.lyricTimeline ?? null) : null;
+    roomState.textSource === 'song' && roomState.modifiers.includes('rhythm_lock')
+      ? (roomState.songMeta?.lyricTimeline ?? null)
+      : null;
+  const musicPacerEnabled = roomState.modifiers.includes('rhythm_lock');
   const totalMultiplier = totalModifierMultiplier(roomState.modifiers);
 
   const sessionPersist = useMemo(
@@ -85,8 +88,13 @@ export default function MultiplayerRacePanel({
       lessonId: MULTIPLAYER_LESSON_ID,
       lessonTitle: MULTIPLAYER_LESSON_ID,
       multiplayerSource: raceTextSource,
+      songId:
+        raceTextSource === 'song' && roomState.songMeta?.id != null
+          ? roomState.songMeta.id
+          : undefined,
+      totalMultiplier,
     }),
-    [raceTextSource],
+    [raceTextSource, roomState.songMeta?.id, totalMultiplier],
   );
 
   const raceSessionActive = phase === 'racing' || phase === 'results';
@@ -191,6 +199,7 @@ export default function MultiplayerRacePanel({
         swipeHint={t.multiplayer.raceResultsSwipe}
         leaveLabel={t.multiplayer.leaveRoom}
         totalMultiplier={totalMultiplier}
+        raceCharCount={raceText.length}
         onReturnToLobby={onReturnToLobby}
       />
     );
@@ -224,6 +233,7 @@ export default function MultiplayerRacePanel({
           raceMode
           musicPacerWpm={musicPacerWpm}
           musicTimeline={musicTimeline}
+          musicPacerEnabled={musicPacerEnabled}
           scoreMultiplier={totalMultiplier}
           sessionPersist={sessionPersist}
           onProgressChange={handleProgressChange}

@@ -91,3 +91,28 @@ export function gradeRingClass(grade: string): string {
       return 'from-slate-500 via-slate-600 to-slate-700';
   }
 }
+
+const PROGRESS_GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A', 'S', 'SS'];
+
+/** Grade shown while the score ring animates (steps F → SS/SS+). */
+export function gradeAtScoreProgress(
+  progress: number,
+  finalGrade: Grade,
+  totalMultiplier: number = 1,
+): Grade {
+  const clamped = Math.max(0, Math.min(1, progress));
+  if (clamped >= 1) return finalGrade;
+
+  const finalRank = gradeRank(finalGrade);
+  const maxSteps = PROGRESS_GRADE_ORDER.length;
+  const step = Math.min(finalRank, Math.floor(clamped * maxSteps));
+  const base = PROGRESS_GRADE_ORDER[step] ?? 'F';
+
+  if (base === 'SS' && totalMultiplier >= SPECIAL_SS_MULTIPLIER && step >= maxSteps - 1) {
+    return 'SS+';
+  }
+  if (base === 'S' && totalMultiplier >= SPECIAL_S_MULTIPLIER && step >= maxSteps - 2) {
+    return 'S+';
+  }
+  return base;
+}

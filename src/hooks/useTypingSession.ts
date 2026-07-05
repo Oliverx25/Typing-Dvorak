@@ -130,6 +130,8 @@ export function useTypingSession({
 
   const maxComboRef = useRef(0);
   maxComboRef.current = maxCombo;
+  const raceScoreRef = useRef(0);
+  raceScoreRef.current = raceScore;
 
   const finishSession = useCallback(
     (result: TypingStats) => {
@@ -153,9 +155,13 @@ export function useTypingSession({
         result,
         mode,
         sessionMaxCombo,
-        sessionPersist?.multiplayerSource
-          ? { multiplayerSource: sessionPersist.multiplayerSource }
-          : undefined,
+        {
+          multiplayerSource: sessionPersist?.multiplayerSource,
+          songId: sessionPersist?.songId,
+          scoreOverride: raceMode ? raceScoreRef.current : sessionPersist?.scoreOverride,
+          gradeOverride: sessionPersist?.gradeOverride,
+          totalMultiplier: sessionPersist?.totalMultiplier ?? (raceMode ? scoreMultiplier : undefined),
+        },
       );
       setIsNewRecord(record);
       setWpmDelta(result.wpm - previousBest);
@@ -170,7 +176,7 @@ export function useTypingSession({
       });
       if (sound) playCompleteSound();
     },
-    [lessonId, lessonTitle, mode, sound, sessionPersist],
+    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier],
   );
 
   const togglePause = useCallback(() => {
