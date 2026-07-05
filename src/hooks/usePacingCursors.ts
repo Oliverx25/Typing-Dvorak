@@ -1,46 +1,54 @@
 import { useEffect, useRef, useState } from 'react';
-import { ghostIndexAt, type ReplayData } from '../utils/typing/ghostReplay';
+import { getBestWpmForLesson } from '../utils/progress/storage';
+import { pacingCursorIndex } from '../utils/typing/pacingCursor';
 
-interface UsePacerGhostOptions {
+interface UsePacingCursorsOptions {
   started: boolean;
   finished: boolean;
   paused: boolean;
   startTime: number | null;
   totalChars: number;
+  lessonId: string;
   pacerEnabled: boolean;
   pacerTargetWpm: number;
   ghostEnabled: boolean;
-  ghostReplay: ReplayData | null;
 }
 
-interface PacerGhostState {
+interface PacingCursorsState {
   pacerIndex: number | null;
   ghostIndex: number | null;
 }
 
-/** Standard WPM assumes 5 characters per word. */
-const CHARS_PER_WORD = 5;
-
 /**
- * Drives the pacer (hare) and ghost cursors with requestAnimationFrame while a
- * session is active. Returns the current char index each cursor should sit on.
+ * Drives pacer (hare) and ghost cursors with requestAnimationFrame.
+ * Both use the same WPM-based pacing math; ghost WPM is the lesson best
+ * captured when the session starts.
  */
-export function usePacerGhost({
+export function usePacingCursors({
   started,
   finished,
   paused,
   startTime,
   totalChars,
+  lessonId,
   pacerEnabled,
   pacerTargetWpm,
   ghostEnabled,
-  ghostReplay,
-}: UsePacerGhostOptions): PacerGhostState {
-  const [state, setState] = useState<PacerGhostState>({ pacerIndex: null, ghostIndex: null });
+}: UsePacingCursorsOptions): PacingCursorsState {
+  const [state, setState] = useState<PacingCursorsState>({ pacerIndex: null, ghostIndex: null });
+  const [ghostWpm, setGhostWpm] = useState<number | null>(null);
   const frameRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    if (!started) {
+      setGhostWpm(null);
+      return;
+    }
+    const best = getBestWpmForLesson(lessonId);
+    setGhostWpm(best && best > 0 ? best : null);
+  }, [started, lessonId]);
   const active = started && !finished && !paused && startTime !== null;
-  const runGhost = ghostEnabled && !!ghostReplay && ghostReplay.length > 0;
+  const runGhost = ghostEnabled && ghostWpm !== null && ghostWpm > 0;
 
   useEffect(() => {
     if (!active || (!pacerEnabled && !runGhost)) {
@@ -48,17 +56,15 @@ export function usePacerGhost({
       return;
     }
 
-    const charsPerMs = (pacerTargetWpm * CHARS_PER_WORD) / 60000;
-
     const tick = () => {
       const elapsed = Date.now() - (startTime as number);
 
       const pacerIndex = pacerEnabled
-        ? Math.min(totalChars, Math.floor(elapsed * charsPerMs))
+        ? pacingCursorIndex(elapsed, pacerTargetWpm, totalChars)
         : null;
 
       const ghostIndex = runGhost
-        ? Math.min(totalChars, ghostIndexAt(ghostReplay as ReplayData, elapsed))
+        ? pacingCursorIndex(elapsed, ghostWpm as number, totalChars)
         : null;
 
       setState((prev) =>
@@ -74,7 +80,7 @@ export function usePacerGhost({
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
-  }, [active, pacerEnabled, runGhost, pacerTargetWpm, totalChars, startTime, ghostReplay]);
+  }, [active, pacerEnabled, runGhost, pacerTargetWpm, ghostWpm, totalChars, startTime]);
 
   return state;
 }

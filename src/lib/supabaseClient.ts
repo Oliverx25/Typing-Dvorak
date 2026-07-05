@@ -37,7 +37,6 @@ export type Database = {
           stars: number;
           mode: string;
           created_at: string;
-          replay_data: unknown | null;
         };
         Insert: {
           user_id: string;
@@ -46,7 +45,6 @@ export type Database = {
           accuracy: number;
           stars: number;
           mode?: string;
-          replay_data?: unknown | null;
         };
         Update: Partial<Database['public']['Tables']['typing_sessions']['Insert']>;
       };

@@ -6,7 +6,6 @@ export const STORAGE_KEYS = {
   keyStats: 'typing-dvorak-key-stats',
   badges: 'typing-dvorak-badges',
   multiplayerStats: 'typing-dvorak-mp-stats',
-  ghostReplays: 'typing-dvorak-ghost-replays',
   customText: 'typing-dvorak-custom-text',
   settings: 'typing-dvorak-settings',
   cloudMigrated: 'typing-dvorak-cloud-migrated',

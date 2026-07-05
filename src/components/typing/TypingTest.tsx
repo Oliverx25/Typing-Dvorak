@@ -13,8 +13,7 @@ import TypingTextPrompter from './TypingTextPrompter';
 import type { PracticeMode } from '@/utils/app/settings';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { useZenMode } from '@/hooks/useZenMode';
-import { usePacerGhost } from '@/hooks/usePacerGhost';
-import { getGhostReplay, type ReplayData } from '@/utils/typing/ghostReplay';
+import { usePacingCursors } from '@/hooks/usePacingCursors';
 
 export interface TypingProgressUpdate {
   wpm: number;
@@ -101,25 +100,16 @@ export default function TypingTest({
   const zenEnabled = !raceMode && settings.zenMode;
   useZenMode(zenEnabled, started && !finished && !paused);
 
-  const [ghostReplay, setGhostReplay] = useState<ReplayData | null>(null);
-  useEffect(() => {
-    if (raceMode || !settings.ghostMode) {
-      setGhostReplay(null);
-      return;
-    }
-    setGhostReplay(getGhostReplay(lessonId)?.replay ?? null);
-  }, [raceMode, settings.ghostMode, lessonId]);
-
-  const { pacerIndex, ghostIndex } = usePacerGhost({
+  const { pacerIndex, ghostIndex } = usePacingCursors({
     started,
     finished,
     paused,
     startTime,
     totalChars: targetText.length,
+    lessonId,
     pacerEnabled: !raceMode && settings.pacerEnabled,
     pacerTargetWpm: settings.pacerTargetWpm,
     ghostEnabled: !raceMode && settings.ghostMode,
-    ghostReplay,
   });
 
   useEffect(() => {

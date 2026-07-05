@@ -22,7 +22,6 @@ import type { PracticeMode } from '../utils/app/settings';
 import type { Lesson } from '../utils/curriculum/lessons';
 import { getLessonText } from '../utils/curriculum/lessons';
 import type { Locale } from '../i18n';
-import { saveGhostReplayIfBest, type ReplayData } from '../utils/typing/ghostReplay';
 
 export type CharStatus = 'pending' | 'correct' | 'incorrect';
 
@@ -92,9 +91,7 @@ export function useTypingSession({
   const sessionMissesRef = useRef<Record<string, number>>({});
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedMsRef = useRef(0);
-  const replaySamplesRef = useRef<ReplayData>([]);
   const startTimeRef = useRef<number | null>(null);
-  const [replayData, setReplayData] = useState<ReplayData | null>(null);
 
   const correctChars = statuses.filter((s) => s === 'correct').length;
   const liveStats = raceMode
@@ -136,20 +133,12 @@ export function useTypingSession({
       setFinished(true);
       setPaused(false);
 
-      let newlyRecordedReplay: ReplayData | null = null;
-      if (!raceMode && replaySamplesRef.current.length > 0) {
-        const isBest = saveGhostReplayIfBest(lessonId, result.wpm, replaySamplesRef.current);
-        if (isBest) newlyRecordedReplay = replaySamplesRef.current;
-      }
-      setReplayData(newlyRecordedReplay);
-
       const { isNewRecord: record, previousBest } = saveSession(
         lessonId,
         lessonTitle,
         result,
         mode,
         sessionMaxCombo,
-        newlyRecordedReplay ?? undefined,
       );
       setIsNewRecord(record);
       setWpmDelta(result.wpm - previousBest);
@@ -186,9 +175,7 @@ export function useTypingSession({
     sessionMissesRef.current = {};
     totalPausedMsRef.current = 0;
     pausedAtRef.current = null;
-    replaySamplesRef.current = [];
     startTimeRef.current = null;
-    setReplayData(null);
     const text = isTestMode
       ? generateTestStream(lesson.charSet ?? 'all')
       : resolveInitialText(lesson, locale, customText);
@@ -315,13 +302,6 @@ export function useTypingSession({
     const newInput = input + typedChar;
     const nextErrors = isCorrect ? errorKeystrokes : errorKeystrokes + 1;
 
-    if (isCorrect && startTimeRef.current !== null) {
-      replaySamplesRef.current.push({
-        i: input.length + 1,
-        t: Date.now() - startTimeRef.current - totalPausedMsRef.current,
-      });
-    }
-
     setInput(newInput);
     setStatuses((prev) => {
       const next = [...prev];
@@ -399,7 +379,6 @@ export function useTypingSession({
     comboBroke,
     raceScore,
     errorKeystrokes,
-    replayData,
     startTime,
     elapsedMs,
     clearComboBroke: () => setComboBroke(false),

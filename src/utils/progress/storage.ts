@@ -13,8 +13,6 @@ export interface SessionRecord {
   mode: PracticeMode;
   completedAt: string;
   maxCombo?: number;
-  /** Ghost replay samples, present only on record-beating runs. */
-  replayData?: { i: number; t: number }[];
 }
 
 export interface LessonProgress {
@@ -63,7 +61,6 @@ export function saveSession(
   stats: TypingStats,
   mode: PracticeMode = 'practice',
   maxCombo = 0,
-  replayData?: { i: number; t: number }[],
 ): { isNewRecord: boolean; previousBest: number } {
   const record: SessionRecord = {
     lessonId,
@@ -74,7 +71,6 @@ export function saveSession(
     mode,
     completedAt: new Date().toISOString(),
     maxCombo: maxCombo > 0 ? maxCombo : undefined,
-    replayData: replayData && replayData.length > 0 ? replayData : undefined,
   };
 
   const history = [record, ...getSessionHistory()].slice(0, MAX_RECORDS);
