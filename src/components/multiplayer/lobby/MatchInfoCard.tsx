@@ -46,6 +46,23 @@ const modifierLabelKeys: Record<
   rhythm_lock: 'modifierRhythmLock',
 };
 
+const modifierDescKeys: Record<
+  RaceModifier,
+  | 'modifierSuddenDeathDesc'
+  | 'modifierBlindModeDesc'
+  | 'modifierStrictDesc'
+  | 'modifierFlashlightDesc'
+  | 'modifierDoubleTimeDesc'
+  | 'modifierRhythmLockDesc'
+> = {
+  sudden_death: 'modifierSuddenDeathDesc',
+  blind_mode: 'modifierBlindModeDesc',
+  strict: 'modifierStrictDesc',
+  flashlight: 'modifierFlashlightDesc',
+  double_time: 'modifierDoubleTimeDesc',
+  rhythm_lock: 'modifierRhythmLockDesc',
+};
+
 export default function MatchInfoCard({
   roomState,
   isOwner,
@@ -137,9 +154,9 @@ export default function MatchInfoCard({
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
               {t.multiplayer.winCondition}
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="w-full">
               <ModBadge
-                compact
+                variant="chip"
                 readOnly
                 tone="victory"
                 isActive
@@ -154,16 +171,17 @@ export default function MatchInfoCard({
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                 {t.multiplayer.modifiers}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid w-full grid-cols-2 gap-2 md:grid-cols-3">
                 {modifiers.map((modifier) => (
                   <ModBadge
                     key={modifier}
-                    compact
+                    variant="chip"
                     readOnly
                     tone={modifier}
                     isActive
                     icon={MODIFIER_ICONS[modifier]}
                     title={t.multiplayer[modifierLabelKeys[modifier]]}
+                    description={t.multiplayer[modifierDescKeys[modifier]]}
                   />
                 ))}
               </div>

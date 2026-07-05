@@ -129,10 +129,11 @@ export default function MatchRulesPanel({
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           {t.multiplayer.modifiers}
         </p>
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {ALL_MODIFIERS.filter((mod) => modifierOptions.includes(mod)).map((modifier) => (
             <ModBadge
               key={modifier}
+              variant="tile"
               tone={modifier}
               icon={MODIFIER_ICONS[modifier]}
               title={t.multiplayer[modifierLabelKeys[modifier]]}
