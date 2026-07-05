@@ -251,6 +251,14 @@ export const es: TranslationKey = {
       amber: 'Ámbar',
       fuchsia: 'Fucsia',
     },
+    sectionPractice: 'Modos de práctica',
+    zenMode: 'Modo Zen',
+    zenModeDesc: 'Desvanece la interfaz mientras escribes; sin distracciones.',
+    ghostMode: 'Modo Fantasma',
+    ghostModeDesc: 'Compite contra tu mejor marca grabada como cursor fantasma.',
+    pacer: 'Liebre',
+    pacerDesc: 'Un cursor liebre marca un ritmo objetivo constante.',
+    pacerTargetWpm: 'Velocidad de la liebre (PPM)',
   },
   categories: {
     drill: 'Ejercicio de teclas',
@@ -367,6 +375,8 @@ export const es: TranslationKey = {
     chars: 'caracteres',
     start: 'Iniciar práctica',
     editText: 'Editar texto',
+    uploadTxt: 'Cargar .txt',
+    uploadError: 'No se pudo leer el archivo. Usa un .txt de texto plano.',
   },
   lessonMeta: {
     homeRow: { title: 'Fila base', description: 'Domina la base: A O E U I y D H T N S.' },

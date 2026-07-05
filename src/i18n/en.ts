@@ -249,6 +249,14 @@ export const en = {
       amber: 'Amber',
       fuchsia: 'Fuchsia',
     },
+    sectionPractice: 'Practice modes',
+    zenMode: 'Zen mode',
+    zenModeDesc: 'Fade the interface away while you type; distraction-free.',
+    ghostMode: 'Ghost mode',
+    ghostModeDesc: 'Race your best recorded run as a ghost cursor.',
+    pacer: 'Pacer',
+    pacerDesc: 'A hare cursor sets a steady target pace.',
+    pacerTargetWpm: 'Pacer speed (WPM)',
   },
   categories: {
     drill: 'Key Drill',
@@ -365,6 +373,8 @@ export const en = {
     chars: 'characters',
     start: 'Start practice',
     editText: 'Edit text',
+    uploadTxt: 'Load .txt',
+    uploadError: 'Could not read the file. Use a plain .txt file.',
   },
   lessonMeta: {
     homeRow: { title: 'Home Row', description: 'Master the foundation: A O E U I and D H T N S.' },

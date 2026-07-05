@@ -101,6 +101,7 @@ for (const row of DVORAK_ROWS) {
 
 CHAR_TO_CODE[' '] = 'Space';
 CHAR_TO_CODE['\n'] = 'Enter';
+CHAR_TO_CODE['\t'] = 'Tab';
 
 /** Maps a typed character to its physical key code on a Dvorak keyboard. */
 export function charToKeyCode(char: string): string | undefined {

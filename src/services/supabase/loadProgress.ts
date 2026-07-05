@@ -5,8 +5,8 @@ import { replaceLocalProgress } from '@/utils/progress/storage';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
-import type { PracticeMode } from '@/utils/app/settings';
-import { saveSettings } from '@/utils/app/settings';
+import type { AppSettings, PracticeMode } from '@/utils/app/settings';
+import { clampPacerWpm, saveSettings } from '@/utils/app/settings';
 import type { Locale } from '@/i18n';
 import { dispatchSessionComplete, dispatchKeyStatsUpdated, dispatchProfilePreferencesSynced } from '@/utils/app/events';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
@@ -27,6 +27,10 @@ export interface UserProfileRow {
   current_streak: number;
   last_practice_date: string | null;
   created_at?: string;
+  zen_mode_enabled?: boolean;
+  ghost_mode_enabled?: boolean;
+  pacer_enabled?: boolean;
+  pacer_target_wpm?: number;
 }
 
 function mapSessionRow(row: {
@@ -121,13 +125,27 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
   return profile;
 }
 
-/** Sync locale from profile to local settings after login. */
+/** Sync locale + gameplay preferences from profile to local settings after login. */
 export async function restoreProfilePreferencesFromProfile(): Promise<void> {
   const profile = (await fetchUserProfile()) as UserProfileRow | null;
-  if (!profile?.locale || (profile.locale !== 'en' && profile.locale !== 'es')) return;
+  if (!profile) return;
 
-  saveSettings({ locale: profile.locale });
-  document.documentElement.lang = profile.locale;
+  const partial: Partial<AppSettings> = {};
+
+  if (profile.locale === 'en' || profile.locale === 'es') {
+    partial.locale = profile.locale;
+  }
+  if (typeof profile.zen_mode_enabled === 'boolean') partial.zenMode = profile.zen_mode_enabled;
+  if (typeof profile.ghost_mode_enabled === 'boolean') partial.ghostMode = profile.ghost_mode_enabled;
+  if (typeof profile.pacer_enabled === 'boolean') partial.pacerEnabled = profile.pacer_enabled;
+  if (typeof profile.pacer_target_wpm === 'number') {
+    partial.pacerTargetWpm = clampPacerWpm(profile.pacer_target_wpm);
+  }
+
+  if (Object.keys(partial).length === 0) return;
+
+  saveSettings(partial);
+  if (partial.locale) document.documentElement.lang = partial.locale;
   dispatchProfilePreferencesSynced();
 }
 

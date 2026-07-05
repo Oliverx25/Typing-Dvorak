@@ -44,6 +44,7 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
     accuracy: record.accuracy,
     stars: calculateStars(record.accuracy, record.wpm),
     mode: record.mode,
+    ...(record.replayData ? { replay_data: record.replayData } : {}),
   });
 
   if (error) {

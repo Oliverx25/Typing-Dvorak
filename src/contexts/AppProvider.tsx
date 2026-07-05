@@ -4,6 +4,9 @@ import { getSettings, saveSettings, type AppSettings, type PracticeMode } from '
 import { getStoredTheme, setStoredTheme, type Theme } from '../utils/progress/storage';
 import { applyHighlightTheme } from '../utils/app/highlightTheme';
 import { PROFILE_PREFERENCES_SYNCED_EVENT } from '../utils/app/events';
+import { updateGameplayPreferences } from '../services/supabase/profile';
+
+const GAMEPLAY_KEYS: (keyof AppSettings)[] = ['zenMode', 'ghostMode', 'pacerEnabled', 'pacerTargetWpm'];
 
 interface AppContextValue {
   locale: Locale;
@@ -25,6 +28,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   fingerColors: true,
   practiceMode: 'practice',
   highlightTheme: 'indigo',
+  zenMode: false,
+  ghostMode: false,
+  pacerEnabled: false,
+  pacerTargetWpm: 60,
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -49,6 +56,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateSettings = useCallback((partial: Partial<AppSettings>) => {
     const next = saveSettings(partial);
     setSettings(next);
+
+    const touchesGameplay = GAMEPLAY_KEYS.some((key) => key in partial);
+    if (touchesGameplay) {
+      void updateGameplayPreferences({
+        zenMode: next.zenMode,
+        ghostMode: next.ghostMode,
+        pacerEnabled: next.pacerEnabled,
+        pacerTargetWpm: next.pacerTargetWpm,
+      });
+    }
   }, []);
 
   const setLocale = useCallback((locale: Locale) => {

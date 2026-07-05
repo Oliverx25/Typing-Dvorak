@@ -4,6 +4,8 @@ import type { Locale } from '@/i18n';
 import { downloadExport, importProgress } from '@/utils/progress/exportImport';
 import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/app/events';
 import { HIGHLIGHT_THEME_IDS, HIGHLIGHT_THEMES, type HighlightThemeId } from '@/utils/app/highlightTheme';
+import { PACER_MAX_WPM, PACER_MIN_WPM, clampPacerWpm } from '@/utils/app/settings';
+import { SettingsToggle } from '@/components/ui';
 import { headerIconButtonClassName } from './headerClasses';
 import HeaderMenuPortal from './HeaderMenuPortal';
 
@@ -67,24 +69,58 @@ export default function SettingsPanel() {
                 ))}
               </div>
             </SettingRow>
-            <Toggle
-              label={t.settings.sound}
+            <SettingsToggle
+              title={t.settings.sound}
               description={t.settings.soundDesc}
               checked={settings.sound}
               onChange={(v) => updateSettings({ sound: v })}
             />
-            <Toggle
-              label={t.settings.blindMode}
+            <SettingsToggle
+              title={t.settings.blindMode}
               description={t.settings.blindDesc}
               checked={settings.blindMode}
               onChange={(v) => updateSettings({ blindMode: v })}
             />
-            <Toggle
-              label={t.settings.fingerColors}
+            <SettingsToggle
+              title={t.settings.fingerColors}
               description={t.settings.fingerDesc}
               checked={settings.fingerColors}
               onChange={(v) => updateSettings({ fingerColors: v })}
             />
+          </SettingsSection>
+
+          <SettingsSection title={t.settings.sectionPractice}>
+            <SettingsToggle
+              title={t.settings.zenMode}
+              description={t.settings.zenModeDesc}
+              checked={settings.zenMode}
+              onChange={(v) => updateSettings({ zenMode: v })}
+            />
+            <SettingsToggle
+              title={t.settings.ghostMode}
+              description={t.settings.ghostModeDesc}
+              checked={settings.ghostMode}
+              onChange={(v) => updateSettings({ ghostMode: v })}
+            />
+            <SettingsToggle
+              title={t.settings.pacer}
+              description={t.settings.pacerDesc}
+              checked={settings.pacerEnabled}
+              onChange={(v) => updateSettings({ pacerEnabled: v })}
+            />
+            {settings.pacerEnabled && (
+              <SettingRow label={t.settings.pacerTargetWpm}>
+                <input
+                  type="number"
+                  min={PACER_MIN_WPM}
+                  max={PACER_MAX_WPM}
+                  step={5}
+                  value={settings.pacerTargetWpm}
+                  onChange={(e) => updateSettings({ pacerTargetWpm: clampPacerWpm(Number(e.target.value)) })}
+                  className="w-20 rounded-lg border border-[var(--color-border)] bg-[var(--color-key)] px-2.5 py-1.5 text-right text-sm font-mono text-[var(--color-text)] focus:border-[var(--color-highlight)] focus:outline-none"
+                />
+              </SettingRow>
+            )}
           </SettingsSection>
 
           <SettingsSection title={t.settings.sectionAppearance}>
@@ -223,40 +259,3 @@ function HighlightThemePicker({
   );
 }
 
-function Toggle({
-  label,
-  description,
-  checked,
-  onChange,
-}: {
-  label: string;
-  description: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label className="flex cursor-pointer items-start justify-between gap-3">
-      <div>
-        <p className="text-sm text-[var(--color-text)]">{label}</p>
-        <p className="text-xs text-[var(--color-text-muted)]">{description}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={[
-          'relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-all duration-300',
-          checked ? 'bg-[var(--color-highlight)]' : 'bg-[var(--color-border)]',
-        ].join(' ')}
-      >
-        <span
-          className={[
-            'absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-all duration-300',
-            checked ? 'translate-x-5' : 'translate-x-0',
-          ].join(' ')}
-        />
-      </button>
-    </label>
-  );
-}

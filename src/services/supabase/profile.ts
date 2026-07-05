@@ -2,6 +2,42 @@ import type { Locale } from '@/i18n';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
 import { validateDisplayName, validateUsername } from '@/utils/user/profileValidation';
+import { clampPacerWpm } from '@/utils/app/settings';
+
+export interface GameplayPreferencesInput {
+  zenMode?: boolean;
+  ghostMode?: boolean;
+  pacerEnabled?: boolean;
+  pacerTargetWpm?: number;
+}
+
+/** Persists practice-mode preferences to the user's profile. No-op when offline/guest. */
+export async function updateGameplayPreferences(
+  input: GameplayPreferencesInput,
+): Promise<{ error: string | null }> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return { error: null };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: null };
+
+  const payload: Record<string, boolean | number> = {};
+  if (typeof input.zenMode === 'boolean') payload.zen_mode_enabled = input.zenMode;
+  if (typeof input.ghostMode === 'boolean') payload.ghost_mode_enabled = input.ghostMode;
+  if (typeof input.pacerEnabled === 'boolean') payload.pacer_enabled = input.pacerEnabled;
+  if (typeof input.pacerTargetWpm === 'number') {
+    payload.pacer_target_wpm = clampPacerWpm(input.pacerTargetWpm);
+  }
+
+  if (Object.keys(payload).length === 0) return { error: null };
+
+  const { error } = await supabase.from('profiles').update(payload).eq('id', user.id);
+  if (error) {
+    console.warn('[sync] gameplay preferences update failed:', error.message);
+    return { error: error.message };
+  }
+  return { error: null };
+}
 
 export interface ProfileUpdateInput {
   displayName: string;

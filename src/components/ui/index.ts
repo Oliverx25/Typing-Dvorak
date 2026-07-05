@@ -7,6 +7,7 @@ export { default as Tabs } from './Tabs';
 export { default as CustomSelect } from './CustomSelect';
 export { default as SegmentedControl } from './SegmentedControl';
 export { default as ToggleSwitch } from './ToggleSwitch';
+export { default as SettingsToggle } from './SettingsToggle';
 export type { SelectOption } from './CustomSelect';
 export { default as StarRating } from './StarRating';
 export { default as StatCard } from './StatCard';

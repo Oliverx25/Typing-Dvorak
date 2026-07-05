@@ -7,6 +7,10 @@ import { readJson, writeJson } from '../progress/localStorage';
 
 export type PracticeMode = 'practice' | 'test';
 
+export const PACER_MIN_WPM = 10;
+export const PACER_MAX_WPM = 300;
+export const PACER_DEFAULT_WPM = 60;
+
 export interface AppSettings {
   locale: Locale;
   sound: boolean;
@@ -14,6 +18,10 @@ export interface AppSettings {
   fingerColors: boolean;
   practiceMode: PracticeMode;
   highlightTheme: HighlightThemeId;
+  zenMode: boolean;
+  ghostMode: boolean;
+  pacerEnabled: boolean;
+  pacerTargetWpm: number;
 }
 
 const DEFAULTS: AppSettings = {
@@ -23,14 +31,25 @@ const DEFAULTS: AppSettings = {
   fingerColors: true,
   practiceMode: 'practice',
   highlightTheme: DEFAULT_HIGHLIGHT_THEME,
+  zenMode: false,
+  ghostMode: false,
+  pacerEnabled: false,
+  pacerTargetWpm: PACER_DEFAULT_WPM,
 };
+
+export function clampPacerWpm(value: number): number {
+  if (!Number.isFinite(value)) return PACER_DEFAULT_WPM;
+  return Math.min(PACER_MAX_WPM, Math.max(PACER_MIN_WPM, Math.round(value)));
+}
 
 export function getSettings(): AppSettings {
   const parsed = readJson(STORAGE_KEYS.settings, DEFAULTS);
   if (!isHighlightThemeId(parsed.highlightTheme)) {
     parsed.highlightTheme = DEFAULT_HIGHLIGHT_THEME;
   }
-  return { ...DEFAULTS, ...parsed };
+  const merged = { ...DEFAULTS, ...parsed };
+  merged.pacerTargetWpm = clampPacerWpm(merged.pacerTargetWpm);
+  return merged;
 }
 
 export function saveSettings(partial: Partial<AppSettings>): AppSettings {

@@ -22,6 +22,7 @@ import type { PracticeMode } from '../utils/app/settings';
 import type { Lesson } from '../utils/curriculum/lessons';
 import { getLessonText } from '../utils/curriculum/lessons';
 import type { Locale } from '../i18n';
+import { saveGhostReplayIfBest, type ReplayData } from '../utils/typing/ghostReplay';
 
 export type CharStatus = 'pending' | 'correct' | 'incorrect';
 
@@ -91,6 +92,9 @@ export function useTypingSession({
   const sessionMissesRef = useRef<Record<string, number>>({});
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedMsRef = useRef(0);
+  const replaySamplesRef = useRef<ReplayData>([]);
+  const startTimeRef = useRef<number | null>(null);
+  const [replayData, setReplayData] = useState<ReplayData | null>(null);
 
   const correctChars = statuses.filter((s) => s === 'correct').length;
   const liveStats = raceMode
@@ -131,15 +135,25 @@ export function useTypingSession({
       setFinalStats(result);
       setFinished(true);
       setPaused(false);
+
+      let newlyRecordedReplay: ReplayData | null = null;
+      if (!raceMode && replaySamplesRef.current.length > 0) {
+        const isBest = saveGhostReplayIfBest(lessonId, result.wpm, replaySamplesRef.current);
+        if (isBest) newlyRecordedReplay = replaySamplesRef.current;
+      }
+      setReplayData(newlyRecordedReplay);
+
       const { isNewRecord: record, previousBest } = saveSession(
         lessonId,
         lessonTitle,
         result,
         mode,
         sessionMaxCombo,
+        newlyRecordedReplay ?? undefined,
       );
       setIsNewRecord(record);
       setWpmDelta(result.wpm - previousBest);
+
       dispatchSessionComplete();
       dispatchKeyStatsUpdated();
       checkAndUnlockBadges({
@@ -150,7 +164,7 @@ export function useTypingSession({
       });
       if (sound) playCompleteSound();
     },
-    [lessonId, lessonTitle, mode, sound],
+    [lessonId, lessonTitle, mode, sound, raceMode],
   );
 
   const togglePause = useCallback(() => {
@@ -172,6 +186,9 @@ export function useTypingSession({
     sessionMissesRef.current = {};
     totalPausedMsRef.current = 0;
     pausedAtRef.current = null;
+    replaySamplesRef.current = [];
+    startTimeRef.current = null;
+    setReplayData(null);
     const text = isTestMode
       ? generateTestStream(lesson.charSet ?? 'all')
       : resolveInitialText(lesson, locale, customText);
@@ -252,7 +269,7 @@ export function useTypingSession({
 
     if (paused) return;
 
-    if (e.key === 'Tab' || e.key.startsWith('Arrow')) {
+    if (e.key.startsWith('Arrow')) {
       e.preventDefault();
       return;
     }
@@ -270,20 +287,40 @@ export function useTypingSession({
       return;
     }
 
-    if (e.key.length !== 1) return;
-    e.preventDefault();
-
-    if (!started) {
-      setStarted(true);
-      setStartTime(Date.now());
-    }
-
     const expected = targetText[input.length];
     if (expected === undefined) return;
 
-    const isCorrect = e.key === expected;
-    const newInput = input + e.key;
+    let typedChar: string | null = null;
+    if (e.key === 'Enter' && expected === '\n') typedChar = '\n';
+    else if (e.key === 'Tab' && expected === '\t') typedChar = '\t';
+    else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      return;
+    } else if (e.key.length !== 1) {
+      return;
+    } else {
+      typedChar = e.key;
+    }
+
+    e.preventDefault();
+
+    if (!started) {
+      const now = Date.now();
+      startTimeRef.current = now;
+      setStarted(true);
+      setStartTime(now);
+    }
+
+    const isCorrect = typedChar === expected;
+    const newInput = input + typedChar;
     const nextErrors = isCorrect ? errorKeystrokes : errorKeystrokes + 1;
+
+    if (isCorrect && startTimeRef.current !== null) {
+      replaySamplesRef.current.push({
+        i: input.length + 1,
+        t: Date.now() - startTimeRef.current - totalPausedMsRef.current,
+      });
+    }
 
     setInput(newInput);
     setStatuses((prev) => {
@@ -292,7 +329,7 @@ export function useTypingSession({
       return next;
     });
 
-    recordKeystroke(e.key, isCorrect);
+    recordKeystroke(typedChar, isCorrect);
     const nextCorrect = isCorrect ? correctChars + 1 : correctChars;
     const nextCombo = isCorrect ? combo + 1 : 0;
     const nextAccuracy = calculateAccuracy(nextCorrect, nextErrors);
@@ -309,7 +346,7 @@ export function useTypingSession({
       }
     } else {
       setErrorKeystrokes((n) => n + 1);
-      sessionMissesRef.current[e.key] = (sessionMissesRef.current[e.key] ?? 0) + 1;
+      sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
       setCombo((prev) => {
         if (prev > 0) setComboBroke(true);
         return 0;
@@ -321,7 +358,7 @@ export function useTypingSession({
       else playIncorrectSound();
     }
 
-    const code = charToKeyCode(e.key);
+    const code = charToKeyCode(typedChar);
     setActiveKey(code);
     setTimeout(() => setActiveKey(undefined), 150);
 
@@ -362,6 +399,9 @@ export function useTypingSession({
     comboBroke,
     raceScore,
     errorKeystrokes,
+    replayData,
+    startTime,
+    elapsedMs,
     clearComboBroke: () => setComboBroke(false),
     containerRef,
     retryButtonRef,

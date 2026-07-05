@@ -10,6 +10,7 @@ export default function SiteHeader({ variant = 'app' }: SiteHeaderProps) {
 
   return (
     <header
+      data-zen-fade={!isLanding ? '' : undefined}
       className={[
         'w-full border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)]',
         isLanding ? 'sticky top-0 z-40' : '',

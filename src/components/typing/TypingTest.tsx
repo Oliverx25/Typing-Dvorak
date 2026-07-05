@@ -12,6 +12,9 @@ import ComboCounter from './ComboCounter';
 
 import type { PracticeMode } from '@/utils/app/settings';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
+import { useZenMode } from '@/hooks/useZenMode';
+import { usePacerGhost } from '@/hooks/usePacerGhost';
+import { getGhostReplay, type ReplayData } from '@/utils/typing/ghostReplay';
 
 export interface TypingProgressUpdate {
   wpm: number;
@@ -84,6 +87,7 @@ export default function TypingTest({
     comboBroke,
     raceScore,
     errorKeystrokes,
+    startTime,
     clearComboBroke,
     containerRef,
     retryButtonRef,
@@ -93,6 +97,30 @@ export default function TypingTest({
   } = session;
 
   const [keyboardOpen, setKeyboardOpen] = useState(true);
+
+  const zenEnabled = !raceMode && settings.zenMode;
+  useZenMode(zenEnabled, started && !finished && !paused);
+
+  const [ghostReplay, setGhostReplay] = useState<ReplayData | null>(null);
+  useEffect(() => {
+    if (raceMode || !settings.ghostMode) {
+      setGhostReplay(null);
+      return;
+    }
+    setGhostReplay(getGhostReplay(lessonId)?.replay ?? null);
+  }, [raceMode, settings.ghostMode, lessonId]);
+
+  const { pacerIndex, ghostIndex } = usePacerGhost({
+    started,
+    finished,
+    paused,
+    startTime,
+    totalChars: targetText.length,
+    pacerEnabled: !raceMode && settings.pacerEnabled,
+    pacerTargetWpm: settings.pacerTargetWpm,
+    ghostEnabled: !raceMode && settings.ghostMode,
+    ghostReplay,
+  });
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
@@ -208,7 +236,19 @@ export default function TypingTest({
 
         <p className="relative font-mono text-xl leading-[2] tracking-wide break-words sm:text-2xl sm:leading-[2.2]" aria-live="off">
           {targetText.split('').map((char, i) => (
-            <span key={i}>
+            <span key={i} className="relative">
+              {pacerIndex === i && i !== input.length && (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -bottom-0.5 left-0 top-0 w-0.5 border-b-2 border-amber-500 bg-amber-500/30"
+                />
+              )}
+              {ghostIndex === i && i !== input.length && (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -bottom-0.5 left-0 top-0 w-0.5 bg-gray-400/20 outline-1 outline-gray-500"
+                />
+              )}
               <TypedChar
                 char={char}
                 status={statuses[i]}

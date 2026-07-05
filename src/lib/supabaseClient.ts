@@ -10,12 +10,20 @@ export type Database = {
           current_streak: number;
           last_practice_date: string | null;
           created_at: string;
+          zen_mode_enabled: boolean;
+          ghost_mode_enabled: boolean;
+          pacer_enabled: boolean;
+          pacer_target_wpm: number;
         };
         Insert: {
           id: string;
           username?: string | null;
           current_streak?: number;
           last_practice_date?: string | null;
+          zen_mode_enabled?: boolean;
+          ghost_mode_enabled?: boolean;
+          pacer_enabled?: boolean;
+          pacer_target_wpm?: number;
         };
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
       };
@@ -29,6 +37,7 @@ export type Database = {
           stars: number;
           mode: string;
           created_at: string;
+          replay_data: unknown | null;
         };
         Insert: {
           user_id: string;
@@ -37,6 +46,7 @@ export type Database = {
           accuracy: number;
           stars: number;
           mode?: string;
+          replay_data?: unknown | null;
         };
         Update: Partial<Database['public']['Tables']['typing_sessions']['Insert']>;
       };

@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { getCustomText, saveCustomText } from '@/utils/progress/customText';
+import {
+  CUSTOM_TEXT_MAX_LENGTH,
+  getCustomText,
+  sanitizeCustomText,
+  saveCustomText,
+} from '@/utils/progress/customText';
 import TypingTest from '@/components/typing/TypingTest';
 import BackLink from '@/components/layout/BackLink';
 import { Button } from '@/components/ui';
@@ -21,12 +26,30 @@ export default function CustomPracticePage() {
   const { t } = useApp();
   const [text, setText] = useState(() => getCustomText());
   const [active, setActive] = useState(() => getCustomText().trim().length >= 10);
+  const [uploadError, setUploadError] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const handleStart = () => {
     const trimmed = text.trim();
     if (trimmed.length < 10) return;
     saveCustomText(trimmed);
     setActive(true);
+  };
+
+  const handleFile = (file: File) => {
+    setUploadError(false);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      const cleaned = sanitizeCustomText(result);
+      if (!cleaned) {
+        setUploadError(true);
+        return;
+      }
+      setText(cleaned);
+    };
+    reader.onerror = () => setUploadError(true);
+    reader.readAsText(file);
   };
 
   if (!active) {
@@ -47,14 +70,33 @@ export default function CustomPracticePage() {
             rows={8}
             className={`${formFieldMonoResizableClassName} bg-[var(--color-surface-elevated)] p-4`}
           />
-          <div className="flex items-center justify-between">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="text/plain,.txt"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFile(file);
+              e.target.value = '';
+            }}
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-xs text-[var(--color-text-muted)]">
-              {text.trim().length} / 2000 {t.custom.chars}
+              {text.trim().length} / {CUSTOM_TEXT_MAX_LENGTH} {t.custom.chars}
             </span>
-            <Button type="button" onClick={handleStart} disabled={text.trim().length < 10} size="md">
-              {t.custom.start}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()} size="md">
+                {t.custom.uploadTxt}
+              </Button>
+              <Button type="button" onClick={handleStart} disabled={text.trim().length < 10} size="md">
+                {t.custom.start}
+              </Button>
+            </div>
           </div>
+          {uploadError && (
+            <p className="text-xs text-[var(--color-incorrect)]">{t.custom.uploadError}</p>
+          )}
         </div>
       </>
     );
