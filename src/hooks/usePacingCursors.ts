@@ -12,6 +12,11 @@ interface UsePacingCursorsOptions {
   pacerEnabled: boolean;
   pacerTargetWpm: number;
   ghostEnabled: boolean;
+  /**
+   * Forced pacer WPM (the "musical hare"). When > 0 it overrides pacerEnabled/
+   * pacerTargetWpm so the pacer follows the song cadence even in race mode.
+   */
+  musicPacerWpm?: number | null;
 }
 
 interface PacingCursorsState {
@@ -34,6 +39,7 @@ export function usePacingCursors({
   pacerEnabled,
   pacerTargetWpm,
   ghostEnabled,
+  musicPacerWpm = null,
 }: UsePacingCursorsOptions): PacingCursorsState {
   const [state, setState] = useState<PacingCursorsState>({ pacerIndex: null, ghostIndex: null });
   const [ghostWpm, setGhostWpm] = useState<number | null>(null);
@@ -49,9 +55,12 @@ export function usePacingCursors({
   }, [started, lessonId]);
   const active = started && !finished && !paused && startTime !== null;
   const runGhost = ghostEnabled && ghostWpm !== null && ghostWpm > 0;
+  const useMusicPacer = musicPacerWpm !== null && musicPacerWpm > 0;
+  const runPacer = useMusicPacer || pacerEnabled;
+  const effectivePacerWpm = useMusicPacer ? (musicPacerWpm as number) : pacerTargetWpm;
 
   useEffect(() => {
-    if (!active || (!pacerEnabled && !runGhost)) {
+    if (!active || (!runPacer && !runGhost)) {
       setState({ pacerIndex: null, ghostIndex: null });
       return;
     }
@@ -59,8 +68,8 @@ export function usePacingCursors({
     const tick = () => {
       const elapsed = Date.now() - (startTime as number);
 
-      const pacerIndex = pacerEnabled
-        ? pacingCursorIndex(elapsed, pacerTargetWpm, totalChars)
+      const pacerIndex = runPacer
+        ? pacingCursorIndex(elapsed, effectivePacerWpm, totalChars)
         : null;
 
       const ghostIndex = runGhost
@@ -80,7 +89,7 @@ export function usePacingCursors({
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
-  }, [active, pacerEnabled, runGhost, pacerTargetWpm, ghostWpm, totalChars, startTime]);
+  }, [active, runPacer, runGhost, effectivePacerWpm, ghostWpm, totalChars, startTime]);
 
   return state;
 }

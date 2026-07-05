@@ -1,6 +1,10 @@
 import type { APIRoute } from 'astro';
 import { sanitizeLyrics } from '@/utils/lyrics/sanitizeLyrics';
-import { calculateTypingDifficulty } from '@/utils/lyrics/typingDifficulty';
+import {
+  calculateTypingDifficulty,
+  computeTrackWpm,
+  countLyricWords,
+} from '@/utils/lyrics/typingDifficulty';
 import { fetchItunesMetadata } from '@/utils/lyrics/itunesMetadata';
 import type { LyricSongResult } from '@/utils/lyrics/types';
 
@@ -21,10 +25,12 @@ async function enrichWithCoverArt(results: LyricSongResult[]): Promise<LyricSong
   return Promise.all(
     results.map(async (item) => {
       const itunes = await fetchItunesMetadata(item.title, item.artist);
+      const durationMs = itunes.durationMs ?? item.durationMs;
       return {
         ...item,
         coverArt: itunes.coverArt,
-        durationMs: itunes.durationMs ?? item.durationMs,
+        durationMs,
+        trackWpm: computeTrackWpm(countLyricWords(item.plainLyrics), durationMs),
       };
     }),
   );
@@ -80,6 +86,7 @@ export const GET: APIRoute = async ({ request }) => {
         difficulty: calculateTypingDifficulty(plainLyrics),
         coverArt: null,
         durationMs,
+        trackWpm: computeTrackWpm(countLyricWords(plainLyrics), durationMs),
       });
 
       if (results.length >= 24) break;

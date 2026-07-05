@@ -59,7 +59,7 @@ export default function SongCard({ song, tierLabel, onSelect }: SongCardProps) {
     <button
       type="button"
       onClick={() => onSelect(song)}
-      className="group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800 transition-all duration-200 hover:scale-[1.02] hover:border-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50"
+      className="group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800 transition-all duration-200 hover:scale-[1.02] hover:border-[var(--color-highlight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-highlight)]/50"
     >
       {song.coverArt && !coverFailed ? (
         <img

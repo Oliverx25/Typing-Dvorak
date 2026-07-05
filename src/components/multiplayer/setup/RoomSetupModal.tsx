@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import CreateRoomSettings, {
-  isCustomTextValid,
+  isRoomContentReady,
   type CreateRoomSettingsValue,
 } from '@/components/multiplayer/setup/CreateRoomSettings';
 import { Button } from '@/components/ui';
@@ -16,7 +16,7 @@ interface RoomSetupModalProps {
   onSave: (
     partial: Pick<
       RoomBroadcastState,
-      'lessonId' | 'customText' | 'textSource' | 'blindMode' | 'winConditions'
+      'lessonId' | 'customText' | 'textSource' | 'songMeta' | 'blindMode' | 'winConditions'
     >,
   ) => void;
 }
@@ -26,6 +26,7 @@ function toSettingsValue(roomState: RoomBroadcastState): CreateRoomSettingsValue
     textSource: roomState.textSource ?? (roomState.customText.trim() ? 'custom' : 'lesson'),
     lessonId: roomState.lessonId,
     customText: roomState.customText,
+    songMeta: roomState.songMeta ?? null,
     blindMode: roomState.blindMode,
     winConditions: normalizeWinConditions(roomState.winConditions),
   };
@@ -60,17 +61,20 @@ export default function RoomSetupModal({
     }
   }, [open]);
 
-  const canSave =
-    draft.textSource === 'lesson'
-      ? Boolean(draft.lessonId)
-      : isCustomTextValid(draft.customText);
+  const canSave = isRoomContentReady(draft);
 
   const handleSave = () => {
     if (!canSave) return;
     onSave({
       lessonId: draft.lessonId,
       textSource: draft.textSource,
-      customText: draft.textSource === 'lesson' ? '' : draft.customText.trim(),
+      customText:
+        draft.textSource === 'lesson'
+          ? ''
+          : draft.textSource === 'song'
+            ? draft.customText
+            : draft.customText.trim(),
+      songMeta: draft.textSource === 'song' ? draft.songMeta : null,
       blindMode: draft.blindMode,
       winConditions: draft.winConditions,
     });

@@ -9,7 +9,7 @@ import type { LyricSongResult } from '@/utils/lyrics/types';
 interface SongSearchModalProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (lyrics: string) => void;
+  onSelect: (song: LyricSongResult) => void;
 }
 
 const SKELETON_COUNT = 6;
@@ -89,7 +89,7 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
 
   const handleSelect = useCallback(
     (song: LyricSongResult) => {
-      onSelect(song.plainLyrics);
+      onSelect(song);
       onClose();
     },
     [onClose, onSelect],
@@ -115,7 +115,8 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
           <div className="relative">
             <input
               id="song-search-input"
-              type="search"
+              type="text"
+              role="searchbox"
               autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -142,7 +143,7 @@ export default function SongSearchModal({ open, onClose, onSelect }: SongSearchM
 
               {isSearching ? (
                 <span
-                  className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-slate-600 border-t-cyan-400"
+                  className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-slate-600 border-t-[var(--color-highlight)]"
                   aria-hidden="true"
                 />
               ) : (

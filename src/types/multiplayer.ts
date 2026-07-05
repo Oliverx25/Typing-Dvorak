@@ -1,6 +1,7 @@
 import type { AvatarSource } from '@/utils/user/userDisplay';
 import type { WinCondition } from '@/utils/multiplayer/roomConfig';
 import type { TextSource } from '@/utils/multiplayer/roomStorage';
+import type { SelectedSongMeta } from '@/utils/lyrics/types';
 
 /** Payload tracked in Supabase Realtime Presence for each lobby player. */
 export interface LobbyPlayerPresence {
@@ -29,6 +30,8 @@ export interface RoomBroadcastState {
   lessonId: string;
   customText: string;
   textSource: TextSource;
+  /** Song snapshot when textSource === 'song' (drives cover art + musical pacer). */
+  songMeta: SelectedSongMeta | null;
   blindMode: boolean;
   winConditions: WinCondition[];
   phase: RoomPhase;

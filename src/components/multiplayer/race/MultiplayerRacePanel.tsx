@@ -68,6 +68,9 @@ export default function MultiplayerRacePanel({
     [roomState],
   );
 
+  const musicPacerWpm =
+    roomState.textSource === 'song' ? (roomState.songMeta?.trackWpm ?? null) : null;
+
   const sessionPersist = useMemo(
     () => ({
       lessonId: MULTIPLAYER_LESSON_ID,
@@ -209,6 +212,7 @@ export default function MultiplayerRacePanel({
           hideModeToggle
           hideCompletionPanel
           raceMode
+          musicPacerWpm={musicPacerWpm}
           sessionPersist={sessionPersist}
           onProgressChange={handleProgressChange}
           ariaLabel={lessonTitle}

@@ -90,6 +90,7 @@ export function createDefaultRoomState(ownerId: string): RoomBroadcastState {
     lessonId: DEFAULT_RACE_LESSON_ID,
     customText: '',
     textSource: 'lesson',
+    songMeta: null,
     blindMode: false,
     winConditions: [...DEFAULT_WIN_CONDITIONS],
     phase: 'lobby',
@@ -118,14 +119,18 @@ export function mergeRoomState(
   if (!incoming.ownerId) return current;
 
   if (!current || (incoming.version ?? 0) >= current.version) {
+    const textSource =
+      incoming.textSource ??
+      current?.textSource ??
+      ((incoming.customText ?? current?.customText)?.trim() ? 'custom' : 'lesson');
+    const songMeta =
+      incoming.songMeta !== undefined ? incoming.songMeta : (current?.songMeta ?? null);
     return {
       ownerId: incoming.ownerId,
       lessonId: incoming.lessonId ?? current?.lessonId ?? DEFAULT_RACE_LESSON_ID,
       customText: incoming.customText ?? current?.customText ?? '',
-      textSource:
-        incoming.textSource ??
-        current?.textSource ??
-        ((incoming.customText ?? current?.customText)?.trim() ? 'custom' : 'lesson'),
+      textSource,
+      songMeta: textSource === 'song' ? songMeta : null,
       blindMode: incoming.blindMode ?? current?.blindMode ?? false,
       winConditions: normalizeWinConditions(
         incoming.winConditions ?? current?.winConditions,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { sanitizeLyrics } from './sanitizeLyrics';
-import { calculateTypingDifficulty, countLyricWords } from './typingDifficulty';
+import { calculateTypingDifficulty, computeTrackWpm, countLyricWords } from './typingDifficulty';
 
 describe('sanitizeLyrics', () => {
   it('removes bracket and parenthesis tags', () => {
@@ -31,5 +31,30 @@ describe('countLyricWords', () => {
     expect(countLyricWords('hello world')).toBe(2);
     expect(countLyricWords('  one   two  three  ')).toBe(3);
     expect(countLyricWords('')).toBe(0);
+  });
+});
+
+describe('computeTrackWpm', () => {
+  it('derives WPM from word count and duration', () => {
+    expect(computeTrackWpm(120, 60000)).toBe(120);
+    expect(computeTrackWpm(90, 180000)).toBe(30);
+  });
+
+  it('returns null for invalid inputs', () => {
+    expect(computeTrackWpm(0, 60000)).toBeNull();
+    expect(computeTrackWpm(100, null)).toBeNull();
+    expect(computeTrackWpm(100, 0)).toBeNull();
+  });
+});
+
+describe('sanitizeLyrics newline handling', () => {
+  it('preserves internal line breaks', () => {
+    const raw = 'first verse\nsecond verse\nthird verse';
+    expect(sanitizeLyrics(raw)).toBe('first verse\nsecond verse\nthird verse');
+  });
+
+  it('keeps full lyrics when no cap is given', () => {
+    const raw = Array.from({ length: 300 }, (_, i) => `word${i}`).join(' ');
+    expect(sanitizeLyrics(raw).split(/\s+/)).toHaveLength(300);
   });
 });

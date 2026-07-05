@@ -35,6 +35,8 @@ interface TypingTestProps {
   hideCompletionPanel?: boolean;
   ariaLabel?: string;
   raceMode?: boolean;
+  /** Musical pacer WPM (hare) that follows the song cadence in a song race. */
+  musicPacerWpm?: number | null;
   sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
 }
@@ -49,6 +51,7 @@ export default function TypingTest({
   hideCompletionPanel = false,
   ariaLabel,
   raceMode = false,
+  musicPacerWpm = null,
   sessionPersist,
   onProgressChange,
 }: TypingTestProps) {
@@ -114,6 +117,7 @@ export default function TypingTest({
     pacerEnabled: !raceMode && settings.pacerEnabled,
     pacerTargetWpm: settings.pacerTargetWpm,
     ghostEnabled: !raceMode && settings.ghostMode,
+    musicPacerWpm,
   });
 
   useEffect(() => {

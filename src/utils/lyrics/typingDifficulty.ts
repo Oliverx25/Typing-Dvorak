@@ -33,6 +33,17 @@ export function countLyricWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+/**
+ * Target WPM at which the artist "sings" the lyrics.
+ * Used as the musical pacer (hare) so the cursor tracks the song's cadence.
+ */
+export function computeTrackWpm(wordCount: number, durationMs: number | null): number | null {
+  if (!durationMs || durationMs <= 0 || wordCount <= 0) return null;
+  const durationSeconds = durationMs / 1000;
+  const wpm = Math.round((wordCount / durationSeconds) * 60);
+  return wpm > 0 ? wpm : null;
+}
+
 export const DIFFICULTY_BADGE_CLASSES: Record<TypingDifficulty['color'], string> = {
   green: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
   blue: 'border-sky-500/40 bg-sky-500/15 text-sky-300',

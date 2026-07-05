@@ -10,7 +10,7 @@ interface RoomConfigPanelProps {
   onChange: (
     partial: Pick<
       RoomBroadcastState,
-      'lessonId' | 'customText' | 'textSource' | 'blindMode' | 'winConditions'
+      'lessonId' | 'customText' | 'textSource' | 'songMeta' | 'blindMode' | 'winConditions'
     >,
   ) => void;
 }
@@ -20,6 +20,7 @@ function toSettingsValue(roomState: RoomBroadcastState): CreateRoomSettingsValue
     textSource: roomState.textSource ?? (roomState.customText.trim() ? 'custom' : 'lesson'),
     lessonId: roomState.lessonId,
     customText: roomState.customText,
+    songMeta: roomState.songMeta ?? null,
     blindMode: roomState.blindMode,
     winConditions: normalizeWinConditions(roomState.winConditions),
   };
@@ -39,6 +40,7 @@ export default function RoomConfigPanel({
       lessonId: next.lessonId,
       textSource: next.textSource,
       customText: next.textSource === 'lesson' ? '' : next.customText,
+      songMeta: next.textSource === 'song' ? next.songMeta : null,
       blindMode: next.blindMode,
       winConditions: next.winConditions,
     });

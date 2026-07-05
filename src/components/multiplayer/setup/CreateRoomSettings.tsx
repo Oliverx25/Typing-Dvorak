@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { Accordion, SegmentedControl, Button } from '@/components/ui';
+import { Accordion, SegmentedControl } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 import LessonGrid from '@/components/multiplayer/setup/LessonGrid';
 import MatchRulesPanel from '@/components/multiplayer/setup/MatchRulesPanel';
 import SongSearchModal from '@/components/multiplayer/setup/SongSearchModal';
+import ActiveTrackCard from '@/components/multiplayer/setup/ActiveTrackCard';
 import {
   CUSTOM_RACE_TEXT_MAX,
   CUSTOM_RACE_TEXT_MIN,
@@ -13,11 +14,13 @@ import {
   type WinCondition,
 } from '@/utils/multiplayer/roomConfig';
 import type { TextSource } from '@/utils/multiplayer/roomStorage';
+import type { LyricSongResult, SelectedSongMeta } from '@/utils/lyrics/types';
 
 export interface CreateRoomSettingsValue {
   textSource: TextSource;
   lessonId: string;
   customText: string;
+  songMeta: SelectedSongMeta | null;
   blindMode: boolean;
   winConditions: WinCondition[];
 }
@@ -34,6 +37,27 @@ export function isCustomTextValid(text: string): boolean {
   return trimmed.length >= CUSTOM_RACE_TEXT_MIN && trimmed.length <= CUSTOM_RACE_TEXT_MAX;
 }
 
+/** True when the current source has a usable text/song selection. */
+export function isRoomContentReady(value: CreateRoomSettingsValue): boolean {
+  if (value.textSource === 'lesson') return Boolean(value.lessonId);
+  if (value.textSource === 'song') {
+    return Boolean(value.songMeta) && value.customText.trim().length >= CUSTOM_RACE_TEXT_MIN;
+  }
+  return isCustomTextValid(value.customText);
+}
+
+function toSongMeta(song: LyricSongResult): SelectedSongMeta {
+  return {
+    id: song.id,
+    title: song.title,
+    artist: song.artist,
+    coverArt: song.coverArt,
+    difficulty: song.difficulty,
+    durationMs: song.durationMs,
+    trackWpm: song.trackWpm,
+  };
+}
+
 export default function CreateRoomSettings({
   value,
   onChange,
@@ -45,52 +69,60 @@ export default function CreateRoomSettings({
   const [songSearchOpen, setSongSearchOpen] = useState(false);
 
   useEffect(() => {
-    setCustomText(value.customText);
+    if (value.textSource !== 'song') {
+      setCustomText(value.customText);
+    }
   }, [value.customText, value.textSource]);
 
   const customLength = customText.length;
-  const customInvalid =
-    value.textSource !== 'lesson' &&
-    customText.trim().length > 0 &&
-    !isCustomTextValid(customText);
+  const customInvalid = customText.trim().length > 0 && !isCustomTextValid(customText);
+
+  const handleTabChange = (nextSource: TextSource) => {
+    if (nextSource === value.textSource) return;
+    if (nextSource === 'lesson') {
+      setCustomText('');
+      onChange({ textSource: 'lesson', customText: '', songMeta: null });
+    } else if (nextSource === 'custom') {
+      setCustomText('');
+      onChange({ textSource: 'custom', customText: '', songMeta: null });
+    } else {
+      onChange({ textSource: 'song' });
+    }
+  };
 
   const handleCustomTextChange = (next: string) => {
     const clipped = next.slice(0, CUSTOM_RACE_TEXT_MAX);
     setCustomText(clipped);
+    onChange({ customText: clipped, textSource: 'custom', songMeta: null });
+  };
+
+  const handleSongSelect = (song: LyricSongResult) => {
     onChange({
-      customText: clipped,
-      textSource: value.textSource === 'song' ? 'custom' : value.textSource,
+      textSource: 'song',
+      customText: song.plainLyrics,
+      songMeta: toSongMeta(song),
     });
   };
 
-  const handleSongSelect = (lyrics: string) => {
-    const clipped = lyrics.slice(0, CUSTOM_RACE_TEXT_MAX);
-    setCustomText(clipped);
-    onChange({ customText: clipped, textSource: 'song' });
+  const handleChangeTrack = () => {
+    onChange({ textSource: 'song', customText: '', songMeta: null });
+    setSongSearchOpen(true);
   };
 
   const contentSection = (
     <div className="space-y-5">
       <SegmentedControl
-        value={value.textSource === 'lesson' ? 'lesson' : 'custom'}
+        value={value.textSource}
         disabled={disabled}
-        onChange={(textSource) => {
-          onChange({
-            textSource: textSource as TextSource,
-            ...(textSource === 'lesson' ? { customText: '' } : {}),
-          });
-          if (textSource === 'lesson') setCustomText('');
-        }}
+        onChange={(next) => handleTabChange(next as TextSource)}
         options={[
           { value: 'lesson', label: t.multiplayer.systemLesson },
           { value: 'custom', label: t.multiplayer.customTextMode },
+          { value: 'song', label: t.multiplayer.songMode },
         ]}
       />
 
-      <div
-        key={value.textSource === 'lesson' ? 'lesson' : 'custom'}
-        className="mp-fade-in transition-opacity duration-300 ease-in-out"
-      >
+      <div key={value.textSource} className="mp-fade-in transition-opacity duration-300 ease-in-out">
         {value.textSource === 'lesson' ? (
           <LessonGrid
             lessons={RACE_LESSONS}
@@ -99,25 +131,33 @@ export default function CreateRoomSettings({
             onSelect={(lessonId) => onChange({ lessonId })}
             t={t}
           />
-        ) : (
+        ) : value.textSource === 'song' ? (
           <div className="space-y-3">
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={disabled}
-              onClick={() => setSongSearchOpen(true)}
-              className="w-full justify-center gap-2 border-slate-700 bg-slate-800/80 text-slate-100 hover:border-cyan-500/40 hover:bg-slate-700/90"
+            {value.songMeta ? (
+              <ActiveTrackCard
+                song={value.songMeta}
+                disabled={disabled}
+                onChangeTrack={handleChangeTrack}
+              />
+            ) : (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => setSongSearchOpen(true)}
+                className="group flex h-32 w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-700 bg-slate-800/40 text-slate-300 transition hover:border-[var(--color-highlight)] hover:bg-slate-700/50 hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Icon name="music-note" size={32} className="text-[var(--color-highlight)]" />
+                <span className="text-base font-semibold">{t.multiplayer.searchSongLyrics}</span>
+                <span className="text-xs text-slate-500">{t.multiplayer.songModeHint}</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div>
+            <label
+              htmlFor="create-custom-text"
+              className="mb-1.5 block text-sm font-medium text-[var(--color-text)]"
             >
-              <Icon name="music-note" size={18} className="text-cyan-400" />
-              {t.multiplayer.searchSongLyrics}
-            </Button>
-
-            {value.textSource === 'song' && customText.trim() ? (
-              <p className="text-xs text-cyan-400/90">{t.multiplayer.lyricsLoadedHint}</p>
-            ) : null}
-
-            <div>
-            <label htmlFor="create-custom-text" className="mb-1.5 block text-sm font-medium text-[var(--color-text)]">
               {t.multiplayer.customRaceText}
             </label>
             <div className="relative">
@@ -153,7 +193,6 @@ export default function CreateRoomSettings({
                 {t.multiplayer.customRaceTextHint}
               </p>
             )}
-          </div>
           </div>
         )}
       </div>

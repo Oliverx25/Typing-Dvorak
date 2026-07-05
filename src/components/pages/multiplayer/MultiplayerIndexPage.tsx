@@ -4,7 +4,7 @@ import BackLink from '@/components/layout/shell/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import CreateRoomSettings, {
-  isCustomTextValid,
+  isRoomContentReady,
   type CreateRoomSettingsValue,
 } from '@/components/multiplayer/setup/CreateRoomSettings';
 import JoinRoomModal from '@/components/multiplayer/lobby/JoinRoomModal';
@@ -23,14 +23,12 @@ function MultiplayerIndexContent() {
     textSource: 'lesson',
     lessonId: DEFAULT_RACE_LESSON_ID,
     customText: '',
+    songMeta: null,
     blindMode: false,
     winConditions: ['max_score'],
   });
 
-  const canCreateRoom =
-    roomSettings.textSource === 'lesson'
-      ? Boolean(roomSettings.lessonId)
-      : isCustomTextValid(roomSettings.customText);
+  const canCreateRoom = isRoomContentReady(roomSettings);
 
   const handleCreateRoom = async () => {
     if (!canCreateRoom || creating) return;
@@ -51,10 +49,15 @@ function MultiplayerIndexContent() {
       saveCreateRoomConfig(code, {
         lessonId: roomSettings.lessonId,
         customText:
-          roomSettings.textSource === 'lesson' ? '' : roomSettings.customText.trim(),
+          roomSettings.textSource === 'lesson'
+            ? ''
+            : roomSettings.textSource === 'song'
+              ? roomSettings.customText
+              : roomSettings.customText.trim(),
         blindMode: roomSettings.blindMode,
         winConditions: roomSettings.winConditions,
         textSource: roomSettings.textSource,
+        songMeta: roomSettings.textSource === 'song' ? roomSettings.songMeta : null,
       });
       window.location.href = roomUrl(code);
     } finally {

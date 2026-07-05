@@ -1,4 +1,5 @@
 import { normalizeWinConditions, type WinCondition } from '@/utils/multiplayer/roomConfig';
+import type { SelectedSongMeta } from '@/utils/lyrics/types';
 
 export type TextSource = 'lesson' | 'custom' | 'song';
 
@@ -8,6 +9,7 @@ export interface CreateRoomConfig {
   blindMode: boolean;
   winConditions: WinCondition[];
   textSource: TextSource;
+  songMeta: SelectedSongMeta | null;
 }
 
 const PREFIX = 'typing-dvorak:mp-create:';
@@ -28,17 +30,19 @@ export function readCreateRoomConfig(roomCode: string): CreateRoomConfig | null 
       winCondition?: WinCondition;
     };
     if (!parsed.lessonId) return null;
+    const textSource: TextSource =
+      parsed.textSource === 'song'
+        ? 'song'
+        : parsed.textSource === 'custom'
+          ? 'custom'
+          : 'lesson';
     return {
       lessonId: parsed.lessonId,
-      customText: parsed.customText?.trim() ?? '',
+      customText: parsed.customText ?? '',
       blindMode: Boolean(parsed.blindMode),
       winConditions: normalizeWinConditions(parsed.winConditions ?? parsed.winCondition),
-      textSource:
-        parsed.textSource === 'song'
-          ? 'song'
-          : parsed.textSource === 'custom'
-            ? 'custom'
-            : 'lesson',
+      textSource,
+      songMeta: textSource === 'song' ? (parsed.songMeta ?? null) : null,
     };
   } catch {
     return null;

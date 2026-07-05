@@ -40,14 +40,17 @@ export default function MatchInfoCard({
   const winConditions = normalizeWinConditions(roomState.winConditions);
   const victoryConditions = winConditions.filter((c) => VICTORY_CONDITIONS.includes(c));
   const modifierConditions = winConditions.filter((c) => MODIFIER_WIN_CONDITIONS.includes(c));
-  const isCustom = roomState.customText.trim().length > 0;
-  const lesson = !isCustom ? getLessonById(roomState.lessonId) : undefined;
+  const isSong = roomState.textSource === 'song' && Boolean(roomState.songMeta);
+  const isCustom = !isSong && roomState.customText.trim().length > 0;
+  const lesson = !isCustom && !isSong ? getLessonById(roomState.lessonId) : undefined;
 
-  const title = isCustom
-    ? t.multiplayer.customTextMode
-    : lesson
-      ? getLessonTitle(t, lesson.titleKey)
-      : roomState.lessonId;
+  const title = isSong
+    ? (roomState.songMeta?.title ?? t.multiplayer.songMode)
+    : isCustom
+      ? t.multiplayer.customTextMode
+      : lesson
+        ? getLessonTitle(t, lesson.titleKey)
+        : roomState.lessonId;
 
   const difficulty = lesson ? t.difficulty[lesson.difficulty] : null;
   const category = lesson ? t.categories[lesson.category] : null;
@@ -60,6 +63,11 @@ export default function MatchInfoCard({
             {t.multiplayer.currentMatch}
           </p>
           <h2 className="mt-2 text-2xl font-bold text-[var(--color-text)] sm:text-3xl">{title}</h2>
+          {isSong ? (
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+              {roomState.songMeta?.artist}
+            </p>
+          ) : null}
           {isCustom ? (
             <p className="mt-2 line-clamp-2 font-mono text-sm text-[var(--color-text-muted)]">
               {roomState.customText.trim()}
