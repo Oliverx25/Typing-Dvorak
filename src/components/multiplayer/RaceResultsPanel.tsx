@@ -14,7 +14,6 @@ interface RaceResultsPanelProps {
   entries: RaceParticipantProgress[];
   currentUserId: string | null;
   primaryVictory: WinCondition;
-  isOwner: boolean;
   title: string;
   youLabel: string;
   winnerLabel: string;
@@ -25,7 +24,6 @@ interface RaceResultsPanelProps {
   maxComboLabel: string;
   finishedLabel: string;
   returnToLobbyLabel: string;
-  waitingForHostLabel: string;
   swipeHint: string;
   leaveLabel: string;
   onReturnToLobby: () => void;
@@ -34,7 +32,6 @@ interface RaceResultsPanelProps {
 export default function RaceResultsPanel({
   entries,
   currentUserId,
-  isOwner,
   title,
   youLabel,
   winnerLabel,
@@ -45,7 +42,6 @@ export default function RaceResultsPanel({
   maxComboLabel,
   finishedLabel,
   returnToLobbyLabel,
-  waitingForHostLabel,
   swipeHint,
   leaveLabel,
   onReturnToLobby,
@@ -197,13 +193,9 @@ export default function RaceResultsPanel({
 
       <div className="mt-8 space-y-4">
         <div className="flex justify-center">
-          {isOwner ? (
-            <Button size="lg" onClick={onReturnToLobby}>
-              {returnToLobbyLabel}
-            </Button>
-          ) : (
-            <p className="text-sm text-[var(--color-text-muted)]">{waitingForHostLabel}</p>
-          )}
+          <Button size="lg" onClick={onReturnToLobby}>
+            {returnToLobbyLabel}
+          </Button>
         </div>
         <div className="flex justify-end">
           <LeaveRoomButton variant="ghost" size="sm">

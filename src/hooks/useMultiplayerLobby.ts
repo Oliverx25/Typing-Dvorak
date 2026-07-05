@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { ensureRoomExists, transferRoomHost } from '@/services/supabase/rooms';
+import { ensureRoomExists, closeRoom, transferRoomHost } from '@/services/supabase/rooms';
 import { getMultiplayerPresenceDisplay } from '@/utils/user/multiplayerPrivacy';
 import type {
   LobbyConnectionStatus,
   LobbyPlayerPresence,
   RoomBroadcastState,
+  RoomPhase,
 } from '@/types/multiplayer';
 import {
   createDefaultRoomState,
@@ -60,6 +61,7 @@ export function useMultiplayerLobby({
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [raceActive, setRaceActive] = useState(false);
   const [countdownSeconds, setCountdownSeconds] = useState<number | null>(null);
+  const [returnedFromResults, setReturnedFromResults] = useState(false);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const presenceRef = useRef<LobbyPlayerPresence | null>(null);
@@ -69,8 +71,16 @@ export function useMultiplayerLobby({
   const ownershipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const returnLobbyCheckRef = useRef(false);
   const readyTogglePendingRef = useRef(false);
+  const returnedFromResultsRef = useRef(false);
+
+  returnedFromResultsRef.current = returnedFromResults;
 
   roomStateRef.current = roomState;
+
+  const canUseLobbyActions = useCallback(() => {
+    const phase = roomStateRef.current?.phase;
+    return phase === 'lobby' || (phase === 'results' && returnedFromResultsRef.current);
+  }, []);
 
   const isOwner = Boolean(user?.id && roomState?.ownerId === user.id);
   const allReady =
@@ -86,6 +96,10 @@ export function useMultiplayerLobby({
     if (!merged) return;
     roomStateRef.current = merged;
     setRoomState(merged);
+
+    if (merged.phase === 'racing' || merged.phase === 'lobby') {
+      setReturnedFromResults(false);
+    }
 
     if (merged.phase !== 'racing') {
       if (merged.phase === 'lobby') {
@@ -205,6 +219,32 @@ export function useMultiplayerLobby({
   const syncPlayersRef = useRef(syncPlayers);
   syncPlayersRef.current = syncPlayers;
 
+  const prevPhaseRef = useRef<RoomPhase | null>(null);
+
+  /** Clear ready flag when a race ends so the host must wait again before the next start. */
+  const resetReadyAfterResults = useCallback(async () => {
+    const activeChannel = channelRef.current;
+    const presence = presenceRef.current;
+    if (!activeChannel || !presence || !presence.isReady) return;
+
+    const updated: LobbyPlayerPresence = { ...presence, isReady: false };
+    presenceRef.current = updated;
+    setIsReady(false);
+    await activeChannel.track(updated);
+    syncPlayersRef.current(activeChannel);
+  }, []);
+
+  useEffect(() => {
+    const current = roomState?.phase ?? null;
+    const prev = prevPhaseRef.current;
+
+    if (current === 'results' && prev !== 'results') {
+      void resetReadyAfterResults();
+    }
+
+    prevPhaseRef.current = current;
+  }, [roomState?.phase, resetReadyAfterResults]);
+
   const scheduleOwnershipClaim = useCallback(() => {
     if (ownershipTimerRef.current) clearTimeout(ownershipTimerRef.current);
     ownershipTimerRef.current = setTimeout(() => {
@@ -294,6 +334,7 @@ export function useMultiplayerLobby({
     setRaceActive(false);
     setCountdownSeconds(null);
     returnLobbyCheckRef.current = false;
+    setReturnedFromResults(false);
 
     const cleanupChannel = (ch: RealtimeChannel | null) => {
       if (!ch) return;
@@ -338,17 +379,8 @@ export function useMultiplayerLobby({
             roomEventHandlerRef.current?.('kicked', payload);
           }
         })
-        .on('broadcast', { event: 'room:return_lobby' }, ({ payload }) => {
-          const version = (payload as { version?: number }).version;
-          if (roomStateRef.current) {
-            applyRoomState({
-              ...roomStateRef.current,
-              phase: 'lobby',
-              raceStartedAt: null,
-              version: version ?? roomStateRef.current.version + 1,
-            });
-          }
-          void returnToLobby();
+        .on('broadcast', { event: 'room:closed' }, () => {
+          roomEventHandlerRef.current?.('closed', {});
         })
         .subscribe(async (subscribeStatus) => {
           if (cancelled) return;
@@ -426,7 +458,7 @@ export function useMultiplayerLobby({
   const toggleReadyStatus = useCallback(async () => {
     const activeChannel = channelRef.current;
     const presence = presenceRef.current;
-    if (!activeChannel || !presence || roomStateRef.current?.phase !== 'lobby') return;
+    if (!activeChannel || !presence || !canUseLobbyActions()) return;
     if (readyTogglePendingRef.current) return;
 
     const previousPresence = presence;
@@ -453,13 +485,13 @@ export function useMultiplayerLobby({
       readyTogglePendingRef.current = false;
       syncPlayersRef.current(activeChannel);
     }
-  }, []);
+  }, [canUseLobbyActions]);
 
   const updateRoomConfig = useCallback(
     async (partial: Pick<RoomBroadcastState, 'lessonId' | 'customText' | 'blindMode' | 'winConditions'>) => {
       const current = roomStateRef.current;
       if (!user?.id || !current || current.ownerId !== user.id) return;
-      if (current.phase !== 'lobby') return;
+      if (!canUseLobbyActions()) return;
 
       const next: RoomBroadcastState = {
         ...current,
@@ -469,12 +501,15 @@ export function useMultiplayerLobby({
       applyRoomState(next);
       await broadcastRoomState(next);
     },
-    [applyRoomState, broadcastRoomState, user?.id],
+    [applyRoomState, broadcastRoomState, canUseLobbyActions, user?.id],
   );
 
   const startRace = useCallback(async () => {
     if (!user?.id || roomStateRef.current?.ownerId !== user.id) return;
     if (!allReady) return;
+
+    const phase = roomStateRef.current?.phase;
+    if (phase !== 'lobby' && phase !== 'results') return;
 
     const raceStartedAt = Date.now() + 3000;
     const next: RoomBroadcastState = {
@@ -500,27 +535,12 @@ export function useMultiplayerLobby({
     syncPlayersRef.current(activeChannel);
   }, []);
 
-  const returnToLobbyAfterResults = useCallback(async () => {
-    if (!user?.id || roomStateRef.current?.ownerId !== user.id) return;
+  const returnToWaitingRoom = useCallback(async () => {
     if (roomStateRef.current?.phase !== 'results') return;
 
-    const activeChannel = channelRef.current;
-    if (!activeChannel) return;
-
-    const resetState: RoomBroadcastState = {
-      ...roomStateRef.current,
-      phase: 'lobby',
-      raceStartedAt: null,
-      version: roomStateRef.current.version + 1,
-    };
-    applyRoomState(resetState);
-    await broadcastRoomState(resetState);
-    await activeChannel.send({
-      type: 'broadcast',
-      event: 'room:return_lobby',
-      payload: { version: resetState.version },
-    });
-  }, [applyRoomState, broadcastRoomState, user?.id]);
+    setReturnedFromResults(true);
+    await returnToLobby();
+  }, [returnToLobby]);
 
   const kickPlayer = useCallback(
     async (targetUserId: string) => {
@@ -566,6 +586,44 @@ export function useMultiplayerLobby({
     setRaceActive(false);
   }, []);
 
+  /** Voluntary leave — broadcasts host handoff or room closure before untrack. */
+  const departFromRoom = useCallback(async () => {
+    const activeChannel = channelRef.current;
+    const userId = user?.id;
+    const current = roomStateRef.current;
+
+    if (userId && current?.ownerId === userId && activeChannel) {
+      const others = getConnectedPlayers().filter((player) => player.userId !== userId);
+
+      if (others.length === 0) {
+        await activeChannel.send({
+          type: 'broadcast',
+          event: 'room:closed',
+          payload: { reason: 'host_left' },
+        });
+        await closeRoom(roomId, userId);
+      } else {
+        const nextHost = others[0];
+        if (nextHost) {
+          const transferred: RoomBroadcastState = {
+            ...current,
+            ownerId: nextHost.userId,
+            version: current.version + 1,
+          };
+          applyRoomState(transferred);
+          await activeChannel.send({
+            type: 'broadcast',
+            event: 'room:state',
+            payload: transferred,
+          });
+          await transferRoomHost(roomId, nextHost.userId);
+        }
+      }
+    }
+
+    await leaveLobby();
+  }, [applyRoomState, getConnectedPlayers, leaveLobby, roomId, user?.id]);
+
   return {
     players,
     status,
@@ -582,9 +640,11 @@ export function useMultiplayerLobby({
     updateRoomConfig,
     startRace,
     markRaceFinished,
-    returnToLobbyAfterResults,
+    returnToWaitingRoom,
+    returnedFromResults,
     kickPlayer,
     leaveLobby,
+    departFromRoom,
     currentUserId: user?.id ?? null,
     channel,
     progressHandlerRef,

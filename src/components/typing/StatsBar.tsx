@@ -10,6 +10,8 @@ interface StatsBarProps {
   started?: boolean;
   isTestMode?: boolean;
   timeRemaining?: number;
+  /** Cumulative mistakes (race mode) — shown instead of elapsed time. */
+  errors?: number;
 }
 
 export default function StatsBar({
@@ -21,6 +23,7 @@ export default function StatsBar({
   started = false,
   isTestMode = false,
   timeRemaining = 0,
+  errors,
 }: StatsBarProps) {
   const { t } = useApp();
 
@@ -32,6 +35,7 @@ export default function StatsBar({
 
   const timeDisplay = isTestMode ? formatTime(timeRemaining) : formatTime(elapsedSeconds);
   const timeLabel = isTestMode ? t.lesson.timeRemaining : t.typing.time;
+  const showErrors = errors !== undefined;
 
   const wpmVariant = finished && wpm > 0 ? 'success' : started && !finished ? 'active' : 'default';
   const accuracyVariant =
@@ -42,12 +46,17 @@ export default function StatsBar({
       : started && !finished
         ? 'active'
         : 'default';
+  const errorsVariant =
+    started && !finished && (errors ?? 0) > 0 ? 'urgent' : started && !finished ? 'active' : 'default';
 
   return (
     <div className="space-y-4" aria-live="polite" aria-atomic="true">
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+      <div className={['grid gap-3 sm:gap-4', showErrors ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'].join(' ')}>
         <StatCard label={t.typing.wpm} value={wpm.toString()} variant={wpmVariant} />
         <StatCard label={t.typing.accuracy} value={`${accuracy}%`} variant={accuracyVariant} />
+        {showErrors ? (
+          <StatCard label={t.typing.errors} value={String(errors)} variant={errorsVariant} />
+        ) : null}
         <StatCard label={timeLabel} value={timeDisplay} variant={timeVariant} />
       </div>
 

@@ -39,9 +39,11 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
     updateRoomConfig,
     startRace,
     markRaceFinished,
-    returnToLobbyAfterResults,
+    returnToWaitingRoom,
+    returnedFromResults,
     kickPlayer,
     leaveLobby,
+    departFromRoom,
     currentUserId,
     channel,
     progressHandlerRef,
@@ -49,7 +51,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
     roomEventHandlerRef,
   } = useMultiplayerLobby({ roomId, minPlayers: 2, connectAttempt });
 
-  const { closeAsHost } = useRoomLifecycle({
+  const { markHostDepartureHandled } = useRoomLifecycle({
     roomId,
     userId: currentUserId,
     isOwner,
@@ -57,9 +59,9 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
   });
 
   const disconnectFromRoom = useCallback(async () => {
-    if (isOwner) await closeAsHost();
-    await leaveLobby();
-  }, [closeAsHost, isOwner, leaveLobby]);
+    markHostDepartureHandled();
+    await departFromRoom();
+  }, [departFromRoom, markHostDepartureHandled]);
 
   useEffect(() => {
     registerRoomExitHandler(disconnectFromRoom);
@@ -71,6 +73,12 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
       if (event === 'kicked') {
         void leaveLobby().then(() => {
           window.location.href = '/multiplayer?kicked=1';
+        });
+        return;
+      }
+      if (event === 'closed') {
+        void leaveLobby().then(() => {
+          window.location.href = '/multiplayer?room_closed=1';
         });
       }
     };
@@ -132,8 +140,9 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
 
   const readyCount = players.filter((player) => player.isReady).length;
   const phase = roomState?.phase ?? 'lobby';
-  const inLobby = phase === 'lobby';
-  const inRaceSession = phase === 'racing' || phase === 'results';
+  const inLobby = phase === 'lobby' || returnedFromResults;
+  const inRaceSession =
+    (phase === 'racing' || phase === 'results') && !returnedFromResults;
 
   const errorMessage =
     error === 'supabase_not_configured'
@@ -290,7 +299,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
           countdownSeconds={countdownSeconds}
           isOwner={isOwner}
           onRaceFinish={() => void markRaceFinished()}
-          onReturnToLobby={() => void returnToLobbyAfterResults()}
+          onReturnToLobby={() => void returnToWaitingRoom()}
         />
       ) : null}
     </div>

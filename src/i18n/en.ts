@@ -263,6 +263,7 @@ export const en = {
     hideKeyboard: 'Hide keyboard',
     thumb: 'Thumb',
     combo: 'Combo',
+    errors: 'Errors',
   },
   completion: {
     perfect: 'Perfect run!',
@@ -419,6 +420,7 @@ export const en = {
     roomOwner: 'Host',
     kickPlayer: 'Kick',
     kickedFromRoom: 'You were removed from the room by the host.',
+    roomClosedByHost: 'The host closed the room.',
     raceSettings: 'Race settings',
     raceSettingsOwner: 'Race settings (host)',
     raceLesson: 'Lesson',

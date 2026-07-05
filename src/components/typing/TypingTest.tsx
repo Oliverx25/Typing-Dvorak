@@ -83,6 +83,7 @@ export default function TypingTest({
     maxCombo,
     comboBroke,
     raceScore,
+    errorKeystrokes,
     clearComboBroke,
     containerRef,
     retryButtonRef,
@@ -168,7 +169,7 @@ export default function TypingTest({
         started={started}
         isTestMode={isTestMode}
         timeRemaining={timeRemaining}
-        paused={paused}
+        errors={raceMode ? errorKeystrokes : undefined}
       />
 
       <div

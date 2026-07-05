@@ -69,6 +69,9 @@ function MultiplayerIndexContent() {
   const kicked =
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).get('kicked') === '1';
+  const roomClosed =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('room_closed') === '1';
 
   return (
     <>
@@ -96,6 +99,12 @@ function MultiplayerIndexContent() {
         {kicked ? (
           <p className="mb-6 max-w-md rounded-lg border border-[var(--color-incorrect)]/30 bg-[var(--color-incorrect)]/10 px-4 py-3 text-sm text-[var(--color-incorrect)]">
             {t.multiplayer.kickedFromRoom}
+          </p>
+        ) : null}
+
+        {roomClosed ? (
+          <p className="mb-6 max-w-md rounded-lg border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/10 px-4 py-3 text-sm text-[var(--color-text-muted)]">
+            {t.multiplayer.roomClosedByHost}
           </p>
         ) : null}
 

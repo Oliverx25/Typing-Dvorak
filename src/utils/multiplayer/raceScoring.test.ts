@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateStableRaceWpm,
+  calculateRaceAccuracy,
   comboMultiplier,
   mergePeakRaceProgress,
   resolveRaceCountdownSeconds,
@@ -13,6 +14,12 @@ describe('raceScoring', () => {
     expect(calculateStableRaceWpm(8, 500)).toBe(0);
     expect(calculateStableRaceWpm(10, 3_000)).toBeGreaterThan(0);
     expect(calculateStableRaceWpm(10, 3_000)).toBeLessThan(200);
+  });
+
+  it('race accuracy counts cumulative errors even after backspace fixes', () => {
+    expect(calculateRaceAccuracy(50, 0)).toBe(100);
+    expect(calculateRaceAccuracy(50, 5)).toBe(91);
+    expect(calculateRaceAccuracy(10, 10)).toBe(50);
   });
 
   it('increases score per hit with combo and accuracy', () => {

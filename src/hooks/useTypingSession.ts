@@ -15,6 +15,7 @@ import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '../utils/app/e
 import { checkAndUnlockBadges } from '../utils/achievements/badges';
 import {
   calculateStableRaceWpm,
+  calculateRaceAccuracy,
   scoreIncrementForHit,
 } from '../utils/multiplayer/raceScoring';
 import type { PracticeMode } from '../utils/app/settings';
@@ -96,9 +97,9 @@ export function useTypingSession({
   const liveStats = raceMode
     ? {
         wpm: calculateStableRaceWpm(correctChars, elapsedMs),
-        accuracy: calculateAccuracy(correctChars, incorrectChars),
+        accuracy: calculateRaceAccuracy(correctChars, errorKeystrokes),
         correctChars,
-        incorrectChars,
+        incorrectChars: errorKeystrokes,
         elapsedSeconds: Math.round(elapsedMs / 1000),
       }
     : buildStats(
@@ -273,6 +274,7 @@ export function useTypingSession({
 
     const isCorrect = e.key === expected;
     const newInput = input + e.key;
+    const nextErrors = isCorrect ? errorKeystrokes : errorKeystrokes + 1;
 
     setInput(newInput);
     setStatuses((prev) => {
@@ -283,9 +285,10 @@ export function useTypingSession({
 
     recordKeystroke(e.key, isCorrect);
     const nextCorrect = isCorrect ? correctChars + 1 : correctChars;
-    const nextIncorrect = isCorrect ? incorrectChars : incorrectChars + 1;
     const nextCombo = isCorrect ? combo + 1 : 0;
-    const nextAccuracy = calculateAccuracy(nextCorrect, nextIncorrect);
+    const nextAccuracy = raceMode
+      ? calculateRaceAccuracy(nextCorrect, nextErrors)
+      : calculateAccuracy(nextCorrect, isCorrect ? incorrectChars : incorrectChars + 1);
 
     if (isCorrect) {
       setComboBroke(false);
@@ -326,7 +329,11 @@ export function useTypingSession({
         ? Date.now() - startTime - totalPausedMsRef.current
         : elapsedMs;
       const finalCorrect = isCorrect ? correctChars + 1 : correctChars;
-      const finalIncorrect = isCorrect ? incorrectChars : incorrectChars + 1;
+      const finalIncorrect = raceMode
+        ? nextErrors
+        : isCorrect
+          ? incorrectChars
+          : incorrectChars + 1;
       finishSession(buildStats(finalCorrect, finalIncorrect, finalElapsed || 1, false));
     }
   };
@@ -351,6 +358,7 @@ export function useTypingSession({
     maxCombo,
     comboBroke,
     raceScore,
+    errorKeystrokes,
     clearComboBroke: () => setComboBroke(false),
     containerRef,
     retryButtonRef,

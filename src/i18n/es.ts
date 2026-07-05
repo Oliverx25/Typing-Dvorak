@@ -265,6 +265,7 @@ export const es: TranslationKey = {
     hideKeyboard: 'Ocultar teclado',
     thumb: 'Pulgar',
     combo: 'Combo',
+    errors: 'Errores',
   },
   completion: {
     perfect: '¡Ronda perfecta!',
@@ -421,6 +422,7 @@ export const es: TranslationKey = {
     roomOwner: 'Anfitrión',
     kickPlayer: 'Expulsar',
     kickedFromRoom: 'El anfitrión te expulsó de la sala.',
+    roomClosedByHost: 'El anfitrión cerró la sala.',
     raceSettings: 'Ajustes de carrera',
     raceSettingsOwner: 'Ajustes de carrera (anfitrión)',
     raceLesson: 'Lección',

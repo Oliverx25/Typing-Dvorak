@@ -115,5 +115,5 @@ export function useRoomLifecycle({
     }
   }, [roomId]);
 
-  return { closeAsHost };
+  return { closeAsHost, markHostDepartureHandled: () => { lifecycleHandledRef.current = true; } };
 }

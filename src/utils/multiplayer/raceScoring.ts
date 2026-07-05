@@ -1,4 +1,4 @@
-import { calculateWpm } from '../typing/typing';
+import { calculateWpm, calculateAccuracy } from '../typing/typing';
 
 /** Minimum typing window before WPM is reported in races. */
 export const RACE_MIN_ELAPSED_MS = 2_000;
@@ -17,6 +17,13 @@ export const RACE_BASE_HIT_SCORE = 100;
 export function calculateStableRaceWpm(correctChars: number, elapsedMs: number): number {
   if (correctChars < RACE_MIN_CHARS || elapsedMs < RACE_MIN_ELAPSED_MS) return 0;
   return calculateWpm(correctChars, elapsedMs);
+}
+
+/**
+ * Race accuracy uses cumulative mistakes — backspace does not erase prior errors.
+ */
+export function calculateRaceAccuracy(correctChars: number, totalErrors: number): number {
+  return calculateAccuracy(correctChars, totalErrors);
 }
 
 /**

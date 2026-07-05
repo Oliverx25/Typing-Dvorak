@@ -138,7 +138,6 @@ export default function MultiplayerRacePanel({
         entries={leaderboard}
         currentUserId={currentUserId}
         primaryVictory={primaryVictory}
-        isOwner={isOwner}
         title={t.multiplayer.raceResultsTitle}
         youLabel={t.multiplayer.you}
         winnerLabel={t.multiplayer.raceWinner}
@@ -149,7 +148,6 @@ export default function MultiplayerRacePanel({
         maxComboLabel={t.multiplayer.maxComboLabel}
         finishedLabel={t.multiplayer.raceFinished}
         returnToLobbyLabel={t.multiplayer.returnToWaitingRoom}
-        waitingForHostLabel={t.multiplayer.waitingForHostReturn}
         swipeHint={t.multiplayer.raceResultsSwipe}
         leaveLabel={t.multiplayer.leaveRoom}
         onReturnToLobby={onReturnToLobby}
