@@ -5,7 +5,7 @@ import { getKeyStats } from '../../utils/stats/keyStats';
 import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '../../utils/progress/streak';
 import { fetchUserSessionTimestamps } from './queries';
 
-/** Writes computed streak fields to profiles (cache for quick reads). */
+/** Writes computed streak fields to user_stats (cache for quick reads). */
 export async function updateProfileStreak(
   userId: string,
   { streak, lastPracticeDate }: StreakResult,
@@ -14,17 +14,20 @@ export async function updateProfileStreak(
   if (!supabase) return;
 
   const { error } = await supabase
-    .from('profiles')
-    .update({
-      current_streak: streak,
-      last_practice_date: lastPracticeDate,
-    })
-    .eq('id', userId);
+    .from('user_stats')
+    .upsert(
+      {
+        user_id: userId,
+        current_day_streak: streak,
+        last_practice_date: lastPracticeDate,
+      },
+      { onConflict: 'user_id' },
+    );
 
-  if (error) console.warn('[sync] profile streak update failed:', error.message);
+  if (error) console.warn('[sync] user_stats streak update failed:', error.message);
 }
 
-/** Recompute streak from all cloud sessions and persist to profiles. */
+/** Recompute streak from all cloud sessions and persist to user_stats. */
 export async function syncStreakToProfile(userId: string): Promise<StreakResult> {
   const timestamps = await fetchUserSessionTimestamps();
   const result = computeStreakFromPracticeDates(collectPracticeDates(timestamps));

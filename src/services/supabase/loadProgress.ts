@@ -8,39 +8,16 @@ import { getLessonById } from '@/utils/curriculum/lessons';
 import type { Locale } from '@/i18n';
 import type { AppSettings, PracticeMode } from '@/utils/app/settings';
 import { getSettings, saveSettings } from '@/utils/app/settings';
-import { appPreferencesFromProfile } from '@/utils/app/settingsSync';
+import { appPreferencesFromUserSettings } from '@/utils/app/settingsSync';
 import { dispatchSessionComplete, dispatchKeyStatsUpdated, dispatchProfilePreferencesSynced } from '@/utils/app/events';
 import { applyHighlightTheme } from '@/utils/app/highlightTheme';
 import { setStoredTheme } from '@/utils/progress/storage';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { updateProfileStreak } from './syncProgress';
 import { syncBadgesFromSessionRows } from './syncBadges';
+import type { UserProfileRow } from './profileRow';
 
-import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
-
-export interface UserProfileRow {
-  id: string;
-  username: string | null;
-  avatar_url: string | null;
-  avatar_custom: boolean;
-  display_name: string | null;
-  display_name_custom?: boolean;
-  locale?: Locale | null;
-  multiplayer_privacy?: MultiplayerPrivacy;
-  current_streak: number;
-  last_practice_date: string | null;
-  created_at?: string;
-  zen_mode_enabled?: boolean;
-  ghost_mode_enabled?: boolean;
-  pacer_enabled?: boolean;
-  pacer_target_wpm?: number;
-  sound_enabled?: boolean;
-  blind_mode_enabled?: boolean;
-  finger_colors_enabled?: boolean;
-  practice_mode?: PracticeMode;
-  highlight_theme?: string;
-  theme?: 'light' | 'dark';
-}
+export type { UserProfileRow } from './profileRow';
 
 function mapSessionRow(row: {
   lesson_id: string;
@@ -104,7 +81,7 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
   const [sessions, keyErrors, profile, timestamps] = await Promise.all([
     fetchUserSessions(100),
     fetchUserKeyErrors(),
-    fetchUserProfile() as Promise<UserProfileRow | null>,
+    fetchUserProfile(),
     fetchUserSessionTimestamps(),
   ]);
 
@@ -136,10 +113,10 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
 
 /** Sync all app settings + theme from profile to local storage after login. */
 export async function restoreProfilePreferencesFromProfile(): Promise<void> {
-  const profile = (await fetchUserProfile()) as UserProfileRow | null;
+  const profile = await fetchUserProfile();
   if (!profile) return;
 
-  const { settings, theme } = appPreferencesFromProfile(profile);
+  const { settings, theme } = appPreferencesFromUserSettings(profile);
   if (Object.keys(settings).length === 0 && !theme) return;
 
   if (Object.keys(settings).length > 0) {
@@ -161,7 +138,7 @@ export async function restoreProfileDisplayFromProfile(): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
-  const profile = (await fetchUserProfile()) as UserProfileRow | null;
+  const profile = await fetchUserProfile();
   const dbName = profile?.display_name?.trim();
   if (!dbName) return;
 
@@ -185,7 +162,7 @@ export async function restoreCustomAvatarFromProfile(): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
-  const profile = (await fetchUserProfile()) as UserProfileRow | null;
+  const profile = await fetchUserProfile();
   if (!profile?.avatar_custom || !profile.avatar_url) return;
 
   const { data: { user } } = await supabase.auth.getUser();

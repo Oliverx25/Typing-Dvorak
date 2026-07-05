@@ -2,10 +2,10 @@ import { getSupabaseClient } from '@/lib/supabaseClient';
 import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
 import { validateDisplayName, validateUsername } from '@/utils/user/profileValidation';
 import type { AppSettings } from '@/utils/app/settings';
-import { profilePayloadFromAppPreferences } from '@/utils/app/settingsSync';
+import { userSettingsPayloadFromAppPreferences } from '@/utils/app/settingsSync';
 import type { Theme } from '@/utils/progress/storage';
 
-/** Persists all app settings + theme to the user's profile. No-op when offline/guest. */
+/** Persists all app settings + theme to user_settings. No-op when offline/guest. */
 export async function syncAppSettingsToProfile(
   settings: AppSettings,
   theme: Theme,
@@ -16,11 +16,14 @@ export async function syncAppSettingsToProfile(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: null };
 
-  const payload = profilePayloadFromAppPreferences(settings, theme);
+  const payload = userSettingsPayloadFromAppPreferences(settings, theme);
 
-  const { error } = await supabase.from('profiles').update(payload).eq('id', user.id);
+  const { error } = await supabase
+    .from('user_settings')
+    .upsert({ user_id: user.id, ...payload }, { onConflict: 'user_id' });
+
   if (error) {
-    console.warn('[sync] app settings update failed:', error.message);
+    console.warn('[sync] user_settings update failed:', error.message);
     return { error: error.message };
   }
   return { error: null };
@@ -80,11 +83,20 @@ export async function updateUserProfile(input: ProfileUpdateInput): Promise<{ er
       display_name: displayName,
       display_name_custom: true,
       username: username || null,
-      ...(input.multiplayerPrivacy ? { multiplayer_privacy: input.multiplayerPrivacy } : {}),
     })
     .eq('id', user.id);
 
   if (profileError) return { error: profileError.message };
+
+  if (input.multiplayerPrivacy) {
+    const { error: settingsError } = await supabase
+      .from('user_settings')
+      .upsert(
+        { user_id: user.id, multiplayer_privacy: input.multiplayerPrivacy },
+        { onConflict: 'user_id' },
+      );
+    if (settingsError) return { error: settingsError.message };
+  }
 
   const metaError = await syncAuthDisplayName(displayName);
   if (metaError) return { error: metaError };

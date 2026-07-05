@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appPreferencesFromProfile, profilePayloadFromAppPreferences } from './settingsSync';
+import { appPreferencesFromUserSettings, userSettingsPayloadFromAppPreferences } from './settingsSync';
 import type { AppSettings } from './settings';
 
 const BASE_SETTINGS: AppSettings = {
@@ -17,7 +17,7 @@ const BASE_SETTINGS: AppSettings = {
 
 describe('settingsSync', () => {
   it('maps profile row to local settings and theme', () => {
-    const { settings, theme } = appPreferencesFromProfile({
+    const { settings, theme } = appPreferencesFromUserSettings({
       locale: 'en',
       sound_enabled: false,
       blind_mode_enabled: true,
@@ -47,7 +47,7 @@ describe('settingsSync', () => {
   });
 
   it('maps local settings and theme to profile payload', () => {
-    expect(profilePayloadFromAppPreferences(BASE_SETTINGS, 'light')).toEqual({
+    expect(userSettingsPayloadFromAppPreferences(BASE_SETTINGS, 'light')).toEqual({
       locale: 'es',
       sound_enabled: true,
       blind_mode_enabled: true,
@@ -63,7 +63,7 @@ describe('settingsSync', () => {
   });
 
   it('ignores invalid profile values', () => {
-    const { settings, theme } = appPreferencesFromProfile({
+    const { settings, theme } = appPreferencesFromUserSettings({
       locale: 'fr',
       practice_mode: 'invalid',
       highlight_theme: 'not-a-theme',
@@ -77,7 +77,7 @@ describe('settingsSync', () => {
   });
 
   it('clamps pacer WPM in outbound payload', () => {
-    const payload = profilePayloadFromAppPreferences(
+    const payload = userSettingsPayloadFromAppPreferences(
       { ...BASE_SETTINGS, pacerTargetWpm: 999 },
       'dark',
     );

@@ -7,25 +7,56 @@ export type Database = {
         Row: {
           id: string;
           username: string | null;
-          current_streak: number;
-          last_practice_date: string | null;
+          avatar_url: string | null;
+          avatar_custom: boolean;
+          display_name: string | null;
+          display_name_custom: boolean;
           created_at: string;
-          zen_mode_enabled: boolean;
-          ghost_mode_enabled: boolean;
-          pacer_enabled: boolean;
-          pacer_target_wpm: number;
+          updated_at: string;
         };
         Insert: {
           id: string;
           username?: string | null;
-          current_streak?: number;
-          last_practice_date?: string | null;
+          avatar_url?: string | null;
+          avatar_custom?: boolean;
+          display_name?: string | null;
+          display_name_custom?: boolean;
+        };
+        Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
+      };
+      user_settings: {
+        Row: {
+          user_id: string;
+          locale: 'en' | 'es' | null;
+          multiplayer_privacy: 'public' | 'initials' | 'anonymous';
+          zen_mode_enabled: boolean;
+          ghost_mode_enabled: boolean;
+          pacer_enabled: boolean;
+          pacer_target_wpm: number;
+          sound_enabled: boolean;
+          blind_mode_enabled: boolean;
+          finger_colors_enabled: boolean;
+          practice_mode: 'practice' | 'test';
+          highlight_theme: string;
+          theme: 'light' | 'dark';
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          locale?: 'en' | 'es' | null;
+          multiplayer_privacy?: 'public' | 'initials' | 'anonymous';
           zen_mode_enabled?: boolean;
           ghost_mode_enabled?: boolean;
           pacer_enabled?: boolean;
           pacer_target_wpm?: number;
+          sound_enabled?: boolean;
+          blind_mode_enabled?: boolean;
+          finger_colors_enabled?: boolean;
+          practice_mode?: 'practice' | 'test';
+          highlight_theme?: string;
+          theme?: 'light' | 'dark';
         };
-        Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
+        Update: Partial<Database['public']['Tables']['user_settings']['Insert']>;
       };
       typing_sessions: {
         Row: {
@@ -37,6 +68,7 @@ export type Database = {
           stars: number;
           mode: string;
           created_at: string;
+          max_combo: number;
         };
         Insert: {
           user_id: string;
@@ -45,6 +77,7 @@ export type Database = {
           accuracy: number;
           stars: number;
           mode?: string;
+          max_combo?: number;
         };
         Update: Partial<Database['public']['Tables']['typing_sessions']['Insert']>;
       };
@@ -84,6 +117,7 @@ export type Database = {
           highest_wpm_ever: number;
           highest_combo_ever: number;
           current_day_streak: number;
+          last_practice_date: string | null;
           total_multiplayer_matches: number;
           total_multiplayer_wins: number;
           updated_at: string;
@@ -95,9 +129,9 @@ export type Database = {
           highest_wpm_ever?: number;
           highest_combo_ever?: number;
           current_day_streak?: number;
+          last_practice_date?: string | null;
           total_multiplayer_matches?: number;
           total_multiplayer_wins?: number;
-          updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['user_stats']['Insert']>;
       };
@@ -105,7 +139,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          room_code: string;
+          room_id: string | null;
           wpm: number;
           accuracy: number;
           max_combo: number;
@@ -116,7 +150,7 @@ export type Database = {
         };
         Insert: {
           user_id: string;
-          room_code: string;
+          room_id?: string | null;
           wpm: number;
           accuracy: number;
           max_combo?: number;

@@ -12,7 +12,7 @@ function isTheme(value: unknown): value is Theme {
   return value === 'light' || value === 'dark';
 }
 
-export interface ProfilePreferencesRow {
+export interface UserSettingsRow {
   locale?: Locale | null;
   sound_enabled?: boolean;
   blind_mode_enabled?: boolean;
@@ -26,38 +26,45 @@ export interface ProfilePreferencesRow {
   pacer_target_wpm?: number;
 }
 
-/** Map a Supabase profile row into local app settings + theme overrides. */
-export function appPreferencesFromProfile(
-  profile: ProfilePreferencesRow,
+/** Map user_settings fields into local app settings + theme overrides. */
+export function appPreferencesFromUserSettings(
+  settings: UserSettingsRow,
 ): { settings: Partial<AppSettings>; theme?: Theme } {
-  const settings: Partial<AppSettings> = {};
+  const partial: Partial<AppSettings> = {};
 
-  if (profile.locale === 'en' || profile.locale === 'es') {
-    settings.locale = profile.locale;
+  if (settings.locale === 'en' || settings.locale === 'es') {
+    partial.locale = settings.locale;
   }
-  if (typeof profile.sound_enabled === 'boolean') settings.sound = profile.sound_enabled;
-  if (typeof profile.blind_mode_enabled === 'boolean') settings.blindMode = profile.blind_mode_enabled;
-  if (typeof profile.finger_colors_enabled === 'boolean') {
-    settings.fingerColors = profile.finger_colors_enabled;
+  if (typeof settings.sound_enabled === 'boolean') partial.sound = settings.sound_enabled;
+  if (typeof settings.blind_mode_enabled === 'boolean') partial.blindMode = settings.blind_mode_enabled;
+  if (typeof settings.finger_colors_enabled === 'boolean') {
+    partial.fingerColors = settings.finger_colors_enabled;
   }
-  if (isPracticeMode(profile.practice_mode)) settings.practiceMode = profile.practice_mode;
-  if (isHighlightThemeId(profile.highlight_theme)) {
-    settings.highlightTheme = profile.highlight_theme;
+  if (isPracticeMode(settings.practice_mode)) partial.practiceMode = settings.practice_mode;
+  if (isHighlightThemeId(settings.highlight_theme)) {
+    partial.highlightTheme = settings.highlight_theme;
   }
-  if (typeof profile.zen_mode_enabled === 'boolean') settings.zenMode = profile.zen_mode_enabled;
-  if (typeof profile.ghost_mode_enabled === 'boolean') settings.ghostMode = profile.ghost_mode_enabled;
-  if (typeof profile.pacer_enabled === 'boolean') settings.pacerEnabled = profile.pacer_enabled;
-  if (typeof profile.pacer_target_wpm === 'number') {
-    settings.pacerTargetWpm = clampPacerWpm(profile.pacer_target_wpm);
+  if (typeof settings.zen_mode_enabled === 'boolean') partial.zenMode = settings.zen_mode_enabled;
+  if (typeof settings.ghost_mode_enabled === 'boolean') partial.ghostMode = settings.ghost_mode_enabled;
+  if (typeof settings.pacer_enabled === 'boolean') partial.pacerEnabled = settings.pacer_enabled;
+  if (typeof settings.pacer_target_wpm === 'number') {
+    partial.pacerTargetWpm = clampPacerWpm(settings.pacer_target_wpm);
   }
 
-  const theme = isTheme(profile.theme) ? profile.theme : undefined;
+  const theme = isTheme(settings.theme) ? settings.theme : undefined;
 
-  return { settings, theme };
+  return { settings: partial, theme };
 }
 
-/** Map local app settings + theme into a Supabase profiles update payload. */
-export function profilePayloadFromAppPreferences(
+/** @deprecated Use appPreferencesFromUserSettings */
+export function appPreferencesFromProfile(
+  row: UserSettingsRow,
+): ReturnType<typeof appPreferencesFromUserSettings> {
+  return appPreferencesFromUserSettings(row);
+}
+
+/** Map local app settings + theme into a user_settings upsert payload. */
+export function userSettingsPayloadFromAppPreferences(
   settings: AppSettings,
   theme: Theme,
 ): Record<string, string | boolean | number> {
@@ -74,4 +81,12 @@ export function profilePayloadFromAppPreferences(
     pacer_enabled: settings.pacerEnabled,
     pacer_target_wpm: clampPacerWpm(settings.pacerTargetWpm),
   };
+}
+
+/** @deprecated Use userSettingsPayloadFromAppPreferences */
+export function profilePayloadFromAppPreferences(
+  settings: AppSettings,
+  theme: Theme,
+): Record<string, string | boolean | number> {
+  return userSettingsPayloadFromAppPreferences(settings, theme);
 }

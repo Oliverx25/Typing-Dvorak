@@ -22,6 +22,8 @@ pnpm-debug.log*
 # Supabase CLI local cache (schema SQL at /supabase/ is safe to commit)
 /supabase/.temp/
 /supabase/.branches/
+/supabase/db/
+/supabase/migrations/
 
 # macOS-specific files
 .DS_Store

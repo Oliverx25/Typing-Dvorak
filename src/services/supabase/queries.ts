@@ -1,4 +1,10 @@
 import { getSupabaseClient } from '../../lib/supabaseClient';
+import {
+  flattenProfileQueryRow,
+  PROFILE_WITH_RELATIONS_SELECT,
+  type ProfileQueryRow,
+  type UserProfileRow,
+} from './profileRow';
 
 export async function fetchUserSessions(limit = 50) {
   const supabase = getSupabaseClient();
@@ -40,7 +46,7 @@ export async function fetchUserKeyErrors() {
   return data ?? [];
 }
 
-export async function fetchUserProfile() {
+export async function fetchUserProfile(): Promise<UserProfileRow | null> {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
 
@@ -49,7 +55,7 @@ export async function fetchUserProfile() {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select(PROFILE_WITH_RELATIONS_SELECT)
     .eq('id', user.id)
     .single();
 
@@ -57,7 +63,7 @@ export async function fetchUserProfile() {
     console.warn('[supabase] fetch profile failed:', error.message);
     return null;
   }
-  return data;
+  return flattenProfileQueryRow(data as ProfileQueryRow);
 }
 
 /** All session timestamps for streak calculation (source of truth). Paginates past the default row cap. */
