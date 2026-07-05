@@ -6,14 +6,17 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  type TooltipProps,
+  type TooltipContentProps,
 } from 'recharts';
 import { useApp } from '@/contexts/AppProvider';
 import { Card, Icon } from '@/components/ui';
 
 export interface ChartPoint {
+  session: number;
   date: string;
+  time: string;
   wpm: number;
+  lessonTitle?: string;
 }
 
 interface ProgressChartProps {
@@ -25,38 +28,44 @@ interface ChartColors {
   highlight: string;
   muted: string;
   surface: string;
-  border: string;
 }
 
 function readChartColors(): ChartColors {
   if (typeof document === 'undefined') {
-    return { highlight: '#818cf8', muted: '#94a3b8', surface: '#0f172a', border: '#334155' };
+    return { highlight: '#818cf8', muted: '#94a3b8', surface: '#0f172a' };
   }
   const root = getComputedStyle(document.documentElement);
   return {
     highlight: root.getPropertyValue('--color-highlight').trim() || '#818cf8',
     muted: root.getPropertyValue('--color-text-muted').trim() || '#94a3b8',
     surface: root.getPropertyValue('--color-surface-elevated').trim() || '#0f172a',
-    border: root.getPropertyValue('--color-border').trim() || '#334155',
   };
 }
 
 function ChartTooltip({
   active,
   payload,
-  label,
+  sessionLabel,
   wpmLabel,
-}: TooltipProps<number, string> & { wpmLabel: string }) {
+}: TooltipContentProps<number, string> & {
+  sessionLabel: (session: number) => string;
+  wpmLabel: string;
+}) {
   if (!active || !payload?.length) return null;
 
-  const value = payload[0]?.value;
-  if (typeof value !== 'number') return null;
+  const point = payload[0]?.payload as ChartPoint | undefined;
+  if (!point) return null;
 
   return (
     <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 shadow-lg">
-      <p className="text-[11px] text-slate-400">{label}</p>
-      <p className="font-mono text-sm font-semibold text-slate-50">
-        {value} {wpmLabel}
+      <p className="text-[11px] text-slate-400">
+        {sessionLabel(point.session)} · {point.date} {point.time}
+      </p>
+      {point.lessonTitle ? (
+        <p className="mt-0.5 max-w-[12rem] truncate text-[11px] text-slate-500">{point.lessonTitle}</p>
+      ) : null}
+      <p className="mt-1 font-mono text-sm font-semibold text-slate-50">
+        {point.wpm} {wpmLabel}
       </p>
     </div>
   );
@@ -89,6 +98,9 @@ export default function ProgressChart({ data, emptyLabel }: ProgressChartProps) 
     const pad = range > 0 ? Math.max(range * 0.15, 4) : Math.max(max * 0.2, 8);
     return [Math.max(0, min - pad), max + pad] as [number, number];
   }, [data]);
+
+  const sessionLabel = (session: number) =>
+    t.stats.chartSession.replace('{n}', String(session));
 
   if (data.length === 0 || !stats) {
     return (
@@ -135,18 +147,26 @@ export default function ProgressChart({ data, emptyLabel }: ProgressChartProps) 
             </defs>
 
             <XAxis
-              dataKey="date"
+              dataKey="session"
+              type="number"
+              domain={[1, data.length]}
+              allowDecimals={false}
               axisLine={false}
               tickLine={false}
               tick={{ fill: colors.muted, fontSize: 10 }}
               dy={8}
-              interval="preserveStartEnd"
-              minTickGap={24}
+              tickCount={Math.min(data.length, 6)}
+              tickFormatter={(session) => {
+                const point = data.find((d) => d.session === session);
+                return point?.date ?? '';
+              }}
             />
             <YAxis hide domain={yDomain} />
             <Tooltip
               cursor={{ stroke: colors.highlight, strokeWidth: 1, strokeDasharray: '4 4' }}
-              content={<ChartTooltip wpmLabel={t.stats.wpm} />}
+              content={
+                <ChartTooltip sessionLabel={sessionLabel} wpmLabel={t.stats.wpm} />
+              }
             />
             <Area
               type="monotone"
@@ -156,11 +176,12 @@ export default function ProgressChart({ data, emptyLabel }: ProgressChartProps) 
               fill={`url(#${gradientId})`}
               dot={false}
               activeDot={{
-                r: 4,
+                r: 5,
                 fill: colors.highlight,
                 stroke: colors.surface,
                 strokeWidth: 2,
               }}
+              isAnimationActive={false}
             />
           </AreaChart>
         </ResponsiveContainer>

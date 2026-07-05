@@ -217,6 +217,7 @@ export const es: TranslationKey = {
     heatmapDesc: 'Teclas rojas = más errores. Verdes = precisas.',
     heatmapNoData: 'Completa una lección para generar datos del mapa.',
     chartHint: 'PPM histórico de tus últimas sesiones.',
+    chartSession: 'Sesión {n}',
     sessionsRecorded: 'sesiones registradas',
   },
   settings: {

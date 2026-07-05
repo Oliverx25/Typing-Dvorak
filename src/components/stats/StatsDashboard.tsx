@@ -3,22 +3,28 @@ import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { getAggregateStats, getSessionHistory, getBestWpmForLesson } from '@/utils/progress/storage';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { Card, StreakIcon } from '@/components/ui';
-import ProgressChart from './ProgressChart';
+import ProgressChart, { type ChartPoint } from './ProgressChart';
 import KeyHeatmap from './KeyHeatmap';
 
 export default function StatsDashboard() {
   const { t } = useApp();
   const [aggregate, setAggregate] = useState({ totalSessions: 0, bestWpm: 0, avgAccuracy: 0, streak: 0 });
-  const [chartData, setChartData] = useState<{ date: string; wpm: number }[]>([]);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
 
   useEffect(() => {
     setAggregate(getAggregateStats());
     const history = getSessionHistory().slice(0, 20).reverse();
     setChartData(
-      history.map((r) => ({
-        date: new Date(r.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-        wpm: r.wpm,
-      })),
+      history.map((r, index) => {
+        const completed = new Date(r.completedAt);
+        return {
+          session: index + 1,
+          date: completed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          time: completed.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+          wpm: r.wpm,
+          lessonTitle: r.lessonTitle,
+        };
+      }),
     );
   }, []);
 
@@ -28,7 +34,11 @@ export default function StatsDashboard() {
         <SummaryCard label={t.stats.totalSessions} value={String(aggregate.totalSessions)} />
         <SummaryCard label={t.stats.bestWpm} value={String(aggregate.bestWpm)} accent />
         <SummaryCard label={t.stats.avgAccuracy} value={`${aggregate.avgAccuracy}%`} />
-        <SummaryCard label={t.stats.streak} value={String(aggregate.streak)} icon={<StreakIcon size={32} />} />
+        <SummaryCard
+          label={t.stats.streak}
+          value={String(aggregate.streak)}
+          icon={<StreakIcon streak={aggregate.streak} size={32} />}
+        />
       </div>
 
       <ProgressChart data={chartData} />

@@ -215,6 +215,7 @@ export const en = {
     heatmapDesc: 'Red keys = most errors. Green = accurate.',
     heatmapNoData: 'Complete a lesson to generate heatmap data.',
     chartHint: 'Historical WPM from your last sessions.',
+    chartSession: 'Session {n}',
     sessionsRecorded: 'sessions recorded',
   },
   settings: {
