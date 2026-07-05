@@ -8,6 +8,7 @@ import { getLessonById } from '@/utils/curriculum/lessons';
 import {
   resolveRaceText,
   isBlindModeActive,
+  isVampireModeActive,
   totalModifierMultiplier,
 } from '@/utils/multiplayer/roomConfig';
 import { resolveRaceTextSource, MULTIPLAYER_LESSON_ID } from '@/utils/stats/sessionDisplay';
@@ -241,6 +242,7 @@ export default function MultiplayerRacePanel({
           musicTimeline={musicTimeline}
           musicPacerEnabled={musicPacerEnabled}
           scoreMultiplier={totalMultiplier}
+          vampireMode={isVampireModeActive(roomState.modifiers)}
           sessionPersist={sessionPersist}
           onProgressChange={handleProgressChange}
           ariaLabel={lessonTitle}

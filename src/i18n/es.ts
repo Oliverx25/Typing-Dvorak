@@ -472,6 +472,7 @@ export const es: TranslationKey = {
     modifierRhythmLockDesc: 'Mantente al ritmo de la música.',
     modifierVampire: 'Vampiro',
     modifierVampireDesc: 'Los errores drenan tu puntuación con el tiempo.',
+    vampireHealthLabel: 'Vida',
     modifierHidden: 'Oculto',
     modifierHiddenDesc: 'El progreso del oponente es invisible.',
     modifierHalfTime: 'Half Time',

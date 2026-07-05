@@ -18,6 +18,12 @@ import {
   calculateRaceAccuracy,
   scoreIncrementForHit,
 } from '../utils/multiplayer/raceScoring';
+import {
+  VAMPIRE_MAX_HP,
+  applyVampireErrorDamage,
+  applyVampirePassiveDrain,
+  applyVampireScoreDrain,
+} from '../utils/multiplayer/vampireMode';
 import type { PracticeMode } from '../utils/app/settings';
 import type { Lesson } from '../utils/curriculum/lessons';
 import type { SessionPersistOptions } from '../utils/stats/sessionTypes';
@@ -38,6 +44,8 @@ interface UseTypingSessionOptions {
   raceMode?: boolean;
   /** Risk/reward multiplier from active modifiers. */
   scoreMultiplier?: number;
+  /** Vampire modifier: HP bar + score drain on mistakes. */
+  vampireMode?: boolean;
   /** Override lesson id/title when persisting (e.g. multiplayer). */
   sessionPersist?: SessionPersistOptions;
 }
@@ -63,6 +71,7 @@ export function useTypingSession({
   customText,
   raceMode = false,
   scoreMultiplier = 1,
+  vampireMode = false,
   sessionPersist,
 }: UseTypingSessionOptions) {
   const isTestMode = mode === 'test';
@@ -93,6 +102,10 @@ export function useTypingSession({
   const [maxCombo, setMaxCombo] = useState(0);
   const [comboBroke, setComboBroke] = useState(false);
   const [raceScore, setRaceScore] = useState(0);
+  const [vampireHp, setVampireHp] = useState(VAMPIRE_MAX_HP);
+  const [vampireDamaged, setVampireDamaged] = useState(false);
+  const vampireEliminatedRef = useRef(false);
+  const vampireDamageTimerRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const sessionMissesRef = useRef<Record<string, number>>({});
@@ -132,6 +145,10 @@ export function useTypingSession({
   maxComboRef.current = maxCombo;
   const raceScoreRef = useRef(0);
   raceScoreRef.current = raceScore;
+  const correctCharsRef = useRef(0);
+  correctCharsRef.current = correctChars;
+  const errorKeystrokesRef = useRef(0);
+  errorKeystrokesRef.current = errorKeystrokes;
 
   const finishSession = useCallback(
     (result: TypingStats) => {
@@ -179,6 +196,43 @@ export function useTypingSession({
     [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier],
   );
 
+  const forceFinishFromVampire = useCallback(() => {
+    if (vampireEliminatedRef.current || sessionSavedRef.current) return;
+    vampireEliminatedRef.current = true;
+    const elapsed = startTimeRef.current
+      ? Date.now() - startTimeRef.current - totalPausedMsRef.current
+      : elapsedMs;
+    finishSession(
+      buildStats(
+        correctCharsRef.current,
+        errorKeystrokesRef.current,
+        Math.max(elapsed, 1),
+        isTestMode,
+      ),
+    );
+  }, [elapsedMs, finishSession, isTestMode]);
+
+  const applyVampireHit = useCallback(() => {
+    setVampireHp((prev) => {
+      const next = applyVampireErrorDamage(prev);
+      if (next <= 0) {
+        requestAnimationFrame(() => forceFinishFromVampire());
+      }
+      return next;
+    });
+    if (raceMode) {
+      setRaceScore((prev) => applyVampireScoreDrain(prev));
+    }
+    setVampireDamaged(true);
+    if (vampireDamageTimerRef.current !== null) {
+      window.clearTimeout(vampireDamageTimerRef.current);
+    }
+    vampireDamageTimerRef.current = window.setTimeout(() => {
+      setVampireDamaged(false);
+      vampireDamageTimerRef.current = null;
+    }, 350);
+  }, [forceFinishFromVampire, raceMode]);
+
   const togglePause = useCallback(() => {
     if (!isTestMode || !started || finished) return;
     setPaused((prev) => {
@@ -221,8 +275,29 @@ export function useTypingSession({
     setMaxCombo(0);
     setComboBroke(false);
     setRaceScore(0);
+    setVampireHp(VAMPIRE_MAX_HP);
+    setVampireDamaged(false);
+    vampireEliminatedRef.current = false;
+    if (vampireDamageTimerRef.current !== null) {
+      window.clearTimeout(vampireDamageTimerRef.current);
+      vampireDamageTimerRef.current = null;
+    }
     requestAnimationFrame(() => containerRef.current?.focus());
   }, [isTestMode, lesson, locale, customText]);
+
+  useEffect(() => {
+    if (!started || finished || paused || !vampireMode) return;
+    const interval = setInterval(() => {
+      setVampireHp((prev) => {
+        const next = applyVampirePassiveDrain(prev, 100);
+        if (next <= 0 && prev > 0) {
+          requestAnimationFrame(() => forceFinishFromVampire());
+        }
+        return next;
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [started, finished, paused, vampireMode, forceFinishFromVampire]);
 
   useEffect(() => {
     if (!started || finished || paused) return;
@@ -353,6 +428,7 @@ export function useTypingSession({
     } else {
       setErrorKeystrokes((n) => n + 1);
       sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
+      if (vampireMode) applyVampireHit();
       setCombo((prev) => {
         if (prev > 0) setComboBroke(true);
         return 0;
@@ -404,6 +480,8 @@ export function useTypingSession({
     maxCombo,
     comboBroke,
     raceScore,
+    vampireHp,
+    vampireDamaged,
     errorKeystrokes,
     startTime,
     elapsedMs,

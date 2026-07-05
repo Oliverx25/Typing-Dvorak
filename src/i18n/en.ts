@@ -470,6 +470,7 @@ export const en = {
     modifierRhythmLockDesc: 'Stay on beat with the music.',
     modifierVampire: 'Vampire',
     modifierVampireDesc: 'Errors drain your score over time.',
+    vampireHealthLabel: 'Health',
     modifierHidden: 'Hidden',
     modifierHiddenDesc: 'Opponent progress is invisible.',
     modifierHalfTime: 'Half Time',

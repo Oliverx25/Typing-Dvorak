@@ -9,6 +9,7 @@ import ModeToggle, { ModeDescription } from './ModeToggle';
 import PauseOverlay from './PauseOverlay';
 import ComboCounter from './ComboCounter';
 import TypingTextPrompter from './TypingTextPrompter';
+import VampireHealthBar from './VampireHealthBar';
 
 import type { PracticeMode } from '@/utils/app/settings';
 import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
@@ -43,6 +44,7 @@ interface TypingTestProps {
   /** When true, song LRC / WPM pacing is active (rhythm_lock in races). */
   musicPacerEnabled?: boolean;
   scoreMultiplier?: number;
+  vampireMode?: boolean;
   sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
 }
@@ -61,6 +63,7 @@ export default function TypingTest({
   musicTimeline = null,
   musicPacerEnabled = false,
   scoreMultiplier = 1,
+  vampireMode = false,
   sessionPersist,
   onProgressChange,
 }: TypingTestProps) {
@@ -79,6 +82,7 @@ export default function TypingTest({
     customText,
     raceMode,
     scoreMultiplier,
+    vampireMode,
     sessionPersist,
   });
 
@@ -102,6 +106,8 @@ export default function TypingTest({
     maxCombo,
     comboBroke,
     raceScore,
+    vampireHp,
+    vampireDamaged,
     errorKeystrokes,
     startTime,
     clearComboBroke,
@@ -211,6 +217,10 @@ export default function TypingTest({
         timeRemaining={timeRemaining}
         errors={raceMode ? errorKeystrokes : undefined}
       />
+
+      {vampireMode && !finished ? (
+        <VampireHealthBar hp={vampireHp} damaged={vampireDamaged} />
+      ) : null}
 
       <div
         ref={containerRef}

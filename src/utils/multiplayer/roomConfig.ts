@@ -249,6 +249,10 @@ export function isBlindModeActive(modifiers: RaceModifier[]): boolean {
   return modifiers.includes('blind_mode');
 }
 
+export function isVampireModeActive(modifiers: RaceModifier[]): boolean {
+  return modifiers.includes('vampire');
+}
+
 export function availableModifiers(textSource: 'lesson' | 'custom' | 'song'): RaceModifier[] {
   return ALL_MODIFIERS.filter(
     (mod) => !SONG_ONLY_MODIFIERS.includes(mod) || textSource === 'song',
