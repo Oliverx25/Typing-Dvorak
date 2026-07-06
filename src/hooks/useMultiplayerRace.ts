@@ -11,6 +11,7 @@ import {
   getPrimaryVictoryCondition,
   type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
+import { ThrottledProgressBroadcaster } from '@/utils/multiplayer/progressBroadcast';
 
 export interface LocalRaceProgress {
   wpm: number;
@@ -87,7 +88,7 @@ export function useMultiplayerRace({
   const [remoteProgress, setRemoteProgress] = useState<RaceParticipantProgress[]>([]);
   const progressMapRef = useRef(new Map<string, RaceProgressPayload>());
   const animationFrameRef = useRef<number | null>(null);
-  const lastBroadcastAtRef = useRef(0);
+  const broadcasterRef = useRef<ThrottledProgressBroadcaster | null>(null);
 
   const primaryVictory = useMemo(
     () => getPrimaryVictoryCondition(winCondition),
@@ -172,8 +173,32 @@ export function useMultiplayerRace({
     scheduleFlush();
   }, [players, scheduleFlush]);
 
+  useEffect(() => {
+    if (!channel || !currentUserId || !enabled) {
+      broadcasterRef.current?.dispose();
+      broadcasterRef.current = null;
+      return;
+    }
+
+    const sendProgress = async (payload: RaceProgressPayload) => {
+      await channel.send({
+        type: 'broadcast',
+        event: 'progress',
+        payload,
+      });
+    };
+
+    broadcasterRef.current?.dispose();
+    broadcasterRef.current = new ThrottledProgressBroadcaster(sendProgress);
+
+    return () => {
+      broadcasterRef.current?.dispose();
+      broadcasterRef.current = null;
+    };
+  }, [channel, currentUserId, enabled]);
+
   const broadcastProgress = useCallback(
-    async (
+    (
       wpm: number,
       percentage: number,
       accuracy: number,
@@ -183,16 +208,13 @@ export function useMultiplayerRace({
       finished = false,
       force = false,
     ) => {
-      if (!channel || !currentUserId || !enabled) return;
+      if (!currentUserId || !enabled) return;
 
-      const now = Date.now();
-      if (!force && !finished && now - lastBroadcastAtRef.current < 500) return;
-      lastBroadcastAtRef.current = now;
+      const broadcaster = broadcasterRef.current;
+      if (!broadcaster) return;
 
-      await channel.send({
-        type: 'broadcast',
-        event: 'progress',
-        payload: {
+      broadcaster.queue(
+        {
           userId: currentUserId,
           wpm: Math.max(0, Math.round(wpm)),
           percentage: clampPercentage(percentage),
@@ -200,12 +222,13 @@ export function useMultiplayerRace({
           maxCombo: Math.max(0, maxCombo),
           combo: Math.max(0, combo),
           score,
-          updatedAt: now,
+          updatedAt: Date.now(),
           finished,
-        } satisfies RaceProgressPayload,
-      });
+        },
+        force,
+      );
     },
-    [channel, currentUserId, enabled],
+    [currentUserId, enabled],
   );
 
   const leaderboard = useMemo(() => {

@@ -15,7 +15,7 @@ import {
   mergeRoomState,
 } from '@/utils/multiplayer/roomConfig';
 import { clearCreateRoomConfig, readCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
-import { parsePresenceState, normalizePlayersForLobbyView } from '@/utils/multiplayer/presence';
+import { parsePresenceState, normalizePlayersForLobbyView, applyPresenceJoinDiff, applyPresenceLeaveDiff, type PresenceJoinDiff, type PresenceLeaveDiff } from '@/utils/multiplayer/presence';
 import { canAdvanceToResults } from '@/utils/multiplayer/raceCompletion';
 import {
   RACE_COUNTDOWN_SECONDS,
@@ -77,6 +77,7 @@ export function useMultiplayerLobby({
   const returnedFromResultsRef = useRef(false);
   const voluntaryDepartRef = useRef(false);
   const dismissedPlayersRef = useRef<Map<string, number>>(new Map());
+  const playersMapRef = useRef(new Map<string, LobbyPlayerPresence>());
 
   returnedFromResultsRef.current = returnedFromResults;
 
@@ -120,11 +121,15 @@ export function useMultiplayerLobby({
   const broadcastRoomState = useCallback(async (state: RoomBroadcastState) => {
     const activeChannel = channelRef.current;
     if (!activeChannel) return;
-    await activeChannel.send({
-      type: 'broadcast',
-      event: 'room:state',
-      payload: state,
-    });
+    try {
+      await activeChannel.send({
+        type: 'broadcast',
+        event: 'room:state',
+        payload: state,
+      });
+    } catch (err) {
+      console.warn('[multiplayer] room state broadcast failed:', err);
+    }
   }, []);
 
   const claimOwnership = useCallback(async () => {
@@ -197,12 +202,8 @@ export function useMultiplayerLobby({
     return phase === 'lobby' || returnedFromResultsRef.current;
   }, []);
 
-  const syncPlayers = useCallback(
-    (activeChannel: RealtimeChannel) => {
-      const parsed = parsePresenceState(
-        activeChannel.presenceState<LobbyPlayerPresence>() as Record<string, unknown[]>,
-      );
-
+  const finalizePlayers = useCallback(
+    (parsed: LobbyPlayerPresence[]) => {
       for (const [userId] of dismissedPlayersRef.current) {
         if (!parsed.some((player) => player.userId === userId)) {
           dismissedPlayersRef.current.delete(userId);
@@ -255,8 +256,39 @@ export function useMultiplayerLobby({
     [isInLobbyView, maybeAdvanceToResults, maybeTransferOwnership, user?.id],
   );
 
+  const syncPlayers = useCallback(
+    (activeChannel: RealtimeChannel) => {
+      const parsed = parsePresenceState(
+        activeChannel.presenceState<LobbyPlayerPresence>() as Record<string, unknown[]>,
+      );
+      playersMapRef.current = new Map(parsed.map((player) => [player.userId, player]));
+      finalizePlayers(parsed);
+    },
+    [finalizePlayers],
+  );
+
+  const applyPresenceJoin = useCallback(
+    (diff: PresenceJoinDiff) => {
+      const next = applyPresenceJoinDiff(playersMapRef.current, diff);
+      finalizePlayers(next);
+    },
+    [finalizePlayers],
+  );
+
+  const applyPresenceLeave = useCallback(
+    (diff: PresenceLeaveDiff) => {
+      const next = applyPresenceLeaveDiff(playersMapRef.current, diff);
+      finalizePlayers(next);
+    },
+    [finalizePlayers],
+  );
+
   const syncPlayersRef = useRef(syncPlayers);
   syncPlayersRef.current = syncPlayers;
+  const applyPresenceJoinRef = useRef(applyPresenceJoin);
+  applyPresenceJoinRef.current = applyPresenceJoin;
+  const applyPresenceLeaveRef = useRef(applyPresenceLeave);
+  applyPresenceLeaveRef.current = applyPresenceLeave;
 
   const prevPhaseRef = useRef<RoomPhase | null>(null);
 
@@ -383,6 +415,7 @@ export function useMultiplayerLobby({
     voluntaryDepartRef.current = false;
     pendingReadyRef.current = null;
     dismissedPlayersRef.current.clear();
+    playersMapRef.current.clear();
 
     const cleanupChannel = (ch: RealtimeChannel | null) => {
       if (!ch) return;
@@ -408,8 +441,12 @@ export function useMultiplayerLobby({
 
       nextChannel
         .on('presence', { event: 'sync' }, () => syncPlayersRef.current(nextChannel))
-        .on('presence', { event: 'join' }, () => syncPlayersRef.current(nextChannel))
-        .on('presence', { event: 'leave' }, () => syncPlayersRef.current(nextChannel))
+        .on('presence', { event: 'join' }, (payload) => {
+          applyPresenceJoinRef.current(payload as PresenceJoinDiff);
+        })
+        .on('presence', { event: 'leave' }, (payload) => {
+          applyPresenceLeaveRef.current(payload as PresenceLeaveDiff);
+        })
         .on('broadcast', { event: 'progress' }, ({ payload }) => {
           progressHandlerRef.current?.(payload);
         })
@@ -449,11 +486,15 @@ export function useMultiplayerLobby({
             setStatus('connected');
             syncPlayersRef.current(nextChannel);
             scheduleOwnershipClaim();
-            await nextChannel.send({
-              type: 'broadcast',
-              event: 'room:request_state',
-              payload: { userId: user.id },
-            });
+            try {
+              await nextChannel.send({
+                type: 'broadcast',
+                event: 'room:request_state',
+                payload: { userId: user.id },
+              });
+            } catch (err) {
+              console.warn('[multiplayer] room state request failed:', err);
+            }
           } else if (subscribeStatus === 'CHANNEL_ERROR' || subscribeStatus === 'TIMED_OUT') {
             cleanupChannel(nextChannel);
 

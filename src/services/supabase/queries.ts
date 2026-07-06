@@ -154,3 +154,37 @@ export async function fetchAllUserSessionSummaries(): Promise<SessionSummaryRow[
 
   return rows;
 }
+
+export interface LessonMasteryRow {
+  lesson_id: string;
+  mastery_xp: number;
+}
+
+/** Per-lesson mastery XP stored in Supabase (source of truth when signed in). */
+export async function fetchUserLessonMastery(): Promise<LessonMasteryRow[]> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('user_lesson_mastery')
+      .select('lesson_id, mastery_xp')
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.warn('[supabase] fetch lesson mastery failed:', error.message);
+      return [];
+    }
+
+    return (data ?? []).map((row) => ({
+      lesson_id: row.lesson_id as string,
+      mastery_xp: row.mastery_xp as number,
+    }));
+  } catch (error) {
+    console.warn('[supabase] fetch lesson mastery failed:', error);
+    return [];
+  }
+}

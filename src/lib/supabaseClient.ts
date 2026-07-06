@@ -145,6 +145,21 @@ export type Database = {
         };
         Update: Partial<Database['public']['Tables']['user_stats']['Insert']>;
       };
+      user_lesson_mastery: {
+        Row: {
+          user_id: string;
+          lesson_id: string;
+          mastery_xp: number;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          lesson_id: string;
+          mastery_xp?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['user_lesson_mastery']['Insert']>;
+      };
       race_results: {
         Row: {
           id: string;

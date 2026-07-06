@@ -1,5 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
-import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries } from './queries';
+import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries, fetchUserLessonMastery } from './queries';
 import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/progress/storage';
 import { replaceLocalProgress } from '@/utils/progress/storage';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
@@ -18,8 +18,7 @@ import { setStoredTheme } from '@/utils/progress/storage';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { updateProfileStreak } from './syncProgress';
 import { syncBadgesFromSessionRows } from './syncBadges';
-import type { UserProfileRow } from './profileRow';
-
+import type { LessonMasteryRow } from './queries';
 export type { UserProfileRow } from './profileRow';
 
 function mapSessionRow(row: {
@@ -85,6 +84,33 @@ function buildProgressFromSessions(
   };
 }
 
+function mergeMasteryIntoProgress(
+  progress: UserProgress,
+  masteryRows: LessonMasteryRow[],
+): UserProgress {
+  if (masteryRows.length === 0) return progress;
+
+  const lessons = { ...progress.lessons };
+
+  for (const row of masteryRows) {
+    const existing = lessons[row.lesson_id];
+    const masteryXp = Math.max(existing?.masteryXp ?? 0, row.mastery_xp);
+
+    lessons[row.lesson_id] = {
+      bestWpm: existing?.bestWpm ?? 0,
+      bestAccuracy: existing?.bestAccuracy ?? 0,
+      attempts: existing?.attempts ?? 0,
+      lastPlayedAt: existing?.lastPlayedAt ?? '',
+      highestGrade: existing?.highestGrade,
+      highestScore: existing?.highestScore,
+      maxWpm: existing?.maxWpm,
+      masteryXp,
+    };
+  }
+
+  return { ...progress, lessons };
+}
+
 function mapKeyErrors(rows: { key_char: string; error_count: number; hit_count?: number }[]): KeyStatsData {
   const hits: Record<string, number> = {};
   const misses: Record<string, number> = {};
@@ -100,40 +126,49 @@ function mapKeyErrors(rows: { key_char: string; error_count: number; hit_count?:
 
 /** Replace local progress with this account's cloud data. Call after clearing guest keys. */
 export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
-  const supabase = getSupabaseClient();
-  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  try {
+    const supabase = getSupabaseClient();
+    const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
 
-  const [sessions, keyErrors, profile, timestamps] = await Promise.all([
-    fetchUserSessions(100),
-    fetchUserKeyErrors(),
-    fetchUserProfile(),
-    fetchUserSessionTimestamps(),
-  ]);
+    const [sessions, keyErrors, profile, timestamps, masteryRows] = await Promise.all([
+      fetchUserSessions(100),
+      fetchUserKeyErrors(),
+      fetchUserProfile(),
+      fetchUserSessionTimestamps(),
+      fetchUserLessonMastery(),
+    ]);
 
-  const streakResult = computeStreakFromPracticeDates(collectPracticeDates(timestamps));
-  const history = sessions.map(mapSessionRow);
-  const progress = buildProgressFromSessions(history, streakResult);
-  replaceLocalProgress(history, progress);
-  replaceKeyStats(mapKeyErrors(keyErrors));
+    const streakResult = computeStreakFromPracticeDates(collectPracticeDates(timestamps));
+    const history = sessions.map(mapSessionRow);
+    const progress = mergeMasteryIntoProgress(
+      buildProgressFromSessions(history, streakResult),
+      masteryRows,
+    );
+    replaceLocalProgress(history, progress);
+    replaceKeyStats(mapKeyErrors(keyErrors));
 
-  if (user) {
-    await updateProfileStreak(user.id, streakResult);
-    const sessionSummaries = await fetchAllUserSessionSummaries();
-    await syncBadgesFromSessionRows(user.id, sessionSummaries, streakResult.streak);
+    if (user) {
+      await updateProfileStreak(user.id, streakResult);
+      const sessionSummaries = await fetchAllUserSessionSummaries();
+      await syncBadgesFromSessionRows(user.id, sessionSummaries, streakResult.streak);
+    }
+
+    dispatchSessionComplete();
+    dispatchKeyStatsUpdated();
+
+    if (profile && user) {
+      return {
+        ...profile,
+        current_streak: streakResult.streak,
+        last_practice_date: streakResult.lastPracticeDate,
+      };
+    }
+
+    return profile;
+  } catch (error) {
+    console.warn('[load] cloud progress failed:', error);
+    return null;
   }
-
-  dispatchSessionComplete();
-  dispatchKeyStatsUpdated();
-
-  if (profile && user) {
-    return {
-      ...profile,
-      current_streak: streakResult.streak,
-      last_practice_date: streakResult.lastPracticeDate,
-    };
-  }
-
-  return profile;
 }
 
 /** Sync all app settings + theme from profile to local storage after login. */

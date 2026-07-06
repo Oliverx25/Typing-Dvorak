@@ -3,8 +3,9 @@ import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabaseClient';
 import { SESSION_COMPLETE_EVENT, dispatchKeyStatsUpdated, dispatchSessionComplete, sessionCompleteDetail } from '../utils/app/events';
 import { clearGuestProgress } from '../utils/progress/guestProgress';
-import { syncSessionToCloud, syncKeyErrorsToCloud } from '../services/supabase/syncProgress';
+import { scheduleSessionCloudSync, scheduleKeyErrorsCloudSync } from '../services/supabase/syncProgress';
 import { syncBadgesToCloud } from '../services/supabase/syncBadges';
+import { safeAsync, safeAsyncVoid } from '../utils/network/graceful';
 import {
   loadProgressFromCloud,
   restoreCustomAvatarFromProfile,
@@ -72,9 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       clearGuestProgress();
       const loadedProfile = await loadProgressFromCloud();
-      await restoreProfilePreferencesFromProfile();
-      await restoreProfileDisplayFromProfile();
-      await restoreCustomAvatarFromProfile();
+      await safeAsync('restore profile preferences', () => restoreProfilePreferencesFromProfile(), undefined);
+      await safeAsync('restore profile display', () => restoreProfileDisplayFromProfile(), undefined);
+      await safeAsync('restore custom avatar', () => restoreCustomAvatarFromProfile(), undefined);
 
       if (cancelled) return;
 
@@ -107,9 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (syncedSessionKeysRef.current.has(syncKey)) return;
       syncedSessionKeysRef.current.add(syncKey);
 
-      syncSessionToCloud(user.id, record);
-      syncKeyErrorsToCloud(user.id);
-      syncBadgesToCloud(user.id);
+      scheduleSessionCloudSync(user.id, record);
+      scheduleKeyErrorsCloudSync(user.id);
+      safeAsyncVoid('badges cloud sync', () => syncBadgesToCloud(user.id));
     };
 
     window.addEventListener(SESSION_COMPLETE_EVENT, handler);
