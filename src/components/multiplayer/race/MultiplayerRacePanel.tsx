@@ -94,9 +94,12 @@ export default function MultiplayerRacePanel({
         raceTextSource === 'song' && roomState.songMeta?.id != null
           ? roomState.songMeta.id
           : undefined,
+      songTitle:
+        raceTextSource === 'song' ? roomState.songMeta?.title ?? undefined : undefined,
+      raceModifiers: roomState.modifiers.length > 0 ? roomState.modifiers : undefined,
       totalMultiplier,
     }),
-    [raceTextSource, roomState.songMeta?.id, totalMultiplier],
+    [raceTextSource, roomState.songMeta?.id, roomState.songMeta?.title, roomState.modifiers, totalMultiplier],
   );
 
   const raceSessionActive = phase === 'racing' || phase === 'results';

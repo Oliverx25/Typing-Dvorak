@@ -1,6 +1,7 @@
 import type { TypingStats } from '../typing/typing';
 import type { PracticeMode } from '../app/settings';
 import type { RaceTextSource } from '../stats/sessionTypes';
+import type { RaceModifier } from '../multiplayer/roomConfig.types';
 import { MULTIPLAYER_LESSON_ID } from '../stats/sessionDisplay';
 import { collectPracticeDates, computeStreakFromPracticeDates } from './streak';
 import { STORAGE_KEYS } from './keys';
@@ -22,6 +23,10 @@ export interface SessionRecord {
   score?: number;
   /** Set when lessonId is multiplayer — origin of race text. */
   multiplayerSource?: RaceTextSource;
+  /** Song title when multiplayerSource is 'song'. */
+  songTitle?: string;
+  /** Active race modifiers (excludes victory condition). */
+  raceModifiers?: RaceModifier[];
 }
 
 export interface LessonProgress {
@@ -76,6 +81,8 @@ export function saveSession(
   options?: {
     multiplayerSource?: RaceTextSource;
     songId?: number;
+    songTitle?: string;
+    raceModifiers?: RaceModifier[];
     scoreOverride?: number;
     gradeOverride?: string;
     totalMultiplier?: number;
@@ -98,6 +105,8 @@ export function saveSession(
     grade,
     score,
     multiplayerSource: options?.multiplayerSource,
+    songTitle: options?.songTitle,
+    raceModifiers: options?.raceModifiers?.length ? options.raceModifiers : undefined,
   };
 
   const history = [record, ...getSessionHistory()].slice(0, MAX_RECORDS);

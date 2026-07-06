@@ -17,6 +17,7 @@ export interface ChartPoint {
   time: string;
   wpm: number;
   lessonTitle?: string;
+  modifierLabels?: string[];
 }
 
 interface ProgressChartProps {
@@ -62,7 +63,14 @@ function ChartTooltip({
         {sessionLabel(point.session)} · {point.date} {point.time}
       </p>
       {point.lessonTitle ? (
-        <p className="mt-0.5 max-w-[12rem] truncate text-[11px] text-slate-500">{point.lessonTitle}</p>
+        <p className="mt-0.5 max-w-[14rem] truncate text-[11px] font-medium text-slate-300">
+          {point.lessonTitle}
+        </p>
+      ) : null}
+      {point.modifierLabels && point.modifierLabels.length > 0 ? (
+        <p className="mt-0.5 max-w-[14rem] truncate text-[11px] text-slate-500">
+          {point.modifierLabels.join(' · ')}
+        </p>
       ) : null}
       <p className="mt-1 font-mono text-sm font-semibold text-slate-50">
         {point.wpm} {wpmLabel}

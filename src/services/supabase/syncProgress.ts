@@ -53,6 +53,8 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
     mode: record.mode,
     max_combo: record.maxCombo ?? 0,
     race_source: record.multiplayerSource ?? null,
+    song_title: record.songTitle ?? null,
+    race_modifiers: record.raceModifiers ?? [],
   });
 
   if (error) {
@@ -104,6 +106,8 @@ export async function migrateLocalSessionsToCloud(userId: string, history: Sessi
     mode: r.mode,
     max_combo: r.maxCombo ?? 0,
     race_source: r.multiplayerSource ?? null,
+    song_title: r.songTitle ?? null,
+    race_modifiers: r.raceModifiers ?? [],
     created_at: r.completedAt,
   }));
 

@@ -179,6 +179,8 @@ export function useTypingSession({
         {
           multiplayerSource: sessionPersist?.multiplayerSource,
           songId: sessionPersist?.songId,
+          songTitle: sessionPersist?.songTitle,
+          raceModifiers: sessionPersist?.raceModifiers,
           scoreOverride: raceMode ? raceScoreRef.current : sessionPersist?.scoreOverride,
           gradeOverride: sessionPersist?.gradeOverride,
           totalMultiplier: sessionPersist?.totalMultiplier ?? (raceMode ? scoreMultiplier : undefined),

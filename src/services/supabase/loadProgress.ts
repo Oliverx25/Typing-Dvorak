@@ -6,8 +6,10 @@ import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import type { RaceTextSource } from '@/utils/stats/sessionTypes';
+import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
 import type { PracticeMode } from '@/utils/app/settings';
 import { calculateGrade, bestGrade } from '@/utils/grading';
+import { parseStoredRaceModifiers } from '@/utils/stats/sessionDisplay';
 import { getSettings, saveSettings } from '@/utils/app/settings';
 import { appPreferencesFromUserSettings } from '@/utils/app/settingsSync';
 import { dispatchSessionComplete, dispatchKeyStatsUpdated, dispatchProfilePreferencesSynced } from '@/utils/app/events';
@@ -27,6 +29,8 @@ function mapSessionRow(row: {
   mode: string;
   created_at: string;
   race_source?: string | null;
+  song_title?: string | null;
+  race_modifiers?: string[] | null;
   grade?: string | null;
   score?: number | null;
   max_combo?: number | null;
@@ -46,6 +50,8 @@ function mapSessionRow(row: {
     grade: row.grade ?? calculateGrade(Number(row.accuracy)),
     score: row.score ?? undefined,
     multiplayerSource: raceSource ?? undefined,
+    songTitle: row.song_title ?? undefined,
+    raceModifiers: parseStoredRaceModifiers(row.race_modifiers),
   };
 }
 
