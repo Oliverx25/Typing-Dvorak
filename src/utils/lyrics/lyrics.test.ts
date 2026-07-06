@@ -127,6 +127,12 @@ describe('sanitizeLyrics', () => {
     const cleaned = sanitizeLyrics(raw, 200);
     expect(cleaned.split(/\s+/)).toHaveLength(200);
   });
+
+  it('strips HTML before processing lyrics', async () => {
+    const { sanitizeLyrics } = await import('./sanitizeLyrics');
+    const raw = '<script>alert(1)</script>Hello\n<b>world</b>';
+    expect(sanitizeLyrics(raw)).toBe('Hello\nworld');
+  });
 });
 
 describe('sanitizeLyrics newline handling', () => {

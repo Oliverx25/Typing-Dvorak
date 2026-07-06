@@ -16,6 +16,7 @@ import {
   type RaceModifier,
   type VictoryCondition,
 } from '@/utils/multiplayer/roomConfig';
+import { sanitizeTypableText } from '@/utils/security/sanitizeText';
 import type { TextSource } from '@/utils/multiplayer/roomStorage';
 import type { LyricSongResult, SelectedSongMeta } from '@/utils/lyrics/types';
 import { getSongProgress } from '@/utils/progress/songProgress';
@@ -107,15 +108,15 @@ export default function CreateRoomSettings({
   };
 
   const handleCustomTextChange = (next: string) => {
-    const clipped = next.slice(0, CUSTOM_RACE_TEXT_MAX);
-    setCustomText(clipped);
-    onChange({ customText: clipped, textSource: 'custom', songMeta: null });
+    const cleaned = sanitizeTypableText(next, CUSTOM_RACE_TEXT_MAX);
+    setCustomText(cleaned);
+    onChange({ customText: cleaned, textSource: 'custom', songMeta: null });
   };
 
   const handleSongSelect = (song: LyricSongResult) => {
     onChange({
       textSource: 'song',
-      customText: song.plainLyrics,
+      customText: sanitizeTypableText(song.plainLyrics, CUSTOM_RACE_TEXT_MAX),
       songMeta: toSongMeta(song),
     });
   };

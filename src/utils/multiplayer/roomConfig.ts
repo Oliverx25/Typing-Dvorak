@@ -1,6 +1,7 @@
 import type { Locale } from '@/i18n';
 import type { RoomBroadcastState } from '@/types/multiplayer';
 import { CORE_LESSONS, getLessonById, getLessonText } from '@/utils/curriculum/lessons';
+import { sanitizeTypableText } from '@/utils/security/sanitizeText';
 import {
   MODIFIER_EXCLUSIVE_PAIRS,
   resolveModifierConflicts,
@@ -304,7 +305,7 @@ export function resolveRaceText(
   state: Pick<RoomBroadcastState, 'lessonId' | 'customText'>,
   locale: Locale,
 ): string {
-  const custom = state.customText.trim();
+  const custom = sanitizeTypableText(state.customText, CUSTOM_RACE_TEXT_MAX).trim();
   if (custom) return custom;
 
   const lesson = getLessonById(state.lessonId) ?? getLessonById(DEFAULT_RACE_LESSON_ID);
@@ -342,7 +343,10 @@ export function mergeRoomState(
     return {
       ownerId: incoming.ownerId,
       lessonId: incoming.lessonId ?? current?.lessonId ?? DEFAULT_RACE_LESSON_ID,
-      customText: incoming.customText ?? current?.customText ?? '',
+      customText: sanitizeTypableText(
+        incoming.customText ?? current?.customText ?? '',
+        CUSTOM_RACE_TEXT_MAX,
+      ),
       textSource,
       songMeta: textSource === 'song' ? songMeta : null,
       winCondition: rules.winCondition,

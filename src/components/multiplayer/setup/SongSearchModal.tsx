@@ -11,6 +11,7 @@ import { mergeSongProgress } from '@/utils/progress/songProgress';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { getCachedLyricsSearch, setCachedLyricsSearch } from '@/utils/lyrics/lyricsSearchCache';
 import { focusRingClassName, focusRingInsetClassName } from '@/utils/a11y/focusRing';
+import { sanitizeSearchQuery } from '@/utils/security/sanitizeText';
 
 interface SongSearchModalProps {
   open: boolean;
@@ -195,7 +196,7 @@ export default function SongSearchModal({
               role="searchbox"
               autoFocus
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => setQuery(sanitizeSearchQuery(event.target.value))}
               placeholder={t.multiplayer.lyricsSearchPlaceholder}
               aria-controls="song-search-results"
               aria-activedescendant={

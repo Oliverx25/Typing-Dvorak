@@ -2,7 +2,7 @@ import { getSupabaseClient } from '@/lib/supabaseClient';
 import { getAuthUser } from '@/services/supabase/authSession';
 import { invalidateQueryCache, QUERY_CACHE_KEYS } from '@/services/supabase/queryCache';
 import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
-import { validateDisplayName, validateUsername } from '@/utils/user/profileValidation';
+import { validateDisplayName, validateUsername, normalizeDisplayName, normalizeUsername } from '@/utils/user/profileValidation';
 import type { AppSettings } from '@/utils/app/settings';
 import { userSettingsPayloadFromAppPreferences } from '@/utils/app/settingsSync';
 import type { Theme } from '@/utils/progress/storage';
@@ -56,8 +56,8 @@ export async function updateUserProfile(input: ProfileUpdateInput): Promise<{ er
   const supabase = getSupabaseClient();
   if (!supabase) return { error: 'notConfigured' };
 
-  const displayName = input.displayName.trim();
-  const username = input.username?.trim() ?? '';
+  const displayName = normalizeDisplayName(input.displayName);
+  const username = normalizeUsername(input.username ?? '');
 
   const nameError = validateDisplayName(displayName);
   if (nameError) return { error: nameError };

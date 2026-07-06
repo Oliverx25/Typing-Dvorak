@@ -30,9 +30,10 @@ export default function CustomPracticePage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleStart = () => {
-    const trimmed = text.trim();
-    if (trimmed.length < 10) return;
-    saveCustomText(trimmed);
+    const cleaned = sanitizeCustomText(text).trim();
+    if (cleaned.length < 10) return;
+    saveCustomText(cleaned);
+    setText(cleaned);
     setActive(true);
   };
 
@@ -65,7 +66,7 @@ export default function CustomPracticePage() {
         <div className="space-y-4">
           <textarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => setText(sanitizeCustomText(e.target.value))}
             placeholder={t.custom.placeholder}
             rows={8}
             className={`${formFieldMonoResizableClassName} bg-[var(--color-surface-elevated)] p-4`}

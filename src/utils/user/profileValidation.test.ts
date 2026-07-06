@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateDisplayName, validateUsername } from '@/utils/user/profileValidation';
+import { validateDisplayName, validateUsername, normalizeDisplayName } from '@/utils/user/profileValidation';
 
 describe('validateDisplayName', () => {
   it('rejects empty names', () => {
@@ -15,6 +15,11 @@ describe('validateDisplayName', () => {
     expect(validateDisplayName('Oliver')).toBeNull();
     expect(validateDisplayName('  Ana López  ')).toBeNull();
   });
+
+  it('strips HTML and control characters from names', () => {
+    expect(normalizeDisplayName('<b>Oli</b>ver')).toBe('Oliver');
+    expect(validateDisplayName('<script>alert(1)</script>Ab')).toBeNull();
+  });
 });
 
 describe('validateUsername', () => {
@@ -23,6 +28,7 @@ describe('validateUsername', () => {
   });
 
   it('rejects invalid characters', () => {
+    expect(validateUsername('bad@name')).toBe('usernameInvalid');
     expect(validateUsername('bad name')).toBe('usernameInvalid');
   });
 

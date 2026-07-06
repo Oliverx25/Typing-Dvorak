@@ -30,6 +30,7 @@ import type { Lesson } from '@/utils/curriculum/lessons';
 import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
 import { getLessonText } from '@/utils/curriculum/lessons';
 import type { Locale } from '@/i18n';
+import { sanitizeCustomText } from '@/utils/progress/customText';
 import {
   createInitialTypingCore,
   typingCoreReducer,
@@ -78,7 +79,7 @@ function wordHasUncorrectedErrors(input: string, statuses: CharStatus[]): boolea
 }
 
 function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string): string {
-  if (customText?.trim()) return customText.trim();
+  if (customText?.trim()) return sanitizeCustomText(customText).trim();
   return getLessonText(
     lesson,
     pickRandomText,

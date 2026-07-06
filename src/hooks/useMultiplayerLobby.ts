@@ -12,8 +12,10 @@ import type {
 } from '@/types/multiplayer';
 import {
   createDefaultRoomState,
+  CUSTOM_RACE_TEXT_MAX,
   mergeRoomState,
 } from '@/utils/multiplayer/roomConfig';
+import { sanitizeTypableText } from '@/utils/security/sanitizeText';
 import { clearCreateRoomConfig, readCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
 import { parsePresenceState, normalizePlayersForLobbyView, applyPresenceJoinDiff, applyPresenceLeaveDiff, type PresenceJoinDiff, type PresenceLeaveDiff } from '@/utils/multiplayer/presence';
 import { canAdvanceToResults } from '@/utils/multiplayer/raceCompletion';
@@ -142,7 +144,9 @@ export function useMultiplayerLobby({
       next.lessonId = createConfig.lessonId;
       next.textSource = createConfig.textSource;
       next.customText =
-        createConfig.textSource === 'lesson' ? '' : createConfig.customText;
+        createConfig.textSource === 'lesson'
+          ? ''
+          : sanitizeTypableText(createConfig.customText, CUSTOM_RACE_TEXT_MAX);
       next.songMeta = createConfig.textSource === 'song' ? createConfig.songMeta : null;
       next.winCondition = createConfig.winCondition;
       next.modifiers = createConfig.modifiers;
@@ -588,9 +592,14 @@ export function useMultiplayerLobby({
       if (!user?.id || !current || current.ownerId !== user.id) return;
       if (!canUseLobbyActions()) return;
 
+      const safePartial = { ...partial };
+      if (partial.customText !== undefined) {
+        safePartial.customText = sanitizeTypableText(partial.customText, CUSTOM_RACE_TEXT_MAX);
+      }
+
       const next: RoomBroadcastState = {
         ...current,
-        ...partial,
+        ...safePartial,
         version: current.version + 1,
       };
       applyRoomState(next);

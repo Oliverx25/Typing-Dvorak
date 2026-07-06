@@ -12,7 +12,7 @@ import {
 } from '@/utils/lyrics/typingDifficulty';
 import { fetchItunesMetadata } from '@/utils/lyrics/itunesMetadata';
 import type { LyricSongResult } from '@/utils/lyrics/types';
-import { resolveSongWpmStats } from '@/utils/lyrics/types';
+import { sanitizeSearchQuery, sanitizeTypableText, sanitizeUserText } from '@/utils/security/sanitizeText';
 
 const LRCLIB_SEARCH = 'https://lrclib.net/api/search';
 const USER_AGENT = 'TypingDvorak/2.0 (lyrics-practice; +https://typing-dvorak.vercel.app)';
@@ -216,10 +216,10 @@ function toResult(
 
   return {
     id: hit.id,
-    title: hit.name?.trim() || 'Unknown track',
-    artist: hit.artistName?.trim() || 'Unknown artist',
-    album: hit.albumName?.trim() || null,
-    plainLyrics,
+    title: sanitizeUserText(hit.name?.trim() || 'Unknown track', 200),
+    artist: sanitizeUserText(hit.artistName?.trim() || 'Unknown artist', 200),
+    album: hit.albumName?.trim() ? sanitizeUserText(hit.albumName.trim(), 200) : null,
+    plainLyrics: sanitizeTypableText(plainLyrics),
     coverArt: null,
     durationMs,
     ...metrics,
@@ -267,7 +267,7 @@ async function buildResults(
 
 export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
-  const query = url.searchParams.get('q')?.trim() ?? '';
+  const query = sanitizeSearchQuery(url.searchParams.get('q') ?? '');
 
   if (query.length < 2) {
     return Response.json({ results: [] satisfies LyricSongResult[] });

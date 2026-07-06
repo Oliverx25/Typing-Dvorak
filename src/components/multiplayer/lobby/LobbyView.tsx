@@ -14,6 +14,8 @@ import SongSearchModal from '@/components/multiplayer/setup/SongSearchModal';
 import { roomUrl } from '@/utils/multiplayer/roomCode';
 import { registerRoomExitHandler } from '@/utils/multiplayer/roomExit';
 import type { LyricSongResult } from '@/utils/lyrics/types';
+import { CUSTOM_RACE_TEXT_MAX } from '@/utils/multiplayer/roomConfig';
+import { sanitizeTypableText } from '@/utils/security/sanitizeText';
 import { getSongProgress } from '@/utils/progress/songProgress';
 
 interface LobbyViewProps {
@@ -109,7 +111,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
       const stored = getSongProgress(song.id);
       void updateRoomConfig({
         textSource: 'song',
-        customText: song.plainLyrics,
+        customText: sanitizeTypableText(song.plainLyrics, CUSTOM_RACE_TEXT_MAX),
         songMeta: {
           id: song.id,
           title: song.title,

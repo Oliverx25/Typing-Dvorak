@@ -1,4 +1,5 @@
-import { normalizeWinCondition, normalizeModifiers, stripSongOnlyModifiers, type RaceModifier, type VictoryCondition } from '@/utils/multiplayer/roomConfig';
+import { normalizeWinCondition, normalizeModifiers, stripSongOnlyModifiers, CUSTOM_RACE_TEXT_MAX, type RaceModifier, type VictoryCondition } from '@/utils/multiplayer/roomConfig';
+import { sanitizeTypableText } from '@/utils/security/sanitizeText';
 import type { SelectedSongMeta } from '@/utils/lyrics/types';
 
 export type TextSource = 'lesson' | 'custom' | 'song';
@@ -16,7 +17,14 @@ const PREFIX = 'typing-dvorak:mp-create:';
 
 export function saveCreateRoomConfig(roomCode: string, config: CreateRoomConfig): void {
   try {
-    sessionStorage.setItem(`${PREFIX}${roomCode}`, JSON.stringify(config));
+    const safe: CreateRoomConfig = {
+      ...config,
+      customText:
+        config.textSource === 'lesson'
+          ? ''
+          : sanitizeTypableText(config.customText, CUSTOM_RACE_TEXT_MAX),
+    };
+    sessionStorage.setItem(`${PREFIX}${roomCode}`, JSON.stringify(safe));
   } catch {
     /* ignore quota errors */
   }
@@ -54,7 +62,7 @@ export function readCreateRoomConfig(roomCode: string): CreateRoomConfig | null 
 
     return {
       lessonId: parsed.lessonId,
-      customText: parsed.customText ?? '',
+      customText: sanitizeTypableText(parsed.customText ?? '', CUSTOM_RACE_TEXT_MAX),
       winCondition,
       modifiers:
         textSource === 'song' ? modifiers : stripSongOnlyModifiers(modifiers),
