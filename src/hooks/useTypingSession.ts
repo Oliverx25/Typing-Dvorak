@@ -34,7 +34,7 @@ import {
   createKeystrokeEntry,
   zenWpmFromChars,
   type KeystrokeLogEntry,
-} from '../typing/keystrokeTelemetry';
+} from '../utils/typing/keystrokeTelemetry';
 
 export type CharStatus = 'pending' | 'correct' | 'incorrect';
 
