@@ -1,4 +1,6 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
+import { getAuthUser } from '@/services/supabase/authSession';
+import { invalidateQueryCache, QUERY_CACHE_KEYS } from '@/services/supabase/queryCache';
 import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
 import { validateDisplayName, validateUsername } from '@/utils/user/profileValidation';
 import type { AppSettings } from '@/utils/app/settings';
@@ -13,7 +15,7 @@ export async function syncAppSettingsToProfile(
   const supabase = getSupabaseClient();
   if (!supabase) return { error: null };
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return { error: null };
 
   const payload = userSettingsPayloadFromAppPreferences(settings, theme);
@@ -63,7 +65,7 @@ export async function updateUserProfile(input: ProfileUpdateInput): Promise<{ er
   const usernameError = validateUsername(username);
   if (usernameError) return { error: usernameError };
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return { error: 'notAuthenticated' };
 
   if (username) {
@@ -101,5 +103,6 @@ export async function updateUserProfile(input: ProfileUpdateInput): Promise<{ er
   const metaError = await syncAuthDisplayName(displayName);
   if (metaError) return { error: metaError };
 
+  invalidateQueryCache(user.id, QUERY_CACHE_KEYS.profile);
   return { error: null };
 }

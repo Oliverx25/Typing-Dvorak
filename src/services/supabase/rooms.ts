@@ -1,5 +1,11 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { normalizeRoomCode } from '@/utils/multiplayer/roomCode';
+import { getAuthSessionUserSync } from '@/services/supabase/authSession';
+import {
+  getCachedQuery,
+  setCachedQuery,
+  QUERY_CACHE_KEYS,
+} from '@/services/supabase/queryCache';
 
 export type RoomStatus = 'open' | 'closed' | 'inactive';
 
@@ -17,10 +23,15 @@ export function isRoomJoinable(room: RoomRecord | null): boolean {
 
 export async function fetchRoomByCode(code: string): Promise<RoomRecord | null> {
   try {
+    const normalized = normalizeRoomCode(code);
+    const cacheKey = QUERY_CACHE_KEYS.room(normalized);
+    const userId = getAuthSessionUserSync()?.id ?? 'guest';
+    const cached = getCachedQuery<RoomRecord>(cacheKey, userId);
+    if (cached) return cached;
+
     const supabase = getSupabaseClient();
     if (!supabase) return null;
 
-    const normalized = normalizeRoomCode(code);
     const { data, error } = await supabase
       .from('rooms')
       .select('id, status')
@@ -29,7 +40,9 @@ export async function fetchRoomByCode(code: string): Promise<RoomRecord | null> 
       .maybeSingle();
 
     if (error || !data) return null;
-    return data as RoomRecord;
+    const room = data as RoomRecord;
+    setCachedQuery(cacheKey, userId, room, 30_000);
+    return room;
   } catch (error) {
     console.warn('[rooms] fetch failed:', error);
     return null;

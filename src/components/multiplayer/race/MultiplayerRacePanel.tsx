@@ -302,7 +302,6 @@ export default function MultiplayerRacePanel({
           scoreMultiplier={totalMultiplier}
           vampireMode={isVampireModeActive(roomState.modifiers)}
           suddenDeathMode={isSuddenDeathActive(roomState.modifiers)}
-          musicPacerEnabled={musicPacerEnabled}
           sessionPersist={sessionPersist}
           onProgressChange={handleProgressChange}
           ariaLabel={lessonTitle}

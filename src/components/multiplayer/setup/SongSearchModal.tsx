@@ -7,6 +7,7 @@ import SongCard, { SongCardSkeleton, difficultyTierLabel } from '@/components/mu
 import type { LyricSongResult } from '@/utils/lyrics/types';
 import { mergeSongProgress } from '@/utils/progress/songProgress';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
+import { getCachedLyricsSearch, setCachedLyricsSearch } from '@/utils/lyrics/lyricsSearchCache';
 
 interface SongSearchModalProps {
   open: boolean;
@@ -58,6 +59,14 @@ export default function SongSearchModal({
       return;
     }
 
+    const cached = getCachedLyricsSearch(debouncedQuery);
+    if (cached) {
+      setResults(mergeSongProgress(cached));
+      setError(null);
+      setIsSearching(false);
+      return;
+    }
+
     let cancelled = false;
     setIsSearching(true);
     setError(null);
@@ -75,7 +84,10 @@ export default function SongSearchModal({
         return data.results ?? [];
       })
       .then((next) => {
-        if (!cancelled) setResults(mergeSongProgress(next));
+        if (!cancelled) {
+          setCachedLyricsSearch(debouncedQuery, next);
+          setResults(mergeSongProgress(next));
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) {

@@ -1,4 +1,5 @@
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { getAuthUser } from '@/services/supabase/authSession';
 
 export type OAuthProvider = 'github' | 'google';
 
@@ -84,10 +85,7 @@ export async function signOut(): Promise<void> {
 }
 
 export async function getCurrentUser() {
-  const supabase = getSupabaseClient();
-  if (!supabase) return null;
-  const { data } = await supabase.auth.getUser();
-  return data.user;
+  return getAuthUser();
 }
 
 export { isSupabaseConfigured };

@@ -6,6 +6,8 @@ import { clearGuestProgress } from '@/utils/progress/guestProgress';
 import { scheduleSessionCloudSync, scheduleKeyErrorsCloudSync } from '@/services/supabase/syncProgress';
 import { syncBadgesToCloud } from '@/services/supabase/syncBadges';
 import { safeAsync, safeAsyncVoid } from '@/utils/network/graceful';
+import { setAuthSessionUser } from '@/services/supabase/authSession';
+import { invalidateQueryCache, invalidateUserProgressCache } from '@/services/supabase/queryCache';
 import {
   loadProgressFromCloud,
   restoreCustomAvatarFromProfile,
@@ -43,13 +45,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth
       .getUser()
       .then(({ data }) => {
+        setAuthSessionUser(data.user ?? null);
         setUser(data.user);
         setLoading(false);
       })
       .catch(() => setLoading(false));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const nextUser = session?.user ?? null;
+      setAuthSessionUser(nextUser);
+      setUser(nextUser);
     });
 
     return () => subscription.unsubscribe();
@@ -63,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       lastLoadedUserIdRef.current = null;
       syncedSessionKeysRef.current.clear();
       setProfile(null);
+      setAuthSessionUser(null);
       return;
     }
 
@@ -73,17 +79,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       clearGuestProgress();
       const loadedProfile = await loadProgressFromCloud();
-      await safeAsync('restore profile preferences', () => restoreProfilePreferencesFromProfile(), undefined);
-      await safeAsync('restore profile display', () => restoreProfileDisplayFromProfile(), undefined);
-      await safeAsync('restore custom avatar', () => restoreCustomAvatarFromProfile(), undefined);
+      await safeAsync('restore profile preferences', () => restoreProfilePreferencesFromProfile(loadedProfile), undefined);
+      await safeAsync('restore profile display', () => restoreProfileDisplayFromProfile(loadedProfile), undefined);
+      await safeAsync('restore custom avatar', () => restoreCustomAvatarFromProfile(loadedProfile), undefined);
 
       if (cancelled) return;
-
-      const supabase = getSupabaseClient();
-      if (supabase) {
-        const { data } = await supabase.auth.getUser();
-        if (!cancelled) setUser(data.user);
-      }
 
       if (!cancelled) {
         setProfile(loadedProfile);
@@ -110,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       scheduleSessionCloudSync(user.id, record);
       scheduleKeyErrorsCloudSync(user.id);
+      invalidateUserProgressCache(user.id);
       safeAsyncVoid('badges cloud sync', () => syncBadgesToCloud(user.id));
     };
 
@@ -119,20 +120,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     const supabase = getSupabaseClient();
+    const userId = user?.id;
     if (supabase) await supabase.auth.signOut();
+    if (userId) invalidateQueryCache(userId);
+    setAuthSessionUser(null);
     clearGuestProgress();
     dispatchSessionComplete();
     dispatchKeyStatsUpdated();
     lastLoadedUserIdRef.current = null;
     setProfile(null);
     setUser(null);
-  }, []);
+  }, [user?.id]);
 
   const refreshUser = useCallback(async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
     const { data } = await supabase.auth.getUser();
+    setAuthSessionUser(data.user ?? null);
     setUser(data.user);
+    if (data.user) invalidateQueryCache(data.user.id);
     const nextProfile = (await fetchUserProfile()) as UserProfileRow | null;
     setProfile(nextProfile);
   }, []);

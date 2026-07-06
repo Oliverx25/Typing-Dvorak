@@ -116,6 +116,7 @@ export default function CustomPracticePage() {
       </nav>
 
       <TypingTest
+        key={text.trim()}
         lessonId="custom-practice"
         lesson={CUSTOM_LESSON}
         customText={getCustomText()}

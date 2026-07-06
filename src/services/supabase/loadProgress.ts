@@ -1,5 +1,6 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
-import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries, fetchUserLessonMastery } from '@/services/supabase/queries';
+import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries, fetchUserLessonMastery, primeUserProfileCache } from '@/services/supabase/queries';
+import { getAuthUser } from '@/services/supabase/authSession';
 import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/progress/storage';
 import { replaceLocalProgress } from '@/utils/progress/storage';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
@@ -126,8 +127,7 @@ function mapKeyErrors(rows: { key_char: string; error_count: number; hit_count?:
 /** Replace local progress with this account's cloud data. Call after clearing guest keys. */
 export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
   try {
-    const supabase = getSupabaseClient();
-    const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+    const user = await getAuthUser();
 
     const [sessions, keyErrors, profile, timestamps, masteryRows] = await Promise.all([
       fetchUserSessions(100),
@@ -147,6 +147,7 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
     replaceKeyStats(mapKeyErrors(keyErrors));
 
     if (user) {
+      if (profile) primeUserProfileCache(user.id, profile);
       await updateProfileStreak(user.id, streakResult);
       const sessionSummaries = await fetchAllUserSessionSummaries();
       await syncBadgesFromSessionRows(user.id, sessionSummaries, streakResult.streak);
@@ -171,8 +172,10 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
 }
 
 /** Sync all app settings + theme from profile to local storage after login. */
-export async function restoreProfilePreferencesFromProfile(): Promise<void> {
-  const profile = await fetchUserProfile();
+export async function restoreProfilePreferencesFromProfile(
+  profileRow?: UserProfileRow | null,
+): Promise<void> {
+  const profile = profileRow ?? (await fetchUserProfile());
   if (!profile) return;
 
   const { settings, theme } = appPreferencesFromUserSettings(profile);
@@ -193,15 +196,17 @@ export async function restoreProfilePreferencesFromProfile(): Promise<void> {
 }
 
 /** Re-apply profile display name to auth metadata after OAuth sign-in overwrites it. */
-export async function restoreProfileDisplayFromProfile(): Promise<void> {
+export async function restoreProfileDisplayFromProfile(
+  profileRow?: UserProfileRow | null,
+): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
-  const profile = await fetchUserProfile();
+  const profile = profileRow ?? (await fetchUserProfile());
   const dbName = profile?.display_name?.trim();
   if (!dbName) return;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return;
 
   const meta = user.user_metadata ?? {};
@@ -217,14 +222,16 @@ export async function restoreProfileDisplayFromProfile(): Promise<void> {
 }
 
 /** Re-apply custom avatar to auth metadata after OAuth sign-in overwrites it. */
-export async function restoreCustomAvatarFromProfile(): Promise<void> {
+export async function restoreCustomAvatarFromProfile(
+  profileRow?: UserProfileRow | null,
+): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
-  const profile = await fetchUserProfile();
+  const profile = profileRow ?? (await fetchUserProfile());
   if (!profile?.avatar_custom || !profile.avatar_url) return;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return;
 
   const meta = user.user_metadata ?? {};

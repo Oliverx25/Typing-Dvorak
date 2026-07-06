@@ -127,6 +127,18 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
     [updateRoomConfig],
   );
 
+  const phase = roomState?.phase ?? 'lobby';
+  const inRaceSession =
+    (phase === 'racing' || phase === 'results') && !returnedFromResults;
+
+  useEffect(() => {
+    if (inRaceSession) {
+      setSetupOpen(false);
+      setSongSearchOpen(false);
+      setReadyLoading(false);
+    }
+  }, [inRaceSession]);
+
   if (!isConfigured) {
     return (
       <Card title={t.multiplayer.title} padding="lg">
@@ -169,10 +181,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
             : t.multiplayer.waiting;
 
   const readyCount = players.filter((player) => player.isReady).length;
-  const phase = roomState?.phase ?? 'lobby';
   const inLobby = phase === 'lobby' || returnedFromResults;
-  const inRaceSession =
-    (phase === 'racing' || phase === 'results') && !returnedFromResults;
 
   const errorMessage =
     error === 'supabase_not_configured'

@@ -430,6 +430,37 @@ export function useTypingSession({
     }
   }, [mode, reset]);
 
+  const sessionConfigRef = useRef<string | null>(null);
+  useEffect(() => {
+    const fingerprint = [
+      lessonId,
+      mode,
+      customText ?? '',
+      raceMode ? '1' : '0',
+      vampireMode ? '1' : '0',
+      suddenDeathMode ? '1' : '0',
+      zenMode ? '1' : '0',
+      String(scoreMultiplier),
+      musicPacerEnabled ? '1' : '0',
+    ].join('\0');
+
+    if (sessionConfigRef.current !== null && sessionConfigRef.current !== fingerprint) {
+      reset();
+    }
+    sessionConfigRef.current = fingerprint;
+  }, [
+    lessonId,
+    mode,
+    customText,
+    raceMode,
+    vampireMode,
+    suddenDeathMode,
+    zenMode,
+    scoreMultiplier,
+    musicPacerEnabled,
+    reset,
+  ]);
+
   useEffect(() => {
     if (!finished) return;
     retryButtonRef.current?.focus();

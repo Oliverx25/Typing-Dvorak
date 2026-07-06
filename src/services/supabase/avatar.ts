@@ -1,4 +1,6 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
+import { getAuthUser } from '@/services/supabase/authSession';
+import { invalidateQueryCache, QUERY_CACHE_KEYS } from '@/services/supabase/queryCache';
 
 const AVATAR_BUCKET = 'avatars';
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -57,7 +59,7 @@ export async function uploadUserAvatar(file: File): Promise<{ error: string | nu
   const validation = validateAvatarFile(file);
   if (validation) return { error: validation };
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return { error: 'notAuthenticated' };
 
   const objectPath = avatarObjectPath(user.id, file.type);
@@ -74,6 +76,7 @@ export async function uploadUserAvatar(file: File): Promise<{ error: string | nu
   if (metaError) return { error: metaError };
 
   await syncProfileAvatar(user.id, publicUrl, true);
+  invalidateQueryCache(user.id, QUERY_CACHE_KEYS.profile);
   return { error: null, url: publicUrl };
 }
 
@@ -81,7 +84,7 @@ export async function removeCustomUserAvatar(): Promise<{ error: string | null }
   const supabase = getSupabaseClient();
   if (!supabase) return { error: 'notConfigured' };
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return { error: 'notAuthenticated' };
 
   const paths = ['jpg', 'png', 'webp'].map((ext) => `${user.id}/avatar.${ext}`);
@@ -91,5 +94,6 @@ export async function removeCustomUserAvatar(): Promise<{ error: string | null }
   if (metaError) return { error: metaError };
 
   await syncProfileAvatar(user.id, null, false);
+  invalidateQueryCache(user.id, QUERY_CACHE_KEYS.profile);
   return { error: null };
 }

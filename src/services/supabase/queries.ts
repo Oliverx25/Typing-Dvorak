@@ -1,4 +1,10 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
+import { getAuthUser, getAuthSessionUserSync } from '@/services/supabase/authSession';
+import {
+  getCachedQuery,
+  setCachedQuery,
+  QUERY_CACHE_KEYS,
+} from '@/services/supabase/queryCache';
 import {
   flattenProfileQueryRow,
   PROFILE_WITH_RELATIONS_SELECT,
@@ -6,17 +12,25 @@ import {
   type UserProfileRow,
 } from '@/services/supabase/profileRow';
 
+async function resolveUserId(): Promise<string | null> {
+  return getAuthSessionUserSync()?.id ?? (await getAuthUser())?.id ?? null;
+}
+
 export async function fetchUserSessions(limit = 50) {
+  const userId = await resolveUserId();
+  if (!userId) return [];
+
+  const cacheKey = QUERY_CACHE_KEYS.sessions(limit);
+  const cached = getCachedQuery<Awaited<ReturnType<typeof fetchUserSessions>>>(cacheKey, userId);
+  if (cached) return cached;
+
   const supabase = getSupabaseClient();
   if (!supabase) return [];
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
 
   const { data, error } = await supabase
     .from('typing_sessions')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -24,55 +38,76 @@ export async function fetchUserSessions(limit = 50) {
     console.warn('[supabase] fetch sessions failed:', error.message);
     return [];
   }
-  return data ?? [];
+
+  const rows = data ?? [];
+  setCachedQuery(cacheKey, userId, rows);
+  return rows;
 }
 
 export async function fetchUserKeyErrors() {
+  const userId = await resolveUserId();
+  if (!userId) return [];
+
+  const cached = getCachedQuery<Awaited<ReturnType<typeof fetchUserKeyErrors>>>(
+    QUERY_CACHE_KEYS.keyErrors,
+    userId,
+  );
+  if (cached) return cached;
+
   const supabase = getSupabaseClient();
   if (!supabase) return [];
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
 
   const { data, error } = await supabase
     .from('key_errors')
     .select('*')
-    .eq('user_id', user.id);
+    .eq('user_id', userId);
 
   if (error) {
     console.warn('[supabase] fetch key_errors failed:', error.message);
     return [];
   }
-  return data ?? [];
+
+  const rows = data ?? [];
+  setCachedQuery(QUERY_CACHE_KEYS.keyErrors, userId, rows);
+  return rows;
 }
 
 export async function fetchUserProfile(): Promise<UserProfileRow | null> {
+  const userId = await resolveUserId();
+  if (!userId) return null;
+
+  const cached = getCachedQuery<UserProfileRow>(QUERY_CACHE_KEYS.profile, userId);
+  if (cached) return cached;
+
   const supabase = getSupabaseClient();
   if (!supabase) return null;
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
 
   const { data, error } = await supabase
     .from('profiles')
     .select(PROFILE_WITH_RELATIONS_SELECT)
-    .eq('id', user.id)
+    .eq('id', userId)
     .single();
 
   if (error) {
     console.warn('[supabase] fetch profile failed:', error.message);
     return null;
   }
-  return flattenProfileQueryRow(data as ProfileQueryRow);
+
+  const profile = flattenProfileQueryRow(data as ProfileQueryRow);
+  setCachedQuery(QUERY_CACHE_KEYS.profile, userId, profile);
+  return profile;
 }
 
 /** All session timestamps for streak calculation (source of truth). Paginates past the default row cap. */
 export async function fetchUserSessionTimestamps(): Promise<string[]> {
+  const userId = await resolveUserId();
+  if (!userId) return [];
+
+  const cached = getCachedQuery<string[]>(QUERY_CACHE_KEYS.sessionTimestamps, userId);
+  if (cached) return cached;
+
   const supabase = getSupabaseClient();
   if (!supabase) return [];
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
 
   const PAGE = 1000;
   const timestamps: string[] = [];
@@ -82,7 +117,7 @@ export async function fetchUserSessionTimestamps(): Promise<string[]> {
     const { data, error } = await supabase
       .from('typing_sessions')
       .select('created_at')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range(from, from + PAGE - 1);
 
@@ -98,6 +133,7 @@ export async function fetchUserSessionTimestamps(): Promise<string[]> {
     from += PAGE;
   }
 
+  setCachedQuery(QUERY_CACHE_KEYS.sessionTimestamps, userId, timestamps);
   return timestamps;
 }
 
@@ -112,11 +148,17 @@ export interface SessionSummaryRow {
 
 /** All sessions (paginated) for badge evaluation. */
 export async function fetchAllUserSessionSummaries(): Promise<SessionSummaryRow[]> {
+  const userId = await resolveUserId();
+  if (!userId) return [];
+
+  const cached = getCachedQuery<SessionSummaryRow[]>(
+    QUERY_CACHE_KEYS.sessionSummaries,
+    userId,
+  );
+  if (cached) return cached;
+
   const supabase = getSupabaseClient();
   if (!supabase) return [];
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
 
   const PAGE = 1000;
   const rows: SessionSummaryRow[] = [];
@@ -126,7 +168,7 @@ export async function fetchAllUserSessionSummaries(): Promise<SessionSummaryRow[
     const { data, error } = await supabase
       .from('typing_sessions')
       .select('lesson_id, wpm, accuracy, max_combo, grade, created_at')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range(from, from + PAGE - 1);
 
@@ -152,6 +194,7 @@ export async function fetchAllUserSessionSummaries(): Promise<SessionSummaryRow[
     from += PAGE;
   }
 
+  setCachedQuery(QUERY_CACHE_KEYS.sessionSummaries, userId, rows);
   return rows;
 }
 
@@ -162,29 +205,39 @@ export interface LessonMasteryRow {
 
 /** Per-lesson mastery XP stored in Supabase (source of truth when signed in). */
 export async function fetchUserLessonMastery(): Promise<LessonMasteryRow[]> {
+  const userId = await resolveUserId();
+  if (!userId) return [];
+
+  const cached = getCachedQuery<LessonMasteryRow[]>(QUERY_CACHE_KEYS.lessonMastery, userId);
+  if (cached) return cached;
+
   const supabase = getSupabaseClient();
   if (!supabase) return [];
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
 
   try {
     const { data, error } = await supabase
       .from('user_lesson_mastery')
       .select('lesson_id, mastery_xp')
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
     if (error) {
       console.warn('[supabase] fetch lesson mastery failed:', error.message);
       return [];
     }
 
-    return (data ?? []).map((row) => ({
+    const rows = (data ?? []).map((row) => ({
       lesson_id: row.lesson_id as string,
       mastery_xp: row.mastery_xp as number,
     }));
+    setCachedQuery(QUERY_CACHE_KEYS.lessonMastery, userId, rows);
+    return rows;
   } catch (error) {
     console.warn('[supabase] fetch lesson mastery failed:', error);
     return [];
   }
+}
+
+/** Seeds the profile cache after a full cloud load (avoids duplicate select on restore). */
+export function primeUserProfileCache(userId: string, profile: UserProfileRow): void {
+  setCachedQuery(QUERY_CACHE_KEYS.profile, userId, profile);
 }
