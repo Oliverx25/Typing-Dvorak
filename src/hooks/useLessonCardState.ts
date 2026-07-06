@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { isLessonUnlocked } from '@/utils/curriculum/curriculum';
-import { getBestWpmForLesson, getCompletedLessonsMap, getLessonProgress } from '@/utils/progress/storage';
+import {
+  getBestScoreForLesson,
+  getBestWpmForLesson,
+  getCompletedLessonsMap,
+  getHighestGradeForLesson,
+} from '@/utils/progress/storage';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
 function getUnlockState(lessonId: string) {
@@ -11,7 +16,8 @@ function getUnlockState(lessonId: string) {
   return {
     unlocked: isLessonUnlocked(lessonId, forUnlock),
     bestWpm: getBestWpmForLesson(lessonId),
-    highestGrade: getLessonProgress(lessonId)?.highestGrade ?? null,
+    highestGrade: getHighestGradeForLesson(lessonId),
+    highestScore: getBestScoreForLesson(lessonId),
   };
 }
 
@@ -20,6 +26,7 @@ const INITIAL_STATE = {
   unlocked: false,
   bestWpm: null as number | null,
   highestGrade: null as string | null,
+  highestScore: null as number | null,
 };
 
 export function useLessonCardState(lessonId: string) {

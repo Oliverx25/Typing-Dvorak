@@ -52,6 +52,7 @@ export const en = {
     recentSessions: 'Recent sessions',
     locked: 'Locked',
     bestWpm: 'Best',
+    bestScore: 'Best score',
     startLesson: 'Start lesson',
     completePrevious: 'Complete the previous lesson with 90%+ accuracy to unlock.',
     heatmapTitle: 'Key accuracy heatmap',

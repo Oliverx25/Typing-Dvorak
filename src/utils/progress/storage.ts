@@ -6,6 +6,7 @@ import { collectPracticeDates, computeStreakFromPracticeDates } from './streak';
 import { STORAGE_KEYS } from './keys';
 import { readJson, writeJson, readString, writeString } from './localStorage';
 import { calculateGrade, bestGrade } from '../grading';
+import { calculateMaxScore } from '../multiplayer/raceScoring';
 import { saveSongProgress } from './songProgress';
 
 export interface SessionRecord {
@@ -134,7 +135,36 @@ export function saveSession(
 }
 
 export function getBestWpmForLesson(lessonId: string): number | null {
-  return getProgress().lessons[lessonId]?.bestWpm ?? null;
+  const best = getProgress().lessons[lessonId]?.bestWpm;
+  return best != null && best > 0 ? best : null;
+}
+
+export function getBestScoreForLesson(lessonId: string): number | null {
+  const stored = getProgress().lessons[lessonId]?.highestScore;
+  if (stored != null && stored > 0) return stored;
+
+  const fromHistory = getSessionHistory()
+    .filter((session) => session.lessonId === lessonId)
+    .reduce((best, session) => {
+      const score =
+        session.score ?? calculateMaxScore(session.wpm, session.accuracy, session.maxCombo ?? 0);
+      return Math.max(best, score);
+    }, 0);
+
+  return fromHistory > 0 ? fromHistory : null;
+}
+
+export function getHighestGradeForLesson(lessonId: string): string | null {
+  const stored = getProgress().lessons[lessonId]?.highestGrade;
+  if (stored) return stored;
+
+  let highest: string | null = null;
+  for (const session of getSessionHistory()) {
+    if (session.lessonId !== lessonId) continue;
+    const grade = session.grade ?? calculateGrade(session.accuracy);
+    highest = bestGrade(highest, grade);
+  }
+  return highest;
 }
 
 export function getLessonProgress(lessonId: string): LessonProgress | null {

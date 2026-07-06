@@ -54,6 +54,7 @@ export const es: TranslationKey = {
     recentSessions: 'Sesiones recientes',
     locked: 'Bloqueada',
     bestWpm: 'Mejor',
+    bestScore: 'Mejor score',
     startLesson: 'Iniciar lección',
     completePrevious: 'Completa la lección anterior con 90%+ de precisión para desbloquear.',
     heatmapTitle: 'Mapa de calor por tecla',

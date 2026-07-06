@@ -3,6 +3,8 @@ import { getLessonById } from '@/utils/curriculum/lessons';
 import TypingTest from '@/components/typing/session/TypingTest';
 import LessonGuard from '@/components/lessons/library/LessonGuard';
 import BackLink from '@/components/layout/shell/BackLink';
+import { BestScoreLabel } from '@/components/ui';
+import { useLessonCardState } from '@/hooks/useLessonCardState';
 import { useApp, getLessonDescription, getLessonTitle } from '@/contexts/AppProvider';
 
 interface LessonPageProps {
@@ -18,6 +20,7 @@ function LessonContent({ lessonId }: { lessonId: string }) {
   const description = getLessonDescription(t, lesson.descriptionKey);
   const categoryLabel = t.categories[lesson.category] ?? lesson.category;
   const difficultyLabel = t.difficulty[lesson.difficulty];
+  const { highestGrade, highestScore } = useLessonCardState(lessonId);
 
   return (
     <>
@@ -31,6 +34,12 @@ function LessonContent({ lessonId }: { lessonId: string }) {
           <span className="rounded-full border border-[var(--color-border)] px-3 py-1 text-xs text-[var(--color-text-muted)]">
             {difficultyLabel}
           </span>
+          <BestScoreLabel
+            highestGrade={highestGrade}
+            highestScore={highestScore}
+            scoreUnit={t.multiplayer.raceScore}
+            size="md"
+          />
         </div>
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">{title}</h1>
         <p className="mt-2 max-w-2xl text-lg text-[var(--color-text-muted)]">{description}</p>

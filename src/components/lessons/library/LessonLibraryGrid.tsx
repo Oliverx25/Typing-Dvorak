@@ -2,7 +2,7 @@ import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { useFocusedChapter } from '@/contexts/FocusedChapterProvider';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
-import { LockIcon } from '@/components/ui';
+import { LockIcon, BestScoreLabel } from '@/components/ui';
 
 interface LibraryCardProps {
   title: string;
@@ -10,6 +10,9 @@ interface LibraryCardProps {
   locked: boolean;
   focused: boolean;
   isRecommended: boolean;
+  highestGrade: string | null;
+  highestScore: number | null;
+  scoreUnit: string;
   inProgressLabel: string;
   tapToReviewLabel: string;
   onSelect: () => void;
@@ -21,6 +24,9 @@ function LibraryCard({
   locked,
   focused,
   isRecommended,
+  highestGrade,
+  highestScore,
+  scoreUnit,
   inProgressLabel,
   tapToReviewLabel,
   onSelect,
@@ -51,6 +57,12 @@ function LibraryCard({
           {difficultyLabel}
         </p>
         <p className="mt-1 text-base font-semibold text-[var(--color-text)]">{title}</p>
+        <BestScoreLabel
+          highestGrade={highestGrade}
+          highestScore={highestScore}
+          scoreUnit={scoreUnit}
+          className="mt-2"
+        />
         <p className="mt-2 text-xs text-[var(--color-text-muted)]">
           {isRecommended ? inProgressLabel : tapToReviewLabel}
         </p>
@@ -68,7 +80,14 @@ function LibraryCard({
         <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
         <p className="text-[10px] text-[var(--color-text-muted)]">{difficultyLabel}</p>
       </div>
-      <span className="text-xs text-[var(--color-highlight)]">→</span>
+      <div className="flex shrink-0 items-center gap-2">
+        <BestScoreLabel
+          highestGrade={highestGrade}
+          highestScore={highestScore}
+          scoreUnit={scoreUnit}
+        />
+        <span className="text-xs text-[var(--color-highlight)]">→</span>
+      </div>
     </button>
   );
 }
@@ -76,7 +95,7 @@ function LibraryCard({
 function LibraryCardRow({ lessonId }: { lessonId: string }) {
   const { t } = useApp();
   const { focusedLessonId, recommendedId, setFocusedLessonId } = useFocusedChapter();
-  const { unlocked } = useLessonCardState(lessonId);
+  const { unlocked, highestGrade, highestScore } = useLessonCardState(lessonId);
   const lesson = CORE_LESSONS.find((l) => l.id === lessonId);
   if (!lesson) return null;
 
@@ -90,6 +109,9 @@ function LibraryCardRow({ lessonId }: { lessonId: string }) {
       locked={!unlocked}
       focused={lessonId === focusedLessonId}
       isRecommended={lessonId === recommendedId}
+      highestGrade={highestGrade}
+      highestScore={highestScore}
+      scoreUnit={t.multiplayer.raceScore}
       inProgressLabel={t.home.inProgress}
       tapToReviewLabel={t.home.tapToReview}
       onSelect={() => setFocusedLessonId(lessonId)}

@@ -1,6 +1,6 @@
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { LESSON_GROUPS, type MicroLesson } from '@/data/microLessons';
-import { Accordion, Badge } from '@/components/ui';
+import { Accordion, Badge, BestScoreLabel } from '@/components/ui';
 import type { AccordionItem } from '@/components/ui';
 import { isLessonUnlocked } from '@/utils/curriculum/curriculum';
 import { getCompletedLessonsMap } from '@/utils/progress/storage';
@@ -8,7 +8,7 @@ import { useLessonCardState } from '@/hooks/useLessonCardState';
 
 function MicroLessonLink({ micro }: { micro: MicroLesson }) {
   const { t } = useApp();
-  const { unlocked } = useLessonCardState(micro.lessonId);
+  const { unlocked, highestGrade, highestScore } = useLessonCardState(micro.lessonId);
   const title = t.microLessons[micro.titleKey as keyof typeof t.microLessons] ?? micro.titleKey;
   const difficulty = t.difficulty[micro.difficulty];
 
@@ -33,7 +33,14 @@ function MicroLessonLink({ micro }: { micro: MicroLesson }) {
         <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
         <p className="font-mono text-xs tracking-widest text-[var(--color-highlight)]">{micro.chars}</p>
       </div>
-      <span className="text-xs text-[var(--color-text-muted)]">{difficulty}</span>
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <BestScoreLabel
+          highestGrade={highestGrade}
+          highestScore={highestScore}
+          scoreUnit={t.multiplayer.raceScore}
+        />
+        <span className="text-xs text-[var(--color-text-muted)]">{difficulty}</span>
+      </div>
     </a>
   );
 }

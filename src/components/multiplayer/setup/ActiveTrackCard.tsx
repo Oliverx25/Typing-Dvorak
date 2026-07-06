@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { GradeBadge } from '@/components/ui';
+import { BestScoreLabel } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import { difficultyTierLabel } from '@/components/multiplayer/setup/SongCard';
 import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
@@ -28,6 +28,7 @@ export default function ActiveTrackCard({
   const [coverFailed, setCoverFailed] = useState(false);
   const stored = getSongProgress(song.id);
   const displayGrade = song.highestGrade ?? stored?.highestGrade ?? null;
+  const displayScore = song.highestScore ?? stored?.highestScore ?? null;
   const coverSrc = song.coverArt && !coverFailed ? song.coverArt : null;
   const badgeClass = DIFFICULTY_BADGE_CLASSES[song.difficulty.color];
   const tierLabel = difficultyTierLabel(song.difficulty.tier, t);
@@ -72,7 +73,11 @@ export default function ActiveTrackCard({
       <div className="relative z-10 flex min-w-0 flex-grow flex-col gap-1.5">
         <div className="flex min-w-0 items-center gap-2">
           <p className="truncate text-lg font-bold text-slate-100">{song.title}</p>
-          <GradeBadge grade={displayGrade} />
+          <BestScoreLabel
+            highestGrade={displayGrade}
+            highestScore={displayScore}
+            scoreUnit={t.multiplayer.raceScore}
+          />
         </div>
         <p className="truncate text-sm text-slate-400">{song.artist}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">

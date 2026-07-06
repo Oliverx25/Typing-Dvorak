@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import type { TranslationKey } from '@/i18n';
-import { GradeBadge } from '@/components/ui';
+import { BestScoreLabel } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
 import type { LyricSongResult } from '@/utils/lyrics/types';
 import { countLyricWords, DIFFICULTY_BADGE_CLASSES } from '@/utils/lyrics/typingDifficulty';
+import { getSongProgress } from '@/utils/progress/songProgress';
 
 interface SongCardProps {
   song: LyricSongResult;
@@ -58,6 +59,9 @@ export default function SongCard({ song, tierLabel, isSelected = false, onSelect
   const wordCount = countLyricWords(song.plainLyrics);
   const wordLabel = t.multiplayer.lyricsWordCount.replace('{count}', String(wordCount));
   const wpmUnit = t.multiplayer.lyricsWpmUnit;
+  const stored = getSongProgress(song.id);
+  const displayGrade = song.highestGrade ?? stored?.highestGrade ?? null;
+  const displayScore = song.highestScore ?? stored?.highestScore ?? null;
 
   return (
     <button
@@ -81,7 +85,11 @@ export default function SongCard({ song, tierLabel, isSelected = false, onSelect
       ) : null}
       <BlurredBackdrop src={coverSrc} />
       <div className="absolute right-2 top-2 z-20">
-        <GradeBadge grade={song.highestGrade} />
+        <BestScoreLabel
+          highestGrade={displayGrade}
+          highestScore={displayScore}
+          scoreUnit={t.multiplayer.raceScore}
+        />
       </div>
 
       <div className="relative z-10 flex h-full w-full items-center gap-4 p-3">

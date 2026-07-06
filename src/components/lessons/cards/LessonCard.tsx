@@ -6,7 +6,7 @@ import type { Lesson } from '@/utils/curriculum/lessons';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
-import { Card, Badge, GradeBadge, LockIcon } from '@/components/ui';
+import { Card, Badge, BestScoreLabel } from '@/components/ui';
 
 interface LessonCardProps {
   lesson: Lesson;
@@ -69,10 +69,10 @@ function UnlockedLessonCard({
   categoryLabel,
   difficultyLabel,
   recommended,
-  bestWpm,
   highestGrade,
+  highestScore,
   startLabel,
-  bestWpmLabel,
+  scoreUnit,
 }: {
   lesson: Lesson;
   title: string;
@@ -80,10 +80,10 @@ function UnlockedLessonCard({
   categoryLabel: string;
   difficultyLabel: string;
   recommended?: boolean;
-  bestWpm: number | null;
   highestGrade: string | null;
+  highestScore: number | null;
   startLabel: string;
-  bestWpmLabel: string;
+  scoreUnit: string;
 }) {
   return (
     <Card
@@ -94,7 +94,11 @@ function UnlockedLessonCard({
       className="group relative block no-underline hover:shadow-md"
     >
       <div className="absolute right-2 top-2">
-        <GradeBadge grade={highestGrade} />
+        <BestScoreLabel
+          highestGrade={highestGrade}
+          highestScore={highestScore}
+          scoreUnit={scoreUnit}
+        />
       </div>
       <CardMeta
         locked={false}
@@ -107,13 +111,8 @@ function UnlockedLessonCard({
         {title}
       </h3>
       <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">{description}</p>
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4">
         <span className="text-sm font-medium text-[var(--color-highlight)]">{startLabel} →</span>
-        {bestWpm !== null && (
-          <span className="font-mono text-xs text-[var(--color-text-muted)]">
-            {bestWpmLabel}: <strong className="text-[var(--color-text)]">{bestWpm}</strong>
-          </span>
-        )}
       </div>
     </Card>
   );
@@ -121,7 +120,7 @@ function UnlockedLessonCard({
 
 export default function LessonCard({ lesson, recommended = false }: LessonCardProps) {
   const { t } = useApp();
-  const { unlocked, bestWpm, highestGrade } = useLessonCardState(lesson.id);
+  const { unlocked, highestGrade, highestScore } = useLessonCardState(lesson.id);
 
   const title = getLessonTitle(t, lesson.titleKey);
   const description = getLessonDescription(t, lesson.descriptionKey);
@@ -147,10 +146,10 @@ export default function LessonCard({ lesson, recommended = false }: LessonCardPr
       categoryLabel={categoryLabel}
       difficultyLabel={difficultyLabel}
       recommended={recommended}
-      bestWpm={bestWpm}
       highestGrade={highestGrade}
+      highestScore={highestScore}
       startLabel={t.home.startLesson}
-      bestWpmLabel={t.home.bestWpm}
+      scoreUnit={t.multiplayer.raceScore}
     />
   );
 }

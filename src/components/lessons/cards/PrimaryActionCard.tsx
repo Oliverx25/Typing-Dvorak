@@ -5,7 +5,36 @@ import { t as translate } from '@/i18n';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import { findLessonGroup } from '@/utils/curriculum/microLessonGroups';
 import CircularProgress from '@/components/ui/display/CircularProgress';
-import { Icon } from '@/components/ui';
+import { BestScoreLabel, Icon } from '@/components/ui';
+import { useLessonCardState } from '@/hooks/useLessonCardState';
+
+import type { MicroLesson } from '@/data/microLessons';
+
+function MicroLessonRow({ micro, title }: { micro: MicroLesson; title: string }) {
+  const { t } = useApp();
+  const { highestGrade, highestScore } = useLessonCardState(micro.lessonId);
+
+  return (
+    <li>
+      <a
+        href={`/lesson/${micro.lessonId}`}
+        className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm no-underline transition hover:bg-[var(--color-surface-elevated)]"
+      >
+        <span className="min-w-0 truncate text-[var(--color-text)]">{title}</span>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <BestScoreLabel
+            highestGrade={highestGrade}
+            highestScore={highestScore}
+            scoreUnit={t.multiplayer.raceScore}
+          />
+          <span className="font-mono text-xs tracking-widest text-[var(--color-highlight)]">
+            {micro.chars}
+          </span>
+        </div>
+      </a>
+    </li>
+  );
+}
 
 export default function PrimaryActionCard() {
   const { t, locale } = useApp();
@@ -29,6 +58,7 @@ export default function PrimaryActionCard() {
   const title = getLessonTitle(t, lesson.titleKey);
   const description = getLessonDescription(t, lesson.descriptionKey);
   const group = findLessonGroup(focusedLessonId, lesson.titleKey);
+  const { highestGrade, highestScore } = useLessonCardState(focusedLessonId);
 
   const actionLabel = isRecommendedFocus
     ? translate(locale, 'home.continueWith', { lesson: title.toUpperCase() })
@@ -59,6 +89,13 @@ export default function PrimaryActionCard() {
             <h2 className="text-xl font-bold uppercase tracking-wide text-[var(--color-text)] sm:text-2xl">
               {title}
             </h2>
+            <BestScoreLabel
+              highestGrade={highestGrade}
+              highestScore={highestScore}
+              scoreUnit={t.multiplayer.raceScore}
+              size="md"
+              className="mt-2"
+            />
             <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">{description}</p>
 
             <a
@@ -86,19 +123,7 @@ export default function PrimaryActionCard() {
                 {group.microLessons.map((micro) => {
                   const microTitle =
                     t.microLessons[micro.titleKey as keyof typeof t.microLessons] ?? micro.titleKey;
-                  return (
-                    <li key={micro.id}>
-                      <a
-                        href={`/lesson/${micro.lessonId}`}
-                        className="flex items-center justify-between rounded-lg px-3 py-2 text-sm no-underline transition hover:bg-[var(--color-surface-elevated)]"
-                      >
-                        <span className="text-[var(--color-text)]">{microTitle}</span>
-                        <span className="font-mono text-xs tracking-widest text-[var(--color-highlight)]">
-                          {micro.chars}
-                        </span>
-                      </a>
-                    </li>
-                  );
+                  return <MicroLessonRow key={micro.id} micro={micro} title={microTitle} />;
                 })}
               </ul>
             )}
