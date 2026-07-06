@@ -605,6 +605,23 @@ export const en = {
     lyricsDifficultyHard: 'Hard',
     lyricsDifficultyExpert: 'Expert',
     notConfigured: 'Multiplayer requires Supabase to be configured.',
+    raceReconnecting: 'Reconnecting…',
+  },
+  errors: {
+    boundaryTitle: 'Something went wrong',
+    boundaryDesc: 'This section hit an unexpected error. The rest of the app still works.',
+    boundaryRetry: 'Try again',
+    typingTitle: 'Practice session interrupted',
+    typingDesc: 'The typing engine stopped unexpectedly. You can retry this section.',
+    graphTitle: 'Chart unavailable',
+    graphDesc: 'The consistency graph could not be rendered.',
+    lobbyTitle: 'Lobby unavailable',
+    lobbyDesc: 'The multiplayer lobby hit an error. Retry or go back to the menu.',
+  },
+  network: {
+    searchFailedTitle: 'Search failed',
+    searchFailedDesc: 'Check your connection and try again.',
+    retry: 'Retry',
   },
 } as const;
 

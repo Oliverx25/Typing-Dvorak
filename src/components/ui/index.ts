@@ -19,4 +19,7 @@ export { default as LockIcon } from '@/components/ui/icons/LockIcon';
 export { default as StreakIcon } from '@/components/ui/icons/StreakIcon';
 export { default as CircularProgress } from '@/components/ui/display/CircularProgress';
 export { default as HoverTooltip } from '@/components/ui/HoverTooltip';
+export { default as ErrorBoundary } from '@/components/ui/ErrorBoundary';
+export { default as AppErrorBoundary } from '@/components/ui/AppErrorBoundary';
+export { default as NetworkEmptyState } from '@/components/ui/NetworkEmptyState';
 export type { AccordionItem } from '@/components/ui/controls/Accordion';

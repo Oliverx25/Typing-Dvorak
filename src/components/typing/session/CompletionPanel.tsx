@@ -3,7 +3,7 @@ import { useApp } from '@/contexts/AppProvider';
 import { t as translate } from '@/i18n';
 import ConsistencyGraph from '@/components/stats/charts/ConsistencyGraph';
 import type { KeystrokeLogEntry } from '@/hooks/useTypingSession';
-import { GradeScoreRing } from '@/components/ui';
+import { GradeScoreRing, AppErrorBoundary } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 
@@ -134,10 +134,12 @@ export default function CompletionPanel({
 
         {keystrokeLog.length > 2 ? (
           <div className="border-t border-[var(--color-border)] px-5 py-4">
-            <ConsistencyGraph
-              data={keystrokeLog}
-              title={t.completion.consistencyTitle}
-            />
+            <AppErrorBoundary section="graph">
+              <ConsistencyGraph
+                data={keystrokeLog}
+                title={t.completion.consistencyTitle}
+              />
+            </AppErrorBoundary>
           </div>
         ) : null}
 

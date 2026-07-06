@@ -21,9 +21,11 @@ import { buildMultiplayerAchievementExtras } from '@/utils/achievements/multipla
 import { consumeRaceSessionExtras, clearRaceSessionExtras } from '@/utils/achievements/raceSessionExtras';
 import { getSessionHistory } from '@/utils/progress/storage';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import type { LobbyPlayerPresence, RoomBroadcastState, RoomPhase } from '@/types/multiplayer';
+import type { LobbyPlayerPresence, RoomBroadcastState, RoomPhase, LobbyConnectionStatus } from '@/types/multiplayer';
 import type { RefObject } from 'react';
 import type { TypingProgressUpdate } from '@/components/typing/session/TypingTest';
+import RealtimeReconnectBanner from '@/components/multiplayer/RealtimeReconnectBanner';
+import { AppErrorBoundary } from '@/components/ui';
 
 interface MultiplayerRacePanelProps {
   channel: RealtimeChannel | null;
@@ -35,6 +37,7 @@ interface MultiplayerRacePanelProps {
   raceActive: boolean;
   countdownSeconds: number | null;
   isOwner: boolean;
+  connectionStatus: LobbyConnectionStatus;
   onRaceFinish: () => void;
   onReturnToLobby: () => void;
 }
@@ -59,6 +62,7 @@ export default function MultiplayerRacePanel({
   raceActive,
   countdownSeconds,
   isOwner: _isOwner,
+  connectionStatus,
   onRaceFinish,
   onReturnToLobby,
 }: MultiplayerRacePanelProps) {
@@ -286,7 +290,12 @@ export default function MultiplayerRacePanel({
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
       <div className={`relative ${raceActive ? '' : 'pointer-events-none opacity-50'}`}>
-        <TypingTest
+        <RealtimeReconnectBanner
+          status={connectionStatus}
+          visible={phase === 'racing'}
+        />
+        <AppErrorBoundary section="typing">
+          <TypingTest
           key={`${roomState.version}-${roomState.raceStartedAt}`}
           lessonId={lesson.id}
           lesson={lesson}
@@ -306,6 +315,7 @@ export default function MultiplayerRacePanel({
           onProgressChange={handleProgressChange}
           ariaLabel={lessonTitle}
         />
+        </AppErrorBoundary>
         {localProgress.finished ? (
           <div
             className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-[var(--color-surface)]/92 backdrop-blur-md"

@@ -12,6 +12,7 @@ import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { getCachedLyricsSearch, setCachedLyricsSearch } from '@/utils/lyrics/lyricsSearchCache';
 import { focusRingClassName, focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import { sanitizeSearchQuery } from '@/utils/security/sanitizeText';
+import { NetworkEmptyState } from '@/components/ui';
 
 interface SongSearchModalProps {
   open: boolean;
@@ -37,6 +38,7 @@ export default function SongSearchModal({
   const [results, setResults] = useState<LyricSongResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchAttempt, setSearchAttempt] = useState(0);
 
   const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS);
   const hasQuery = query.length > 0;
@@ -83,6 +85,10 @@ export default function SongSearchModal({
   }, [activeIndex]);
 
   useEffect(() => {
+    setSearchAttempt(0);
+  }, [debouncedQuery]);
+
+  useEffect(() => {
     if (!open) return;
 
     if (debouncedQuery.length < 2) {
@@ -92,12 +98,15 @@ export default function SongSearchModal({
       return;
     }
 
-    const cached = getCachedLyricsSearch(debouncedQuery);
-    if (cached) {
-      setResults(mergeSongProgress(cached));
-      setError(null);
-      setIsSearching(false);
-      return;
+    const bypassCache = searchAttempt > 0;
+    if (!bypassCache) {
+      const cached = getCachedLyricsSearch(debouncedQuery);
+      if (cached) {
+        setResults(mergeSongProgress(cached));
+        setError(null);
+        setIsSearching(false);
+        return;
+      }
     }
 
     let cancelled = false;
@@ -135,7 +144,12 @@ export default function SongSearchModal({
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, open, t.multiplayer.lyricsSearchError]);
+  }, [debouncedQuery, open, searchAttempt, t.multiplayer.lyricsSearchError]);
+
+  const handleRetrySearch = () => {
+    setError(null);
+    setSearchAttempt((attempt) => attempt + 1);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -255,9 +269,13 @@ export default function SongSearchModal({
             ].join(' ')}
           >
             {error ? (
-              <p className="px-4 py-6 text-center text-sm text-red-400" role="alert">
-                {error}
-              </p>
+              <NetworkEmptyState
+                compact
+                title={t.network.searchFailedTitle}
+                description={error || t.network.searchFailedDesc}
+                actionLabel={t.network.retry}
+                onAction={handleRetrySearch}
+              />
             ) : showEmpty ? (
               <p className="px-4 py-6 text-center text-sm text-slate-500">
                 {t.multiplayer.lyricsSearchEmpty}

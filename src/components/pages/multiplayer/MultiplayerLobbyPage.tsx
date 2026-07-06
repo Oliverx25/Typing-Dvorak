@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react';
 import BackLink from '@/components/layout/shell/BackLink';
 import LobbyView from '@/components/multiplayer/lobby/LobbyView';
 import { useApp } from '@/contexts/AppProvider';
-import { Card } from '@/components/ui';
+import { Card, AppErrorBoundary } from '@/components/ui';
 import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import { fetchRoomByCode, isRoomJoinable } from '@/services/supabase/rooms';
 import { readRoomCodeFromSearch } from '@/utils/multiplayer/roomCode';
 
 function LobbyContent({ roomId }: { roomId: string }) {
-  return <LobbyView roomId={roomId} />;
+  return (
+    <AppErrorBoundary section="lobby">
+      <LobbyView roomId={roomId} />
+    </AppErrorBoundary>
+  );
 }
 
 function InvalidRoomContent() {

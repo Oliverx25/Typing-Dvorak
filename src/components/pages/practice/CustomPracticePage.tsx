@@ -8,7 +8,7 @@ import {
 } from '@/utils/progress/customText';
 import TypingTest from '@/components/typing/session/TypingTest';
 import BackLink from '@/components/layout/shell/BackLink';
-import { Button } from '@/components/ui';
+import { Button, AppErrorBoundary } from '@/components/ui';
 import { formFieldMonoResizableClassName } from '@/components/ui/formFieldClasses';
 import type { Lesson } from '@/utils/curriculum/lessons';
 
@@ -116,13 +116,15 @@ export default function CustomPracticePage() {
         </button>
       </nav>
 
-      <TypingTest
-        key={text.trim()}
-        lessonId="custom-practice"
-        lesson={CUSTOM_LESSON}
-        customText={getCustomText()}
-        hideModeToggle
-      />
+      <AppErrorBoundary section="typing" resetKeys={[text]}>
+        <TypingTest
+          key={text.trim()}
+          lessonId="custom-practice"
+          lesson={CUSTOM_LESSON}
+          customText={getCustomText()}
+          hideModeToggle
+        />
+      </AppErrorBoundary>
     </>
   );
 }

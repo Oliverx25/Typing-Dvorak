@@ -25,6 +25,7 @@ import {
 } from '@/utils/multiplayer/raceScoring';
 
 const MAX_CONNECT_RETRIES = 10;
+const MAX_RACE_RECONNECT_RETRIES = 60;
 const RETRY_DELAYS_MS = [800, 1200, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 12000];
 const OWNERSHIP_CLAIM_DELAY_MS = 1200;
 
@@ -89,6 +90,15 @@ export function useMultiplayerLobby({
     const phase = roomStateRef.current?.phase;
     return phase === 'lobby' || (phase === 'results' && returnedFromResultsRef.current);
   }, []);
+
+  const isRaceSession = useCallback(() => {
+    const phase = roomStateRef.current?.phase;
+    return phase === 'racing' || phase === 'results';
+  }, []);
+
+  const getMaxConnectRetries = useCallback(() => {
+    return isRaceSession() ? MAX_RACE_RECONNECT_RETRIES : MAX_CONNECT_RETRIES;
+  }, [isRaceSession]);
 
   const isOwner = Boolean(user?.id && roomState?.ownerId === user.id);
   const allReady =
@@ -499,11 +509,17 @@ export function useMultiplayerLobby({
             } catch (err) {
               console.warn('[multiplayer] room state request failed:', err);
             }
-          } else if (subscribeStatus === 'CHANNEL_ERROR' || subscribeStatus === 'TIMED_OUT') {
+          } else if (
+            subscribeStatus === 'CHANNEL_ERROR' ||
+            subscribeStatus === 'TIMED_OUT' ||
+            subscribeStatus === 'CLOSED'
+          ) {
             cleanupChannel(nextChannel);
 
-            if (retryAttempt < MAX_CONNECT_RETRIES) {
-              const delay = RETRY_DELAYS_MS[retryAttempt] ?? 5000;
+            const maxRetries = getMaxConnectRetries();
+            if (retryAttempt < maxRetries) {
+              setStatus('reconnecting');
+              const delay = RETRY_DELAYS_MS[Math.min(retryAttempt, RETRY_DELAYS_MS.length - 1)];
               retryAttempt += 1;
               retryTimer = setTimeout(attachChannel, delay);
             } else {

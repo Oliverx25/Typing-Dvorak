@@ -607,5 +607,22 @@ export const es: TranslationKey = {
     lyricsDifficultyHard: 'Difícil',
     lyricsDifficultyExpert: 'Experto',
     notConfigured: 'El multijugador requiere que Supabase esté configurado.',
+    raceReconnecting: 'Reconectando…',
+  },
+  errors: {
+    boundaryTitle: 'Algo salió mal',
+    boundaryDesc: 'Esta sección tuvo un error inesperado. El resto de la app sigue funcionando.',
+    boundaryRetry: 'Reintentar',
+    typingTitle: 'Sesión de práctica interrumpida',
+    typingDesc: 'El motor de tipeo se detuvo de forma inesperada. Puedes reintentar esta sección.',
+    graphTitle: 'Gráfica no disponible',
+    graphDesc: 'No se pudo mostrar la gráfica de consistencia.',
+    lobbyTitle: 'Lobby no disponible',
+    lobbyDesc: 'El lobby multijugador tuvo un error. Reintenta o vuelve al menú.',
+  },
+  network: {
+    searchFailedTitle: 'Búsqueda fallida',
+    searchFailedDesc: 'Revisa tu conexión e inténtalo de nuevo.',
+    retry: 'Reintentar',
   },
 };

@@ -361,6 +361,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
           raceActive={raceActive}
           countdownSeconds={countdownSeconds}
           isOwner={isOwner}
+          connectionStatus={status}
           onRaceFinish={() => void markRaceFinished()}
           onReturnToLobby={() => void returnToWaitingRoom()}
         />

@@ -2,7 +2,7 @@ import { getLessonById } from '@/utils/curriculum/lessons';
 import TypingTest from '@/components/typing/session/TypingTest';
 import LessonGuard from '@/components/lessons/library/LessonGuard';
 import BackLink from '@/components/layout/shell/BackLink';
-import { BestScoreLabel } from '@/components/ui';
+import { BestScoreLabel, AppErrorBoundary } from '@/components/ui';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 import { useApp, getLessonDescription, getLessonTitle } from '@/contexts/AppProvider';
 
@@ -62,7 +62,9 @@ function LessonContent({ lessonId }: { lessonId: string }) {
       </header>
 
       <LessonGuard lessonId={lessonId}>
-        <TypingTest lessonId={lessonId} lesson={lesson} />
+        <AppErrorBoundary section="typing">
+          <TypingTest lessonId={lessonId} lesson={lesson} />
+        </AppErrorBoundary>
       </LessonGuard>
     </>
   );
