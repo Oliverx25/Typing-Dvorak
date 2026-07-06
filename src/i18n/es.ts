@@ -207,6 +207,8 @@ export const es: TranslationKey = {
     lockedTitle: 'Lección bloqueada',
     lockedDesc: 'Completa la lección anterior con al menos 90% de precisión para desbloquear esta.',
     goBack: 'Ir a lecciones',
+    notFoundTitle: 'Lección no encontrada',
+    notFoundDesc: 'Esta lección no existe o ya no está disponible.',
     paused: 'En pausa',
     resume: 'Continuar',
     pauseHint: 'Pulsa Esc para pausar · continúa cuando quieras',

@@ -205,6 +205,8 @@ export const en = {
     lockedTitle: 'Lesson locked',
     lockedDesc: 'Complete the previous lesson with at least 90% accuracy to unlock this one.',
     goBack: 'Go to lessons',
+    notFoundTitle: 'Lesson not found',
+    notFoundDesc: 'This lesson does not exist or is no longer available.',
     paused: 'Paused',
     resume: 'Resume',
     pauseHint: 'Press Esc to pause · resume when ready',

@@ -25,6 +25,11 @@ function getUnlockState(lessonId: string) {
   };
 }
 
+/** Synchronous unlock check for guards and first paint. */
+export function readLessonUnlockState(lessonId: string): boolean {
+  return getUnlockState(lessonId).unlocked;
+}
+
 /** Stable defaults for SSR — localStorage sync runs after mount only. */
 const INITIAL_STATE = {
   unlocked: false,
@@ -36,7 +41,9 @@ const INITIAL_STATE = {
 };
 
 export function useLessonCardState(lessonId: string) {
-  const [state, setState] = useState(INITIAL_STATE);
+  const [state, setState] = useState(() =>
+    typeof window !== 'undefined' ? getUnlockState(lessonId) : INITIAL_STATE,
+  );
 
   useEffect(() => {
     const refresh = () => setState(getUnlockState(lessonId));

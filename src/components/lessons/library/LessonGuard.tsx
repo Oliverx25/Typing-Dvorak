@@ -1,21 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { isLessonUnlocked } from '@/utils/curriculum/curriculum';
-import { getCompletedLessonsMap } from '@/utils/progress/storage';
+import { readLessonUnlockState } from '@/hooks/useLessonCardState';
+import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
 export default function LessonGuard({ lessonId, children }: { lessonId: string; children: React.ReactNode }) {
   const { t } = useApp();
-  const [unlocked, setUnlocked] = useState<boolean | null>(null);
+  const [unlocked, setUnlocked] = useState(() => readLessonUnlockState(lessonId));
 
   useEffect(() => {
-    const completed = getCompletedLessonsMap();
-    const forUnlock = Object.fromEntries(
-      Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
-    );
-    setUnlocked(isLessonUnlocked(lessonId, forUnlock));
+    const refresh = () => setUnlocked(readLessonUnlockState(lessonId));
+    refresh();
+    window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
+    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
   }, [lessonId]);
-
-  if (unlocked === null) return null;
 
   if (!unlocked) {
     return (

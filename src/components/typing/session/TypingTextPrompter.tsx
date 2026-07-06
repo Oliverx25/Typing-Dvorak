@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react';
 import type { CharStatus } from '@/hooks/useTypingSession';
 import { useVirtualizedTeleprompter } from '@/hooks/useVirtualizedTeleprompter';
 import {

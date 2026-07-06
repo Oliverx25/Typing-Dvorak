@@ -13,14 +13,31 @@ interface LessonPageProps {
 
 function LessonContent({ lessonId }: { lessonId: string }) {
   const { t } = useApp();
+  const { highestGrade, highestScore } = useLessonCardState(lessonId);
   const lesson = getLessonById(lessonId);
-  if (!lesson) return null;
+
+  if (!lesson) {
+    return (
+      <>
+        <BackLink />
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-10 text-center">
+          <h1 className="text-xl font-bold text-[var(--color-text)]">{t.lesson.notFoundTitle}</h1>
+          <p className="mt-2 text-[var(--color-text-muted)]">{t.lesson.notFoundDesc}</p>
+          <a
+            href="/lessons"
+            className="mt-6 inline-block rounded-lg bg-[var(--color-highlight)] px-6 py-2.5 font-medium text-white no-underline hover:bg-[var(--color-highlight-hover)]"
+          >
+            {t.lesson.goBack}
+          </a>
+        </div>
+      </>
+    );
+  }
 
   const title = getLessonTitle(t, lesson.titleKey);
   const description = getLessonDescription(t, lesson.descriptionKey);
   const categoryLabel = t.categories[lesson.category] ?? lesson.category;
   const difficultyLabel = t.difficulty[lesson.difficulty];
-  const { highestGrade, highestScore } = useLessonCardState(lessonId);
 
   return (
     <>

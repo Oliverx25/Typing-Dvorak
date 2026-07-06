@@ -61,13 +61,13 @@ export default function PrimaryActionCard() {
     }
   }, [focusedLessonId]);
 
+  const { highestGrade, highestScore } = useLessonCardState(focusedLessonId);
   const lesson = getLessonById(focusedLessonId);
   if (!lesson) return null;
 
   const title = getLessonTitle(t, lesson.titleKey);
   const description = getLessonDescription(t, lesson.descriptionKey);
   const group = findLessonGroup(focusedLessonId, lesson.titleKey);
-  const { highestGrade, highestScore } = useLessonCardState(focusedLessonId);
 
   const actionLabel = isRecommendedFocus
     ? translate(locale, 'home.continueWith', { lesson: title.toUpperCase() })
