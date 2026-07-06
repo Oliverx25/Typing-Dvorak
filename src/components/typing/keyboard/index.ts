@@ -1,3 +1,3 @@
-export { default as Keyboard } from './Keyboard';
-export { default as HandGuide } from './HandGuide';
-export { default as KeyboardComparator } from './KeyboardComparator';
+export { default as Keyboard } from '@/components/typing/keyboard/Keyboard';
+export { default as HandGuide } from '@/components/typing/keyboard/HandGuide';
+export { default as KeyboardComparator } from '@/components/typing/keyboard/KeyboardComparator';

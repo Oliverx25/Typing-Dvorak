@@ -1,20 +1,20 @@
-import type { RaceModifier } from '../multiplayer/roomConfig.types';
-import { gradeRank } from '../grading';
-import { getSessionHistory, type SessionRecord } from '../progress/storage';
-import { getKeyStats } from '../stats/keyStats';
-import type { RaceTextSource } from '../stats/sessionTypes';
+import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
+import { gradeRank } from '@/utils/grading';
+import { getSessionHistory, type SessionRecord } from '@/utils/progress/storage';
+import { getKeyStats } from '@/utils/stats/keyStats';
+import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 import {
   ACHIEVEMENT_CATALOG,
   CATALOG_BY_ID,
   type CatalogEntry,
-} from './catalogData';
-import type { AchievementMetric, EvaluationResult } from './catalogTypes';
-import { getMultiplayerStats } from './multiplayerStats';
+} from '@/utils/achievements/catalogData';
+import type { AchievementMetric, EvaluationResult } from '@/utils/achievements/catalogTypes';
+import { getMultiplayerStats } from '@/utils/achievements/multiplayerStats';
 import {
   getLocalAchievementProgress,
   saveLocalAchievementProgress,
-} from './progressStorage';
-import { buildUserAchievementStatsFromLocal } from './userStats';
+} from '@/utils/achievements/progressStorage';
+import { buildUserAchievementStatsFromLocal } from '@/utils/achievements/userStats';
 
 const HIGH_GRADES = new Set(['S', 'S+', 'SS', 'SS+']);
 const SS_GRADES = new Set(['SS', 'SS+']);

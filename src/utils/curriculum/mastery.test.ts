@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { masteryTierFromXp, masteryXpForGrade } from './mastery';
+import { masteryTierFromXp, masteryXpForGrade } from '@/utils/curriculum/mastery';
 
 describe('mastery', () => {
   it('awards more XP for higher grades', () => {

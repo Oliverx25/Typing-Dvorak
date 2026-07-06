@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isLessonUnlocked, getCurriculumProgress, UNLOCK_ACCURACY } from './curriculum';
+import { isLessonUnlocked, getCurriculumProgress, UNLOCK_ACCURACY } from '@/utils/curriculum/curriculum';
 
 describe('curriculum', () => {
   it('always unlocks the first lesson', () => {

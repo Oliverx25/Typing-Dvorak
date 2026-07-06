@@ -1,9 +1,9 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { evaluateAchievementProgress } from './achievementEvaluator';
-import { getProgressForAchievement, replaceLocalAchievementProgress } from './progressStorage';
-import { CATALOG_BY_SLUG } from './catalogData';
-import { writeJson } from '../progress/localStorage';
-import { STORAGE_KEYS } from '../progress/keys';
+import { evaluateAchievementProgress } from '@/utils/achievements/achievementEvaluator';
+import { getProgressForAchievement, replaceLocalAchievementProgress } from '@/utils/achievements/progressStorage';
+import { CATALOG_BY_SLUG } from '@/utils/achievements/catalogData';
+import { writeJson } from '@/utils/progress/localStorage';
+import { STORAGE_KEYS } from '@/utils/progress/keys';
 
 function mockBrowserStorage() {
   const store = new Map<string, string>();

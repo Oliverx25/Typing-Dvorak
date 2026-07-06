@@ -1,6 +1,6 @@
-import { dispatchAchievementsUnlocked } from '../app/events';
-import { CATALOG_BY_SLUG } from './catalogData';
-import type { CatalogCategory, CatalogTier } from './catalogTypes';
+import { dispatchAchievementsUnlocked } from '@/utils/app/events';
+import { CATALOG_BY_SLUG } from '@/utils/achievements/catalogData';
+import type { CatalogCategory, CatalogTier } from '@/utils/achievements/catalogTypes';
 
 export interface AchievementToastItem {
   slug: string;

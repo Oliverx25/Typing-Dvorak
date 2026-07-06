@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createInitialTypingCore,
   typingCoreReducer,
-} from './typingSessionReducer';
+} from '@/utils/typing/typingSessionReducer';
 
 describe('typingCoreReducer', () => {
   it('resets to pending statuses for new text', () => {

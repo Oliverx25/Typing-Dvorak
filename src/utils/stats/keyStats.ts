@@ -1,7 +1,7 @@
-import { charToKeyCode, DVORAK_ROWS } from '../keyboard/dvorak';
-import { dispatchKeyStatsUpdated } from '../app/events';
-import { STORAGE_KEYS } from '../progress/keys';
-import { readJson, writeJson } from '../progress/localStorage';
+import { charToKeyCode, DVORAK_ROWS } from '@/utils/keyboard/dvorak';
+import { dispatchKeyStatsUpdated } from '@/utils/app/events';
+import { STORAGE_KEYS } from '@/utils/progress/keys';
+import { readJson, writeJson } from '@/utils/progress/localStorage';
 
 export interface KeyStatsData {
   hits: Record<string, number>;

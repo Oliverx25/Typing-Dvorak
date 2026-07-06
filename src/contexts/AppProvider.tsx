@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getTranslations, type Locale, type TranslationKey } from '../i18n';
-import { getSettings, saveSettings, type AppSettings, type PracticeMode } from '../utils/app/settings';
-import { getStoredTheme, setStoredTheme, type Theme } from '../utils/progress/storage';
-import { applyHighlightTheme } from '../utils/app/highlightTheme';
-import { PROFILE_PREFERENCES_SYNCED_EVENT } from '../utils/app/events';
-import { syncAppSettingsToProfile } from '../services/supabase/profile';
+import { getTranslations, type Locale, type TranslationKey } from '@/i18n';
+import { getSettings, saveSettings, type AppSettings, type PracticeMode } from '@/utils/app/settings';
+import { getStoredTheme, setStoredTheme, type Theme } from '@/utils/progress/storage';
+import { applyHighlightTheme } from '@/utils/app/highlightTheme';
+import { PROFILE_PREFERENCES_SYNCED_EVENT } from '@/utils/app/events';
+import { syncAppSettingsToProfile } from '@/services/supabase/profile';
 
 interface AppContextValue {
   locale: Locale;

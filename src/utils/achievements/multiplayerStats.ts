@@ -1,5 +1,5 @@
-import { readJson, writeJson } from '../progress/localStorage';
-import { STORAGE_KEYS } from '../progress/keys';
+import { readJson, writeJson } from '@/utils/progress/localStorage';
+import { STORAGE_KEYS } from '@/utils/progress/keys';
 
 export interface MultiplayerStats {
   matches: number;

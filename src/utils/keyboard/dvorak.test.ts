@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { charToKeyCode } from './dvorak';
+import { charToKeyCode } from '@/utils/keyboard/dvorak';
 
 describe('dvorak', () => {
   it('maps characters to key codes', () => {

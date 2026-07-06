@@ -1,6 +1,6 @@
-/** Characters outside ASCII, Latin-1 supplement, and extended Latin (accents). */
+/** Characters outside printable ASCII, Latin-1 supplement, and extended Latin (accents). */
 const NON_TYPABLE_CHAR =
-  /[^\x00-\x7F\xA1-\xFF\u0100-\u017F\u0218-\u021B]/g;
+  /[^\x20-\x7E\xA1-\xFF\u0100-\u017F\u0218-\u021B]/g;
 
 const LETTER = /[a-zA-Z\u00C0-\u024F]/g;
 

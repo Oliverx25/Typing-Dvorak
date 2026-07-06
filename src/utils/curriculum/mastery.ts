@@ -1,4 +1,4 @@
-import { gradeRank } from '../grading';
+import { gradeRank } from '@/utils/grading';
 
 /** Mastery tier thresholds (cumulative XP). */
 export const MASTERY_TIER_THRESHOLDS = {

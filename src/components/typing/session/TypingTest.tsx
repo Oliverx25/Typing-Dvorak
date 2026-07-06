@@ -3,13 +3,13 @@ import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import type { Lesson } from '@/utils/curriculum/lessons';
 import { useTypingSession } from '@/hooks/useTypingSession';
 import Keyboard from '@/components/typing/keyboard/Keyboard';
-import StatsBar from './StatsBar';
-import CompletionPanel from './CompletionPanel';
-import ModeToggle, { ModeDescription } from './ModeToggle';
-import PauseOverlay from './PauseOverlay';
-import ComboCounter from './ComboCounter';
-import TypingTextPrompter from './TypingTextPrompter';
-import VampireHealthBar from './VampireHealthBar';
+import StatsBar from '@/components/typing/session/StatsBar';
+import CompletionPanel from '@/components/typing/session/CompletionPanel';
+import ModeToggle, { ModeDescription } from '@/components/typing/session/ModeToggle';
+import PauseOverlay from '@/components/typing/session/PauseOverlay';
+import ComboCounter from '@/components/typing/session/ComboCounter';
+import TypingTextPrompter from '@/components/typing/session/TypingTextPrompter';
+import VampireHealthBar from '@/components/typing/session/VampireHealthBar';
 
 import type { PracticeMode } from '@/utils/app/settings';
 import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
@@ -119,7 +119,6 @@ export default function TypingTest({
     errorKeystrokes,
     startTime,
     keystrokeLog,
-    zenMode,
     clearComboBroke,
     containerRef,
     retryButtonRef,

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildLyricTimelineFromLrc, wordStartIndices } from './buildLyricTimeline';
-import { isNonVocalLrcLine, parseLrc } from './parseLrc';
+import { buildLyricTimelineFromLrc, wordStartIndices } from '@/utils/lyrics/buildLyricTimeline';
+import { isNonVocalLrcLine, parseLrc } from '@/utils/lyrics/parseLrc';
 import {
   calculateTypingDifficulty,
   computeTrackWpm,
   countLyricWords,
   PEAK_WPM_HARD_THRESHOLD,
-} from './typingDifficulty';
+} from '@/utils/lyrics/typingDifficulty';
 
 describe('parseLrc', () => {
   it('extracts timestamps and lyric text', () => {

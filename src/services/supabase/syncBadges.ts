@@ -1,14 +1,14 @@
-import { getSupabaseClient } from '../../lib/supabaseClient';
-import { ACHIEVEMENT_CATALOG } from '../../utils/achievements/catalogData';
+import { getSupabaseClient } from '@/lib/supabaseClient';
+import { ACHIEVEMENT_CATALOG } from '@/utils/achievements/catalogData';
 import {
   evaluateAchievementProgress,
   type LastSessionSnapshot,
-} from '../../utils/achievements/achievementEvaluator';
+} from '@/utils/achievements/achievementEvaluator';
 import {
   getLocalAchievementProgress,
   replaceLocalAchievementProgress,
-} from '../../utils/achievements/progressStorage';
-import type { UserAchievementProgress } from '../../utils/achievements/catalogTypes';
+} from '@/utils/achievements/progressStorage';
+import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
 
 async function persistUserAchievements(
   userId: string,

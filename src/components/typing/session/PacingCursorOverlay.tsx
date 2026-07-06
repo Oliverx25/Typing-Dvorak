@@ -1,5 +1,5 @@
-import OffScreenIndicator from './OffScreenIndicator';
-import PacingCursorMarker, { type PacingCursorVariant } from './PacingCursorMarker';
+import OffScreenIndicator from '@/components/typing/session/OffScreenIndicator';
+import PacingCursorMarker, { type PacingCursorVariant } from '@/components/typing/session/PacingCursorMarker';
 import type { PacingCursorVisibility } from '@/hooks/useVirtualizedTeleprompter';
 
 interface PacingCursorEdgeHintProps {

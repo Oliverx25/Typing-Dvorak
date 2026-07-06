@@ -1,8 +1,8 @@
-import type { Locale } from '../../i18n';
-import type { AppSettings, PracticeMode } from './settings';
-import { clampPacerWpm } from './settings';
-import { isHighlightThemeId } from './highlightTheme';
-import type { Theme } from '../progress/storage';
+import type { Locale } from '@/i18n';
+import type { AppSettings, PracticeMode } from '@/utils/app/settings';
+import { clampPacerWpm } from '@/utils/app/settings';
+import { isHighlightThemeId } from '@/utils/app/highlightTheme';
+import type { Theme } from '@/utils/progress/storage';
 
 function isPracticeMode(value: unknown): value is PracticeMode {
   return value === 'practice' || value === 'test';

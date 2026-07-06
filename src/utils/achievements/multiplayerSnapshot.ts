@@ -2,9 +2,9 @@ import type { RaceParticipantProgress, RoomBroadcastState, LobbyPlayerPresence }
 import {
   computeWinMarginSeconds,
   computeWpmGapToSecond,
-} from '../multiplayer/raceRanking';
-import { resolveRaceTextSource } from '../stats/sessionDisplay';
-import type { LastSessionSnapshot } from './achievementEvaluator';
+} from '@/utils/multiplayer/raceRanking';
+import { resolveRaceTextSource } from '@/utils/stats/sessionDisplay';
+import type { LastSessionSnapshot } from '@/utils/achievements/achievementEvaluator';
 
 export interface MultiplayerSnapshotInput {
   leaderboard: RaceParticipantProgress[];

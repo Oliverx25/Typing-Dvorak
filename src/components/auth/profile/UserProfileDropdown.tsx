@@ -5,7 +5,7 @@ import { getUserDisplay } from '@/utils/user/userDisplay';
 import { Icon } from '@/components/ui';
 import { headerAvatarButtonClassName } from '@/components/layout/headerClasses';
 import HeaderMenuPortal from '@/components/layout/header/HeaderMenuPortal';
-import EditProfileModal from './EditProfileModal';
+import EditProfileModal from '@/components/auth/profile/EditProfileModal';
 
 export default function UserProfileDropdown() {
   const { user, profile, signOut, isConfigured } = useAuth();

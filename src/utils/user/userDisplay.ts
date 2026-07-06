@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js';
-import type { MultiplayerPrivacy } from './multiplayerPrivacy';
+import type { MultiplayerPrivacy } from '@/utils/user/multiplayerPrivacy';
 
 export type AvatarSource = 'custom' | 'oauth' | 'none';
 

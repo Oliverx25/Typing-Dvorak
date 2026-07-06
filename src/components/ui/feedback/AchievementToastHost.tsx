@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LuAward, LuX } from 'react-icons/lu';
+import { Icon } from '@/components/ui';
 import { useApp } from '@/contexts/AppProvider';
 import {
   ACHIEVEMENTS_UNLOCKED_EVENT,
@@ -118,7 +118,7 @@ export default function AchievementToastHost() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
-                <LuAward className="h-3.5 w-3.5 text-[var(--color-highlight)]" aria-hidden="true" />
+                <Icon name="award" size={14} className="text-[var(--color-highlight)]" />
                 {t.achievements.toastUnlocked}
               </p>
               <p className="mt-0.5 truncate text-sm font-semibold text-[var(--color-text)]">
@@ -134,7 +134,7 @@ export default function AchievementToastHost() {
               className="shrink-0 rounded-md p-1 text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
               aria-label={t.achievements.toastDismiss}
             >
-              <LuX className="h-4 w-4" />
+              <Icon name="x" size={16} />
             </button>
           </div>
         );

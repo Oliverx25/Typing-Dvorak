@@ -1,5 +1,5 @@
-import { STORAGE_KEYS } from './keys';
-import { readString, writeString } from './localStorage';
+import { STORAGE_KEYS } from '@/utils/progress/keys';
+import { readString, writeString } from '@/utils/progress/localStorage';
 
 const MAX_LENGTH = 2000;
 

@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import { AppProvider } from '@/contexts/AppProvider';
 import { AuthProvider } from '@/contexts/AuthProvider';
 import AchievementToastHost from '@/components/ui/feedback/AchievementToastHost';
-import PageLayout from './PageLayout';
-import SiteFooter from './SiteFooter';
+import PageLayout from '@/components/layout/shell/PageLayout';
+import SiteFooter from '@/components/layout/shell/SiteFooter';
 
 interface AppChromeProps {
   children: ReactNode;

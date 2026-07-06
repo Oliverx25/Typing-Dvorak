@@ -16,7 +16,7 @@ import {
   type MultiplayerPrivacy,
 } from '@/utils/user/multiplayerPrivacy';
 import { getUserDisplay } from '@/utils/user/userDisplay';
-import UserAvatar from './UserAvatar';
+import UserAvatar from '@/components/auth/profile/UserAvatar';
 import { Button } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 

@@ -95,10 +95,6 @@ export function useMultiplayerRace({
     [winCondition],
   );
 
-  const playerById = useMemo(() => {
-    return new Map(players.map((player) => [player.userId, player]));
-  }, [players]);
-
   const flushProgress = useCallback(() => {
     animationFrameRef.current = null;
     const next: RaceParticipantProgress[] = [];
@@ -143,6 +139,8 @@ export function useMultiplayerRace({
       return;
     }
 
+    const progressMap = progressMapRef.current;
+
     progressHandlerRef.current = (payload) => {
       const progress = payload as Partial<RaceProgressPayload>;
       if (!progress.userId || progress.userId === currentUserIdRef.current) return;
@@ -164,7 +162,7 @@ export function useMultiplayerRace({
         window.cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-      progressMapRef.current.clear();
+      progressMap.clear();
       setRemoteProgress([]);
     };
   }, [enabled, progressHandlerRef]);
@@ -285,6 +283,3 @@ export function useMultiplayerRace({
     primaryVictory,
   };
 }
-
-/** @deprecated use leaderboard from useMultiplayerRace */
-export type { RaceParticipantProgress as RaceOpponentProgress };

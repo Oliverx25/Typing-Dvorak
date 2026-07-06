@@ -6,7 +6,7 @@ import {
   getVisibleLineRange,
   isCursorVisibleInLineWindow,
   splitTargetTextIntoLines,
-} from './teleprompterLines';
+} from '@/utils/typing/teleprompterLines';
 
 describe('splitTargetTextIntoLines', () => {
   it('preserves char indices across newlines', () => {

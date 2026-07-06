@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { AppProvider } from '@/contexts/AppProvider';
-import SiteFooter from './SiteFooter';
+import SiteFooter from '@/components/layout/shell/SiteFooter';
 
 /** Static pages (auth, callback) — footer + i18n without full app auth shell. */
 export default function PublicShell({ children }: { children: ReactNode }) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDaysToDateString, collectPracticeDates, computeStreakFromPracticeDates } from './streak';
+import { addDaysToDateString, collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 
 const TODAY = '2026-07-03';
 

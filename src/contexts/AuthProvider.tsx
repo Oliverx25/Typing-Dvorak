@@ -1,19 +1,19 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabaseClient';
-import { SESSION_COMPLETE_EVENT, dispatchKeyStatsUpdated, dispatchSessionComplete, sessionCompleteDetail } from '../utils/app/events';
-import { clearGuestProgress } from '../utils/progress/guestProgress';
-import { scheduleSessionCloudSync, scheduleKeyErrorsCloudSync } from '../services/supabase/syncProgress';
-import { syncBadgesToCloud } from '../services/supabase/syncBadges';
-import { safeAsync, safeAsyncVoid } from '../utils/network/graceful';
+import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { SESSION_COMPLETE_EVENT, dispatchKeyStatsUpdated, dispatchSessionComplete, sessionCompleteDetail } from '@/utils/app/events';
+import { clearGuestProgress } from '@/utils/progress/guestProgress';
+import { scheduleSessionCloudSync, scheduleKeyErrorsCloudSync } from '@/services/supabase/syncProgress';
+import { syncBadgesToCloud } from '@/services/supabase/syncBadges';
+import { safeAsync, safeAsyncVoid } from '@/utils/network/graceful';
 import {
   loadProgressFromCloud,
   restoreCustomAvatarFromProfile,
   restoreProfileDisplayFromProfile,
   restoreProfilePreferencesFromProfile,
   type UserProfileRow,
-} from '../services/supabase/loadProgress';
-import { fetchUserProfile } from '../services/supabase/queries';
+} from '@/services/supabase/loadProgress';
+import { fetchUserProfile } from '@/services/supabase/queries';
 
 interface AuthContextValue {
   user: User | null;

@@ -3,7 +3,7 @@ import { getKeyStats, hasKeyStats, type KeyStatsData } from '@/utils/stats/keySt
 import { KEY_STATS_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useApp } from '@/contexts/AppProvider';
 import { Card } from '@/components/ui';
-import HeatmapGrid, { HeatmapLegend } from './HeatmapGrid';
+import HeatmapGrid, { HeatmapLegend } from '@/components/stats/heatmap/HeatmapGrid';
 
 interface KeyHeatmapProps {
   /** When 'hide', returns null if no stats exist (home page). */

@@ -1,6 +1,6 @@
 import type { User } from '@supabase/supabase-js';
-import type { AvatarSource } from './userDisplay';
-import { getUserDisplay, getUserInitials, type ProfileDisplayInfo } from './userDisplay';
+import type { AvatarSource } from '@/utils/user/userDisplay';
+import { getUserDisplay, getUserInitials, type ProfileDisplayInfo } from '@/utils/user/userDisplay';
 
 export type MultiplayerPrivacy = 'public' | 'initials' | 'anonymous';
 

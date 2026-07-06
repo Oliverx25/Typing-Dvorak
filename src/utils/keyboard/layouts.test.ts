@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DVORAK_ROWS } from './dvorak';
-import { COMPARATOR_LAYOUTS, QWERTY_ROWS } from './layouts';
+import { DVORAK_ROWS } from '@/utils/keyboard/dvorak';
+import { COMPARATOR_LAYOUTS, QWERTY_ROWS } from '@/utils/keyboard/layouts';
 
 function rowLabels(rows: typeof QWERTY_ROWS, rowIndex: number): string {
   return rows[rowIndex].keys.map((key) => key.label).join('');

@@ -1,7 +1,7 @@
 import type { IconName } from '@/components/ui/icons/Icon';
-import { LESSON_ORDER } from '../curriculum/curriculum';
-import { UNLOCK_ACCURACY } from '../curriculum/constants';
-import type { BadgeProgressState } from './badges';
+import { LESSON_ORDER } from '@/utils/curriculum/curriculum';
+import { UNLOCK_ACCURACY } from '@/utils/curriculum/constants';
+import type { BadgeProgressState } from '@/utils/achievements/badges';
 
 export type AchievementFamily =
   | 'speed'

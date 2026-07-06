@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { appPreferencesFromUserSettings, userSettingsPayloadFromAppPreferences } from './settingsSync';
-import type { AppSettings } from './settings';
+import { appPreferencesFromUserSettings, userSettingsPayloadFromAppPreferences } from '@/utils/app/settingsSync';
+import type { AppSettings } from '@/utils/app/settings';
 
 const BASE_SETTINGS: AppSettings = {
   locale: 'es',

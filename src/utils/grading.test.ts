@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateGrade, isGradeAtLeast } from './grading';
+import { calculateGrade, isGradeAtLeast } from '@/utils/grading';
 
 describe('calculateGrade', () => {
   it('maps accuracy to global letter grades', () => {

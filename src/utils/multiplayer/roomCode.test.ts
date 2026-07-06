@@ -4,7 +4,7 @@ import {
   normalizeRoomCode,
   readRoomCodeFromSearch,
   roomUrl,
-} from './roomCode';
+} from '@/utils/multiplayer/roomCode';
 
 describe('roomCode', () => {
   it('generates uppercase codes without ambiguous characters', () => {

@@ -6,7 +6,7 @@ import {
   applyVampireScoreDrain,
   clampVampireHp,
   vampireErrorDamage,
-} from './vampireMode';
+} from '@/utils/multiplayer/vampireMode';
 
 describe('vampireMode', () => {
   it('clamps HP between 0 and max', () => {

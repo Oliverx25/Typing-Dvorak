@@ -1,4 +1,4 @@
-import type { RaceModifier } from '../multiplayer/roomConfig.types';
+import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
 
 /** Origin of text used in a multiplayer race. */
 export type RaceTextSource = 'lesson' | 'custom' | 'song';

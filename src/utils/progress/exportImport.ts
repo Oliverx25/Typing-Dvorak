@@ -1,4 +1,4 @@
-import { EXPORT_KEYS } from './keys';
+import { EXPORT_KEYS } from '@/utils/progress/keys';
 
 export interface ExportBundle {
   version: 1;

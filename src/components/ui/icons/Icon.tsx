@@ -1,6 +1,7 @@
 import type { IconType } from 'react-icons';
 import type { SVGProps } from 'react';
 import {
+  LuAward,
   LuBookOpen,
   LuCamera,
   LuChartLine,
@@ -78,6 +79,7 @@ export type IconName =
   | 'zap'
   | 'target'
   | 'book-open'
+  | 'award'
   | 'crown'
   | 'sparkles';
 
@@ -120,6 +122,7 @@ const ICONS: Record<IconName, IconType> = {
   zap: LuZap,
   target: LuTarget,
   'book-open': LuBookOpen,
+  award: LuAward,
   crown: LuCrown,
   sparkles: LuSparkles,
 };

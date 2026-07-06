@@ -1,2 +1,2 @@
-export { getSupabaseClient, isSupabaseConfigured } from './supabaseClient';
-export type { Database } from './supabaseClient';
+export { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
+export type { Database } from '@/lib/supabaseClient';

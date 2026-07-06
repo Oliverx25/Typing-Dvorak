@@ -1,7 +1,7 @@
-import { STORAGE_KEYS } from '../progress/keys';
-import { readJson, writeJson } from '../progress/localStorage';
-import { CATALOG_BY_ID } from './catalogData';
-import type { UserAchievementProgress } from './catalogTypes';
+import { STORAGE_KEYS } from '@/utils/progress/keys';
+import { readJson, writeJson } from '@/utils/progress/localStorage';
+import { CATALOG_BY_ID } from '@/utils/achievements/catalogData';
+import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
 
 type ProgressMap = Record<string, UserAchievementProgress>;
 

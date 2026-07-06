@@ -1,5 +1,5 @@
-import { en, type TranslationKey } from './en';
-import { es } from './es';
+import { en, type TranslationKey } from '@/i18n/en';
+import { es } from '@/i18n/es';
 
 export type Locale = 'en' | 'es';
 

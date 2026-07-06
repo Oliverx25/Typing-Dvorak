@@ -4,7 +4,6 @@ import {
   LuCalendar,
   LuCode,
   LuFlame,
-  LuLock,
   LuMusic,
   LuSwords,
   LuTarget,
@@ -73,4 +72,3 @@ export const TIER_VISUALS: Record<CatalogTier, TierVisualStyle> = {
   },
 };
 
-export { LuLock };

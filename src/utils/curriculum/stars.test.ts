@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateStars } from './stars';
+import { calculateStars } from '@/utils/curriculum/stars';
 
 describe('stars', () => {
   it('returns 1 star for low accuracy', () => {

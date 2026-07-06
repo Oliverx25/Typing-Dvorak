@@ -1,6 +1,6 @@
-import { countLyricWords } from './typingDifficulty';
-import { isNonVocalLrcLine, type LrcLine } from './parseLrc';
-import type { LyricWordTiming, WpmProfile } from './types';
+import { countLyricWords } from '@/utils/lyrics/typingDifficulty';
+import { isNonVocalLrcLine, type LrcLine } from '@/utils/lyrics/parseLrc';
+import type { LyricWordTiming, WpmProfile } from '@/utils/lyrics/types';
 
 const MAX_SILENCE_DURATION_SEC = 12;
 const MIN_ACTIVE_LINE_WPM = 8;

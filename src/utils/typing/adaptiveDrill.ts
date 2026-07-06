@@ -1,5 +1,5 @@
-import { getWeakestKeys } from '../stats/keyStats';
-import { generateDrillText } from './textGenerator';
+import { getWeakestKeys } from '@/utils/stats/keyStats';
+import { generateDrillText } from '@/utils/typing/textGenerator';
 
 /** Builds practice text focused on the user's weakest keys. */
 export function generateAdaptiveDrillText(length = 48): string | null {

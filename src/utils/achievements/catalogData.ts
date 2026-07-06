@@ -1,4 +1,4 @@
-import type { AchievementMetric, CatalogCategory, CatalogEntry, CatalogTier } from './catalogTypes';
+import type { AchievementMetric, CatalogCategory, CatalogEntry, CatalogTier } from '@/utils/achievements/catalogTypes';
 
 let nextId = 1;
 

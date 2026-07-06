@@ -1,12 +1,12 @@
-import { getCompletedLessonsMap, getProgress, getSessionHistory } from '../progress/storage';
-import { LESSON_ORDER } from '../curriculum/curriculum';
-import { UNLOCK_ACCURACY } from '../curriculum/constants';
+import { getCompletedLessonsMap, getProgress, getSessionHistory } from '@/utils/progress/storage';
+import { LESSON_ORDER } from '@/utils/curriculum/curriculum';
+import { UNLOCK_ACCURACY } from '@/utils/curriculum/constants';
 import {
   countMasteredLessons,
   MASTER_ACCURACY,
   type UserAchievementStats,
-} from './achievements.config';
-import { getMultiplayerStats } from './multiplayerStats';
+} from '@/utils/achievements/achievements.config';
+import { getMultiplayerStats } from '@/utils/achievements/multiplayerStats';
 
 export interface SessionSummaryForStats {
   lesson_id: string;

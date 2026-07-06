@@ -1,4 +1,4 @@
-import { LESSON_GROUPS, type LessonGroup } from '../../data/microLessons';
+import { LESSON_GROUPS, type LessonGroup } from '@/data/microLessons';
 
 export function findLessonGroup(lessonId: string, titleKey: string): LessonGroup | undefined {
   return LESSON_GROUPS.find(

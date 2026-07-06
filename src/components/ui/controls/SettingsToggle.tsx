@@ -1,4 +1,4 @@
-import ToggleSwitch from './ToggleSwitch';
+import ToggleSwitch from '@/components/ui/controls/ToggleSwitch';
 
 interface SettingsToggleProps {
   title: string;

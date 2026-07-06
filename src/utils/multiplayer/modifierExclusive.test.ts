@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   resolveModifierConflicts,
   toggleRaceModifier,
-} from './modifierExclusive';
+} from '@/utils/multiplayer/modifierExclusive';
 
 describe('toggleRaceModifier', () => {
   it('activates a modifier when inactive', () => {

@@ -1,4 +1,4 @@
-import type { RaceModifier } from './roomConfig.types';
+import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
 
 export const MODIFIER_EXCLUSIVE_PAIRS: ReadonlyArray<readonly [RaceModifier, RaceModifier]> = [
   ['double_time', 'half_time'],

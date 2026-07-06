@@ -1,6 +1,6 @@
 import type { RaceParticipantProgress } from '@/types/multiplayer';
-import type { VictoryCondition } from './roomConfig.types';
-import { getPrimaryVictoryCondition } from './roomConfig';
+import type { VictoryCondition } from '@/utils/multiplayer/roomConfig.types';
+import { getPrimaryVictoryCondition } from '@/utils/multiplayer/roomConfig';
 
 export function compareRaceParticipants(
   a: RaceParticipantProgress,

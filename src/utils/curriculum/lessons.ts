@@ -1,5 +1,5 @@
-import { generateAdaptiveDrillText } from '../typing/adaptiveDrill';
-import { buildMicroLessons } from './microLessonCatalog';
+import { generateAdaptiveDrillText } from '@/utils/typing/adaptiveDrill';
+import { buildMicroLessons } from '@/utils/curriculum/microLessonCatalog';
 
 export type LessonCategory = 'drill' | 'words' | 'sentences' | 'punctuation' | 'numbers' | 'symbols';
 

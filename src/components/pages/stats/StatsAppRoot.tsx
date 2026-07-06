@@ -1,5 +1,5 @@
 import AppChrome from '@/components/layout/shell/AppChrome';
-import StatsPage from './StatsPage';
+import StatsPage from '@/components/pages/stats/StatsPage';
 
 export default function StatsAppRoot() {
   return (

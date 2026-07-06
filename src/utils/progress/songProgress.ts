@@ -1,6 +1,6 @@
-import { calculateGrade, bestGrade } from '../grading';
-import { readJson, writeJson } from './localStorage';
-import { STORAGE_KEYS } from './keys';
+import { calculateGrade, bestGrade } from '@/utils/grading';
+import { readJson, writeJson } from '@/utils/progress/localStorage';
+import { STORAGE_KEYS } from '@/utils/progress/keys';
 
 export interface SongProgressRecord {
   highestGrade: string;

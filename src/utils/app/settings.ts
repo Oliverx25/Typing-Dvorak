@@ -1,9 +1,9 @@
-import type { Locale } from '../../i18n';
-import type { HighlightThemeId } from './highlightTheme';
-import { applyHighlightTheme, DEFAULT_HIGHLIGHT_THEME, isHighlightThemeId } from './highlightTheme';
-import { getStoredTheme } from '../progress/storage';
-import { STORAGE_KEYS } from '../progress/keys';
-import { readJson, writeJson } from '../progress/localStorage';
+import type { Locale } from '@/i18n';
+import type { HighlightThemeId } from '@/utils/app/highlightTheme';
+import { applyHighlightTheme, DEFAULT_HIGHLIGHT_THEME, isHighlightThemeId } from '@/utils/app/highlightTheme';
+import { getStoredTheme } from '@/utils/progress/storage';
+import { STORAGE_KEYS } from '@/utils/progress/keys';
+import { readJson, writeJson } from '@/utils/progress/localStorage';
 
 export type PracticeMode = 'practice' | 'test';
 

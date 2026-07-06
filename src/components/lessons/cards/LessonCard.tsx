@@ -8,8 +8,7 @@ import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 import { MASTERY_BADGE_CLASSES, MASTERY_RING_CLASSES, MASTERY_TIER_LABELS } from '@/utils/curriculum/mastery';
 import type { MasteryTier } from '@/utils/curriculum/mastery';
-import { LuAward } from 'react-icons/lu';
-import { Card, Badge, BestScoreLabel } from '@/components/ui';
+import { Card, Badge, BestScoreLabel, Icon, LockIcon } from '@/components/ui';
 
 interface LessonCardProps {
   lesson: Lesson;
@@ -106,7 +105,7 @@ function UnlockedLessonCard({
           className={['absolute left-3 top-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider', badgeClass].join(' ')}
           title={MASTERY_TIER_LABELS[masteryTier]}
         >
-          <LuAward className="h-3.5 w-3.5" aria-hidden="true" />
+          <Icon name="award" size={14} />
           <span>{MASTERY_TIER_LABELS[masteryTier]}</span>
         </div>
       )}

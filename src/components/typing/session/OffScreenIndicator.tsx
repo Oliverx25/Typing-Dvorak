@@ -1,6 +1,6 @@
 import Icon from '@/components/ui/icons/Icon';
 import type { OffScreenDirection } from '@/utils/typing/teleprompterLines';
-import type { PacingCursorVariant } from './PacingCursorMarker';
+import type { PacingCursorVariant } from '@/components/typing/session/PacingCursorMarker';
 
 interface OffScreenIndicatorProps {
   direction: OffScreenDirection;

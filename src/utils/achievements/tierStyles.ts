@@ -1,4 +1,4 @@
-import type { AchievementTier } from './achievements.config';
+import type { AchievementTier } from '@/utils/achievements/achievements.config';
 
 export interface TierStyle {
   icon: string;

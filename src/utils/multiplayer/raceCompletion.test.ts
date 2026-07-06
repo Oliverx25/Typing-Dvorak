@@ -3,7 +3,7 @@ import {
   canAdvanceToResults,
   countPendingPlayers,
   isRaceCompleteForConnected,
-} from './raceCompletion';
+} from '@/utils/multiplayer/raceCompletion';
 import type { LobbyPlayerPresence } from '@/types/multiplayer';
 
 function player(

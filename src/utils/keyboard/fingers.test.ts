@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getFingerForKey, HOME_ROW_FINGERS } from './fingers';
+import { getFingerForKey, HOME_ROW_FINGERS } from '@/utils/keyboard/fingers';
 
 describe('fingers — Dvorak home row', () => {
   it('assigns correct fingers on the home row', () => {

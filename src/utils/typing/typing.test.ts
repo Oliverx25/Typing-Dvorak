@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateWpm, calculateAccuracy, calculateTestWpm, buildStats } from './typing';
+import { calculateWpm, calculateAccuracy, calculateTestWpm, buildStats } from '@/utils/typing/typing';
 
 describe('typing', () => {
   it('calculates WPM from correct chars and elapsed time', () => {

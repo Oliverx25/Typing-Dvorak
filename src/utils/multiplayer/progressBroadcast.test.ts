@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ThrottledProgressBroadcaster } from './progressBroadcast';
+import { ThrottledProgressBroadcaster } from '@/utils/multiplayer/progressBroadcast';
 import type { RaceProgressPayload } from '@/types/multiplayer';
 
 const basePayload = (overrides: Partial<RaceProgressPayload> = {}): RaceProgressPayload => ({

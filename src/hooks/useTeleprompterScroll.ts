@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  TELEPROMPTER_ACTIVE_LINE_ROW,
-  TELEPROMPTER_TEXT_CLASS,
-  TELEPROMPTER_VIEWPORT_CLASS,
-} from '@/utils/typing/teleprompterConfig';
+import { TELEPROMPTER_ACTIVE_LINE_ROW } from '@/utils/typing/teleprompterConfig';
 
 export {
   TELEPROMPTER_ACTIVE_LINE_ROW,

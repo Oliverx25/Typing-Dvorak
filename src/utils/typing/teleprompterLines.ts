@@ -1,7 +1,7 @@
 import {
   TELEPROMPTER_ACTIVE_LINE_ROW,
   TELEPROMPTER_VISIBLE_LINES,
-} from './teleprompterConfig';
+} from '@/utils/typing/teleprompterConfig';
 
 export interface TextLine {
   lineIndex: number;

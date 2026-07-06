@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateDrillText } from './textGenerator';
+import { generateDrillText } from '@/utils/typing/textGenerator';
 
 describe('textGenerator', () => {
   it('generates text from a character set', () => {

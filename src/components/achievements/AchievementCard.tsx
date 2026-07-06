@@ -1,10 +1,7 @@
 import type { CatalogEntry } from '@/utils/achievements/catalogData';
 import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
-import {
-  getCategoryIcon,
-  LuLock,
-  TIER_VISUALS,
-} from '@/utils/achievements/achievementIcons';
+import { getCategoryIcon, TIER_VISUALS } from '@/utils/achievements/achievementIcons';
+import { Icon } from '@/components/ui';
 
 interface AchievementCardProps {
   achievement: CatalogEntry;
@@ -27,7 +24,7 @@ export default function AchievementCard({
   const isLocked = !isUnlocked && userProgress.currentProgress <= 0;
   const tierStyle = TIER_VISUALS[achievement.tier];
   const CategoryIcon = getCategoryIcon(achievement.category);
-  const IconComponent = isLocked ? LuLock : CategoryIcon;
+  const iconClassName = isUnlocked ? tierStyle.icon : 'text-[var(--color-text-muted)]';
 
   const progressPct =
     achievement.targetValue > 0
@@ -53,12 +50,11 @@ export default function AchievementCard({
               : `${tierStyle.border} bg-[var(--color-surface)]/50`,
           ].join(' ')}
         >
-          <IconComponent
-            size={28}
-            strokeWidth={1.75}
-            className={isUnlocked ? tierStyle.icon : 'text-[var(--color-text-muted)]'}
-            aria-hidden
-          />
+          {isLocked ? (
+            <Icon name="lock" size={28} className={iconClassName} />
+          ) : (
+            <CategoryIcon size={28} strokeWidth={1.75} className={iconClassName} aria-hidden />
+          )}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -81,7 +77,7 @@ export default function AchievementCard({
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
-                <LuLock size={10} aria-hidden />
+                <Icon name="lock" size={10} />
                 {lockedLabel}
               </span>
             )}

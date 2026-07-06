@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getHeaderNavItems, resolveNavSection } from './headerNav';
+import { getHeaderNavItems, resolveNavSection } from '@/utils/navigation/headerNav';
 
 describe('headerNav', () => {
   it('resolves the active nav section from pathname', () => {

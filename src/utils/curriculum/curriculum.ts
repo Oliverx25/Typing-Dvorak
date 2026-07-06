@@ -1,10 +1,10 @@
-import { CORE_LESSONS, getLessonById } from './lessons';
-import { UNLOCK_ACCURACY } from './constants';
+import { CORE_LESSONS, getLessonById } from '@/utils/curriculum/lessons';
+import { UNLOCK_ACCURACY } from '@/utils/curriculum/constants';
 import {
   findGroupForMicro,
   getMicroMeta,
   isMicroLessonId,
-} from './microLessonCatalog';
+} from '@/utils/curriculum/microLessonCatalog';
 
 /** Lesson unlock order — first lesson is always available. Optional lessons excluded. */
 export const LESSON_ORDER = CORE_LESSONS.map((l) => l.id);

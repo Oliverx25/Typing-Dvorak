@@ -1,6 +1,6 @@
-import type { Theme } from '../progress/storage';
-import { getSettings } from './settings';
-import { getStoredTheme } from '../progress/storage';
+import type { Theme } from '@/utils/progress/storage';
+import { getSettings } from '@/utils/app/settings';
+import { getStoredTheme } from '@/utils/progress/storage';
 
 export type HighlightThemeId = 'indigo' | 'emerald' | 'cyan' | 'red' | 'amber' | 'fuchsia';
 

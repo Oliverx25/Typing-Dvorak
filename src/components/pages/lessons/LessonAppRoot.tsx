@@ -1,5 +1,5 @@
 import AppChrome from '@/components/layout/shell/AppChrome';
-import LessonPage from './LessonPage';
+import LessonPage from '@/components/pages/lessons/LessonPage';
 
 interface LessonAppRootProps {
   lessonId: string;

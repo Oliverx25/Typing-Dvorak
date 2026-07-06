@@ -1,4 +1,4 @@
-import type { TypingDifficulty, WpmProfile } from './types';
+import type { TypingDifficulty, WpmProfile } from '@/utils/lyrics/types';
 
 const LETTER = /[a-zA-Z\u00C0-\u024F]/g;
 const PUNCTUATION = /[.,!?;:'"—–()[\]{}/\\@#$%^&*+=<>~`|-]/g;

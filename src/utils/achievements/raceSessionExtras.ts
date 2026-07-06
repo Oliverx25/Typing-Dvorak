@@ -1,4 +1,4 @@
-import type { LastSessionSnapshot } from './achievementEvaluator';
+import type { LastSessionSnapshot } from '@/utils/achievements/achievementEvaluator';
 
 let pending: Partial<LastSessionSnapshot> | null = null;
 

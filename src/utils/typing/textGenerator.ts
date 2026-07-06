@@ -1,4 +1,4 @@
-import { BOTTOM_ROW, HOME_ROW, TOP_ROW } from '../keyboard/dvorak';
+import { BOTTOM_ROW, HOME_ROW, TOP_ROW } from '@/utils/keyboard/dvorak';
 
 const CHARSETS: Record<string, string> = {
   home: HOME_ROW,

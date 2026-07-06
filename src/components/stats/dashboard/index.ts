@@ -1,1 +1,1 @@
-export { default as StatsDashboard } from './StatsDashboard';
+export { default as StatsDashboard } from '@/components/stats/dashboard/StatsDashboard';

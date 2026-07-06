@@ -1,12 +1,11 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
-import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries, fetchUserLessonMastery } from './queries';
+import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries, fetchUserLessonMastery } from '@/services/supabase/queries';
 import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/progress/storage';
 import { replaceLocalProgress } from '@/utils/progress/storage';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import type { RaceTextSource } from '@/utils/stats/sessionTypes';
-import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
 import type { PracticeMode } from '@/utils/app/settings';
 import { calculateGrade, bestGrade } from '@/utils/grading';
 import { parseStoredRaceModifiers } from '@/utils/stats/sessionDisplay';
@@ -16,10 +15,10 @@ import { dispatchSessionComplete, dispatchKeyStatsUpdated, dispatchProfilePrefer
 import { applyHighlightTheme } from '@/utils/app/highlightTheme';
 import { setStoredTheme } from '@/utils/progress/storage';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
-import { updateProfileStreak } from './syncProgress';
-import { syncBadgesFromSessionRows } from './syncBadges';
-import type { LessonMasteryRow } from './queries';
-export type { UserProfileRow } from './profileRow';
+import { updateProfileStreak } from '@/services/supabase/syncProgress';
+import { syncBadgesFromSessionRows } from '@/services/supabase/syncBadges';
+import type { LessonMasteryRow } from '@/services/supabase/queries';
+export type { UserProfileRow } from '@/services/supabase/profileRow';
 
 function mapSessionRow(row: {
   lesson_id: string;

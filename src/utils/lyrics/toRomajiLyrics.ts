@@ -2,9 +2,9 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import Kuroshiro from 'kuroshiro-enhance';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
-import { sanitizeLyrics } from './sanitizeLyrics';
-import { isTypableLatinLyrics } from './latinScript';
-import { stripMacrons } from './stripMacrons';
+import { sanitizeLyrics } from '@/utils/lyrics/sanitizeLyrics';
+import { isTypableLatinLyrics } from '@/utils/lyrics/latinScript';
+import { stripMacrons } from '@/utils/lyrics/stripMacrons';
 
 const require = createRequire(import.meta.url);
 

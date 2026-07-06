@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { getBestWpmForLesson } from '../utils/progress/storage';
-import { pacingCursorIndex, timelineCursorIndex, type TimelinePoint } from '../utils/typing/pacingCursor';
+import { getBestWpmForLesson } from '@/utils/progress/storage';
+import { pacingCursorIndex, timelineCursorIndex, type TimelinePoint } from '@/utils/typing/pacingCursor';
 
 interface UsePacingCursorsOptions {
   started: boolean;

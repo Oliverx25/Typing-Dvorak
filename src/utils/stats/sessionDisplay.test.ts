@@ -5,9 +5,9 @@ import {
   formatModifierLabels,
   MULTIPLAYER_LESSON_ID,
   parseStoredRaceModifiers,
-} from './sessionDisplay';
-import type { SessionRecord } from '../progress/storage';
-import type { TranslationKey } from '../../i18n';
+} from '@/utils/stats/sessionDisplay';
+import type { SessionRecord } from '@/utils/progress/storage';
+import type { TranslationKey } from '@/i18n';
 
 const t = {
   stats: {

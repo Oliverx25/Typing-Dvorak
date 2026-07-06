@@ -8,7 +8,7 @@ import {
   splitTargetTextIntoLines,
   type OffScreenDirection,
 } from '@/utils/typing/teleprompterLines';
-import { useTeleprompterScroll } from './useTeleprompterScroll';
+import { useTeleprompterScroll } from '@/hooks/useTeleprompterScroll';
 
 export interface PacingCursorVisibility {
   isRenderable: boolean;

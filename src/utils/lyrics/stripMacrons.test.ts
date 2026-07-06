@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { stripMacrons } from './stripMacrons';
+import { stripMacrons } from '@/utils/lyrics/stripMacrons';
 
 describe('stripMacrons', () => {
   it('replaces long-vowel macrons with plain ASCII', () => {

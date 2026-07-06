@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ACHIEVEMENT_CATALOG, generateCatalogSeedSql } from './catalogData';
+import { ACHIEVEMENT_CATALOG, generateCatalogSeedSql } from '@/utils/achievements/catalogData';
 
 describe('achievement seed generator', () => {
   it('exports a non-empty catalog', () => {

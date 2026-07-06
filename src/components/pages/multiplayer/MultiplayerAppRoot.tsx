@@ -1,5 +1,5 @@
 import AppChrome from '@/components/layout/shell/AppChrome';
-import MultiplayerIndexPage from './MultiplayerIndexPage';
+import MultiplayerIndexPage from '@/components/pages/multiplayer/MultiplayerIndexPage';
 
 interface MultiplayerAppRootProps {
   kicked?: boolean;

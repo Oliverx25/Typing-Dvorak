@@ -3,7 +3,7 @@ import {
   normalizePlayersForLobbyView,
   applyPresenceJoinDiff,
   applyPresenceLeaveDiff,
-} from './presence';
+} from '@/utils/multiplayer/presence';
 import type { LobbyPlayerPresence } from '@/types/multiplayer';
 
 const samplePlayer = (overrides: Partial<LobbyPlayerPresence> = {}): LobbyPlayerPresence => ({

@@ -1,4 +1,4 @@
-import type { TranslationKey } from './en';
+import type { TranslationKey } from '@/i18n/en';
 
 export const es: TranslationKey = {
   siteName: 'Typing Dvorak',

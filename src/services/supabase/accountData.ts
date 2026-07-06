@@ -1,6 +1,6 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { exportProgress } from '@/utils/progress/exportImport';
-import { fetchUserKeyErrors, fetchUserProfile, fetchUserSessions } from './queries';
+import { fetchUserKeyErrors, fetchUserProfile, fetchUserSessions } from '@/services/supabase/queries';
 
 export interface AccountExportBundle {
   version: 2;

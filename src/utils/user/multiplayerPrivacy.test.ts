@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { User } from '@supabase/supabase-js';
-import { getMultiplayerPresenceDisplay } from './multiplayerPrivacy';
+import { getMultiplayerPresenceDisplay } from '@/utils/user/multiplayerPrivacy';
 
 const baseUser = {
   id: 'user-1',

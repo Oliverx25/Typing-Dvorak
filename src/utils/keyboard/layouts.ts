@@ -1,4 +1,4 @@
-import { DVORAK_ROWS, type KeyboardRow, type KeyDef } from './dvorak';
+import { DVORAK_ROWS, type KeyboardRow, type KeyDef } from '@/utils/keyboard/dvorak';
 
 export type LayoutId = 'qwerty' | 'dvorak';
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getWeakestKeys, getKeyErrorRate, getKeyAccuracy, getKeySampleConfidence } from './keyStats';
+import { getWeakestKeys, getKeyErrorRate, getKeyAccuracy, getKeySampleConfidence } from '@/utils/stats/keyStats';
 
 describe('keyStats', () => {
   it('ranks keys by misses and error rate', () => {

@@ -2,7 +2,7 @@ import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import { usePathname } from '@/hooks/usePathname';
 import { getHeaderNavItems, resolveNavSection } from '@/utils/navigation/headerNav';
-import ThemeToggle from './ThemeToggle';
+import ThemeToggle from '@/components/layout/header/ThemeToggle';
 import SettingsPanel from '@/components/layout/settings/SettingsPanel';
 import AuthControls from '@/components/auth/shell/AuthControls';
 import UserProfileDropdown from '@/components/auth/profile/UserProfileDropdown';

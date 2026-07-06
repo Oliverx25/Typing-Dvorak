@@ -1,12 +1,12 @@
-import { getSupabaseClient } from '../../lib/supabaseClient';
-import type { SessionRecord } from '../../utils/progress/storage';
-import { getMasteryXpForLesson } from '../../utils/progress/storage';
-import { calculateStars } from '../../utils/curriculum/stars';
-import { calculateGrade } from '../../utils/grading';
-import { getKeyStats } from '../../utils/stats/keyStats';
-import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '../../utils/progress/streak';
-import { fetchUserSessionTimestamps } from './queries';
-import { safeAsyncVoid } from '../../utils/network/graceful';
+import { getSupabaseClient } from '@/lib/supabaseClient';
+import type { SessionRecord } from '@/utils/progress/storage';
+import { getMasteryXpForLesson } from '@/utils/progress/storage';
+import { calculateStars } from '@/utils/curriculum/stars';
+import { calculateGrade } from '@/utils/grading';
+import { getKeyStats } from '@/utils/stats/keyStats';
+import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '@/utils/progress/streak';
+import { fetchUserSessionTimestamps } from '@/services/supabase/queries';
+import { safeAsyncVoid } from '@/utils/network/graceful';
 
 /** Writes computed streak fields to user_stats (cache for quick reads). */
 export async function updateProfileStreak(

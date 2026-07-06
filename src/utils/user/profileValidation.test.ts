@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateDisplayName, validateUsername } from './profileValidation';
+import { validateDisplayName, validateUsername } from '@/utils/user/profileValidation';
 
 describe('validateDisplayName', () => {
   it('rejects empty names', () => {

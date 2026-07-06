@@ -1,5 +1,5 @@
 import SiteLogo from '@/components/layout/shell/SiteLogo';
-import HeaderActions from './HeaderActions';
+import HeaderActions from '@/components/layout/header/HeaderActions';
 
 interface SiteHeaderProps {
   variant?: 'app' | 'landing';

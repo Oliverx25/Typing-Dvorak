@@ -1,45 +1,45 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { charToKeyCode } from '../utils/keyboard/dvorak';
+import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import {
   buildStats,
   calculateAccuracy,
   pickRandomText,
   TEST_DURATION_SECONDS,
   type TypingStats,
-} from '../utils/typing/typing';
-import { generateDrillText, generateTestStream } from '../utils/typing/textGenerator';
-import { saveSession } from '../utils/progress/storage';
-import { getSessionWeakKeys, recordKeystroke } from '../utils/stats/keyStats';
-import { playCompleteSound, playCorrectSound, playIncorrectSound } from '../utils/typing/sound';
-import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '../utils/app/events';
-import { finalizeSingleplayerAchievements } from '../utils/achievements/badges';
-import { setRaceSessionExtras } from '../utils/achievements/raceSessionExtras';
+} from '@/utils/typing/typing';
+import { generateDrillText, generateTestStream } from '@/utils/typing/textGenerator';
+import { saveSession } from '@/utils/progress/storage';
+import { getSessionWeakKeys, recordKeystroke } from '@/utils/stats/keyStats';
+import { playCompleteSound, playCorrectSound, playIncorrectSound } from '@/utils/typing/sound';
+import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '@/utils/app/events';
+import { finalizeSingleplayerAchievements } from '@/utils/achievements/badges';
+import { setRaceSessionExtras } from '@/utils/achievements/raceSessionExtras';
 import {
   calculateStableRaceWpm,
   calculateRaceAccuracy,
   scoreIncrementForHit,
-} from '../utils/multiplayer/raceScoring';
+} from '@/utils/multiplayer/raceScoring';
 import {
   VAMPIRE_MAX_HP,
   applyVampireErrorDamage,
   applyVampireHeal,
   applyVampireScoreDrain,
-} from '../utils/multiplayer/vampireMode';
-import type { PracticeMode } from '../utils/app/settings';
-import type { Lesson } from '../utils/curriculum/lessons';
-import type { SessionPersistOptions } from '../utils/stats/sessionTypes';
-import { getLessonText } from '../utils/curriculum/lessons';
-import type { Locale } from '../i18n';
+} from '@/utils/multiplayer/vampireMode';
+import type { PracticeMode } from '@/utils/app/settings';
+import type { Lesson } from '@/utils/curriculum/lessons';
+import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
+import { getLessonText } from '@/utils/curriculum/lessons';
+import type { Locale } from '@/i18n';
 import {
   createInitialTypingCore,
   typingCoreReducer,
   type CharStatus,
-} from '../utils/typing/typingSessionReducer';
+} from '@/utils/typing/typingSessionReducer';
 import {
   createKeystrokeEntry,
   zenWpmFromChars,
   type KeystrokeLogEntry,
-} from '../utils/typing/keystrokeTelemetry';
+} from '@/utils/typing/keystrokeTelemetry';
 
 /** Live WPM / elapsed refresh — 10 fps keeps stats smooth without excess renders. */
 const STATS_TICK_MS = 100;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { Icon } from '@/components/ui';
-import SettingsModal from './SettingsModal';
+import SettingsModal from '@/components/layout/settings/SettingsModal';
 import { headerIconButtonClassName } from '@/components/layout/headerClasses';
 
 export default function SettingsPanel() {

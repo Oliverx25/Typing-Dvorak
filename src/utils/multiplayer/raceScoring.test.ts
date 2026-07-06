@@ -6,7 +6,7 @@ import {
   mergePeakRaceProgress,
   resolveRaceCountdownSeconds,
   scoreIncrementForHit,
-} from './raceScoring';
+} from '@/utils/multiplayer/raceScoring';
 
 describe('raceScoring', () => {
   it('stable WPM requires minimum elapsed time and characters', () => {

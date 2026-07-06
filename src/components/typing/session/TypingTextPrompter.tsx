@@ -6,12 +6,12 @@ import {
   TELEPROMPTER_VIEWPORT_CLASS,
 } from '@/hooks/useTeleprompterScroll';
 import type { CaretAnimation, CaretStyle } from '@/utils/app/settings';
-import TypedChar from './TypedChar';
-import TypingCaret from './TypingCaret';
+import TypedChar from '@/components/typing/session/TypedChar';
+import TypingCaret from '@/components/typing/session/TypingCaret';
 import {
   InlinePacingCursorMarker,
   PacingCursorEdgeHint,
-} from './PacingCursorOverlay';
+} from '@/components/typing/session/PacingCursorOverlay';
 
 interface TypingTextPrompterProps {
   targetText: string;

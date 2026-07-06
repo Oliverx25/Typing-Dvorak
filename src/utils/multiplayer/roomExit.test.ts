@@ -4,7 +4,7 @@ import {
   handleRoomNavigationClick,
   isMultiplayerRoomPage,
   registerRoomExitHandler,
-} from './roomExit';
+} from '@/utils/multiplayer/roomExit';
 
 function stubWindowLocation(pathname: string, href = '') {
   const location = { href, pathname };

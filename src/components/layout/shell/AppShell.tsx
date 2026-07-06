@@ -1,1 +1,1 @@
-export { default } from './AppChrome';
+export { default } from '@/components/layout/shell/AppChrome';

@@ -1,5 +1,5 @@
-import { LESSON_GROUPS, type MicroLesson } from '../../data/microLessons';
-import type { Lesson } from './lessons';
+import { LESSON_GROUPS, type MicroLesson } from '@/data/microLessons';
+import type { Lesson } from '@/utils/curriculum/lessons';
 
 const MICRO_ENTRIES: MicroLesson[] = LESSON_GROUPS.flatMap((group) => group.microLessons);
 

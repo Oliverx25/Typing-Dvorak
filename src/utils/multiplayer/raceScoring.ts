@@ -1,5 +1,5 @@
-import { calculateWpm, calculateAccuracy } from '../typing/typing';
-import { calculateGrade, gradeRingClass } from '../grading';
+import { calculateWpm, calculateAccuracy } from '@/utils/typing/typing';
+import { calculateGrade, gradeRingClass } from '@/utils/grading';
 
 /** Minimum typing window before WPM is reported in races. */
 export const RACE_MIN_ELAPSED_MS = 2_000;

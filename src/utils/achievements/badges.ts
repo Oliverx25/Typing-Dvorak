@@ -1,20 +1,20 @@
-import { dispatchBadgesUpdated } from '../app/events';
-import { notifyAchievementUnlocks } from './achievementNotifications';
+import { dispatchBadgesUpdated } from '@/utils/app/events';
+import { notifyAchievementUnlocks } from '@/utils/achievements/achievementNotifications';
 import {
   evaluateAchievementProgress,
   getNewlyUnlockedSlugs,
   snapshotFromSessionRecord,
   type LastSessionSnapshot,
-} from './achievementEvaluator';
-import { recordMultiplayerMatch } from './multiplayerStats';
-import { CATALOG_BY_ID } from './catalogData';
+} from '@/utils/achievements/achievementEvaluator';
+import { recordMultiplayerMatch } from '@/utils/achievements/multiplayerStats';
+import { CATALOG_BY_ID } from '@/utils/achievements/catalogData';
 import {
   getProgressForAchievement,
   getUnlockedAchievementSlugs,
   replaceLocalAchievementProgress,
-} from './progressStorage';
-import type { UserAchievementProgress } from './catalogTypes';
-import type { SessionRecord } from '../progress/storage';
+} from '@/utils/achievements/progressStorage';
+import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
+import type { SessionRecord } from '@/utils/progress/storage';
 
 export interface BadgeProgressState {
   current: number;
@@ -85,4 +85,4 @@ export function replaceUnlockedBadges(rows: UserAchievementProgress[]): void {
   dispatchBadgesUpdated();
 }
 
-export { getProgressForAchievement, isAchievementUnlocked } from './progressStorage';
+export { getProgressForAchievement, isAchievementUnlocked } from '@/utils/achievements/progressStorage';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { charsPerMsFromWpm, pacingCursorIndex, timelineCursorIndex } from './pacingCursor';
+import { charsPerMsFromWpm, pacingCursorIndex, timelineCursorIndex } from '@/utils/typing/pacingCursor';
 
 describe('pacingCursor', () => {
   it('converts WPM to chars per millisecond', () => {

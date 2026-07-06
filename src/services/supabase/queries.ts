@@ -1,10 +1,10 @@
-import { getSupabaseClient } from '../../lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import {
   flattenProfileQueryRow,
   PROFILE_WITH_RELATIONS_SELECT,
   type ProfileQueryRow,
   type UserProfileRow,
-} from './profileRow';
+} from '@/services/supabase/profileRow';
 
 export async function fetchUserSessions(limit = 50) {
   const supabase = getSupabaseClient();

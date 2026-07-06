@@ -1,15 +1,15 @@
-import type { TypingStats } from '../typing/typing';
-import type { PracticeMode } from '../app/settings';
-import type { RaceTextSource } from '../stats/sessionTypes';
-import type { RaceModifier } from '../multiplayer/roomConfig.types';
-import { MULTIPLAYER_LESSON_ID } from '../stats/sessionDisplay';
-import { collectPracticeDates, computeStreakFromPracticeDates } from './streak';
-import { STORAGE_KEYS } from './keys';
-import { readJson, writeJson, readString, writeString } from './localStorage';
-import { calculateGrade, bestGrade } from '../grading';
-import { calculateMaxScore } from '../multiplayer/raceScoring';
-import { saveSongProgress } from './songProgress';
-import { masteryXpForGrade } from '../curriculum/mastery';
+import type { TypingStats } from '@/utils/typing/typing';
+import type { PracticeMode } from '@/utils/app/settings';
+import type { RaceTextSource } from '@/utils/stats/sessionTypes';
+import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
+import { MULTIPLAYER_LESSON_ID } from '@/utils/stats/sessionDisplay';
+import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
+import { STORAGE_KEYS } from '@/utils/progress/keys';
+import { readJson, writeJson, readString, writeString } from '@/utils/progress/localStorage';
+import { calculateGrade, bestGrade } from '@/utils/grading';
+import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
+import { saveSongProgress } from '@/utils/progress/songProgress';
+import { masteryXpForGrade } from '@/utils/curriculum/mastery';
 
 export interface SessionRecord {
   lessonId: string;
