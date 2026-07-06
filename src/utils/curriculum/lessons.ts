@@ -1,4 +1,5 @@
 import { generateAdaptiveDrillText } from '../typing/adaptiveDrill';
+import { buildMicroLessons } from './microLessonCatalog';
 
 export type LessonCategory = 'drill' | 'words' | 'sentences' | 'punctuation' | 'numbers' | 'symbols';
 
@@ -19,7 +20,7 @@ export interface Lesson {
   adaptive?: boolean;
 }
 
-export const LESSONS: Lesson[] = [
+const BASE_LESSONS: Lesson[] = [
   {
     id: 'home-row',
     titleKey: 'homeRow',
@@ -198,7 +199,13 @@ export const LESSONS: Lesson[] = [
   },
 ];
 
-export const CORE_LESSONS = LESSONS.filter((l) => !l.optional);
+export const MICRO_LESSONS: Lesson[] = buildMicroLessons((id) =>
+  BASE_LESSONS.find((lesson) => lesson.id === id),
+);
+
+export const LESSONS: Lesson[] = [...BASE_LESSONS, ...MICRO_LESSONS];
+
+export const CORE_LESSONS = BASE_LESSONS.filter((l) => !l.optional);
 
 export function getLessonById(id: string): Lesson | undefined {
   return LESSONS.find((lesson) => lesson.id === id);

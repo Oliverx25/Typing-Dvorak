@@ -5,19 +5,28 @@ import { t as translate } from '@/i18n';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import { findLessonGroup } from '@/utils/curriculum/microLessonGroups';
 import CircularProgress from '@/components/ui/display/CircularProgress';
-import { BestScoreLabel, Icon } from '@/components/ui';
+import { Badge, BestScoreLabel, Icon } from '@/components/ui';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 
 import type { MicroLesson } from '@/data/microLessons';
 
 function MicroLessonRow({ micro, title }: { micro: MicroLesson; title: string }) {
   const { t } = useApp();
-  const { highestGrade, highestScore } = useLessonCardState(micro.lessonId);
+  const { unlocked, highestGrade, highestScore } = useLessonCardState(micro.id);
+
+  if (!unlocked) {
+    return (
+      <li className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm opacity-50">
+        <span className="min-w-0 truncate text-[var(--color-text-muted)]">{title}</span>
+        <Badge variant="locked">{t.home.locked}</Badge>
+      </li>
+    );
+  }
 
   return (
     <li>
       <a
-        href={`/lesson/${micro.lessonId}`}
+        href={`/lesson/${micro.id}`}
         className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm no-underline transition hover:bg-[var(--color-surface-elevated)]"
       >
         <span className="min-w-0 truncate text-[var(--color-text)]">{title}</span>

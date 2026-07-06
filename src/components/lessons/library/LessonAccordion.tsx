@@ -2,13 +2,11 @@ import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { LESSON_GROUPS, type MicroLesson } from '@/data/microLessons';
 import { Accordion, Badge, BestScoreLabel } from '@/components/ui';
 import type { AccordionItem } from '@/components/ui';
-import { isLessonUnlocked } from '@/utils/curriculum/curriculum';
-import { getCompletedLessonsMap } from '@/utils/progress/storage';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 
 function MicroLessonLink({ micro }: { micro: MicroLesson }) {
   const { t } = useApp();
-  const { unlocked, highestGrade, highestScore } = useLessonCardState(micro.lessonId);
+  const { unlocked, highestGrade, highestScore } = useLessonCardState(micro.id);
   const title = t.microLessons[micro.titleKey as keyof typeof t.microLessons] ?? micro.titleKey;
   const difficulty = t.difficulty[micro.difficulty];
 
@@ -26,7 +24,7 @@ function MicroLessonLink({ micro }: { micro: MicroLesson }) {
 
   return (
     <a
-      href={`/lesson/${micro.lessonId}`}
+      href={`/lesson/${micro.id}`}
       className="flex items-center justify-between rounded-lg px-3 py-2 no-underline transition hover:bg-[var(--color-surface)]/80"
     >
       <div>
@@ -75,13 +73,4 @@ export default function LessonAccordion() {
       <Accordion items={items} />
     </section>
   );
-}
-
-/** Returns unlock map for a lesson id (used by parent if needed). */
-export function isMicroLessonUnlocked(lessonId: string): boolean {
-  const completed = getCompletedLessonsMap();
-  const forUnlock = Object.fromEntries(
-    Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
-  );
-  return isLessonUnlocked(lessonId, forUnlock);
 }

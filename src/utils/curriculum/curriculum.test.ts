@@ -20,6 +20,25 @@ describe('curriculum', () => {
     ).toBe(false);
   });
 
+  it('unlocks first micro-lesson when parent chapter is unlocked', () => {
+    expect(isLessonUnlocked('home-left', {})).toBe(true);
+    expect(isLessonUnlocked('home-right', {})).toBe(false);
+    expect(
+      isLessonUnlocked('home-right', {
+        'home-left': { bestAccuracy: UNLOCK_ACCURACY },
+      }),
+    ).toBe(true);
+  });
+
+  it('locks micro-lessons until parent chapter is unlocked', () => {
+    expect(isLessonUnlocked('top-nivel-1', {})).toBe(false);
+    expect(
+      isLessonUnlocked('top-nivel-1', {
+        'home-row': { bestAccuracy: UNLOCK_ACCURACY },
+      }),
+    ).toBe(true);
+  });
+
   it('calculates curriculum progress percentage', () => {
     expect(getCurriculumProgress({})).toBe(0);
     const progress = getCurriculumProgress({
