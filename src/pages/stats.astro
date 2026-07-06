@@ -1,10 +1,10 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import StatsPage from '../components/pages/stats/StatsPage';
+import AppLayout from '../layouts/AppLayout.astro';
+import StatsAppRoot from '../components/pages/stats/StatsAppRoot';
 
 export const prerender = true;
 ---
 
-<Layout title="Typing Dvorak — Stats">
-  <StatsPage client:idle />
-</Layout>
+<AppLayout title="Typing Dvorak — Stats">
+  <StatsAppRoot client:idle />
+</AppLayout>

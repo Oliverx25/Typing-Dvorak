@@ -1,4 +1,3 @@
-import AppShell from '@/components/layout/shell/AppShell';
 import BackLink from '@/components/layout/shell/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
@@ -29,9 +28,5 @@ function AchievementsContent() {
 }
 
 export default function AchievementsPage() {
-  return (
-    <AppShell>
-      <AchievementsContent />
-    </AppShell>
-  );
+  return <AchievementsContent />;
 }

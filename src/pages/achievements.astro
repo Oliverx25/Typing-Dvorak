@@ -1,10 +1,10 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import AchievementsPage from '../components/pages/achievements/AchievementsPage';
+import AppLayout from '../layouts/AppLayout.astro';
+import AchievementsAppRoot from '../components/pages/achievements/AchievementsAppRoot';
 
 export const prerender = true;
 ---
 
-<Layout title="Typing Dvorak — Achievements">
-  <AchievementsPage client:idle />
-</Layout>
+<AppLayout title="Typing Dvorak — Achievements">
+  <AchievementsAppRoot client:idle />
+</AppLayout>

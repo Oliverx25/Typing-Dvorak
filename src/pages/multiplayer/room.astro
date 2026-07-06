@@ -1,10 +1,10 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import MultiplayerLobbyPage from '../../components/pages/multiplayer/MultiplayerLobbyPage';
+import AppLayout from '../../layouts/AppLayout.astro';
+import MultiplayerLobbyAppRoot from '../../components/pages/multiplayer/MultiplayerLobbyAppRoot';
 
 export const prerender = true;
 ---
 
-<Layout title="Typing Dvorak — Lobby">
-  <MultiplayerLobbyPage client:load />
-</Layout>
+<AppLayout title="Typing Dvorak — Lobby">
+  <MultiplayerLobbyAppRoot client:load />
+</AppLayout>

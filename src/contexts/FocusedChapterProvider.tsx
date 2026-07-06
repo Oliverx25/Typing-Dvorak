@@ -36,24 +36,24 @@ function getFocusedProgress(focusedLessonId: string, recommendedId: string, curr
 export function FocusedChapterProvider({ children }: { children: ReactNode }) {
   const { progress, recommendedId } = useCurriculumState();
   const [focusedLessonId, setFocusedLessonIdState] = useState(recommendedId);
-  const [progressTick, setProgressTick] = useState(0);
+  const [focusedProgress, setFocusedProgress] = useState(0);
 
   useEffect(() => {
     setFocusedLessonIdState(recommendedId);
   }, [recommendedId]);
 
   useEffect(() => {
-    const refresh = () => setProgressTick((n) => n + 1);
+    const refresh = () => {
+      setFocusedProgress(getFocusedProgress(focusedLessonId, recommendedId, progress));
+    };
+    refresh();
     window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
     return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
-  }, []);
+  }, [focusedLessonId, recommendedId, progress]);
 
   const setFocusedLessonId = useCallback((lessonId: string) => {
     setFocusedLessonIdState(lessonId);
   }, []);
-
-  void progressTick;
-  const focusedProgress = getFocusedProgress(focusedLessonId, recommendedId, progress);
 
   const value = useMemo<FocusedChapterContextValue>(
     () => ({

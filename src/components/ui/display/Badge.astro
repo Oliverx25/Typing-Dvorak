@@ -1,0 +1,28 @@
+---
+/** Presentational badge — use from Astro pages without React hydration. */
+interface Props {
+  variant?: 'accent' | 'muted' | 'success' | 'warning' | 'locked' | 'target';
+  class?: string;
+}
+
+const { variant = 'accent', class: className = '' } = Astro.props;
+
+const variants: Record<NonNullable<Props['variant']>, string> = {
+  accent: 'bg-[var(--color-highlight)]/10 text-[var(--color-highlight)]',
+  muted: 'bg-[var(--color-border)] text-[var(--color-text-muted)]',
+  success: 'bg-[var(--color-correct)]/10 text-[var(--color-correct)]',
+  warning: 'bg-[var(--color-key-target)]/15 text-[var(--color-key-target)]',
+  locked: 'bg-[var(--color-border)] text-[var(--color-text-muted)]',
+  target: 'bg-[var(--color-key-target)]/15 text-[var(--color-key-target)]',
+};
+---
+
+<span
+  class:list={[
+    'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+    variants[variant],
+    className,
+  ]}
+>
+  <slot />
+</span>

@@ -1,10 +1,10 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import CustomPracticeShell from '../../components/pages/practice/CustomPracticeShell';
+import AppLayout from '../../layouts/AppLayout.astro';
+import CustomPracticeAppRoot from '../../components/pages/practice/CustomPracticeAppRoot';
 
 export const prerender = true;
 ---
 
-<Layout title="Typing Dvorak — Custom Practice">
-  <CustomPracticeShell client:load />
-</Layout>
+<AppLayout title="Typing Dvorak — Custom Practice">
+  <CustomPracticeAppRoot client:load />
+</AppLayout>

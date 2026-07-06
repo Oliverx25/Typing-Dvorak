@@ -5,7 +5,7 @@ import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
 export default function LessonGuard({ lessonId, children }: { lessonId: string; children: React.ReactNode }) {
   const { t } = useApp();
-  const [unlocked, setUnlocked] = useState(() => readLessonUnlockState(lessonId));
+  const [unlocked, setUnlocked] = useState(false);
 
   useEffect(() => {
     const refresh = () => setUnlocked(readLessonUnlockState(lessonId));

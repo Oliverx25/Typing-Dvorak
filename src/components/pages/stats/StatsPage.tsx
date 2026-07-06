@@ -1,7 +1,6 @@
-import AppShell from '@/components/layout/shell/AppShell';
+import BackLink from '@/components/layout/shell/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import StatsDashboard from '@/components/stats/dashboard/StatsDashboard';
-import BackLink from '@/components/layout/shell/BackLink';
 
 function StatsContent() {
   const { t } = useApp();
@@ -18,9 +17,5 @@ function StatsContent() {
 }
 
 export default function StatsPage() {
-  return (
-    <AppShell>
-      <StatsContent />
-    </AppShell>
-  );
+  return <StatsContent />;
 }

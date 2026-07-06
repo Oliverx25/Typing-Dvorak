@@ -1,6 +1,6 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import LessonPage from '../../components/pages/lessons/LessonPage';
+import AppLayout from '../../layouts/AppLayout.astro';
+import LessonAppRoot from '../../components/pages/lessons/LessonAppRoot';
 import { LESSONS } from '../../utils/curriculum/lessons';
 
 export const prerender = true;
@@ -12,6 +12,6 @@ export function getStaticPaths() {
 const { id } = Astro.params;
 ---
 
-<Layout title="Typing Dvorak — Lesson">
-  <LessonPage client:load lessonId={id!} />
-</Layout>
+<AppLayout title="Typing Dvorak — Lesson">
+  <LessonAppRoot client:load lessonId={id!} />
+</AppLayout>

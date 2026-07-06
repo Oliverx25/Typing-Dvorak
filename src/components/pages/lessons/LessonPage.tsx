@@ -1,4 +1,3 @@
-import AppShell from '@/components/layout/shell/AppShell';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import TypingTest from '@/components/typing/session/TypingTest';
 import LessonGuard from '@/components/lessons/library/LessonGuard';
@@ -70,9 +69,5 @@ function LessonContent({ lessonId }: { lessonId: string }) {
 }
 
 export default function LessonPage({ lessonId }: LessonPageProps) {
-  return (
-    <AppShell>
-      <LessonContent lessonId={lessonId} />
-    </AppShell>
-  );
+  return <LessonContent lessonId={lessonId} />;
 }

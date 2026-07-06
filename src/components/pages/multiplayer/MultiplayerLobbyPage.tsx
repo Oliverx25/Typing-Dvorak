@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import AppShell from '@/components/layout/shell/AppShell';
 import BackLink from '@/components/layout/shell/BackLink';
 import LobbyView from '@/components/multiplayer/lobby/LobbyView';
 import { useApp } from '@/contexts/AppProvider';
@@ -75,17 +74,13 @@ export default function MultiplayerLobbyPage() {
     };
   }, []);
 
-  return (
-    <AppShell>
-      {!ready ? (
-        <div className="flex min-h-[40vh] items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]" />
-        </div>
-      ) : roomId && roomValid ? (
-        <LobbyContent roomId={roomId} />
-      ) : (
-        <InvalidRoomContent />
-      )}
-    </AppShell>
+  return !ready ? (
+    <div className="flex min-h-[40vh] items-center justify-center">
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]" />
+    </div>
+  ) : roomId && roomValid ? (
+    <LobbyContent roomId={roomId} />
+  ) : (
+    <InvalidRoomContent />
   );
 }

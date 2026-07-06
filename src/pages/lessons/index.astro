@@ -1,15 +1,10 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import HomePageWithProvider from '../../components/pages/home/HomePageWithProvider';
+import AppLayout from '../../layouts/AppLayout.astro';
+import LessonsAppRoot from '../../components/pages/home/LessonsAppRoot';
 
 export const prerender = true;
 ---
 
-<Layout title="Typing Dvorak — Lessons">
-  <HomePageWithProvider client:only="react">
-    <div slot="fallback" class="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4">
-      <div class="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]"></div>
-      <p class="text-sm text-[var(--color-text-muted)]">Loading lessons…</p>
-    </div>
-  </HomePageWithProvider>
-</Layout>
+<AppLayout title="Typing Dvorak — Lessons">
+  <LessonsAppRoot client:load />
+</AppLayout>

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import AppShell from '@/components/layout/shell/AppShell';
 import BackLink from '@/components/layout/shell/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
@@ -149,9 +148,5 @@ function MultiplayerIndexContent({ kicked = false, roomClosed = false }: Multipl
 }
 
 export default function MultiplayerIndexPage({ kicked, roomClosed }: MultiplayerIndexPageProps) {
-  return (
-    <AppShell>
-      <MultiplayerIndexContent kicked={kicked} roomClosed={roomClosed} />
-    </AppShell>
-  );
+  return <MultiplayerIndexContent kicked={kicked} roomClosed={roomClosed} />;
 }

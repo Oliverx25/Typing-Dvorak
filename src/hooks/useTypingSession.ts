@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { charToKeyCode } from '../utils/keyboard/dvorak';
 import {
   buildStats,
@@ -31,12 +31,21 @@ import type { SessionPersistOptions } from '../utils/stats/sessionTypes';
 import { getLessonText } from '../utils/curriculum/lessons';
 import type { Locale } from '../i18n';
 import {
+  createInitialTypingCore,
+  typingCoreReducer,
+  type CharStatus,
+} from '../utils/typing/typingSessionReducer';
+import {
   createKeystrokeEntry,
   zenWpmFromChars,
   type KeystrokeLogEntry,
 } from '../utils/typing/keystrokeTelemetry';
 
-export type CharStatus = 'pending' | 'correct' | 'incorrect';
+/** Live WPM / elapsed refresh — 10 fps keeps stats smooth without excess renders. */
+const STATS_TICK_MS = 100;
+
+export type { CharStatus };
+
 
 export type { KeystrokeLogEntry };
 
@@ -110,8 +119,12 @@ export function useTypingSession({
   }
 
   const [targetText, setTargetText] = useState(initialRef.current.text);
-  const [input, setInput] = useState('');
-  const [statuses, setStatuses] = useState<CharStatus[]>(initialRef.current.statuses);
+  const [core, dispatch] = useReducer(
+    typingCoreReducer,
+    initialRef.current.text,
+    createInitialTypingCore,
+  );
+  const { input, statuses, combo, maxCombo, errorKeystrokes, comboBroke } = core;
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -122,10 +135,6 @@ export function useTypingSession({
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [activeKey, setActiveKey] = useState<string | undefined>();
-  const [errorKeystrokes, setErrorKeystrokes] = useState(0);
-  const [combo, setCombo] = useState(0);
-  const [maxCombo, setMaxCombo] = useState(0);
-  const [comboBroke, setComboBroke] = useState(false);
   const [raceScore, setRaceScore] = useState(0);
   const [vampireHp, setVampireHp] = useState(VAMPIRE_MAX_HP);
   const [vampireDamaged, setVampireDamaged] = useState(false);
@@ -336,8 +345,7 @@ export function useTypingSession({
       ? generateTestStream(lesson.charSet ?? 'all')
       : resolveInitialText(lesson, locale, customText);
     setTargetText(text);
-    setInput('');
-    setStatuses(text.split('').map(() => 'pending'));
+    dispatch({ type: 'RESET', text });
     setStarted(false);
     setFinished(false);
     setPaused(false);
@@ -348,10 +356,6 @@ export function useTypingSession({
     setStartTime(null);
     setElapsedMs(0);
     setActiveKey(undefined);
-    setErrorKeystrokes(0);
-    setCombo(0);
-    setMaxCombo(0);
-    setComboBroke(false);
     setRaceScore(0);
     setVampireHp(VAMPIRE_MAX_HP);
     setVampireDamaged(false);
@@ -398,7 +402,7 @@ export function useTypingSession({
           buildStats(correctCharsRef.current, errorKeystrokesRef.current, elapsed, true),
         );
       }
-    }, 100);
+    }, STATS_TICK_MS);
     return () => clearInterval(interval);
   }, [started, finished, paused, isTestMode, finishSession, raceMode]);
 
@@ -485,12 +489,7 @@ export function useTypingSession({
         correctCharsCountRef.current = Math.max(0, correctCharsCountRef.current - 1);
       }
       const newInput = input.slice(0, -1);
-      setInput(newInput);
-      setStatuses((prev) => {
-        const next = [...prev];
-        next[newInput.length] = 'pending';
-        return next;
-      });
+      dispatch({ type: 'BACKSPACE', index: input.length - 1 });
       if (zenMode) {
         setTargetText(newInput);
       }
@@ -510,10 +509,8 @@ export function useTypingSession({
       }
 
       const typedChar = e.key;
-      const nextInput = input + typedChar;
-      setInput(nextInput);
-      setTargetText(nextInput);
-      setStatuses((prev) => [...prev, 'correct']);
+      dispatch({ type: 'ZEN_CHAR', char: typedChar });
+      setTargetText(input + typedChar);
 
       const entry = createKeystrokeEntry(
         input.length,
@@ -527,11 +524,6 @@ export function useTypingSession({
       correctCharsCountRef.current += 1;
 
       recordKeystroke(typedChar, true);
-      setCombo((prev) => {
-        const next = prev + 1;
-        setMaxCombo((max) => (next > max ? next : max));
-        return next;
-      });
 
       if (sound) playCorrectSound();
       pulseActiveKey(charToKeyCode(typedChar));
@@ -580,21 +572,16 @@ export function useTypingSession({
     keystrokeLogRef.current.push(logEntry);
 
     if (!isCorrect && stopOnError) {
-      setErrorKeystrokes((n) => n + 1);
+      const nextErrors = errorKeystrokesRef.current + 1;
+      dispatch({
+        type: 'STOP_ON_ERROR',
+        index: input.length,
+        errorKeystrokes: nextErrors,
+        comboBroke: combo > 0,
+      });
       sessionHadErrorRef.current = true;
       sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
-      setStatuses((prev) => {
-        const next = [...prev];
-        next[input.length] = 'incorrect';
-        return next;
-      });
-      setCombo((prev) => {
-        if (prev > 0) {
-          setComboBroke(true);
-          if (musicPacerEnabled) rhythmLockBrokenRef.current = true;
-        }
-        return 0;
-      });
+      if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
       recordKeystroke(typedChar, false);
       if (sound) playIncorrectSound();
       if (suddenDeathMode) {
@@ -613,23 +600,16 @@ export function useTypingSession({
     const nextCombo = isCorrect ? combo + 1 : 0;
     const nextAccuracy = calculateAccuracy(nextCorrect, nextErrors);
 
-    setInput(newInput);
-    setStatuses((prev) => {
-      const next = [...prev];
-      next[input.length] = isCorrect ? 'correct' : 'incorrect';
-      return next;
-    });
-
     if (isCorrect) {
       correctCharsCountRef.current += 1;
-      setComboBroke(false);
-      setCombo((prev) => {
-        const next = prev + 1;
-        setMaxCombo((max) => (next > max ? next : max));
-        if (sessionHadErrorRef.current) {
-          errorRecoveryMaxRef.current = Math.max(errorRecoveryMaxRef.current, next);
-        }
-        return next;
+      dispatch({
+        type: 'KEY_HIT',
+        char: typedChar,
+        status: 'correct',
+        combo: nextCombo,
+        maxCombo: Math.max(maxCombo, nextCombo),
+        errorKeystrokes: errorKeystrokesRef.current,
+        comboBroke: false,
       });
       if (raceMode) {
         setRaceScore(
@@ -639,8 +619,19 @@ export function useTypingSession({
       if (vampireMode) {
         applyVampireCorrect(nextCombo);
       }
+      if (sessionHadErrorRef.current) {
+        errorRecoveryMaxRef.current = Math.max(errorRecoveryMaxRef.current, nextCombo);
+      }
     } else {
-      setErrorKeystrokes((n) => n + 1);
+      dispatch({
+        type: 'KEY_HIT',
+        char: typedChar,
+        status: 'incorrect',
+        combo: 0,
+        maxCombo,
+        errorKeystrokes: nextErrors,
+        comboBroke: combo > 0,
+      });
       sessionHadErrorRef.current = true;
       sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
       if (suddenDeathMode) {
@@ -648,13 +639,7 @@ export function useTypingSession({
       } else if (vampireMode) {
         applyVampireHit();
       }
-      setCombo((prev) => {
-        if (prev > 0) {
-          setComboBroke(true);
-          if (musicPacerEnabled) rhythmLockBrokenRef.current = true;
-        }
-        return 0;
-      });
+      if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
     }
 
     if (sound) {
@@ -668,7 +653,7 @@ export function useTypingSession({
     if (isTestMode && newInput.length >= targetText.length - 20) {
       const extension = ' ' + generateDrillText(lesson.charSet ?? 'all', 40);
       setTargetText((prev) => prev + extension);
-      setStatuses((prev) => [...prev, ...extension.split('').map(() => 'pending' as CharStatus)]);
+      dispatch({ type: 'EXTEND_TEXT', extension });
     }
 
     if (!isTestMode && newInput.length === targetText.length) {
@@ -707,7 +692,7 @@ export function useTypingSession({
     pulseActiveKey,
   ]);
 
-  const clearComboBroke = useCallback(() => setComboBroke(false), []);
+  const clearComboBroke = useCallback(() => dispatch({ type: 'CLEAR_COMBO_BROKE' }), []);
 
   return {
     targetText,

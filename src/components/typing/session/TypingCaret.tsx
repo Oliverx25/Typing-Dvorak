@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { CaretAnimation, CaretStyle } from '@/utils/app/settings';
 
 interface TypingCaretProps {
@@ -9,6 +9,24 @@ interface TypingCaretProps {
   positionKey?: number;
 }
 
+function applyCaretGeometry(
+  el: HTMLSpanElement,
+  anchor: HTMLElement,
+  caretStyle: CaretStyle,
+): void {
+  const rect = anchor.getBoundingClientRect();
+  const parent = anchor.offsetParent as HTMLElement | null;
+  const parentRect = parent?.getBoundingClientRect();
+  const left = parentRect ? rect.left - parentRect.left : rect.left;
+  const top = parentRect ? rect.top - parentRect.top : rect.top;
+  const isUnderline = caretStyle === 'underline';
+  const isBlock = caretStyle === 'block';
+
+  el.style.transform = `translate(${left}px, ${top + (isUnderline ? rect.height - 2 : 0)}px)`;
+  el.style.width = isBlock ? `${rect.width}px` : isUnderline ? `${rect.width}px` : '';
+  el.style.height = isUnderline ? '2px' : `${rect.height}px`;
+}
+
 export default function TypingCaret({
   anchorRef,
   caretStyle,
@@ -16,43 +34,37 @@ export default function TypingCaret({
   visible,
   positionKey = 0,
 }: TypingCaretProps) {
-  const [pos, setPos] = useState<{ left: number; top: number; width: number; height: number } | null>(
-    null,
-  );
+  const caretRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    const el = caretRef.current;
+    if (!el) return;
+
     if (!visible) {
-      setPos(null);
+      el.style.display = 'none';
       return;
     }
 
     const update = () => {
-      const el = anchorRef.current;
-      if (!el) {
-        setPos(null);
+      const anchor = anchorRef.current;
+      if (!anchor) {
+        el.style.display = 'none';
         return;
       }
-      const rect = el.getBoundingClientRect();
-      const parent = el.offsetParent as HTMLElement | null;
-      const parentRect = parent?.getBoundingClientRect();
-      setPos({
-        left: parentRect ? rect.left - parentRect.left : rect.left,
-        top: parentRect ? rect.top - parentRect.top : rect.top,
-        width: rect.width,
-        height: rect.height,
-      });
+      el.style.display = '';
+      applyCaretGeometry(el, anchor, caretStyle);
     };
 
     update();
-    const id = requestAnimationFrame(update);
+    const raf = requestAnimationFrame(update);
     window.addEventListener('resize', update);
     return () => {
-      cancelAnimationFrame(id);
+      cancelAnimationFrame(raf);
       window.removeEventListener('resize', update);
     };
-  }, [anchorRef, visible, positionKey]);
+  }, [anchorRef, visible, positionKey, caretStyle]);
 
-  if (!visible || !pos) return null;
+  if (!visible) return null;
 
   const motionClasses =
     caretAnimation === 'smooth'
@@ -66,6 +78,7 @@ export default function TypingCaret({
 
   return (
     <span
+      ref={caretRef}
       aria-hidden="true"
       className={[
         'pointer-events-none absolute z-20',
@@ -76,11 +89,6 @@ export default function TypingCaret({
             : 'w-0.5 bg-[var(--color-key-target)]',
         motionClasses,
       ].join(' ')}
-      style={{
-        transform: `translate(${pos.left}px, ${pos.top + (isUnderline ? pos.height - 2 : 0)}px)`,
-        width: isBlock ? pos.width : isUnderline ? pos.width : undefined,
-        height: isUnderline ? 2 : pos.height,
-      }}
     />
   );
 }
