@@ -59,14 +59,14 @@ export default function RaceResultsPanel({
   trackArtist = null,
   onReturnToLobby,
 }: RaceResultsPanelProps) {
-  const { scrollRef, setItemRef, activeIndex, scrollToIndex } = useScrollSnapCenter(
+  const { scrollRef, setItemRef, activeIndex, scrollToIndex, centerItem } = useScrollSnapCenter(
     entries.length,
   );
 
   useEffect(() => {
     if (entries.length <= 1) return;
-    scrollToIndex(0);
-  }, [entries.length, scrollToIndex]);
+    centerItem(0, 'auto');
+  }, [entries.length, centerItem]);
 
   if (entries.length === 0) {
     return null;
@@ -101,21 +101,19 @@ export default function RaceResultsPanel({
       <div
         ref={scrollRef}
         className={[
-          'flex flex-row items-stretch gap-6 overflow-x-auto px-8 py-4',
-          'snap-x snap-mandatory',
+          'flex flex-row items-center gap-4 overflow-x-auto py-6',
+          'snap-x snap-mandatory scroll-smooth',
+          'pl-[max(1rem,calc(50%-min(46vw,200px)))] pr-[max(1rem,calc(50%-min(46vw,200px)))]',
+          'md:pl-[max(1rem,calc(50%-250px))] md:pr-[max(1rem,calc(50%-250px))]',
           '[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]',
         ].join(' ')}
-        style={{
-          paddingLeft: 'max(2rem, calc(50% - 250px))',
-          paddingRight: 'max(2rem, calc(50% - 250px))',
-        }}
       >
         {entries.map((entry, index) => (
           <div
             key={entry.userId}
             ref={setItemRef(index)}
             data-snap-index={index}
-            className="snap-center shrink-0"
+            className="w-[min(92vw,400px)] shrink-0 snap-center md:w-[500px]"
           >
             <RaceResultCard
               entry={entry}

@@ -21,7 +21,7 @@ import {
 import {
   VAMPIRE_MAX_HP,
   applyVampireErrorDamage,
-  applyVampirePassiveDrain,
+  applyVampireHeal,
   applyVampireScoreDrain,
 } from '../utils/multiplayer/vampireMode';
 import type { PracticeMode } from '../utils/app/settings';
@@ -46,6 +46,8 @@ interface UseTypingSessionOptions {
   scoreMultiplier?: number;
   /** Vampire modifier: HP bar + score drain on mistakes. */
   vampireMode?: boolean;
+  /** Sudden death: one mistake ends the race immediately. */
+  suddenDeathMode?: boolean;
   /** Override lesson id/title when persisting (e.g. multiplayer). */
   sessionPersist?: SessionPersistOptions;
 }
@@ -72,6 +74,7 @@ export function useTypingSession({
   raceMode = false,
   scoreMultiplier = 1,
   vampireMode = false,
+  suddenDeathMode = false,
   sessionPersist,
 }: UseTypingSessionOptions) {
   const isTestMode = mode === 'test';
@@ -106,6 +109,7 @@ export function useTypingSession({
   const [vampireDamaged, setVampireDamaged] = useState(false);
   const vampireEliminatedRef = useRef(false);
   const vampireDamageTimerRef = useRef<number | null>(null);
+  const consecutiveMissesRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const sessionMissesRef = useRef<Record<string, number>>({});
@@ -196,7 +200,7 @@ export function useTypingSession({
     [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier],
   );
 
-  const forceFinishFromVampire = useCallback(() => {
+  const forceFinishEarly = useCallback(() => {
     if (vampireEliminatedRef.current || sessionSavedRef.current) return;
     vampireEliminatedRef.current = true;
     const elapsed = startTimeRef.current
@@ -213,10 +217,13 @@ export function useTypingSession({
   }, [elapsedMs, finishSession, isTestMode]);
 
   const applyVampireHit = useCallback(() => {
+    consecutiveMissesRef.current += 1;
+    const streak = consecutiveMissesRef.current;
+
     setVampireHp((prev) => {
-      const next = applyVampireErrorDamage(prev);
+      const next = applyVampireErrorDamage(prev, streak);
       if (next <= 0) {
-        requestAnimationFrame(() => forceFinishFromVampire());
+        requestAnimationFrame(() => forceFinishEarly());
       }
       return next;
     });
@@ -231,7 +238,12 @@ export function useTypingSession({
       setVampireDamaged(false);
       vampireDamageTimerRef.current = null;
     }, 350);
-  }, [forceFinishFromVampire, raceMode]);
+  }, [forceFinishEarly, raceMode]);
+
+  const applyVampireCorrect = useCallback((comboAfterHit: number) => {
+    consecutiveMissesRef.current = 0;
+    setVampireHp((prev) => applyVampireHeal(prev, comboAfterHit));
+  }, []);
 
   const togglePause = useCallback(() => {
     if (!isTestMode || !started || finished) return;
@@ -277,6 +289,7 @@ export function useTypingSession({
     setRaceScore(0);
     setVampireHp(VAMPIRE_MAX_HP);
     setVampireDamaged(false);
+    consecutiveMissesRef.current = 0;
     vampireEliminatedRef.current = false;
     if (vampireDamageTimerRef.current !== null) {
       window.clearTimeout(vampireDamageTimerRef.current);
@@ -284,20 +297,6 @@ export function useTypingSession({
     }
     requestAnimationFrame(() => containerRef.current?.focus());
   }, [isTestMode, lesson, locale, customText]);
-
-  useEffect(() => {
-    if (!started || finished || paused || !vampireMode) return;
-    const interval = setInterval(() => {
-      setVampireHp((prev) => {
-        const next = applyVampirePassiveDrain(prev, 100);
-        if (next <= 0 && prev > 0) {
-          requestAnimationFrame(() => forceFinishFromVampire());
-        }
-        return next;
-      });
-    }, 100);
-    return () => clearInterval(interval);
-  }, [started, finished, paused, vampireMode, forceFinishFromVampire]);
 
   useEffect(() => {
     if (!started || finished || paused) return;
@@ -425,10 +424,17 @@ export function useTypingSession({
           (prev) => prev + Math.round(scoreIncrementForHit(nextCombo, nextAccuracy) * scoreMultiplier),
         );
       }
+      if (vampireMode) {
+        applyVampireCorrect(nextCombo);
+      }
     } else {
       setErrorKeystrokes((n) => n + 1);
       sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
-      if (vampireMode) applyVampireHit();
+      if (suddenDeathMode) {
+        requestAnimationFrame(() => forceFinishEarly());
+      } else if (vampireMode) {
+        applyVampireHit();
+      }
       setCombo((prev) => {
         if (prev > 0) setComboBroke(true);
         return 0;

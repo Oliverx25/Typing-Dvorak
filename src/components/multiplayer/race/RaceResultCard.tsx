@@ -61,10 +61,10 @@ export default function RaceResultCard({
   );
 
   const cardShell = [
-    'snap-center shrink-0 overflow-hidden rounded-[1.75rem] border bg-[var(--color-surface-elevated)]/95 backdrop-blur-md transition-all duration-500 ease-out',
+    'w-full overflow-hidden rounded-[1.75rem] border bg-[var(--color-surface-elevated)]/95 backdrop-blur-md transition-all duration-500 ease-out origin-center',
     isActive
-      ? 'w-[min(92vw,400px)] border-[var(--color-border)] shadow-2xl shadow-black/30 md:w-[500px] scale-100 opacity-100 z-10'
-      : 'w-[280px] scale-90 cursor-pointer border-[var(--color-border)]/60 opacity-50 hover:opacity-80',
+      ? 'scale-100 border-[var(--color-border)] opacity-100 shadow-2xl shadow-black/30'
+      : 'scale-[0.88] cursor-pointer border-[var(--color-border)]/60 opacity-50 hover:scale-[0.92] hover:opacity-75',
   ].join(' ');
 
   if (!isActive) {

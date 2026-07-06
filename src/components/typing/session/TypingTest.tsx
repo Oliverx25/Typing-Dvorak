@@ -45,6 +45,7 @@ interface TypingTestProps {
   musicPacerEnabled?: boolean;
   scoreMultiplier?: number;
   vampireMode?: boolean;
+  suddenDeathMode?: boolean;
   sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
 }
@@ -64,6 +65,7 @@ export default function TypingTest({
   musicPacerEnabled = false,
   scoreMultiplier = 1,
   vampireMode = false,
+  suddenDeathMode = false,
   sessionPersist,
   onProgressChange,
 }: TypingTestProps) {
@@ -83,6 +85,7 @@ export default function TypingTest({
     raceMode,
     scoreMultiplier,
     vampireMode,
+    suddenDeathMode,
     sessionPersist,
   });
 

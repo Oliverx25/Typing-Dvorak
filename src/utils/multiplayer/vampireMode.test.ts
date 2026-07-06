@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   VAMPIRE_MAX_HP,
   applyVampireErrorDamage,
-  applyVampirePassiveDrain,
+  applyVampireHeal,
   applyVampireScoreDrain,
   clampVampireHp,
+  vampireErrorDamage,
 } from './vampireMode';
 
 describe('vampireMode', () => {
@@ -13,13 +14,14 @@ describe('vampireMode', () => {
     expect(clampVampireHp(-5)).toBe(0);
   });
 
-  it('drains HP on errors', () => {
-    expect(applyVampireErrorDamage(100)).toBeLessThan(100);
-    expect(applyVampireErrorDamage(5)).toBe(0);
+  it('increases damage on consecutive misses', () => {
+    expect(vampireErrorDamage(1)).toBeLessThan(vampireErrorDamage(3));
+    expect(applyVampireErrorDamage(100, 1)).toBeGreaterThan(applyVampireErrorDamage(100, 3));
   });
 
-  it('passively drains HP over time', () => {
-    expect(applyVampirePassiveDrain(100, 2000)).toBeLessThan(100);
+  it('heals HP on correct hits with combo bonus', () => {
+    expect(applyVampireHeal(50, 1)).toBeGreaterThan(50);
+    expect(applyVampireHeal(50, 40)).toBeGreaterThan(applyVampireHeal(50, 1));
   });
 
   it('drains race score on mistakes', () => {

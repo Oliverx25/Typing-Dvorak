@@ -253,6 +253,10 @@ export function isVampireModeActive(modifiers: RaceModifier[]): boolean {
   return modifiers.includes('vampire');
 }
 
+export function isSuddenDeathActive(modifiers: RaceModifier[]): boolean {
+  return modifiers.includes('sudden_death');
+}
+
 export function availableModifiers(textSource: 'lesson' | 'custom' | 'song'): RaceModifier[] {
   return ALL_MODIFIERS.filter(
     (mod) => !SONG_ONLY_MODIFIERS.includes(mod) || textSource === 'song',
