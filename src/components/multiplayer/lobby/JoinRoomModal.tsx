@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { Button } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
+import { useModalDialog } from '@/hooks/useModalDialog';
+import { focusRingClassName, focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import { fetchRoomByCode, isRoomJoinable } from '@/services/supabase/rooms';
 import { normalizeRoomCode } from '@/utils/multiplayer/roomCode';
@@ -10,27 +12,27 @@ interface JoinRoomModalProps {
   open: boolean;
   onClose: () => void;
   onJoin: (code: string) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
-export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalProps) {
+export default function JoinRoomModal({ open, onClose, onJoin, returnFocusRef }: JoinRoomModalProps) {
   const { t } = useApp();
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const [code, setCode] = useState('');
   const [shaking, setShaking] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+  const { dialogRef, handleDialogClose, handleCancel } = useModalDialog({
+    open,
+    onClose,
+    returnFocusRef,
+  });
 
-    if (open && !dialog.open) {
-      dialog.showModal();
+  useEffect(() => {
+    if (open) {
       setCode('');
       setShaking(false);
       setJoinError(null);
-    } else if (!open && dialog.open) {
-      dialog.close();
     }
   }, [open]);
 
@@ -70,9 +72,10 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
   return (
     <dialog
       ref={dialogRef}
-      onClose={onClose}
-      onCancel={onClose}
+      onClose={handleDialogClose}
+      onCancel={handleCancel}
       aria-labelledby="join-room-title"
+      aria-modal="true"
       className="modal-enter m-auto w-[min(100%-2rem,26rem)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-0 text-[var(--color-text)] shadow-2xl backdrop:bg-black/60"
     >
       <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-6 py-4">
@@ -86,7 +89,10 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
           type="button"
           onClick={onClose}
           aria-label={t.multiplayer.close}
-          className="rounded-lg p-1.5 text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+          className={[
+            'rounded-lg p-1.5 text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
+            focusRingInsetClassName,
+          ].join(' ')}
         >
           <Icon name="x" size={20} />
         </button>
@@ -116,10 +122,11 @@ export default function JoinRoomModal({ open, onClose, onJoin }: JoinRoomModalPr
             aria-invalid={Boolean(joinError) || shaking}
             aria-describedby={joinError ? 'join-room-error' : undefined}
             className={[
-              'w-full rounded-xl border bg-[var(--color-surface)] px-4 py-3.5 text-center font-mono text-xl tracking-[0.25em] text-[var(--color-text)] uppercase outline-none transition-all duration-300 focus:ring-2',
+              'w-full rounded-xl border bg-[var(--color-surface)] px-4 py-3.5 text-center font-mono text-xl tracking-[0.25em] text-[var(--color-text)] uppercase transition-all duration-300',
+              focusRingClassName,
               shaking || joinError
-                ? 'shake border-[var(--color-incorrect)] focus:border-[var(--color-incorrect)] focus:ring-[var(--color-incorrect)]/20'
-                : 'border-[var(--color-border)] focus:border-[var(--color-highlight)] focus:ring-[var(--color-highlight)]/20',
+                ? 'shake border-[var(--color-incorrect)] focus:border-[var(--color-incorrect)]'
+                : 'border-[var(--color-border)] focus:border-[var(--color-accent)]',
             ].join(' ')}
             maxLength={8}
             autoComplete="off"

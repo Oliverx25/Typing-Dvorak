@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { Icon } from '@/components/ui';
 import SettingsModal from '@/components/layout/settings/SettingsModal';
@@ -7,10 +7,12 @@ import { headerIconButtonClassName } from '@/components/layout/headerClasses';
 export default function SettingsPanel() {
   const { t } = useApp();
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setIsSettingsModalOpen(true)}
         className={headerIconButtonClassName}
@@ -22,7 +24,10 @@ export default function SettingsPanel() {
       </button>
 
       {isSettingsModalOpen ? (
-        <SettingsModal onClose={() => setIsSettingsModalOpen(false)} />
+        <SettingsModal
+          onClose={() => setIsSettingsModalOpen(false)}
+          returnFocusRef={triggerRef}
+        />
       ) : null}
     </>
   );

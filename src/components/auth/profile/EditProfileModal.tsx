@@ -1,8 +1,10 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type RefObject } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
+import { useOverlayModal } from '@/hooks/useOverlayModal';
+import { focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import { updatePassword } from '@/services/supabase/auth';
 import {
   buildAccountExportBundle,
@@ -23,6 +25,7 @@ import { formFieldClassName } from '@/components/ui/formFieldClasses';
 interface EditProfileModalProps {
   user: User;
   onClose: () => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 function providerLabel(provider: string): string {
@@ -41,8 +44,9 @@ const PRIVACY_LABEL_KEYS: Record<MultiplayerPrivacy, 'multiplayerPrivacyPublic' 
 const panelClassName =
   'rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3';
 
-export default function EditProfileModal({ user, onClose }: EditProfileModalProps) {
+export default function EditProfileModal({ user, onClose, returnFocusRef }: EditProfileModalProps) {
   useLockBodyScroll();
+  const { panelRef } = useOverlayModal({ onClose, returnFocusRef });
 
   const { t } = useApp();
   const { refreshUser, profile } = useAuth();
@@ -227,7 +231,10 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative flex max-h-[min(92vh,820px)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl">
+      <div
+        ref={panelRef}
+        className="relative flex max-h-[min(92vh,820px)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl"
+      >
         <div className="shrink-0 border-b border-[var(--color-border)] px-6 py-4">
           <h2 id="edit-profile-title" className="text-base font-semibold text-[var(--color-text)]">
             {t.auth.editProfile}
@@ -304,6 +311,7 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
                       onClick={() => setMultiplayerPrivacy(option)}
                       className={[
                         'rounded-md px-2 py-1.5 text-[11px] font-medium leading-tight transition',
+                        focusRingInsetClassName,
                         multiplayerPrivacy === option
                           ? 'bg-[var(--color-highlight)] text-white'
                           : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',

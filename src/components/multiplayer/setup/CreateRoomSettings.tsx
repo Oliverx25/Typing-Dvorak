@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { Accordion, SegmentedControl } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
+import { focusRingCardClassName } from '@/utils/a11y/focusRing';
 import LessonGrid from '@/components/multiplayer/setup/LessonGrid';
 import MatchRulesPanel from '@/components/multiplayer/setup/MatchRulesPanel';
 import SongSearchModal from '@/components/multiplayer/setup/SongSearchModal';
@@ -76,6 +77,14 @@ export default function CreateRoomSettings({
   const { t } = useApp();
   const [customText, setCustomText] = useState(value.customText);
   const [songSearchOpen, setSongSearchOpen] = useState(false);
+  const songSearchReturnRef = useRef<HTMLElement | null>(null);
+  const songSearchTriggerRef = useRef<HTMLButtonElement>(null);
+  const changeTrackRef = useRef<HTMLButtonElement>(null);
+
+  const openSongSearch = (trigger: HTMLElement | null) => {
+    songSearchReturnRef.current = trigger;
+    setSongSearchOpen(true);
+  };
 
   useEffect(() => {
     if (value.textSource === 'custom') {
@@ -112,7 +121,7 @@ export default function CreateRoomSettings({
   };
 
   const handleChangeTrack = () => {
-    setSongSearchOpen(true);
+    openSongSearch(changeTrackRef.current);
   };
 
   const contentSection = (
@@ -143,14 +152,19 @@ export default function CreateRoomSettings({
               <ActiveTrackCard
                 song={value.songMeta}
                 disabled={disabled}
+                changeTrackRef={changeTrackRef}
                 onChangeTrack={handleChangeTrack}
               />
             ) : (
               <button
+                ref={songSearchTriggerRef}
                 type="button"
                 disabled={disabled}
-                onClick={() => setSongSearchOpen(true)}
-                className="group flex h-32 w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-700 bg-slate-800/40 text-slate-300 transition hover:border-[var(--color-highlight)] hover:bg-slate-700/50 hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => openSongSearch(songSearchTriggerRef.current)}
+                className={[
+                  'group flex h-32 w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-700 bg-slate-800/40 text-slate-300 transition hover:border-[var(--color-highlight)] hover:bg-slate-700/50 hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50',
+                  focusRingCardClassName,
+                ].join(' ')}
               >
                 <Icon name="music-note" size={32} className="text-[var(--color-highlight)]" />
                 <span className="text-base font-semibold">{t.multiplayer.searchSongLyrics}</span>
@@ -221,6 +235,7 @@ export default function CreateRoomSettings({
       selectedSongId={value.songMeta?.id ?? null}
       onClose={() => setSongSearchOpen(false)}
       onSelect={handleSongSelect}
+      returnFocusRef={songSearchReturnRef}
     />
   );
 

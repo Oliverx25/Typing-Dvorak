@@ -1,20 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useModalDialog } from '@/hooks/useModalDialog';
+import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 import Icon from '@/components/ui/icons/Icon';
 import SongCard, { SongCardSkeleton, difficultyTierLabel } from '@/components/multiplayer/setup/SongCard';
 import type { LyricSongResult } from '@/utils/lyrics/types';
 import { mergeSongProgress } from '@/utils/progress/songProgress';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { getCachedLyricsSearch, setCachedLyricsSearch } from '@/utils/lyrics/lyricsSearchCache';
+import { focusRingClassName, focusRingInsetClassName } from '@/utils/a11y/focusRing';
 
 interface SongSearchModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (song: LyricSongResult) => void;
-  /** Highlights the currently selected track in the results grid. */
   selectedSongId?: number | null;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 const SKELETON_COUNT = 6;
@@ -25,9 +28,10 @@ export default function SongSearchModal({
   onClose,
   onSelect,
   selectedSongId = null,
+  returnFocusRef,
 }: SongSearchModalProps) {
   const { t } = useApp();
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<LyricSongResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -36,18 +40,46 @@ export default function SongSearchModal({
   const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS);
   const hasQuery = query.length > 0;
 
+  const { dialogRef, handleDialogClose, handleCancel } = useModalDialog({
+    open,
+    onClose,
+    returnFocusRef,
+  });
+
   useLockBodyScroll(open);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+  const handleSelect = useCallback(
+    (song: LyricSongResult) => {
+      onSelect(song);
+      onClose();
+    },
+    [onClose, onSelect],
+  );
 
-    if (open && !dialog.open) {
-      dialog.showModal();
-    } else if (!open && dialog.open) {
-      dialog.close();
-    }
-  }, [open]);
+  const handleActivate = useCallback(
+    (index: number) => {
+      const song = results[index];
+      if (song) handleSelect(song);
+    },
+    [handleSelect, results],
+  );
+
+  const listNavEnabled = open && results.length > 0 && !isSearching && !error;
+  const { activeIndex, onKeyDown, setActiveIndex } = useListKeyboardNav({
+    itemCount: results.length,
+    enabled: listNavEnabled,
+    onActivate: handleActivate,
+  });
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [results, setActiveIndex]);
+
+  useEffect(() => {
+    if (activeIndex < 0) return;
+    const item = listRef.current?.querySelector<HTMLElement>(`[data-result-index="${activeIndex}"]`);
+    item?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex]);
 
   useEffect(() => {
     if (!open) return;
@@ -111,18 +143,6 @@ export default function SongSearchModal({
     return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
   }, [open]);
 
-  const handleSelect = useCallback(
-    (song: LyricSongResult) => {
-      onSelect(song);
-      onClose();
-    },
-    [onClose, onSelect],
-  );
-
-  const handleDialogClose = () => {
-    onClose();
-  };
-
   const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
     if (!open) return;
     if (event.target === dialogRef.current) {
@@ -141,10 +161,10 @@ export default function SongSearchModal({
     <dialog
       ref={dialogRef}
       onClose={handleDialogClose}
-      onCancel={handleDialogClose}
+      onCancel={handleCancel}
       onClick={handleBackdropClick}
       aria-labelledby="song-search-title"
-      aria-hidden={!open}
+      aria-modal="true"
       className={[
         'modal-enter fixed inset-0 z-[200] m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70',
         open ? '' : 'pointer-events-none invisible',
@@ -157,6 +177,7 @@ export default function SongSearchModal({
           needsScroll ? 'max-h-[min(90vh,52rem)] overflow-hidden' : '',
         ].join(' ')}
         onClick={(event) => event.stopPropagation()}
+        onKeyDown={onKeyDown}
       >
         <div
           className={[
@@ -170,14 +191,19 @@ export default function SongSearchModal({
           <div className="relative">
             <input
               id="song-search-input"
-              type="text"
+              type="search"
               role="searchbox"
               autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t.multiplayer.lyricsSearchPlaceholder}
+              aria-controls="song-search-results"
+              aria-activedescendant={
+                listNavEnabled && activeIndex >= 0 ? `song-result-${activeIndex}` : undefined
+              }
               className={[
-                'w-full rounded-xl bg-slate-800 py-4 text-lg text-slate-50 placeholder:text-slate-500 outline-none sm:text-xl',
+                'w-full rounded-xl bg-slate-800 py-4 text-lg text-slate-50 placeholder:text-slate-500 sm:text-xl',
+                focusRingClassName,
                 hasQuery ? 'pl-5 pr-24' : 'px-5 pr-14',
               ].join(' ')}
               autoComplete="off"
@@ -190,7 +216,10 @@ export default function SongSearchModal({
                   type="button"
                   onClick={() => setQuery('')}
                   aria-label={t.multiplayer.lyricsClearSearch}
-                  className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-slate-100"
+                  className={[
+                    'rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-slate-100',
+                    focusRingInsetClassName,
+                  ].join(' ')}
                 >
                   <Icon name="x" size={18} />
                 </button>
@@ -206,35 +235,49 @@ export default function SongSearchModal({
               )}
             </div>
           </div>
+          {listNavEnabled ? (
+            <p className="mt-2 text-xs text-slate-500" id="song-search-hint">
+              {t.multiplayer.lyricsSearchKeyboardHint}
+            </p>
+          ) : null}
         </div>
 
         {showResultsArea ? (
           <div
+            id="song-search-results"
+            ref={listRef}
+            role="listbox"
+            aria-label={t.multiplayer.lyricsSearchResults}
             className={[
               'rounded-b-2xl bg-slate-900/80',
               needsScroll ? 'max-h-[min(calc(90vh-5rem),46rem)] overflow-y-auto' : '',
             ].join(' ')}
           >
             {error ? (
-              <p className="px-4 py-6 text-center text-sm text-red-400">{error}</p>
+              <p className="px-4 py-6 text-center text-sm text-red-400" role="alert">
+                {error}
+              </p>
             ) : showEmpty ? (
               <p className="px-4 py-6 text-center text-sm text-slate-500">
                 {t.multiplayer.lyricsSearchEmpty}
               </p>
             ) : isSearching || isPendingSearch ? (
-              <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2" aria-busy="true">
                 {Array.from({ length: SKELETON_COUNT }, (_, index) => (
                   <SongCardSkeleton key={`sk-${index}`} />
                 ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
-                {results.map((song) => (
+                {results.map((song, index) => (
                   <SongCard
                     key={song.id}
+                    id={`song-result-${index}`}
+                    resultIndex={index}
                     song={song}
                     tierLabel={difficultyTierLabel(song.difficulty.tier, t)}
                     isSelected={selectedSongId !== null && song.id === selectedSongId}
+                    isKeyboardActive={index === activeIndex}
                     onSelect={handleSelect}
                   />
                 ))}

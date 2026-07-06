@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import BackLink from '@/components/layout/shell/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
@@ -23,6 +23,7 @@ function MultiplayerIndexContent({ kicked = false, roomClosed = false }: Multipl
   const { t } = useApp();
   const { user } = useAuth();
   const [joinOpen, setJoinOpen] = useState(false);
+  const joinTriggerRef = useRef<HTMLButtonElement>(null);
   const [creating, setCreating] = useState(false);
   const [roomSettings, setRoomSettings] = useState<CreateRoomSettingsValue>({
     textSource: 'lesson',
@@ -88,7 +89,7 @@ function MultiplayerIndexContent({ kicked = false, roomClosed = false }: Multipl
               {t.multiplayer.subtitle}
             </p>
           </div>
-          <Button variant="secondary" onClick={() => setJoinOpen(true)}>
+          <Button ref={joinTriggerRef} variant="secondary" onClick={() => setJoinOpen(true)}>
             <Icon name="join" size={16} className="text-[var(--color-highlight)]" />
             {t.multiplayer.joinWithCode}
           </Button>
@@ -142,7 +143,12 @@ function MultiplayerIndexContent({ kicked = false, roomClosed = false }: Multipl
         </div>
       </div>
 
-      <JoinRoomModal open={joinOpen} onClose={() => setJoinOpen(false)} onJoin={handleJoinRoom} />
+      <JoinRoomModal
+        open={joinOpen}
+        onClose={() => setJoinOpen(false)}
+        onJoin={handleJoinRoom}
+        returnFocusRef={joinTriggerRef}
+      />
     </>
   );
 }

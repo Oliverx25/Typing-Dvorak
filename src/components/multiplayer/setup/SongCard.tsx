@@ -7,11 +7,15 @@ import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
 import type { LyricSongResult } from '@/utils/lyrics/types';
 import { countLyricWords, DIFFICULTY_BADGE_CLASSES } from '@/utils/lyrics/typingDifficulty';
 import { getSongProgress } from '@/utils/progress/songProgress';
+import { focusRingCardClassName } from '@/utils/a11y/focusRing';
 
 interface SongCardProps {
   song: LyricSongResult;
   tierLabel: string;
+  id?: string;
+  resultIndex?: number;
   isSelected?: boolean;
+  isKeyboardActive?: boolean;
   onSelect: (song: LyricSongResult) => void;
 }
 
@@ -51,7 +55,15 @@ function Thumbnail({ src, title }: { src: string | null; title: string }) {
 }
 
 /** Immersive osu-style song card for lyric search results. */
-export default function SongCard({ song, tierLabel, isSelected = false, onSelect }: SongCardProps) {
+export default function SongCard({
+  song,
+  tierLabel,
+  id,
+  resultIndex,
+  isSelected = false,
+  isKeyboardActive = false,
+  onSelect,
+}: SongCardProps) {
   const { t } = useApp();
   const [coverFailed, setCoverFailed] = useState(false);
   const coverSrc = song.coverArt && !coverFailed ? song.coverArt : null;
@@ -66,12 +78,19 @@ export default function SongCard({ song, tierLabel, isSelected = false, onSelect
   return (
     <button
       type="button"
+      id={id}
+      data-result-index={resultIndex}
+      role="option"
+      aria-selected={isSelected || isKeyboardActive}
       onClick={() => onSelect(song)}
       className={[
-        'group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border bg-slate-800 transition-all duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-highlight)]/50',
+        'group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border bg-slate-800 transition-all duration-200 hover:scale-[1.02]',
+        focusRingCardClassName,
         isSelected
           ? 'border-[var(--color-highlight)] ring-2 ring-[var(--color-highlight)]/30'
-          : 'border-slate-700/50 hover:border-[var(--color-highlight)]',
+          : isKeyboardActive
+            ? 'border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/40'
+            : 'border-slate-700/50 hover:border-[var(--color-highlight)]',
       ].join(' ')}
     >
       {song.coverArt && !coverFailed ? (

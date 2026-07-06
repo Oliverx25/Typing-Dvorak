@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useMultiplayerLobby } from '@/hooks/useMultiplayerLobby';
@@ -26,6 +26,9 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
   const [connectAttempt, setConnectAttempt] = useState(0);
   const [setupOpen, setSetupOpen] = useState(false);
   const [songSearchOpen, setSongSearchOpen] = useState(false);
+  const setupTriggerRef = useRef<HTMLButtonElement>(null);
+  const changeTrackRef = useRef<HTMLButtonElement>(null);
+  const songSearchReturnRef = useRef<HTMLElement | null>(null);
   const [readyLoading, setReadyLoading] = useState(false);
 
   const {
@@ -250,8 +253,17 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
               <MatchInfoCard
                 roomState={roomState}
                 isOwner={isOwner}
+                editSettingsRef={setupTriggerRef}
+                changeTrackRef={changeTrackRef}
                 onEditSettings={isOwner ? () => setSetupOpen(true) : undefined}
-                onChangeTrack={isOwner ? () => setSongSearchOpen(true) : undefined}
+                onChangeTrack={
+                  isOwner
+                    ? () => {
+                        songSearchReturnRef.current = changeTrackRef.current;
+                        setSongSearchOpen(true);
+                      }
+                    : undefined
+                }
               />
 
               <section className="min-h-[280px]">
@@ -278,6 +290,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
                 roomState={roomState}
                 onClose={() => setSetupOpen(false)}
                 onSave={(partial) => void updateRoomConfig(partial)}
+                returnFocusRef={setupTriggerRef}
               />
 
               <SongSearchModal
@@ -285,6 +298,7 @@ export default function LobbyView({ roomId }: LobbyViewProps) {
                 selectedSongId={roomState.songMeta?.id ?? null}
                 onClose={() => setSongSearchOpen(false)}
                 onSelect={handleSongSelect}
+                returnFocusRef={songSearchReturnRef}
               />
             </>
           ) : null}

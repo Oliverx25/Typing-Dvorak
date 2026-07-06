@@ -597,6 +597,8 @@ export const en = {
     lyricsSearchEmpty: 'No lyrics found for that query.',
     lyricsSearchError: 'Could not search lyrics. Please try again.',
     lyricsClearSearch: 'Clear search',
+    lyricsSearchResults: 'Song search results',
+    lyricsSearchKeyboardHint: 'Use ↑ and ↓ to browse results, Enter to select.',
     lyricsWordCount: '{count} words',
     lyricsDifficultyEasy: 'Easy',
     lyricsDifficultyNormal: 'Normal',

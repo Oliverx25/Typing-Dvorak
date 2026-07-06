@@ -104,7 +104,11 @@ export default function UserProfileDropdown() {
       </div>
 
       {profileModalOpen && (
-        <EditProfileModal user={user} onClose={() => setProfileModalOpen(false)} />
+        <EditProfileModal
+          user={user}
+          onClose={() => setProfileModalOpen(false)}
+          returnFocusRef={buttonRef}
+        />
       )}
     </>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import CreateRoomSettings, {
   isRoomContentReady,
@@ -7,6 +7,8 @@ import CreateRoomSettings, {
 import { Button } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
+import { useModalDialog } from '@/hooks/useModalDialog';
+import { focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import {
   normalizeModifiers,
   normalizeWinCondition,
@@ -24,6 +26,7 @@ interface RoomSetupModalProps {
       'lessonId' | 'customText' | 'textSource' | 'songMeta' | 'winCondition' | 'modifiers'
     >,
   ) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 function toSettingsValue(roomState: RoomBroadcastState): CreateRoomSettingsValue {
@@ -42,10 +45,16 @@ export default function RoomSetupModal({
   roomState,
   onClose,
   onSave,
+  returnFocusRef,
 }: RoomSetupModalProps) {
   const { t } = useApp();
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const [draft, setDraft] = useState<CreateRoomSettingsValue>(() => toSettingsValue(roomState));
+
+  const { dialogRef, handleDialogClose, handleCancel } = useModalDialog({
+    open,
+    onClose,
+    returnFocusRef,
+  });
 
   useLockBodyScroll(open);
 
@@ -54,17 +63,6 @@ export default function RoomSetupModal({
       setDraft(toSettingsValue(roomState));
     }
   }, [open, roomState]);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (open && !dialog.open) {
-      dialog.showModal();
-    } else if (!open && dialog.open) {
-      dialog.close();
-    }
-  }, [open]);
 
   const canSave = isRoomContentReady(draft);
 
@@ -94,9 +92,10 @@ export default function RoomSetupModal({
   return (
     <dialog
       ref={dialogRef}
-      onClose={onClose}
-      onCancel={onClose}
+      onClose={handleDialogClose}
+      onCancel={handleCancel}
       aria-labelledby="room-setup-title"
+      aria-modal="true"
       className="modal-enter m-auto w-[min(100%-1.5rem,56rem)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-0 text-[var(--color-text)] shadow-2xl backdrop:bg-black/60"
     >
       <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-6 py-4">
@@ -112,7 +111,10 @@ export default function RoomSetupModal({
           type="button"
           onClick={onClose}
           aria-label={t.multiplayer.close}
-          className="rounded-lg p-1.5 text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+          className={[
+            'rounded-lg p-1.5 text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
+            focusRingInsetClassName,
+          ].join(' ')}
         >
           <Icon name="x" size={20} />
         </button>

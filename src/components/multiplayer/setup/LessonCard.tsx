@@ -1,3 +1,5 @@
+import { focusRingCardClassName } from '@/utils/a11y/focusRing';
+
 interface LessonCardProps {
   title: string;
   category: string;
@@ -23,6 +25,7 @@ export default function LessonCard({
       onClick={onSelect}
       className={[
         'flex h-full flex-col items-start gap-3 rounded-xl border p-4 text-left transition transform',
+        focusRingCardClassName,
         isActive
           ? 'scale-105 border-[var(--color-highlight)] bg-[var(--color-highlight)]/10 ring-2 ring-[var(--color-highlight)]/40 shadow-lg shadow-[var(--color-highlight)]/10'
           : 'border-[var(--color-border)] bg-[var(--color-surface-elevated)] hover:-translate-y-0.5 hover:border-[var(--color-highlight)]/50',

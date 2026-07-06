@@ -2,6 +2,7 @@ import UserAvatar from '@/components/auth/profile/UserAvatar';
 import ModifierIcon from '@/components/multiplayer/setup/ModifierIcon';
 import { AccuracyDonutChart, GradeBadge } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
+import { focusRingCardClassName } from '@/utils/a11y/focusRing';
 import {
   estimateRaceHitBreakdown,
   formatRaceScore,
@@ -62,6 +63,7 @@ export default function RaceResultCard({
 
   const cardShell = [
     'w-full overflow-hidden rounded-[1.75rem] border bg-[var(--color-surface-elevated)]/95 backdrop-blur-md transition-all duration-500 ease-out origin-center',
+    focusRingCardClassName,
     isActive
       ? 'scale-100 border-[var(--color-border)] opacity-100 shadow-2xl shadow-black/30'
       : 'scale-[0.88] cursor-pointer border-[var(--color-border)]/60 opacity-50 hover:scale-[0.92] hover:opacity-75',

@@ -1,8 +1,10 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type RefObject } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import type { Locale } from '@/i18n';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
+import { useOverlayModal } from '@/hooks/useOverlayModal';
+import { focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import { downloadExport, importProgress } from '@/utils/progress/exportImport';
 import { dispatchSessionComplete, dispatchKeyStatsUpdated } from '@/utils/app/events';
 import { HIGHLIGHT_THEME_IDS, HIGHLIGHT_THEMES, type HighlightThemeId } from '@/utils/app/highlightTheme';
@@ -17,6 +19,7 @@ import { formFieldClassName } from '@/components/ui/formFieldClasses';
 
 interface SettingsModalProps {
   onClose: () => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 type SettingsDraft = Pick<
@@ -57,8 +60,18 @@ function pickDraft(settings: AppSettings): SettingsDraft {
 const cardClassName =
   'rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4';
 
-export default function SettingsModal({ onClose }: SettingsModalProps) {
+const optionButtonClassName = (selected: boolean) =>
+  [
+    'rounded-md px-3 py-1.5 text-xs font-medium uppercase transition',
+    focusRingInsetClassName,
+    selected
+      ? 'bg-[var(--color-highlight)] text-white'
+      : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
+  ].join(' ');
+
+export default function SettingsModal({ onClose, returnFocusRef }: SettingsModalProps) {
   useLockBodyScroll();
+  const { panelRef } = useOverlayModal({ onClose, returnFocusRef });
 
   const { t, settings, updateSettings } = useApp();
   const { user } = useAuth();
@@ -98,7 +111,10 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
     >
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative flex max-h-[min(92vh,820px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl">
+      <div
+        ref={panelRef}
+        className="relative flex max-h-[min(92vh,820px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl"
+      >
         <div className="shrink-0 border-b border-[var(--color-border)] px-6 py-4">
           <h2 id="settings-modal-title" className="text-base font-semibold text-[var(--color-text)]">
             {t.settings.modalTitle}
@@ -125,12 +141,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                         key={loc}
                         type="button"
                         onClick={() => patchDraft({ locale: loc })}
-                        className={[
-                          'rounded-md px-3 py-1.5 text-xs font-medium uppercase transition',
-                          draft.locale === loc
-                            ? 'bg-[var(--color-highlight)] text-white'
-                            : 'bg-[var(--color-key)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
-                        ].join(' ')}
+                        aria-pressed={draft.locale === loc}
+                        className={optionButtonClassName(draft.locale === loc)}
                       >
                         {loc}
                       </button>
@@ -203,12 +215,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                         key={style}
                         type="button"
                         onClick={() => patchDraft({ caretStyle: style })}
-                        className={[
-                          'rounded-md px-2.5 py-1 text-xs font-medium transition',
-                          draft.caretStyle === style
-                            ? 'bg-[var(--color-highlight)] text-white'
-                            : 'bg-[var(--color-key)] text-[var(--color-text-muted)]',
-                        ].join(' ')}
+                        aria-pressed={draft.caretStyle === style}
+                        className={optionButtonClassName(draft.caretStyle === style)}
                       >
                         {style === 'line'
                           ? t.settings.caretLine
@@ -226,12 +234,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                         key={anim}
                         type="button"
                         onClick={() => patchDraft({ caretAnimation: anim })}
-                        className={[
-                          'rounded-md px-2.5 py-1 text-xs font-medium transition',
-                          draft.caretAnimation === anim
-                            ? 'bg-[var(--color-highlight)] text-white'
-                            : 'bg-[var(--color-key)] text-[var(--color-text-muted)]',
-                        ].join(' ')}
+                        aria-pressed={draft.caretAnimation === anim}
+                        className={optionButtonClassName(draft.caretAnimation === anim)}
                       >
                         {anim === 'smooth'
                           ? t.settings.caretSmooth
@@ -363,6 +367,7 @@ function HighlightThemePicker({
               onClick={() => onChange(id)}
               className={[
                 'size-8 rounded-lg border-2 transition-all duration-300 hover:scale-105',
+                focusRingInsetClassName,
                 selected
                   ? 'border-[var(--color-text)] ring-2 ring-[var(--color-highlight)] ring-offset-2 ring-offset-[var(--color-surface)]'
                   : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]',

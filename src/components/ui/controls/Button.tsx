@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { focusRingClassName } from '@/utils/a11y/focusRing';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'success' | 'highlight';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -29,20 +30,25 @@ const SIZE: Record<ButtonSize, string> = {
   lg: 'px-6 py-3.5 text-base',
 };
 
-export default function Button({
-  children,
-  variant = 'primary',
-  size = 'md',
-  fullWidth = false,
-  className = '',
-  type = 'button',
-  ...props
-}: ButtonProps) {
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    children,
+    variant = 'primary',
+    size = 'md',
+    fullWidth = false,
+    className = '',
+    type = 'button',
+    ...props
+  },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       type={type}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--color-highlight)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)] disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-40',
+        focusRingClassName,
         VARIANT[variant],
         SIZE[size],
         fullWidth ? 'w-full' : '',
@@ -53,4 +59,6 @@ export default function Button({
       {children}
     </button>
   );
-}
+});
+
+export default Button;

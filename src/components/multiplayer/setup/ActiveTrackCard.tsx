@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, type RefObject } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { BestScoreLabel } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import { difficultyTierLabel } from '@/components/multiplayer/setup/SongCard';
 import SongWpmDisplay from '@/components/multiplayer/setup/SongWpmDisplay';
+import { focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import { DIFFICULTY_BADGE_CLASSES } from '@/utils/lyrics/typingDifficulty';
 import { formatDurationMs } from '@/utils/lyrics/itunesMetadata';
 import type { SelectedSongMeta } from '@/utils/lyrics/types';
@@ -14,6 +15,7 @@ interface ActiveTrackCardProps {
   disabled?: boolean;
   /** Hide the change-track button (lobby guests). */
   readonly?: boolean;
+  changeTrackRef?: RefObject<HTMLButtonElement | null>;
   onChangeTrack?: () => void;
 }
 
@@ -22,6 +24,7 @@ export default function ActiveTrackCard({
   song,
   disabled = false,
   readonly = false,
+  changeTrackRef,
   onChangeTrack,
 }: ActiveTrackCardProps) {
   const { t } = useApp();
@@ -102,12 +105,16 @@ export default function ActiveTrackCard({
 
       {!readonly && onChangeTrack ? (
         <button
+          ref={changeTrackRef}
           type="button"
           onClick={onChangeTrack}
           disabled={disabled}
           aria-label={t.multiplayer.lyricsChangeTrack}
           title={t.multiplayer.lyricsChangeTrack}
-          className="relative z-10 shrink-0 self-start rounded-lg border border-slate-700 bg-slate-900/70 p-2 text-slate-300 transition hover:border-[var(--color-highlight)] hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50"
+          className={[
+            'relative z-10 shrink-0 self-start rounded-lg border border-slate-700 bg-slate-900/70 p-2 text-slate-300 transition hover:border-[var(--color-highlight)] hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50',
+            focusRingInsetClassName,
+          ].join(' ')}
         >
           <Icon name="refresh" size={18} />
         </button>

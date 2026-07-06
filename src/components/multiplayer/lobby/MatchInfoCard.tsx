@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { Button } from '@/components/ui';
 import ModBadge from '@/components/multiplayer/setup/ModBadge';
@@ -18,6 +19,8 @@ interface MatchInfoCardProps {
   isOwner: boolean;
   onEditSettings?: () => void;
   onChangeTrack?: () => void;
+  editSettingsRef?: RefObject<HTMLButtonElement | null>;
+  changeTrackRef?: RefObject<HTMLButtonElement | null>;
 }
 
 const winLabelKeys: Record<
@@ -34,6 +37,8 @@ export default function MatchInfoCard({
   isOwner,
   onEditSettings,
   onChangeTrack,
+  editSettingsRef,
+  changeTrackRef,
 }: MatchInfoCardProps) {
   const { t } = useApp();
   const winCondition = normalizeWinCondition(roomState.winCondition);
@@ -61,7 +66,7 @@ export default function MatchInfoCard({
         </p>
 
         {isOwner && onEditSettings ? (
-          <Button variant="secondary" size="sm" onClick={onEditSettings}>
+          <Button ref={editSettingsRef} variant="secondary" size="sm" onClick={onEditSettings}>
             <Icon name="settings" size={14} className="text-[var(--color-highlight)]" />
             {t.multiplayer.changeMatchSettings}
           </Button>
@@ -74,6 +79,7 @@ export default function MatchInfoCard({
             <ActiveTrackCard
               song={roomState.songMeta}
               readonly={!isOwner}
+              changeTrackRef={changeTrackRef}
               onChangeTrack={isOwner && onChangeTrack ? () => onChangeTrack() : undefined}
             />
           ) : (
