@@ -3,12 +3,13 @@ interface TypedCharProps {
   status: 'pending' | 'correct' | 'incorrect';
   isCurrent: boolean;
   active: boolean;
+  hideInlineCaret?: boolean;
 }
 
 const ENTER_GLYPH = '↵';
 const TAB_GLYPH = '⇥';
 
-export default function TypedChar({ char, status, isCurrent, active }: TypedCharProps) {
+export default function TypedChar({ char, status, isCurrent, active, hideInlineCaret = false }: TypedCharProps) {
   if (char === ' ') {
     return (
       <span
@@ -16,7 +17,7 @@ export default function TypedChar({ char, status, isCurrent, active }: TypedChar
         className={[
           'inline-block align-baseline',
           'min-w-[0.55em] h-[1em]',
-          spaceClass(status, isCurrent, active),
+          spaceClass(status, isCurrent, active, hideInlineCaret),
         ].join(' ')}
       />
     );
@@ -27,7 +28,7 @@ export default function TypedChar({ char, status, isCurrent, active }: TypedChar
       <>
         <span
           aria-label="Enter"
-          className={glyphClass(status, isCurrent, active)}
+          className={glyphClass(status, isCurrent, active, hideInlineCaret)}
         >
           {ENTER_GLYPH}
         </span>
@@ -42,7 +43,7 @@ export default function TypedChar({ char, status, isCurrent, active }: TypedChar
         aria-label="Tab"
         className={[
           'inline-block min-w-[4ch] text-center align-baseline font-mono text-[0.82em] tracking-tight',
-          glyphClass(status, isCurrent, active),
+          glyphClass(status, isCurrent, active, hideInlineCaret),
         ].join(' ')}
       >
         {TAB_GLYPH}
@@ -55,7 +56,7 @@ export default function TypedChar({ char, status, isCurrent, active }: TypedChar
   if (status === 'incorrect') {
     className = 'text-[var(--color-incorrect)] underline decoration-wavy decoration-[var(--color-incorrect)]/50';
   }
-  if (isCurrent && active) {
+  if (isCurrent && active && !hideInlineCaret) {
     className =
       'relative text-[var(--color-key-target)] after:absolute after:-bottom-0.5 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-[var(--color-key-target)] after:content-[""]';
   }
@@ -67,13 +68,14 @@ function glyphClass(
   status: TypedCharProps['status'],
   isCurrent: boolean,
   active: boolean,
+  hideInlineCaret = false,
 ): string {
   let className = 'text-[var(--color-text-muted)]/50';
   if (status === 'correct') className = 'text-[var(--color-correct)]';
   if (status === 'incorrect') {
     className = 'text-[var(--color-incorrect)] underline decoration-wavy decoration-[var(--color-incorrect)]/50';
   }
-  if (isCurrent && active) {
+  if (isCurrent && active && !hideInlineCaret) {
     className =
       'relative text-[var(--color-key-target)] after:absolute after:-bottom-0.5 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-[var(--color-key-target)] after:content-[""]';
   }
@@ -84,8 +86,9 @@ function spaceClass(
   status: TypedCharProps['status'],
   isCurrent: boolean,
   active: boolean,
+  hideInlineCaret = false,
 ): string {
-  if (isCurrent && active) {
+  if (isCurrent && active && !hideInlineCaret) {
     return 'border-b-2 border-[var(--color-key-target)] caret-blink motion-reduce:animate-none';
   }
   if (status === 'correct') {

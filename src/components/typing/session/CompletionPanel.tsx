@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { t as translate } from '@/i18n';
+import ConsistencyGraph from '@/components/stats/charts/ConsistencyGraph';
+import type { KeystrokeLogEntry } from '@/hooks/useTypingSession';
 import { GradeScoreRing } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
@@ -13,6 +15,7 @@ interface CompletionPanelProps {
   isNewRecord?: boolean;
   wpmDelta?: number;
   weakKeys?: string[];
+  keystrokeLog?: KeystrokeLogEntry[];
   onRetry: () => void;
   retryButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
@@ -31,6 +34,7 @@ export default function CompletionPanel({
   isNewRecord = false,
   wpmDelta = 0,
   weakKeys = [],
+  keystrokeLog = [],
   onRetry,
   retryButtonRef,
 }: CompletionPanelProps) {
@@ -127,6 +131,15 @@ export default function CompletionPanel({
             </p>
           </div>
         </div>
+
+        {keystrokeLog.length > 2 ? (
+          <div className="border-t border-[var(--color-border)] px-5 py-4">
+            <ConsistencyGraph
+              data={keystrokeLog}
+              title={t.completion.consistencyTitle}
+            />
+          </div>
+        ) : null}
 
         {weakKeys.length > 0 ? (
           <div className="border-t border-[var(--color-border)] px-5 py-4">

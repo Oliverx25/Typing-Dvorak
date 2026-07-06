@@ -11,6 +11,9 @@ export const PACER_MIN_WPM = 10;
 export const PACER_MAX_WPM = 300;
 export const PACER_DEFAULT_WPM = 60;
 
+export type CaretStyle = 'line' | 'block' | 'underline';
+export type CaretAnimation = 'smooth' | 'blink' | 'off';
+
 export interface AppSettings {
   locale: Locale;
   sound: boolean;
@@ -22,6 +25,10 @@ export interface AppSettings {
   ghostMode: boolean;
   pacerEnabled: boolean;
   pacerTargetWpm: number;
+  caretStyle: CaretStyle;
+  caretAnimation: CaretAnimation;
+  stopOnError: boolean;
+  stopOnWord: boolean;
 }
 
 const DEFAULTS: AppSettings = {
@@ -35,6 +42,10 @@ const DEFAULTS: AppSettings = {
   ghostMode: false,
   pacerEnabled: false,
   pacerTargetWpm: PACER_DEFAULT_WPM,
+  caretStyle: 'line',
+  caretAnimation: 'blink',
+  stopOnError: false,
+  stopOnWord: false,
 };
 
 export function clampPacerWpm(value: number): number {
@@ -49,6 +60,8 @@ export function getSettings(): AppSettings {
   }
   const merged = { ...DEFAULTS, ...parsed };
   merged.pacerTargetWpm = clampPacerWpm(merged.pacerTargetWpm);
+  if (!['line', 'block', 'underline'].includes(merged.caretStyle)) merged.caretStyle = 'line';
+  if (!['smooth', 'blink', 'off'].includes(merged.caretAnimation)) merged.caretAnimation = 'blink';
   return merged;
 }
 

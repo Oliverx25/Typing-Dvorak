@@ -52,6 +52,16 @@ export default function AchievementsGrid() {
     [activeCategory],
   );
 
+  const groupedBySubcategory = useMemo(() => {
+    const groups: Record<string, CatalogEntry[]> = {};
+    for (const entry of categoryEntries) {
+      const key = entry.subcategory?.trim() || 'General';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(entry);
+    }
+    return groups;
+  }, [categoryEntries]);
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -83,31 +93,42 @@ export default function AchievementsGrid() {
       </div>
 
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+        <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           {t.achievements[CATEGORY_LABEL_KEYS[activeCategory] as keyof typeof t.achievements]}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {categoryEntries.map((achievement) => (
-            <AchievementCardRow
-              key={achievement.id}
-              achievement={achievement}
-              progress={
-                progressMap[String(achievement.id)] ?? {
-                  achievementId: achievement.id,
-                  slug: achievement.slug,
-                  currentProgress: 0,
-                  unlockedAt: null,
-                }
-              }
-              tierLabel={
-                t.achievements[TIER_LABEL_KEYS[achievement.tier] as keyof typeof t.achievements]
-              }
-              unlockedLabel={t.achievements.unlockedLabel}
-              lockedLabel={t.achievements.lockedLabel}
-              progressLabel={t.achievements.progressLabel}
-            />
-          ))}
-        </div>
+
+        {Object.entries(groupedBySubcategory).map(([subcategory, achievements]) => (
+          <div key={subcategory} className="mb-10 w-full">
+            <div className="mb-4 flex items-center gap-4">
+              <h3 className="whitespace-nowrap text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
+                {subcategory}
+              </h3>
+              <div className="h-px flex-grow bg-slate-800/50" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {achievements.map((achievement) => (
+                <AchievementCardRow
+                  key={achievement.id}
+                  achievement={achievement}
+                  progress={
+                    progressMap[String(achievement.id)] ?? {
+                      achievementId: achievement.id,
+                      slug: achievement.slug,
+                      currentProgress: 0,
+                      unlockedAt: null,
+                    }
+                  }
+                  tierLabel={
+                    t.achievements[TIER_LABEL_KEYS[achievement.tier] as keyof typeof t.achievements]
+                  }
+                  unlockedLabel={t.achievements.unlockedLabel}
+                  lockedLabel={t.achievements.lockedLabel}
+                  progressLabel={t.achievements.progressLabel}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
     </div>
   );

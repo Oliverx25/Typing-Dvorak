@@ -30,8 +30,15 @@ import type { Lesson } from '../utils/curriculum/lessons';
 import type { SessionPersistOptions } from '../utils/stats/sessionTypes';
 import { getLessonText } from '../utils/curriculum/lessons';
 import type { Locale } from '../i18n';
+import {
+  createKeystrokeEntry,
+  zenWpmFromChars,
+  type KeystrokeLogEntry,
+} from '../typing/keystrokeTelemetry';
 
 export type CharStatus = 'pending' | 'correct' | 'incorrect';
+
+export type { KeystrokeLogEntry };
 
 interface UseTypingSessionOptions {
   lessonId: string;
@@ -41,18 +48,24 @@ interface UseTypingSessionOptions {
   sound: boolean;
   locale?: Locale;
   customText?: string;
-  /** Multiplayer race: stable WPM + osu-style cumulative score. */
   raceMode?: boolean;
-  /** Risk/reward multiplier from active modifiers. */
   scoreMultiplier?: number;
-  /** Vampire modifier: HP bar + score drain on mistakes. */
   vampireMode?: boolean;
-  /** Sudden death: one mistake ends the race immediately. */
   suddenDeathMode?: boolean;
-  /** Rhythm lock modifier — tracks combo breaks for achievement evaluation. */
   musicPacerEnabled?: boolean;
-  /** Override lesson id/title when persisting (e.g. multiplayer). */
   sessionPersist?: SessionPersistOptions;
+  /** Free-flow canvas — no target text validation. */
+  zenMode?: boolean;
+  stopOnError?: boolean;
+  stopOnWord?: boolean;
+}
+
+function wordHasUncorrectedErrors(input: string, statuses: CharStatus[]): boolean {
+  const start = Math.max(0, input.lastIndexOf(' ') + 1);
+  for (let i = start; i < input.length; i += 1) {
+    if (statuses[i] === 'incorrect') return true;
+  }
+  return false;
 }
 
 function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string): string {
@@ -80,14 +93,19 @@ export function useTypingSession({
   suddenDeathMode = false,
   musicPacerEnabled = false,
   sessionPersist,
+  zenMode = false,
+  stopOnError = false,
+  stopOnWord = false,
 }: UseTypingSessionOptions) {
-  const isTestMode = mode === 'test';
+  const isTestMode = mode === 'test' && !zenMode;
 
   const initialRef = useRef<{ text: string; statuses: CharStatus[] } | null>(null);
   if (!initialRef.current) {
-    const text = isTestMode
-      ? generateTestStream(lesson.charSet ?? 'all')
-      : resolveInitialText(lesson, locale, customText);
+    const text = zenMode
+      ? ''
+      : isTestMode
+        ? generateTestStream(lesson.charSet ?? 'all')
+        : resolveInitialText(lesson, locale, customText);
     initialRef.current = { text, statuses: text.split('').map(() => 'pending' as CharStatus) };
   }
 
@@ -111,6 +129,8 @@ export function useTypingSession({
   const [raceScore, setRaceScore] = useState(0);
   const [vampireHp, setVampireHp] = useState(VAMPIRE_MAX_HP);
   const [vampireDamaged, setVampireDamaged] = useState(false);
+  const [keystrokeLog, setKeystrokeLog] = useState<KeystrokeLogEntry[]>([]);
+  const lastKeystrokeTsRef = useRef<number | null>(null);
   const vampireEliminatedRef = useRef(false);
   const vampireDamageTimerRef = useRef<number | null>(null);
   const consecutiveMissesRef = useRef(0);
@@ -129,7 +149,15 @@ export function useTypingSession({
   vampireHpRef.current = vampireHp;
 
   const correctChars = statuses.filter((s) => s === 'correct').length;
-  const liveStats = raceMode
+  const liveStats = zenMode
+    ? {
+        wpm: zenWpmFromChars(input.length, elapsedMs || 1),
+        accuracy: 100,
+        correctChars: input.length,
+        incorrectChars: 0,
+        elapsedSeconds: Math.round(elapsedMs / 1000),
+      }
+    : raceMode
     ? {
         wpm: calculateStableRaceWpm(correctChars, elapsedMs),
         accuracy: calculateRaceAccuracy(correctChars, errorKeystrokes),
@@ -312,6 +340,8 @@ export function useTypingSession({
     setRaceScore(0);
     setVampireHp(VAMPIRE_MAX_HP);
     setVampireDamaged(false);
+    setKeystrokeLog([]);
+    lastKeystrokeTsRef.current = null;
     consecutiveMissesRef.current = 0;
     vampireEliminatedRef.current = false;
     earlyBurstMaxRef.current = 0;
@@ -384,6 +414,22 @@ export function useTypingSession({
       return;
     }
 
+    if (zenMode && e.key === 'Escape') {
+      e.preventDefault();
+      if (!started || input.length === 0) return;
+      const elapsed = startTime
+        ? Date.now() - startTime - totalPausedMsRef.current
+        : elapsedMs;
+      finishSession({
+        wpm: zenWpmFromChars(input.length, Math.max(elapsed, 1)),
+        accuracy: 100,
+        correctChars: input.length,
+        incorrectChars: 0,
+        elapsedSeconds: Math.round(Math.max(elapsed, 1) / 1000),
+      });
+      return;
+    }
+
     if (isTestMode && e.key === 'Escape') {
       e.preventDefault();
       togglePause();
@@ -407,6 +453,51 @@ export function useTypingSession({
         next[newInput.length] = 'pending';
         return next;
       });
+      if (zenMode) {
+        setTargetText(newInput);
+      }
+      return;
+    }
+
+    // --- Zen mode: free-flow buffer, no target validation ---
+    if (zenMode) {
+      if (e.key.length !== 1) return;
+      e.preventDefault();
+
+      if (!started) {
+        const now = Date.now();
+        startTimeRef.current = now;
+        setStarted(true);
+        setStartTime(now);
+      }
+
+      const typedChar = e.key;
+      const nextInput = input + typedChar;
+      setInput(nextInput);
+      setTargetText(nextInput);
+      setStatuses((prev) => [...prev, 'correct']);
+
+      const entry = createKeystrokeEntry(
+        input.length,
+        typedChar,
+        typedChar,
+        true,
+        lastKeystrokeTsRef.current,
+      );
+      lastKeystrokeTsRef.current = entry.timestamp;
+      setKeystrokeLog((prev) => [...prev, entry]);
+
+      recordKeystroke(typedChar, true);
+      setCombo((prev) => {
+        const next = prev + 1;
+        setMaxCombo((max) => (next > max ? next : max));
+        return next;
+      });
+
+      if (sound) playCorrectSound();
+      const code = charToKeyCode(typedChar);
+      setActiveKey(code);
+      setTimeout(() => setActiveKey(undefined), 150);
       return;
     }
 
@@ -425,6 +516,11 @@ export function useTypingSession({
       typedChar = e.key;
     }
 
+    if (stopOnWord && typedChar === ' ' && wordHasUncorrectedErrors(input, statuses)) {
+      e.preventDefault();
+      return;
+    }
+
     e.preventDefault();
 
     if (!started) {
@@ -435,6 +531,43 @@ export function useTypingSession({
     }
 
     const isCorrect = typedChar === expected;
+
+    const logEntry = createKeystrokeEntry(
+      input.length,
+      expected,
+      typedChar,
+      isCorrect,
+      lastKeystrokeTsRef.current,
+    );
+    lastKeystrokeTsRef.current = logEntry.timestamp;
+    setKeystrokeLog((prev) => [...prev, logEntry]);
+
+    if (!isCorrect && stopOnError) {
+      setErrorKeystrokes((n) => n + 1);
+      sessionHadErrorRef.current = true;
+      sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
+      setStatuses((prev) => {
+        const next = [...prev];
+        next[input.length] = 'incorrect';
+        return next;
+      });
+      setCombo((prev) => {
+        if (prev > 0) {
+          setComboBroke(true);
+          if (musicPacerEnabled) rhythmLockBrokenRef.current = true;
+        }
+        return 0;
+      });
+      recordKeystroke(typedChar, false);
+      if (sound) playIncorrectSound();
+      if (suddenDeathMode) {
+        requestAnimationFrame(() => forceFinishEarly());
+      } else if (vampireMode) {
+        applyVampireHit();
+      }
+      return;
+    }
+
     const newInput = input + typedChar;
     const nextErrors = isCorrect ? errorKeystrokes : errorKeystrokes + 1;
 
@@ -536,6 +669,8 @@ export function useTypingSession({
     errorKeystrokes,
     startTime,
     elapsedMs,
+    keystrokeLog,
+    zenMode,
     clearComboBroke: () => setComboBroke(false),
     containerRef,
     retryButtonRef,

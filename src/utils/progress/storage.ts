@@ -9,6 +9,7 @@ import { readJson, writeJson, readString, writeString } from './localStorage';
 import { calculateGrade, bestGrade } from '../grading';
 import { calculateMaxScore } from '../multiplayer/raceScoring';
 import { saveSongProgress } from './songProgress';
+import { masteryXpForGrade } from '../curriculum/mastery';
 
 export interface SessionRecord {
   lessonId: string;
@@ -37,6 +38,7 @@ export interface LessonProgress {
   highestGrade?: string;
   highestScore?: number;
   maxWpm?: number;
+  masteryXp?: number;
 }
 
 export interface UserProgress {
@@ -126,6 +128,7 @@ export function saveSession(
       highestGrade: bestGrade(existing?.highestGrade, grade) ?? grade,
       highestScore: Math.max(existing?.highestScore ?? 0, score),
       maxWpm: Math.max(existing?.maxWpm ?? 0, stats.wpm),
+      masteryXp: (existing?.masteryXp ?? 0) + masteryXpForGrade(grade),
     };
   }
 
@@ -178,6 +181,10 @@ export function getHighestGradeForLesson(lessonId: string): string | null {
 
 export function getLessonProgress(lessonId: string): LessonProgress | null {
   return getProgress().lessons[lessonId] ?? null;
+}
+
+export function getMasteryXpForLesson(lessonId: string): number {
+  return getProgress().lessons[lessonId]?.masteryXp ?? 0;
 }
 
 export function getCompletedLessonsMap(): Record<string, { bestAccuracy: number; bestWpm: number }> {

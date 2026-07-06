@@ -73,6 +73,7 @@ export default function TypingTest({
   const lessonTitle = ariaLabel ?? getLessonTitle(t, lesson.titleKey);
   const effectiveBlindMode = blindModeOverride ?? settings.blindMode;
   const effectiveMode = practiceMode ?? settings.practiceMode;
+  const zenEnabled = !raceMode && settings.zenMode;
 
   const session = useTypingSession({
     lessonId,
@@ -88,6 +89,9 @@ export default function TypingTest({
     suddenDeathMode,
     musicPacerEnabled,
     sessionPersist,
+    zenMode: zenEnabled,
+    stopOnError: settings.stopOnError,
+    stopOnWord: settings.stopOnWord,
   });
 
   const {
@@ -114,6 +118,8 @@ export default function TypingTest({
     vampireDamaged,
     errorKeystrokes,
     startTime,
+    keystrokeLog,
+    zenMode,
     clearComboBroke,
     containerRef,
     retryButtonRef,
@@ -124,7 +130,6 @@ export default function TypingTest({
 
   const [keyboardOpen, setKeyboardOpen] = useState(true);
 
-  const zenEnabled = !raceMode && settings.zenMode;
   useZenMode(zenEnabled, started && !finished && !paused);
 
   const { pacerIndex, ghostIndex } = usePacingCursors({
@@ -268,12 +273,14 @@ export default function TypingTest({
           paused={paused}
           pacerIndex={pacerIndex}
           ghostIndex={ghostIndex}
+          caretStyle={settings.caretStyle}
+          caretAnimation={settings.caretAnimation}
         />
 
         {!started && !finished && (
           <p className="relative mt-6 flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
             <span className="inline-flex h-2 w-2 rounded-full bg-[var(--color-highlight)] animate-pulse motion-reduce:animate-none" />
-            {t.lesson.startTyping}
+            {zenEnabled ? t.lesson.zenStartHint : t.lesson.startTyping}
           </p>
         )}
 
@@ -289,6 +296,7 @@ export default function TypingTest({
           isNewRecord={isNewRecord}
           wpmDelta={wpmDelta}
           weakKeys={sessionWeakKeys}
+          keystrokeLog={keystrokeLog}
           onRetry={reset}
           retryButtonRef={retryButtonRef}
         />

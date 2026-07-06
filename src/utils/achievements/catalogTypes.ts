@@ -61,6 +61,7 @@ export interface CatalogEntry {
   title: string;
   description: string;
   category: CatalogCategory;
+  subcategory: string;
   tier: CatalogTier;
   targetValue: number;
   metric: AchievementMetric;

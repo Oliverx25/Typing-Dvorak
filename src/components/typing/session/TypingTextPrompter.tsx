@@ -4,7 +4,9 @@ import {
   TELEPROMPTER_TEXT_CLASS,
   TELEPROMPTER_VIEWPORT_CLASS,
 } from '@/hooks/useTeleprompterScroll';
+import type { CaretAnimation, CaretStyle } from '@/utils/app/settings';
 import TypedChar from './TypedChar';
+import TypingCaret from './TypingCaret';
 import {
   InlinePacingCursorMarker,
   PacingCursorEdgeHint,
@@ -18,6 +20,8 @@ interface TypingTextPrompterProps {
   paused: boolean;
   pacerIndex: number | null;
   ghostIndex: number | null;
+  caretStyle?: CaretStyle;
+  caretAnimation?: CaretAnimation;
 }
 
 export default function TypingTextPrompter({
@@ -28,7 +32,13 @@ export default function TypingTextPrompter({
   paused,
   pacerIndex,
   ghostIndex,
+  caretStyle = 'line',
+  caretAnimation = 'blink',
 }: TypingTextPrompterProps) {
+  const useSmoothCaret = caretAnimation === 'smooth';
+  const hideInlineCaret = useSmoothCaret;
+  const caretAnchorRef = useRef<HTMLElement | null>(null);
+
   const {
     viewportRef,
     innerRef,
@@ -43,6 +53,14 @@ export default function TypingTextPrompter({
     targetText,
     activeIndex: inputLength,
   });
+
+  const setActiveSpanRef = useCallback(
+    (el: HTMLSpanElement | null) => {
+      assignActiveRef(el);
+      caretAnchorRef.current = el;
+    },
+    [assignActiveRef],
+  );
 
   const pacerVisibility = getCursorVisibility(pacerIndex);
   const ghostVisibility = getCursorVisibility(ghostIndex);
@@ -75,6 +93,13 @@ export default function TypingTextPrompter({
         className="relative transition-transform duration-200 ease-out motion-reduce:transition-none"
         style={{ transform: `translateY(-${offsetY}px)` }}
       >
+        <TypingCaret
+          anchorRef={caretAnchorRef}
+          caretStyle={caretStyle}
+          caretAnimation={caretAnimation}
+          visible={!finished && !paused}
+          positionKey={inputLength}
+        />
         {topSpacerHeight > 0 ? (
           <div aria-hidden="true" style={{ height: topSpacerHeight }} />
         ) : null}
@@ -85,7 +110,7 @@ export default function TypingTextPrompter({
             return (
               <span
                 key={index}
-                ref={isCurrent ? assignActiveRef : undefined}
+                ref={isCurrent ? setActiveSpanRef : undefined}
                 className="relative"
               >
                 <InlinePacingCursorMarker
@@ -107,11 +132,15 @@ export default function TypingTextPrompter({
                   status={statuses[index]}
                   isCurrent={isCurrent}
                   active={!finished && !paused}
+                  hideInlineCaret={hideInlineCaret}
                 />
               </span>
             );
           })}
           {!finished && !paused && inputLength === targetText.length && (
+            <span ref={setActiveSpanRef} className="inline-block w-0" aria-hidden="true" />
+          )}
+          {!finished && !paused && inputLength === targetText.length && !hideInlineCaret && (
             <span className="caret-blink ml-px inline-block h-[1.1em] w-0.5 translate-y-0.5 bg-[var(--color-key-target)] align-middle motion-reduce:animate-none" />
           )}
         </p>

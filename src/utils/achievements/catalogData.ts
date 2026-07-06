@@ -2,6 +2,64 @@ import type { AchievementMetric, CatalogCategory, CatalogEntry, CatalogTier } fr
 
 let nextId = 1;
 
+const METRIC_SUBCATEGORY: Partial<Record<AchievementMetric, string>> = {
+  session_max_wpm: 'Picos de velocidad',
+  session_avg_wpm: 'Velocidad sostenida',
+  early_burst_wpm: 'Arranque explosivo',
+  perfect_session_count: 'Sesiones perfectas',
+  max_combo: 'Combos',
+  consecutive_high_accuracy_sessions: 'Consistencia',
+  error_recovery_combo: 'Recuperación',
+  mp_wins: 'Victorias',
+  mp_win_clutch: 'Hazañas de carrera',
+  mp_win_dominant: 'Hazañas de carrera',
+  mp_win_perfect_grade: 'Hazañas de carrera',
+  mp_win_streak: 'Rachas de victoria',
+  mp_comeback_win: 'Hazañas de carrera',
+  mp_race_player_count: 'Salas multijugador',
+  mp_win_full_lobby: 'Salas multijugador',
+  mp_photo_finish_win: 'Hazañas de carrera',
+  modifier_sudden_death_win: 'Modificadores',
+  modifier_blind_high_accuracy: 'Modificadores',
+  modifier_strict_high_grade: 'Modificadores',
+  modifier_flashlight_complete: 'Modificadores',
+  modifier_vampire_survive: 'Modificadores',
+  modifier_double_time_grade: 'Modificadores',
+  modifier_rhythm_lock_perfect: 'Modificadores',
+  modifier_masocore: 'Modificadores',
+  left_hand_perfect: 'Dominio por mano',
+  right_hand_perfect: 'Dominio por mano',
+  dev_symbols_grade: 'Código',
+  custom_code_grade: 'Código',
+  day_streak: 'Rachas diarias',
+  total_sessions: 'Volumen',
+  active_typing_minutes: 'Maratón',
+  total_correct_keystrokes: 'Volumen de teclas',
+  same_artist_song_plays: 'Artistas',
+  song_languages_count: 'Idiomas',
+  full_lobby_song_race: 'Salas musicales',
+  first_grade_a: 'Primeros rangos',
+  first_grade_s: 'Primeros rangos',
+  first_grade_ss: 'Primeros rangos',
+  first_grade_ascended: 'Primeros rangos',
+  grade_s_or_better_count: 'Colección de rangos',
+};
+
+function resolveSubcategory(slug: string, metric: AchievementMetric): string {
+  if (slug.startsWith('speed_cruise_')) return 'Velocidad sostenida';
+  if (slug.startsWith('speed_wpm_')) return 'Picos de velocidad';
+  if (slug.startsWith('speed_')) return 'Retos de velocidad';
+  if (slug.startsWith('mp_')) return METRIC_SUBCATEGORY[metric] ?? 'Multijugador';
+  if (slug.startsWith('mod_')) return 'Modificadores';
+  if (slug.startsWith('rank_')) return METRIC_SUBCATEGORY[metric] ?? 'Rangos';
+  if (slug.startsWith('music_')) return METRIC_SUBCATEGORY[metric] ?? 'Música';
+  if (slug.startsWith('tech_')) return 'Técnica';
+  if (slug.startsWith('endurance_')) return METRIC_SUBCATEGORY[metric] ?? 'Resistencia';
+  if (slug.startsWith('precision_')) return METRIC_SUBCATEGORY[metric] ?? 'Precisión';
+  if (slug.startsWith('perfect_') || slug.startsWith('combo_')) return METRIC_SUBCATEGORY[metric] ?? 'Precisión';
+  return METRIC_SUBCATEGORY[metric] ?? 'General';
+}
+
 function entry(
   slug: string,
   title: string,
@@ -11,6 +69,7 @@ function entry(
   targetValue: number,
   metric: AchievementMetric,
   sortOrder?: number,
+  subcategory?: string,
 ): CatalogEntry {
   const id = nextId++;
   return {
@@ -19,6 +78,7 @@ function entry(
     title,
     description,
     category,
+    subcategory: subcategory ?? resolveSubcategory(slug, metric),
     tier,
     targetValue,
     metric,
@@ -617,13 +677,13 @@ function sqlLiteral(value: string): string {
 export function generateCatalogSeedSql(): string {
   const lines = [
     '-- Auto-generated from catalogData.ts',
-    'insert into public.achievements_catalog (id, slug, title, description, category, tier, target_value, sort_order)',
+    'insert into public.achievements_catalog (id, slug, title, description, category, subcategory, tier, target_value, sort_order)',
     'values',
   ];
 
   const values = ACHIEVEMENT_CATALOG.map(
     (item, index) =>
-      `  (${item.id}, ${sqlLiteral(item.slug)}, ${sqlLiteral(item.title)}, ${sqlLiteral(item.description)}, ${sqlLiteral(item.category)}, ${sqlLiteral(item.tier)}, ${item.targetValue}, ${item.sortOrder})${index < ACHIEVEMENT_CATALOG.length - 1 ? ',' : ''}`,
+      `  (${item.id}, ${sqlLiteral(item.slug)}, ${sqlLiteral(item.title)}, ${sqlLiteral(item.description)}, ${sqlLiteral(item.category)}, ${sqlLiteral(item.subcategory)}, ${sqlLiteral(item.tier)}, ${item.targetValue}, ${item.sortOrder})${index < ACHIEVEMENT_CATALOG.length - 1 ? ',' : ''}`,
   );
 
   lines.push(...values);
@@ -632,6 +692,7 @@ export function generateCatalogSeedSql(): string {
   lines.push('  title = excluded.title,');
   lines.push('  description = excluded.description,');
   lines.push('  category = excluded.category,');
+  lines.push('  subcategory = excluded.subcategory,');
   lines.push('  tier = excluded.tier,');
   lines.push('  target_value = excluded.target_value,');
   lines.push('  sort_order = excluded.sort_order;');

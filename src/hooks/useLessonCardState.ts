@@ -5,7 +5,9 @@ import {
   getBestWpmForLesson,
   getCompletedLessonsMap,
   getHighestGradeForLesson,
+  getMasteryXpForLesson,
 } from '@/utils/progress/storage';
+import { masteryTierFromXp } from '@/utils/curriculum/mastery';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
 function getUnlockState(lessonId: string) {
@@ -18,6 +20,8 @@ function getUnlockState(lessonId: string) {
     bestWpm: getBestWpmForLesson(lessonId),
     highestGrade: getHighestGradeForLesson(lessonId),
     highestScore: getBestScoreForLesson(lessonId),
+    masteryXp: getMasteryXpForLesson(lessonId),
+    masteryTier: masteryTierFromXp(getMasteryXpForLesson(lessonId)),
   };
 }
 
@@ -27,6 +31,8 @@ const INITIAL_STATE = {
   bestWpm: null as number | null,
   highestGrade: null as string | null,
   highestScore: null as number | null,
+  masteryXp: 0,
+  masteryTier: 0 as 0 | 1 | 2 | 3 | 4,
 };
 
 export function useLessonCardState(lessonId: string) {

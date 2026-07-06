@@ -30,6 +30,10 @@ type SettingsDraft = Pick<
   | 'ghostMode'
   | 'pacerEnabled'
   | 'pacerTargetWpm'
+  | 'caretStyle'
+  | 'caretAnimation'
+  | 'stopOnError'
+  | 'stopOnWord'
 >;
 
 function pickDraft(settings: AppSettings): SettingsDraft {
@@ -43,6 +47,10 @@ function pickDraft(settings: AppSettings): SettingsDraft {
     ghostMode: settings.ghostMode,
     pacerEnabled: settings.pacerEnabled,
     pacerTargetWpm: settings.pacerTargetWpm,
+    caretStyle: settings.caretStyle,
+    caretAnimation: settings.caretAnimation,
+    stopOnError: settings.stopOnError,
+    stopOnWord: settings.stopOnWord,
   };
 }
 
@@ -188,6 +196,64 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                     />
                   </SettingRow>
                 )}
+                <SettingRow label={t.settings.caretStyle}>
+                  <div className="flex flex-wrap gap-1">
+                    {(['line', 'block', 'underline'] as const).map((style) => (
+                      <button
+                        key={style}
+                        type="button"
+                        onClick={() => patchDraft({ caretStyle: style })}
+                        className={[
+                          'rounded-md px-2.5 py-1 text-xs font-medium transition',
+                          draft.caretStyle === style
+                            ? 'bg-[var(--color-highlight)] text-white'
+                            : 'bg-[var(--color-key)] text-[var(--color-text-muted)]',
+                        ].join(' ')}
+                      >
+                        {style === 'line'
+                          ? t.settings.caretLine
+                          : style === 'block'
+                            ? t.settings.caretBlock
+                            : t.settings.caretUnderline}
+                      </button>
+                    ))}
+                  </div>
+                </SettingRow>
+                <SettingRow label={t.settings.caretAnimation}>
+                  <div className="flex flex-wrap gap-1">
+                    {(['smooth', 'blink', 'off'] as const).map((anim) => (
+                      <button
+                        key={anim}
+                        type="button"
+                        onClick={() => patchDraft({ caretAnimation: anim })}
+                        className={[
+                          'rounded-md px-2.5 py-1 text-xs font-medium transition',
+                          draft.caretAnimation === anim
+                            ? 'bg-[var(--color-highlight)] text-white'
+                            : 'bg-[var(--color-key)] text-[var(--color-text-muted)]',
+                        ].join(' ')}
+                      >
+                        {anim === 'smooth'
+                          ? t.settings.caretSmooth
+                          : anim === 'blink'
+                            ? t.settings.caretBlink
+                            : t.settings.caretOff}
+                      </button>
+                    ))}
+                  </div>
+                </SettingRow>
+                <SettingsToggle
+                  title={t.settings.stopOnError}
+                  description={t.settings.stopOnErrorDesc}
+                  checked={draft.stopOnError}
+                  onChange={(v) => patchDraft({ stopOnError: v })}
+                />
+                <SettingsToggle
+                  title={t.settings.stopOnWord}
+                  description={t.settings.stopOnWordDesc}
+                  checked={draft.stopOnWord}
+                  onChange={(v) => patchDraft({ stopOnWord: v })}
+                />
               </div>
             </section>
 

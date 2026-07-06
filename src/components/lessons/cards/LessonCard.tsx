@@ -6,6 +6,9 @@ import type { Lesson } from '@/utils/curriculum/lessons';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
+import { MASTERY_BADGE_CLASSES, MASTERY_RING_CLASSES, MASTERY_TIER_LABELS } from '@/utils/curriculum/mastery';
+import type { MasteryTier } from '@/utils/curriculum/mastery';
+import { LuAward } from 'react-icons/lu';
 import { Card, Badge, BestScoreLabel } from '@/components/ui';
 
 interface LessonCardProps {
@@ -71,6 +74,7 @@ function UnlockedLessonCard({
   recommended,
   highestGrade,
   highestScore,
+  masteryTier,
   startLabel,
   scoreUnit,
 }: {
@@ -82,17 +86,30 @@ function UnlockedLessonCard({
   recommended?: boolean;
   highestGrade: string | null;
   highestScore: number | null;
+  masteryTier: MasteryTier;
   startLabel: string;
   scoreUnit: string;
 }) {
+  const ringClass = MASTERY_RING_CLASSES[masteryTier];
+  const badgeClass = MASTERY_BADGE_CLASSES[masteryTier];
+
   return (
     <Card
       as="a"
       href={`/lesson/${lesson.id}`}
       variant={recommended ? 'highlight' : 'default'}
       padding="md"
-      className="group relative block no-underline hover:shadow-md"
+      className={['group relative block no-underline hover:shadow-md', ringClass].filter(Boolean).join(' ')}
     >
+      {masteryTier > 0 && (
+        <div
+          className={['absolute left-3 top-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider', badgeClass].join(' ')}
+          title={MASTERY_TIER_LABELS[masteryTier]}
+        >
+          <LuAward className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>{MASTERY_TIER_LABELS[masteryTier]}</span>
+        </div>
+      )}
       <div className="absolute right-2 top-2">
         <BestScoreLabel
           highestGrade={highestGrade}
@@ -120,7 +137,7 @@ function UnlockedLessonCard({
 
 export default function LessonCard({ lesson, recommended = false }: LessonCardProps) {
   const { t } = useApp();
-  const { unlocked, highestGrade, highestScore } = useLessonCardState(lesson.id);
+  const { unlocked, highestGrade, highestScore, masteryTier } = useLessonCardState(lesson.id);
 
   const title = getLessonTitle(t, lesson.titleKey);
   const description = getLessonDescription(t, lesson.descriptionKey);
@@ -148,6 +165,7 @@ export default function LessonCard({ lesson, recommended = false }: LessonCardPr
       recommended={recommended}
       highestGrade={highestGrade}
       highestScore={highestScore}
+      masteryTier={masteryTier}
       startLabel={t.home.startLesson}
       scoreUnit={t.multiplayer.raceScore}
     />

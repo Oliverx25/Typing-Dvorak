@@ -24,6 +24,10 @@ export interface UserSettingsRow {
   ghost_mode_enabled?: boolean;
   pacer_enabled?: boolean;
   pacer_target_wpm?: number;
+  caret_style?: string | null;
+  caret_animation?: string | null;
+  stop_on_error?: boolean;
+  stop_on_word?: boolean;
 }
 
 /** Map user_settings fields into local app settings + theme overrides. */
@@ -50,6 +54,14 @@ export function appPreferencesFromUserSettings(
   if (typeof settings.pacer_target_wpm === 'number') {
     partial.pacerTargetWpm = clampPacerWpm(settings.pacer_target_wpm);
   }
+  if (settings.caret_style === 'line' || settings.caret_style === 'block' || settings.caret_style === 'underline') {
+    partial.caretStyle = settings.caret_style;
+  }
+  if (settings.caret_animation === 'smooth' || settings.caret_animation === 'blink' || settings.caret_animation === 'off') {
+    partial.caretAnimation = settings.caret_animation;
+  }
+  if (typeof settings.stop_on_error === 'boolean') partial.stopOnError = settings.stop_on_error;
+  if (typeof settings.stop_on_word === 'boolean') partial.stopOnWord = settings.stop_on_word;
 
   const theme = isTheme(settings.theme) ? settings.theme : undefined;
 
@@ -80,6 +92,10 @@ export function userSettingsPayloadFromAppPreferences(
     ghost_mode_enabled: settings.ghostMode,
     pacer_enabled: settings.pacerEnabled,
     pacer_target_wpm: clampPacerWpm(settings.pacerTargetWpm),
+    caret_style: settings.caretStyle,
+    caret_animation: settings.caretAnimation,
+    stop_on_error: settings.stopOnError,
+    stop_on_word: settings.stopOnWord,
   };
 }
 
