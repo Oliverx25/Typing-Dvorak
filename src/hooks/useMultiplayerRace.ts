@@ -6,6 +6,7 @@ import type {
   RaceProgressPayload,
 } from '@/types/multiplayer';
 import { calculateMaxScore, mergePeakRaceProgress } from '@/utils/multiplayer/raceScoring';
+import { compareRaceParticipants } from '@/utils/multiplayer/raceRanking';
 import {
   getPrimaryVictoryCondition,
   type VictoryCondition,
@@ -74,24 +75,6 @@ function normalizeProgressPayload(
   };
 }
 
-function compareParticipants(
-  a: RaceParticipantProgress,
-  b: RaceParticipantProgress,
-  primaryVictory: VictoryCondition,
-): number {
-  if (a.finished !== b.finished) return a.finished ? -1 : 1;
-
-  switch (primaryVictory) {
-    case 'max_score':
-      return b.score - a.score || b.wpm - a.wpm;
-    case 'highest_wpm':
-      return b.wpm - a.wpm || b.percentage - a.percentage;
-    case 'first_finish':
-    default:
-      return b.percentage - a.percentage || b.wpm - a.wpm;
-  }
-}
-
 export function useMultiplayerRace({
   channel,
   progressHandlerRef,
@@ -138,7 +121,7 @@ export function useMultiplayerRace({
       });
     }
 
-    next.sort((a, b) => compareParticipants(a, b, primaryVictory));
+    next.sort((a, b) => compareRaceParticipants(a, b, primaryVictory));
     setRemoteProgress(next);
   }, [currentUserId, players, primaryVictory]);
 
@@ -270,7 +253,7 @@ export function useMultiplayerRace({
       });
     }
 
-    return entries.sort((a, b) => compareParticipants(a, b, primaryVictory));
+    return entries.sort((a, b) => compareRaceParticipants(a, b, primaryVictory));
   }, [currentUserId, localProgress, players, primaryVictory, remoteProgress]);
 
   return {

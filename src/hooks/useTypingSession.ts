@@ -12,7 +12,8 @@ import { saveSession } from '../utils/progress/storage';
 import { getSessionWeakKeys, recordKeystroke } from '../utils/stats/keyStats';
 import { playCompleteSound, playCorrectSound, playIncorrectSound } from '../utils/typing/sound';
 import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '../utils/app/events';
-import { checkAndUnlockBadges } from '../utils/achievements/badges';
+import { finalizeSingleplayerAchievements } from '../utils/achievements/badges';
+import { setRaceSessionExtras } from '../utils/achievements/raceSessionExtras';
 import {
   calculateStableRaceWpm,
   calculateRaceAccuracy,
@@ -48,6 +49,8 @@ interface UseTypingSessionOptions {
   vampireMode?: boolean;
   /** Sudden death: one mistake ends the race immediately. */
   suddenDeathMode?: boolean;
+  /** Rhythm lock modifier — tracks combo breaks for achievement evaluation. */
+  musicPacerEnabled?: boolean;
   /** Override lesson id/title when persisting (e.g. multiplayer). */
   sessionPersist?: SessionPersistOptions;
 }
@@ -75,6 +78,7 @@ export function useTypingSession({
   scoreMultiplier = 1,
   vampireMode = false,
   suddenDeathMode = false,
+  musicPacerEnabled = false,
   sessionPersist,
 }: UseTypingSessionOptions) {
   const isTestMode = mode === 'test';
@@ -117,6 +121,12 @@ export function useTypingSession({
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedMsRef = useRef(0);
   const startTimeRef = useRef<number | null>(null);
+  const earlyBurstMaxRef = useRef(0);
+  const errorRecoveryMaxRef = useRef(0);
+  const sessionHadErrorRef = useRef(false);
+  const rhythmLockBrokenRef = useRef(false);
+  const vampireHpRef = useRef(VAMPIRE_MAX_HP);
+  vampireHpRef.current = vampireHp;
 
   const correctChars = statuses.filter((s) => s === 'correct').length;
   const liveStats = raceMode
@@ -191,15 +201,26 @@ export function useTypingSession({
 
       dispatchSessionComplete(savedRecord);
       dispatchKeyStatsUpdated();
-      checkAndUnlockBadges({
-        accuracy: result.accuracy,
-        wpm: result.wpm,
-        lessonId: persistLessonId,
-        maxCombo: sessionMaxCombo,
-      });
+
+      const sessionExtras = {
+        earlyBurstWpm: earlyBurstMaxRef.current,
+        errorRecoveryCombo: errorRecoveryMaxRef.current,
+        avgWpm: result.wpm,
+        vampireHpPercentEnd: vampireMode
+          ? Math.round((vampireHpRef.current / VAMPIRE_MAX_HP) * 100)
+          : undefined,
+        rhythmLockBroken: musicPacerEnabled ? rhythmLockBrokenRef.current : undefined,
+      };
+
+      if (raceMode) {
+        setRaceSessionExtras(sessionExtras);
+      } else {
+        finalizeSingleplayerAchievements(savedRecord, sessionExtras);
+      }
+
       if (sound) playCompleteSound();
     },
-    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier],
+    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled],
   );
 
   const forceFinishEarly = useCallback(() => {
@@ -293,6 +314,10 @@ export function useTypingSession({
     setVampireDamaged(false);
     consecutiveMissesRef.current = 0;
     vampireEliminatedRef.current = false;
+    earlyBurstMaxRef.current = 0;
+    errorRecoveryMaxRef.current = 0;
+    sessionHadErrorRef.current = false;
+    rhythmLockBrokenRef.current = false;
     if (vampireDamageTimerRef.current !== null) {
       window.clearTimeout(vampireDamageTimerRef.current);
       vampireDamageTimerRef.current = null;
@@ -306,6 +331,17 @@ export function useTypingSession({
       if (!startTime) return;
       const elapsed = Date.now() - startTime - totalPausedMsRef.current;
       setElapsedMs(elapsed);
+      if (elapsed <= 5000) {
+        const burstWpm = raceMode
+          ? calculateStableRaceWpm(correctCharsRef.current, elapsed)
+          : buildStats(
+              correctCharsRef.current,
+              errorKeystrokesRef.current,
+              Math.max(elapsed, 1),
+              isTestMode,
+            ).wpm;
+        earlyBurstMaxRef.current = Math.max(earlyBurstMaxRef.current, burstWpm);
+      }
       if (isTestMode && elapsed >= TEST_DURATION_SECONDS * 1000) {
         const result = buildStats(correctChars, errorKeystrokes, elapsed, true);
         finishSession(result);
@@ -419,6 +455,9 @@ export function useTypingSession({
       setCombo((prev) => {
         const next = prev + 1;
         setMaxCombo((max) => (next > max ? next : max));
+        if (sessionHadErrorRef.current) {
+          errorRecoveryMaxRef.current = Math.max(errorRecoveryMaxRef.current, next);
+        }
         return next;
       });
       if (raceMode) {
@@ -431,6 +470,7 @@ export function useTypingSession({
       }
     } else {
       setErrorKeystrokes((n) => n + 1);
+      sessionHadErrorRef.current = true;
       sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
       if (suddenDeathMode) {
         requestAnimationFrame(() => forceFinishEarly());
@@ -438,7 +478,10 @@ export function useTypingSession({
         applyVampireHit();
       }
       setCombo((prev) => {
-        if (prev > 0) setComboBroke(true);
+        if (prev > 0) {
+          setComboBroke(true);
+          if (musicPacerEnabled) rhythmLockBrokenRef.current = true;
+        }
         return 0;
       });
     }

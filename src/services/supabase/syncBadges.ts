@@ -1,86 +1,98 @@
 import { getSupabaseClient } from '../../lib/supabaseClient';
+import { ACHIEVEMENT_CATALOG } from '../../utils/achievements/catalogData';
 import {
-  evaluateUnlockedBadges,
-  replaceUnlockedBadges,
-} from '../../utils/achievements/badges';
+  evaluateAchievementProgress,
+  type LastSessionSnapshot,
+} from '../../utils/achievements/achievementEvaluator';
 import {
-  buildUserAchievementStatsFromSessions,
-  type SessionSummaryForStats,
-} from '../../utils/achievements/userStats';
-import { collectPracticeDates, computeStreakFromPracticeDates } from '../../utils/progress/streak';
-import { fetchAllUserSessionSummaries, fetchUserSessionTimestamps } from './queries';
+  getLocalAchievementProgress,
+  replaceLocalAchievementProgress,
+} from '../../utils/achievements/progressStorage';
+import type { UserAchievementProgress } from '../../utils/achievements/catalogTypes';
 
-export type SessionSummary = SessionSummaryForStats;
-
-async function persistUserBadges(userId: string, badgeIds: string[]): Promise<void> {
+async function persistUserAchievements(
+  userId: string,
+  rows: UserAchievementProgress[],
+): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
-  for (const badgeId of badgeIds) {
-    const { error } = await supabase.from('user_badges').upsert(
-      { user_id: userId, badge_id: badgeId },
-      { onConflict: 'user_id,badge_id' },
+  for (const row of rows) {
+    const { error } = await supabase.from('user_achievements').upsert(
+      {
+        user_id: userId,
+        achievement_id: row.achievementId,
+        current_progress: row.currentProgress,
+        unlocked_at: row.unlockedAt,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,achievement_id' },
     );
-    if (error) console.warn('[sync] user_badges upsert failed:', error.message);
+    if (error) console.warn('[sync] user_achievements upsert failed:', error.message);
   }
 }
 
-async function fetchCloudMultiplayerStats(userId: string): Promise<{ matches: number; wins: number }> {
+async function fetchCloudAchievementProgress(userId: string): Promise<UserAchievementProgress[]> {
   const supabase = getSupabaseClient();
-  if (!supabase) return { matches: 0, wins: 0 };
+  if (!supabase) return [];
 
-  const { count: matches, error: matchError } = await supabase
-    .from('race_results')
-    .select('*', { count: 'exact', head: true })
+  const { data, error } = await supabase
+    .from('user_achievements')
+    .select('achievement_id, current_progress, unlocked_at')
     .eq('user_id', userId);
 
-  if (matchError) {
-    console.warn('[sync] race_results count failed:', matchError.message);
-    return { matches: 0, wins: 0 };
+  if (error) {
+    console.warn('[sync] user_achievements fetch failed:', error.message);
+    return [];
   }
 
-  const { count: wins, error: winError } = await supabase
-    .from('race_results')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('placement', 1);
-
-  if (winError) {
-    console.warn('[sync] race_results wins count failed:', winError.message);
-    return { matches: matches ?? 0, wins: 0 };
-  }
-
-  return { matches: matches ?? 0, wins: wins ?? 0 };
+  return (data ?? []).map((row) => {
+    const achievementId = row.achievement_id as number;
+    const catalog = ACHIEVEMENT_CATALOG.find((item) => item.id === achievementId);
+    return {
+      achievementId,
+      slug: catalog?.slug ?? String(achievementId),
+      currentProgress: row.current_progress as number,
+      unlockedAt: (row.unlocked_at as string | null) ?? null,
+    };
+  });
 }
 
-/** Recompute badges from all cloud sessions, persist, and mirror to localStorage. */
+/** Recompute local progress and mirror to Supabase user_achievements. */
+export async function syncAchievementsToCloud(
+  userId: string,
+  lastSession?: LastSessionSnapshot,
+): Promise<string[]> {
+  evaluateAchievementProgress(lastSession);
+  const rows = Object.values(getLocalAchievementProgress());
+  await persistUserAchievements(userId, rows);
+  return rows.filter((row) => row.unlockedAt).map((row) => row.slug);
+}
+
+/** Load cloud progress, merge locally, and re-evaluate. */
+export async function syncAchievementsFromCloud(userId: string): Promise<string[]> {
+  const cloudRows = await fetchCloudAchievementProgress(userId);
+  if (cloudRows.length > 0) {
+    replaceLocalAchievementProgress(cloudRows);
+  }
+  evaluateAchievementProgress();
+  const rows = Object.values(getLocalAchievementProgress());
+  await persistUserAchievements(userId, rows);
+  return rows.filter((row) => row.unlockedAt).map((row) => row.slug);
+}
+
+/** @deprecated Use syncAchievementsToCloud */
 export async function syncBadgesToCloud(userId: string): Promise<string[]> {
-  const [sessions, timestamps, mpStats] = await Promise.all([
-    fetchAllUserSessionSummaries(),
-    fetchUserSessionTimestamps(),
-    fetchCloudMultiplayerStats(userId),
-  ]);
-
-  const streak = computeStreakFromPracticeDates(collectPracticeDates(timestamps)).streak;
-  const stats = buildUserAchievementStatsFromSessions(sessions, streak, mpStats);
-  const unlocked = evaluateUnlockedBadges(stats);
-
-  await persistUserBadges(userId, unlocked);
-  replaceUnlockedBadges(unlocked);
-
-  return unlocked;
+  return syncAchievementsToCloud(userId);
 }
 
-/** Recompute from already-fetched session rows (login load). */
+/** @deprecated Use syncAchievementsFromCloud */
 export async function syncBadgesFromSessionRows(
   userId: string,
-  sessions: SessionSummary[],
-  streak: number,
+  _sessions: unknown[],
+  _streak: number,
 ): Promise<string[]> {
-  const mpStats = await fetchCloudMultiplayerStats(userId);
-  const stats = buildUserAchievementStatsFromSessions(sessions, streak, mpStats);
-  const unlocked = evaluateUnlockedBadges(stats);
-  await persistUserBadges(userId, unlocked);
-  replaceUnlockedBadges(unlocked);
-  return unlocked;
+  void _sessions;
+  void _streak;
+  return syncAchievementsFromCloud(userId);
 }

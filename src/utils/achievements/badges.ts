@@ -1,92 +1,60 @@
-import type { IconName } from '@/components/ui/icons/Icon';
 import { dispatchBadgesUpdated } from '../app/events';
-import { STORAGE_KEYS } from '../progress/keys';
-import { readJson, writeJson } from '../progress/localStorage';
+import { notifyAchievementUnlocks } from './achievementNotifications';
 import {
-  ACHIEVEMENTS,
-  ACHIEVEMENT_FAMILY_ICONS,
-  getAchievementById,
-  type AchievementDefinition,
-  type AchievementFamily,
-  type AchievementTier,
-} from './achievements.config';
-import { buildUserAchievementStatsFromLocal } from './userStats';
+  evaluateAchievementProgress,
+  getNewlyUnlockedSlugs,
+  snapshotFromSessionRecord,
+  type LastSessionSnapshot,
+} from './achievementEvaluator';
+import { recordMultiplayerMatch } from './multiplayerStats';
+import { CATALOG_BY_ID } from './catalogData';
+import {
+  getProgressForAchievement,
+  getUnlockedAchievementSlugs,
+  replaceLocalAchievementProgress,
+} from './progressStorage';
+import type { UserAchievementProgress } from './catalogTypes';
+import type { SessionRecord } from '../progress/storage';
 
 export interface BadgeProgressState {
   current: number;
   target: number;
 }
 
-export interface Badge {
-  id: string;
-  family: AchievementFamily;
-  tier?: AchievementTier;
-  icon: IconName;
-  titleKey: string;
-  descKey: string;
-}
-
-const LEGACY_BADGE_IDS = new Set([
-  'first-lesson',
-  'streak-7',
-  'wpm-50',
-  'perfect-run',
-  'curriculum-done',
-]);
-
-/** @deprecated Use ACHIEVEMENTS — kept for backward-compatible imports. */
-export const BADGES: Badge[] = ACHIEVEMENTS.map(toBadgeView);
-
-function toBadgeView(definition: AchievementDefinition): Badge {
-  return {
-    id: definition.id,
-    family: definition.family,
-    tier: definition.tier,
-    icon: ACHIEVEMENT_FAMILY_ICONS[definition.family],
-    titleKey: definition.titleKey,
-    descKey: definition.descKey,
-  };
-}
-
-export function getUnlockedBadges(): string[] {
-  const stored = readJson(STORAGE_KEYS.badges, [] as string[]);
-  if (stored.some((id) => LEGACY_BADGE_IDS.has(id))) {
-    const next = evaluateUnlockedBadges(buildUserAchievementStatsFromLocal());
-    saveUnlockedBadges(next);
-    return next;
+/** Run post-match achievement evaluation and return newly unlocked slugs. */
+export function processAchievementsAfterSession(
+  record?: SessionRecord,
+  extras?: Partial<LastSessionSnapshot>,
+): string[] {
+  const snapshot = record ? snapshotFromSessionRecord(record, extras) : undefined;
+  const results = evaluateAchievementProgress(snapshot);
+  const newly = getNewlyUnlockedSlugs(results);
+  if (newly.length > 0) {
+    dispatchBadgesUpdated();
   }
-  return stored;
+  return newly;
 }
 
-function saveUnlockedBadges(ids: string[]): void {
-  writeJson(STORAGE_KEYS.badges, ids);
+/** Evaluate achievements after a singleplayer session and show unlock toasts. */
+export function finalizeSingleplayerAchievements(
+  record: SessionRecord,
+  extras?: Partial<LastSessionSnapshot>,
+): string[] {
+  const newly = processAchievementsAfterSession(record, extras);
+  notifyAchievementUnlocks(newly);
+  return newly;
 }
 
-/** Overwrite unlocked badges (e.g. after cloud load). */
-export function replaceUnlockedBadges(ids: string[]): void {
-  saveUnlockedBadges(ids);
-  dispatchBadgesUpdated();
-}
-
-/** @deprecated Use buildUserAchievementStatsFromLocal */
-export function buildBadgeEvaluationFromLocal() {
-  return buildUserAchievementStatsFromLocal();
-}
-
-/** Pure evaluation — iterates achievement config instead of isolated conditionals. */
-export function evaluateUnlockedBadges(stats: ReturnType<typeof buildUserAchievementStatsFromLocal>): string[] {
-  return ACHIEVEMENTS.filter((achievement) => achievement.condition(stats)).map(
-    (achievement) => achievement.id,
-  );
-}
-
-export function getBadgeProgressState(
-  badgeId: string,
-  stats: ReturnType<typeof buildUserAchievementStatsFromLocal>,
-): BadgeProgressState | null {
-  const achievement = getAchievementById(badgeId);
-  if (!achievement) return null;
-  return achievement.progress(stats);
+/** Record MP stats, evaluate achievements with full race context, and show toasts. */
+export function finalizeMultiplayerAchievements(
+  record: SessionRecord,
+  extras: Partial<LastSessionSnapshot>,
+  won: boolean,
+): string[] {
+  recordMultiplayerMatch(won);
+  const newly = processAchievementsAfterSession(record, extras);
+  notifyAchievementUnlocks(newly);
+  return newly;
 }
 
 export function checkAndUnlockBadges(_session?: {
@@ -96,24 +64,25 @@ export function checkAndUnlockBadges(_session?: {
   maxCombo?: number;
 }): string[] {
   void _session;
-  const stats = buildUserAchievementStatsFromLocal();
-  const next = evaluateUnlockedBadges(stats);
-  const previous = new Set(getUnlockedBadges());
-  const newly = next.filter((id) => !previous.has(id));
-
-  if (newly.length > 0 || next.length !== previous.size) {
-    replaceUnlockedBadges(next);
-  }
-
-  return newly;
+  return processAchievementsAfterSession();
 }
 
-export function checkAchievements(
-  stats: ReturnType<typeof buildUserAchievementStatsFromLocal>,
-  alreadyUnlocked: string[],
-): string[] {
-  const owned = new Set(alreadyUnlocked);
-  return ACHIEVEMENTS.filter(
-    (achievement) => !owned.has(achievement.id) && achievement.condition(stats),
-  ).map((achievement) => achievement.id);
+export function getUnlockedBadges(): string[] {
+  return getUnlockedAchievementSlugs();
 }
+
+export function getBadgeProgressState(
+  achievementId: number,
+): BadgeProgressState | null {
+  const progress = getProgressForAchievement(achievementId);
+  const catalog = CATALOG_BY_ID.get(achievementId);
+  if (!catalog) return null;
+  return { current: progress.currentProgress, target: catalog.targetValue };
+}
+
+export function replaceUnlockedBadges(rows: UserAchievementProgress[]): void {
+  replaceLocalAchievementProgress(rows);
+  dispatchBadgesUpdated();
+}
+
+export { getProgressForAchievement, isAchievementUnlocked } from './progressStorage';

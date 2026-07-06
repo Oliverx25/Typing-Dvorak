@@ -86,6 +86,7 @@ export default function TypingTest({
     scoreMultiplier,
     vampireMode,
     suddenDeathMode,
+    musicPacerEnabled,
     sessionPersist,
   });
 

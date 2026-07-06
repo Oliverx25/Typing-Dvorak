@@ -102,6 +102,17 @@
   animation: mp-fade-in 0.3s ease-in-out;
 }
 
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes modal-enter {
   from {
     opacity: 0;

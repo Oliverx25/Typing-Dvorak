@@ -1,13 +1,13 @@
 import { readJson, writeJson } from '../progress/localStorage';
 import { STORAGE_KEYS } from '../progress/keys';
-import { checkAndUnlockBadges } from './badges';
 
 export interface MultiplayerStats {
   matches: number;
   wins: number;
+  winStreak: number;
 }
 
-const EMPTY: MultiplayerStats = { matches: 0, wins: 0 };
+const EMPTY: MultiplayerStats = { matches: 0, wins: 0, winStreak: 0 };
 
 export function getMultiplayerStats(): MultiplayerStats {
   return readJson(STORAGE_KEYS.multiplayerStats, EMPTY);
@@ -24,10 +24,9 @@ export function recordMultiplayerMatch(won: boolean): MultiplayerStats {
   const next: MultiplayerStats = {
     matches: current.matches + 1,
     wins: current.wins + (won ? 1 : 0),
+    winStreak: won ? current.winStreak + 1 : 0,
   };
-  saveMultiplayerStats(next);
-  checkAndUnlockBadges();
-  return next;
+  return saveMultiplayerStats(next);
 }
 
 export function replaceMultiplayerStats(stats: MultiplayerStats): void {

@@ -1,0 +1,1 @@
+-- See supabase/migrations/achievements_catalog.sql

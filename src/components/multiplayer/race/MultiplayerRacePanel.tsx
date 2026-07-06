@@ -14,8 +14,12 @@ import {
 } from '@/utils/multiplayer/roomConfig';
 import { resolveRaceTextSource, MULTIPLAYER_LESSON_ID } from '@/utils/stats/sessionDisplay';
 import { mergePeakRaceProgress } from '@/utils/multiplayer/raceScoring';
+import { rankParticipant } from '@/utils/multiplayer/raceRanking';
 import { countPendingPlayers } from '@/utils/multiplayer/raceCompletion';
-import { recordMultiplayerMatch } from '@/utils/achievements/multiplayerStats';
+import { finalizeMultiplayerAchievements } from '@/utils/achievements/badges';
+import { buildMultiplayerAchievementExtras } from '@/utils/achievements/multiplayerSnapshot';
+import { consumeRaceSessionExtras, clearRaceSessionExtras } from '@/utils/achievements/raceSessionExtras';
+import { getSessionHistory } from '@/utils/progress/storage';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { LobbyPlayerPresence, RoomBroadcastState, RoomPhase } from '@/types/multiplayer';
 import type { RefObject } from 'react';
@@ -62,6 +66,7 @@ export default function MultiplayerRacePanel({
   const [localProgress, setLocalProgress] = useState<LocalRaceProgress>(EMPTY_PROGRESS);
   const [hasReportedFinish, setHasReportedFinish] = useState(false);
   const peakProgressRef = useRef({ wpm: 0, score: 0 });
+  const halfProgressRankRef = useRef<number | null>(null);
 
   const lesson = getLessonById(roomState.lessonId) ?? getLessonById('common-words')!;
   const raceText = useMemo(
@@ -114,11 +119,16 @@ export default function MultiplayerRacePanel({
     enabled: Boolean(channel && currentUserId && raceSessionActive),
   });
 
+  const leaderboardRef = useRef(leaderboard);
+  leaderboardRef.current = leaderboard;
+
   useEffect(() => {
     if (phase !== 'racing' || !roomState.raceStartedAt) return;
     setLocalProgress(EMPTY_PROGRESS);
     setHasReportedFinish(false);
     peakProgressRef.current = { wpm: 0, score: 0 };
+    halfProgressRankRef.current = null;
+    clearRaceSessionExtras();
   }, [phase, roomState.raceStartedAt]);
 
   const handleProgressChange = useCallback(
@@ -141,6 +151,27 @@ export default function MultiplayerRacePanel({
       };
       setLocalProgress(next);
 
+      if (
+        currentUserId &&
+        halfProgressRankRef.current == null &&
+        update.percentage >= 50
+      ) {
+        halfProgressRankRef.current = rankParticipant(
+          leaderboardRef.current,
+          currentUserId,
+          {
+            wpm: peaks.wpm,
+            percentage: update.percentage,
+            accuracy: update.accuracy,
+            maxCombo: update.maxCombo,
+            combo: update.combo,
+            score: peaks.score,
+            finished: false,
+          },
+          roomState.winCondition,
+        );
+      }
+
       if (!raceActive) return;
       void broadcastProgress(
         peaks.wpm,
@@ -158,7 +189,7 @@ export default function MultiplayerRacePanel({
         onRaceFinish();
       }
     },
-    [broadcastProgress, hasReportedFinish, onRaceFinish, raceActive],
+    [broadcastProgress, currentUserId, hasReportedFinish, onRaceFinish, raceActive, roomState.winCondition],
   );
 
   const lessonTitle = getLessonTitle(t, lesson.titleKey);
@@ -176,9 +207,32 @@ export default function MultiplayerRacePanel({
     if (recordedResultsRef.current === resultKey) return;
     recordedResultsRef.current = resultKey;
 
-    const winnerId = leaderboard[0]?.userId ?? null;
-    recordMultiplayerMatch(winnerId === currentUserId);
-  }, [phase, currentUserId, leaderboard, roomState.raceStartedAt, roomState.version]);
+    const won = leaderboard[0]?.userId === currentUserId;
+    const sessionRecord = getSessionHistory().find(
+      (record) =>
+        record.lessonId === MULTIPLAYER_LESSON_ID &&
+        new Date(record.completedAt).getTime() >= (roomState.raceStartedAt ?? 0),
+    );
+    if (!sessionRecord) return;
+
+    const pendingExtras = consumeRaceSessionExtras();
+    const extras = buildMultiplayerAchievementExtras({
+      leaderboard,
+      currentUserId,
+      players,
+      roomState,
+      halfProgressRank: halfProgressRankRef.current,
+      pendingExtras,
+    });
+
+    finalizeMultiplayerAchievements(sessionRecord, extras, won);
+  }, [
+    phase,
+    currentUserId,
+    leaderboard,
+    players,
+    roomState,
+  ]);
 
   const waitingDetail =
     pendingOpponents > 0
@@ -248,6 +302,7 @@ export default function MultiplayerRacePanel({
           scoreMultiplier={totalMultiplier}
           vampireMode={isVampireModeActive(roomState.modifiers)}
           suddenDeathMode={isSuddenDeathActive(roomState.modifiers)}
+          musicPacerEnabled={musicPacerEnabled}
           sessionPersist={sessionPersist}
           onProgressChange={handleProgressChange}
           ariaLabel={lessonTitle}

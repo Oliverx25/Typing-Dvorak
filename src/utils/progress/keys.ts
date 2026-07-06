@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   theme: 'typing-dvorak-theme',
   keyStats: 'typing-dvorak-key-stats',
   badges: 'typing-dvorak-badges',
+  achievementProgress: 'typing-dvorak-achievement-progress',
   multiplayerStats: 'typing-dvorak-mp-stats',
   customText: 'typing-dvorak-custom-text',
   settings: 'typing-dvorak-settings',
@@ -18,6 +19,7 @@ export const GUEST_PROGRESS_KEYS = [
   STORAGE_KEYS.progress,
   STORAGE_KEYS.keyStats,
   STORAGE_KEYS.badges,
+  STORAGE_KEYS.achievementProgress,
   STORAGE_KEYS.customText,
   STORAGE_KEYS.cloudMigrated,
   STORAGE_KEYS.songProgress,
@@ -30,6 +32,7 @@ export const EXPORT_KEYS = [
   STORAGE_KEYS.keyStats,
   STORAGE_KEYS.settings,
   STORAGE_KEYS.badges,
+  STORAGE_KEYS.achievementProgress,
   STORAGE_KEYS.theme,
   STORAGE_KEYS.customText,
 ] as const;
