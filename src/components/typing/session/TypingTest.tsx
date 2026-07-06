@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import type { Lesson } from '@/utils/curriculum/lessons';
 import { useTypingSession } from '@/hooks/useTypingSession';
@@ -155,52 +155,50 @@ export default function TypingTest({
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  useEffect(() => {
-    if (!onProgressChange || !started || paused) return;
-
-    const score = raceMode
-      ? raceScore
-      : calculateMaxScore(stats.wpm, stats.accuracy, maxCombo);
-
-    const update: TypingProgressUpdate = {
-      wpm: stats.wpm,
-      percentage: progress,
-      accuracy: stats.accuracy,
-      maxCombo,
-      combo,
-      score,
-    };
-
-    onProgressChange(update, finished);
-    if (finished) return;
-
-    const interval = window.setInterval(() => {
-      onProgressChange({
-        wpm: stats.wpm,
-        percentage: progress,
-        accuracy: stats.accuracy,
-        maxCombo,
-        combo,
-        score: raceMode
-          ? raceScore
-          : calculateMaxScore(stats.wpm, stats.accuracy, maxCombo),
-      });
-    }, 500);
-
-    return () => window.clearInterval(interval);
-  }, [
-    onProgressChange,
-    started,
-    paused,
-    finished,
-    stats.wpm,
-    stats.accuracy,
+  const progressSnapshotRef = useRef({
+    wpm: stats.wpm,
+    accuracy: stats.accuracy,
+    progress,
     maxCombo,
     combo,
     raceScore,
-    raceMode,
+  });
+  progressSnapshotRef.current = {
+    wpm: stats.wpm,
+    accuracy: stats.accuracy,
     progress,
-  ]);
+    maxCombo,
+    combo,
+    raceScore,
+  };
+
+  useEffect(() => {
+    if (!onProgressChange || !started || paused) return;
+
+    const emit = (force = false) => {
+      const snap = progressSnapshotRef.current;
+      const score = raceMode
+        ? snap.raceScore
+        : calculateMaxScore(snap.wpm, snap.accuracy, snap.maxCombo);
+      onProgressChange(
+        {
+          wpm: snap.wpm,
+          percentage: snap.progress,
+          accuracy: snap.accuracy,
+          maxCombo: snap.maxCombo,
+          combo: snap.combo,
+          score,
+        },
+        force,
+      );
+    };
+
+    emit(finished);
+    if (finished) return;
+
+    const interval = window.setInterval(() => emit(), 500);
+    return () => window.clearInterval(interval);
+  }, [onProgressChange, started, paused, finished, raceMode]);
 
   const showKeyboard = !effectiveBlindMode && keyboardOpen;
   const isCustomPractice = lessonId === 'custom-practice';

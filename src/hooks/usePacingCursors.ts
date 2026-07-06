@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getBestWpmForLesson } from '../utils/progress/storage';
 import { pacingCursorIndex, timelineCursorIndex, type TimelinePoint } from '../utils/typing/pacingCursor';
 
@@ -46,16 +46,12 @@ export function usePacingCursors({
   musicTimeline = null,
 }: UsePacingCursorsOptions): PacingCursorsState {
   const [state, setState] = useState<PacingCursorsState>({ pacerIndex: null, ghostIndex: null });
-  const [ghostWpm, setGhostWpm] = useState<number | null>(null);
   const frameRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (!started) {
-      setGhostWpm(null);
-      return;
-    }
+  const ghostWpm = useMemo(() => {
+    if (!started) return null;
     const best = getBestWpmForLesson(lessonId);
-    setGhostWpm(best && best > 0 ? best : null);
+    return best && best > 0 ? best : null;
   }, [started, lessonId]);
 
   const active = started && !finished && !paused && startTime !== null;

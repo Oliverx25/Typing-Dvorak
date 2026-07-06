@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import {
   ACHIEVEMENT_CATALOG,
@@ -22,10 +22,10 @@ export default function AchievementsGrid() {
   const [activeCategory, setActiveCategory] = useState<CatalogCategory>('velocidad');
   const [progressMap, setProgressMap] = useState<Record<string, UserAchievementProgress>>({});
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     evaluateAchievementProgress();
     setProgressMap(getLocalAchievementProgress());
-  };
+  }, []);
 
   useEffect(() => {
     refresh();
@@ -36,12 +36,16 @@ export default function AchievementsGrid() {
       window.removeEventListener(SESSION_COMPLETE_EVENT, handler);
       window.removeEventListener(BADGES_UPDATED_EVENT, handler);
     };
-  }, []);
+  }, [refresh]);
 
   const unlockedCount = useMemo(
     () => Object.values(progressMap).filter((row) => row.unlockedAt).length,
     [progressMap],
   );
+
+  const handleCategoryChange = useCallback((category: CatalogCategory) => {
+    setActiveCategory(category);
+  }, []);
 
   const categoryEntries = useMemo(
     () =>
@@ -78,7 +82,7 @@ export default function AchievementsGrid() {
           <button
             key={category}
             type="button"
-            onClick={() => setActiveCategory(category)}
+            onClick={() => handleCategoryChange(category)}
             className={[
               'rounded-full border px-3 py-1.5 text-xs font-medium transition',
               activeCategory === category

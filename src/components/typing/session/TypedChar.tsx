@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 interface TypedCharProps {
   char: string;
   status: 'pending' | 'correct' | 'incorrect';
@@ -9,7 +11,9 @@ interface TypedCharProps {
 const ENTER_GLYPH = '↵';
 const TAB_GLYPH = '⇥';
 
-export default function TypedChar({ char, status, isCurrent, active, hideInlineCaret = false }: TypedCharProps) {
+export default memo(TypedChar);
+
+function TypedChar({ char, status, isCurrent, active, hideInlineCaret = false }: TypedCharProps) {
   if (char === ' ') {
     return (
       <span

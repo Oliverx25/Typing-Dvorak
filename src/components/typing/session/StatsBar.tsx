@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { StatCard } from '@/components/ui';
 
@@ -14,7 +15,9 @@ interface StatsBarProps {
   errors?: number;
 }
 
-export default function StatsBar({
+export default memo(StatsBar);
+
+function StatsBar({
   wpm,
   accuracy,
   elapsedSeconds,

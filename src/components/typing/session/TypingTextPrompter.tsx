@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { memo, useCallback, useMemo, useRef } from 'react';
 import type { CharStatus } from '@/hooks/useTypingSession';
 import { useVirtualizedTeleprompter } from '@/hooks/useVirtualizedTeleprompter';
 import {
@@ -25,7 +25,9 @@ interface TypingTextPrompterProps {
   caretAnimation?: CaretAnimation;
 }
 
-export default function TypingTextPrompter({
+export default memo(TypingTextPrompter);
+
+function TypingTextPrompter({
   targetText,
   inputLength,
   statuses,
@@ -68,10 +70,13 @@ export default function TypingTextPrompter({
   const topSpacerHeight = hiddenLinesAbove * lineHeight;
   const bottomSpacerHeight = hiddenLinesBelow * lineHeight;
 
-  const visibleChars: Array<{ index: number; char: string }> = [];
-  for (let i = visibleBounds.from; i < visibleBounds.to; i += 1) {
-    visibleChars.push({ index: i, char: targetText[i] ?? '' });
-  }
+  const visibleChars = useMemo(() => {
+    const chars: Array<{ index: number; char: string }> = [];
+    for (let i = visibleBounds.from; i < visibleBounds.to; i += 1) {
+      chars.push({ index: i, char: targetText[i] ?? '' });
+    }
+    return chars;
+  }, [targetText, visibleBounds.from, visibleBounds.to]);
 
   return (
     <div

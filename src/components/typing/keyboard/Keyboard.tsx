@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { DVORAK_ROWS } from '@/utils/keyboard/dvorak';
 import { FINGER_CSS_VAR, getFingerForKey, type Finger } from '@/utils/keyboard/fingers';
 import { useApp } from '@/contexts/AppProvider';
@@ -49,7 +50,9 @@ function FingerColorBar({ fingers }: { fingers: Finger[] }) {
   );
 }
 
-export default function Keyboard({ pressedKey, targetKey }: KeyboardProps) {
+export default memo(Keyboard);
+
+function Keyboard({ pressedKey, targetKey }: KeyboardProps) {
   const { t, settings } = useApp();
   const showFingers = settings.fingerColors;
 

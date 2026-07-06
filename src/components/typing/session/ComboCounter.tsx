@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 
 interface ComboCounterProps {
   combo: number;
@@ -7,7 +7,9 @@ interface ComboCounterProps {
   label: string;
 }
 
-export default function ComboCounter({ combo, broke, onBrokeHandled, label }: ComboCounterProps) {
+export default memo(ComboCounter);
+
+function ComboCounter({ combo, broke, onBrokeHandled, label }: ComboCounterProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

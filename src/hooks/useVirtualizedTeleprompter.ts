@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   charIndexToLineIndex,
   getOffScreenDirection,
@@ -46,21 +46,24 @@ export function useVirtualizedTeleprompter({
     textLength: targetText.length,
   });
 
-  const getCursorVisibility = (cursorIndex: number | null): PacingCursorVisibility => {
-    const cursorLineIndex =
-      cursorIndex === null ? null : charIndexToLineIndex(lines, cursorIndex);
+  const getCursorVisibility = useCallback(
+    (cursorIndex: number | null): PacingCursorVisibility => {
+      const cursorLineIndex =
+        cursorIndex === null ? null : charIndexToLineIndex(lines, cursorIndex);
 
-    return {
-      isRenderable: isCursorVisibleInLineWindow(
-        cursorIndex,
-        activeIndex,
-        lines,
-        startLine,
-        endLine,
-      ),
-      offScreen: getOffScreenDirection(cursorLineIndex, startLine, endLine),
-    };
-  };
+      return {
+        isRenderable: isCursorVisibleInLineWindow(
+          cursorIndex,
+          activeIndex,
+          lines,
+          startLine,
+          endLine,
+        ),
+        offScreen: getOffScreenDirection(cursorLineIndex, startLine, endLine),
+      };
+    },
+    [lines, activeIndex, startLine, endLine],
+  );
 
   return {
     lines,
