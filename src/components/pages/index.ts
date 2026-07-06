@@ -1,5 +1,5 @@
-export { default as LandingPage } from './landing/LandingPage';
-export { default as LandingFeatureCard } from './landing/LandingFeatureCard';
+export { default as LandingChrome } from './landing/LandingChrome';
+export { default as LandingHeroCtas } from './landing/LandingHeroCtas';
 export { default as HomePage } from './home/HomePage';
 export { default as HomePageWithProvider } from './home/HomePageWithProvider';
 export { default as LessonPage } from './lessons/LessonPage';

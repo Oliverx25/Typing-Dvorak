@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getKeyStats, hasKeyStats } from '@/utils/stats/keyStats';
+import { getKeyStats, hasKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { KEY_STATS_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useApp } from '@/contexts/AppProvider';
 import { Card } from '@/components/ui';
@@ -21,7 +21,7 @@ export default function KeyHeatmap({
   className = '',
 }: KeyHeatmapProps) {
   const { t } = useApp();
-  const [stats, setStats] = useState(getKeyStats);
+  const [stats, setStats] = useState<KeyStatsData>({ hits: {}, misses: {} });
 
   useEffect(() => {
     const refresh = () => setStats(getKeyStats());

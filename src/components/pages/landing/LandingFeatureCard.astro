@@ -1,0 +1,35 @@
+---
+import type { HighlightThemeId } from '@/utils/app/highlightTheme';
+import { HIGHLIGHT_THEMES } from '@/utils/app/highlightTheme';
+
+interface Props {
+  accent: HighlightThemeId;
+  titleEn: string;
+  titleEs: string;
+  descriptionEn: string;
+  descriptionEs: string;
+}
+
+const { accent, titleEn, titleEs, descriptionEn, descriptionEs } = Astro.props;
+const swatch = HIGHLIGHT_THEMES[accent].swatch;
+---
+
+<article
+  class="rounded-2xl border bg-[var(--color-surface-elevated)] p-6 transition-all duration-300"
+  style={`border-color: ${swatch}40; box-shadow: inset 0 0 0 1px ${swatch}18;`}
+>
+  <div
+    class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl"
+    style={`background-color: ${swatch}26; color: ${swatch};`}
+  >
+    <slot name="icon" />
+  </div>
+  <h2 class="text-lg font-semibold text-[var(--color-text)]">
+    <span data-lang="en">{titleEn}</span>
+    <span data-lang="es">{titleEs}</span>
+  </h2>
+  <p class="mt-2 text-sm text-[var(--color-text-muted)]">
+    <span data-lang="en">{descriptionEn}</span>
+    <span data-lang="es">{descriptionEs}</span>
+  </p>
+</article>

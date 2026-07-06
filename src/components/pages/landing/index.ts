@@ -1,2 +1,2 @@
-export { default as LandingPage } from './LandingPage';
-export { default as LandingFeatureCard } from './LandingFeatureCard';
+export { default as LandingChrome } from './LandingChrome';
+export { default as LandingHeroCtas } from './LandingHeroCtas';

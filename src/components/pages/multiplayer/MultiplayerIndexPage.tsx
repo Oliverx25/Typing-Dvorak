@@ -15,7 +15,12 @@ import { DEFAULT_RACE_LESSON_ID, DEFAULT_WIN_CONDITION } from '@/utils/multiplay
 import { generateRoomCode, roomUrl } from '@/utils/multiplayer/roomCode';
 import { saveCreateRoomConfig } from '@/utils/multiplayer/roomStorage';
 
-function MultiplayerIndexContent() {
+interface MultiplayerIndexPageProps {
+  kicked?: boolean;
+  roomClosed?: boolean;
+}
+
+function MultiplayerIndexContent({ kicked = false, roomClosed = false }: MultiplayerIndexPageProps) {
   const { t } = useApp();
   const { user } = useAuth();
   const [joinOpen, setJoinOpen] = useState(false);
@@ -70,12 +75,6 @@ function MultiplayerIndexContent() {
     window.location.href = roomUrl(code);
   };
 
-  const kicked =
-    typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).get('kicked') === '1';
-  const roomClosed =
-    typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).get('room_closed') === '1';
 
   return (
     <>
@@ -149,10 +148,10 @@ function MultiplayerIndexContent() {
   );
 }
 
-export default function MultiplayerIndexPage() {
+export default function MultiplayerIndexPage({ kicked, roomClosed }: MultiplayerIndexPageProps) {
   return (
     <AppShell>
-      <MultiplayerIndexContent />
+      <MultiplayerIndexContent kicked={kicked} roomClosed={roomClosed} />
     </AppShell>
   );
 }

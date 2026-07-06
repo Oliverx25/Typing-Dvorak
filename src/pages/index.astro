@@ -1,6 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import LandingPage from '../components/pages/landing/LandingPage';
+import LandingChrome from '../components/pages/landing/LandingChrome';
+import LandingHeroCtas from '../components/pages/landing/LandingHeroCtas';
+import LandingFeatureCard from '../components/pages/landing/LandingFeatureCard.astro';
+import { en } from '../i18n/en';
+import { es } from '../i18n/es';
 
 export const prerender = true;
 ---
@@ -9,10 +13,115 @@ export const prerender = true;
   title="Typing Dvorak — Learn Touch Typing Faster"
   description="Master the Dvorak keyboard with progressive lessons, live feedback, and optional cloud sync."
 >
-  <LandingPage client:only="react">
-    <div slot="fallback" class="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
-      <div class="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]"></div>
-      <p class="text-sm text-[var(--color-text-muted)]">Loading…</p>
-    </div>
-  </LandingPage>
+  <div class="relative flex min-h-full w-full flex-1 flex-col">
+    <div
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-highlight)_0%,_transparent_50%)] opacity-10"
+      aria-hidden="true"
+    />
+
+    <LandingChrome client:load />
+
+    <main class="relative mx-auto w-full max-w-5xl flex-1 px-4 pb-20 pt-8 text-center sm:pt-16">
+      <p class="mb-4 inline-flex rounded-full border border-[var(--color-highlight)]/30 bg-[var(--color-highlight)]/10 px-4 py-1 text-xs font-medium uppercase tracking-widest text-[var(--color-highlight)]">
+        <span data-lang="en">{en.landing.badge}</span>
+        <span data-lang="es">{es.landing.badge}</span>
+      </p>
+
+      <h1 class="text-4xl font-bold tracking-tight text-[var(--color-text)] sm:text-6xl">
+        <span data-lang="en">
+          {en.landing.title}
+          <br />
+          <span class="text-[var(--color-highlight)]">{en.landing.titleAccent}</span>
+        </span>
+        <span data-lang="es">
+          {es.landing.title}
+          <br />
+          <span class="text-[var(--color-highlight)]">{es.landing.titleAccent}</span>
+        </span>
+      </h1>
+
+      <p class="mx-auto mt-6 max-w-2xl text-lg text-[var(--color-text-muted)] sm:text-xl">
+        <span data-lang="en">{en.landing.subtitle}</span>
+        <span data-lang="es">{es.landing.subtitle}</span>
+      </p>
+
+      <LandingHeroCtas client:load />
+
+      <section class="mt-20 grid gap-6 text-left sm:grid-cols-2 lg:grid-cols-4">
+        <LandingFeatureCard
+          accent="indigo"
+          titleEn={en.landing.featureLessonsTitle}
+          titleEs={es.landing.featureLessonsTitle}
+          descriptionEn={en.landing.featureLessonsDesc}
+          descriptionEs={es.landing.featureLessonsDesc}
+        >
+          <svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+          </svg>
+        </LandingFeatureCard>
+
+        <LandingFeatureCard
+          accent="emerald"
+          titleEn={en.landing.featureFeedbackTitle}
+          titleEs={es.landing.featureFeedbackTitle}
+          descriptionEn={en.landing.featureFeedbackDesc}
+          descriptionEs={es.landing.featureFeedbackDesc}
+        >
+          <svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <path d="m22 4-10 10.01-3-3" />
+          </svg>
+        </LandingFeatureCard>
+
+        <LandingFeatureCard
+          accent="cyan"
+          titleEn={en.landing.featureMultiplayerTitle}
+          titleEs={es.landing.featureMultiplayerTitle}
+          descriptionEn={en.landing.featureMultiplayerDesc}
+          descriptionEs={es.landing.featureMultiplayerDesc}
+        >
+          <svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </LandingFeatureCard>
+
+        <LandingFeatureCard
+          accent="amber"
+          titleEn={en.landing.featureSyncTitle}
+          titleEs={es.landing.featureSyncTitle}
+          descriptionEn={en.landing.featureSyncDesc}
+          descriptionEs={es.landing.featureSyncDesc}
+        >
+          <svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M3 3v18h18" />
+            <path d="m19 9-5 5-4-4-3 3" />
+          </svg>
+        </LandingFeatureCard>
+      </section>
+
+      <section class="mt-16 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-8">
+        <p class="font-mono text-2xl tracking-[0.25em] text-[var(--color-highlight)] sm:text-3xl">
+          {en.home.homeRowKeys}
+        </p>
+        <p class="mt-3 text-sm text-[var(--color-text-muted)]">
+          <span data-lang="en">{en.landing.homeRowCaption}</span>
+          <span data-lang="es">{es.landing.homeRowCaption}</span>
+        </p>
+      </section>
+    </main>
+
+    <footer class="mt-auto shrink-0 border-t border-[var(--color-border)] py-8 text-center text-sm text-[var(--color-text-muted)]">
+      <p>
+        <span data-lang="en">{en.landing.builtWith}</span>
+        <span data-lang="es">{es.landing.builtWith}</span>{' '}
+        <a href="/lessons" class="text-[var(--color-highlight)] no-underline hover:underline">
+          <span data-lang="en">{en.landing.goToLessons}</span>
+          <span data-lang="es">{es.landing.goToLessons}</span>
+        </a>
+      </p>
+    </footer>
+  </div>
 </Layout>

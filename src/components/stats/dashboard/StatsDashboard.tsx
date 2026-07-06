@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { getAggregateStats, getSessionHistory, getBestWpmForLesson } from '@/utils/progress/storage';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { buildChartPoints } from '@/utils/stats/sessionDisplay';
 import { Card, StreakIcon } from '@/components/ui';
-import ProgressChart, { type ChartPoint } from '@/components/stats/charts/ProgressChart';
-import KeyHeatmap from '@/components/stats/heatmap/KeyHeatmap';
+import type { ChartPoint } from '@/components/stats/charts/ProgressChart';
+
+const ProgressChart = lazy(() => import('@/components/stats/charts/ProgressChart'));
+const KeyHeatmap = lazy(() => import('@/components/stats/heatmap/KeyHeatmap'));
 
 export default function StatsDashboard() {
   const { t } = useApp();
@@ -37,9 +39,13 @@ export default function StatsDashboard() {
         />
       </div>
 
-      <ProgressChart data={chartData} />
+      <Suspense fallback={<ChartSectionSkeleton label={t.stats.wpmOverTime} />}>
+        <ProgressChart data={chartData} />
+      </Suspense>
 
-      <KeyHeatmap />
+      <Suspense fallback={<ChartSectionSkeleton label={t.stats.heatmapTitle} />}>
+        <KeyHeatmap />
+      </Suspense>
 
       <Card title={t.stats.byLesson} padding="lg" bleed>
         <table className="w-full text-sm">
@@ -64,6 +70,14 @@ export default function StatsDashboard() {
         </table>
       </Card>
     </div>
+  );
+}
+
+function ChartSectionSkeleton({ label }: { label: string }) {
+  return (
+    <Card title={label}>
+      <div className="h-[200px] animate-pulse rounded-lg bg-[var(--color-border)]/40" />
+    </Card>
   );
 }
 

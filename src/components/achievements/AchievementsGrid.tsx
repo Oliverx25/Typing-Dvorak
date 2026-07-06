@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import AchievementCard from '@/components/achievements/AchievementCard';
 import {
   ACHIEVEMENT_CATALOG,
   type CatalogEntry,
@@ -10,19 +9,22 @@ import {
   CATEGORY_LABEL_KEYS,
   TIER_LABEL_KEYS,
   type CatalogCategory,
+  type UserAchievementProgress,
 } from '@/utils/achievements/catalogTypes';
 import { evaluateAchievementProgress } from '@/utils/achievements/achievementEvaluator';
 import { getLocalAchievementProgress } from '@/utils/achievements/progressStorage';
 import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
+const AchievementCard = lazy(() => import('@/components/achievements/AchievementCard'));
+
 export default function AchievementsGrid() {
   const { t } = useApp();
   const [activeCategory, setActiveCategory] = useState<CatalogCategory>('velocidad');
-  const [tick, setTick] = useState(0);
+  const [progressMap, setProgressMap] = useState<Record<string, UserAchievementProgress>>({});
 
   const refresh = () => {
     evaluateAchievementProgress();
-    setTick((n) => n + 1);
+    setProgressMap(getLocalAchievementProgress());
   };
 
   useEffect(() => {
@@ -36,12 +38,9 @@ export default function AchievementsGrid() {
     };
   }, []);
 
-  void tick;
-  const progressMap = getLocalAchievementProgress();
-
   const unlockedCount = useMemo(
     () => Object.values(progressMap).filter((row) => row.unlockedAt).length,
-    [progressMap, tick],
+    [progressMap],
   );
 
   const categoryEntries = useMemo(
@@ -107,24 +106,30 @@ export default function AchievementsGrid() {
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {achievements.map((achievement) => (
-                <AchievementCardRow
+                <Suspense
                   key={achievement.id}
-                  achievement={achievement}
-                  progress={
-                    progressMap[String(achievement.id)] ?? {
-                      achievementId: achievement.id,
-                      slug: achievement.slug,
-                      currentProgress: 0,
-                      unlockedAt: null,
+                  fallback={
+                    <div className="h-48 animate-pulse rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]" />
+                  }
+                >
+                  <AchievementCardRow
+                    achievement={achievement}
+                    progress={
+                      progressMap[String(achievement.id)] ?? {
+                        achievementId: achievement.id,
+                        slug: achievement.slug,
+                        currentProgress: 0,
+                        unlockedAt: null,
+                      }
                     }
-                  }
-                  tierLabel={
-                    t.achievements[TIER_LABEL_KEYS[achievement.tier] as keyof typeof t.achievements]
-                  }
-                  unlockedLabel={t.achievements.unlockedLabel}
-                  lockedLabel={t.achievements.lockedLabel}
-                  progressLabel={t.achievements.progressLabel}
-                />
+                    tierLabel={
+                      t.achievements[TIER_LABEL_KEYS[achievement.tier] as keyof typeof t.achievements]
+                    }
+                    unlockedLabel={t.achievements.unlockedLabel}
+                    lockedLabel={t.achievements.lockedLabel}
+                    progressLabel={t.achievements.progressLabel}
+                  />
+                </Suspense>
               ))}
             </div>
           </div>

@@ -3,8 +3,11 @@ import Layout from '../../layouts/Layout.astro';
 import MultiplayerIndexPage from '../../components/pages/multiplayer/MultiplayerIndexPage';
 
 export const prerender = true;
+
+const kicked = Astro.url.searchParams.get('kicked') === '1';
+const roomClosed = Astro.url.searchParams.get('room_closed') === '1';
 ---
 
 <Layout title="Typing Dvorak — Multiplayer">
-  <MultiplayerIndexPage client:load />
+  <MultiplayerIndexPage client:load kicked={kicked} roomClosed={roomClosed} />
 </Layout>

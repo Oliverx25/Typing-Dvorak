@@ -83,7 +83,11 @@ function ChartTooltip({
 export default function ProgressChart({ data, emptyLabel }: ProgressChartProps) {
   const { t } = useApp();
   const gradientId = useId().replace(/:/g, '');
-  const [colors, setColors] = useState<ChartColors>(() => readChartColors());
+  const [colors, setColors] = useState<ChartColors>({
+    highlight: '#818cf8',
+    muted: '#94a3b8',
+    surface: '#0f172a',
+  });
 
   useEffect(() => {
     setColors(readChartColors());

@@ -200,3 +200,13 @@ body.zen-active [data-zen-fade] {
     transition: none;
   }
 }
+
+/* Bilingual static copy — html[lang] is set by Layout.astro before paint. */
+html[lang="es"] [data-lang="en"] {
+  display: none !important;
+}
+
+html[lang="en"] [data-lang="es"],
+html:not([lang="es"]) [data-lang="es"] {
+  display: none !important;
+}
