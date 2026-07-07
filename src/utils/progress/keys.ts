@@ -8,6 +8,8 @@ export const STORAGE_KEYS = {
   achievementProgress: 'typing-dvorak-achievement-progress',
   customText: 'typing-dvorak-custom-text',
   cloudMigrated: 'typing-dvorak-cloud-migrated',
+  legacyLessonsMigrated: 'typing-dvorak-legacy-lessons-migrated',
+  cloudLegacyLessonsMigrated: 'typing-dvorak-cloud-legacy-lessons-migrated',
   songProgress: 'typing-dvorak-song-progress',
   /** UI preferences only — not cleared on login. */
   theme: 'typing-dvorak-theme',
@@ -31,6 +33,7 @@ export const PROGRESS_CACHE_KEYS = [
   STORAGE_KEYS.achievementProgress,
   STORAGE_KEYS.customText,
   STORAGE_KEYS.cloudMigrated,
+  STORAGE_KEYS.legacyLessonsMigrated,
   STORAGE_KEYS.songProgress,
 ] as const;
 

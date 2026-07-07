@@ -1,12 +1,12 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro';
 import LessonAppRoot from '@/components/pages/lessons/LessonAppRoot';
-import { LESSONS } from '@/utils/curriculum/lessons';
+import { getLessons } from '@/utils/curriculum/lessons';
 
 export const prerender = true;
 
 export function getStaticPaths() {
-  return LESSONS.map((lesson) => ({ params: { id: lesson.id } }));
+  return getLessons().map((lesson) => ({ params: { id: lesson.id } }));
 }
 
 const { id } = Astro.params;

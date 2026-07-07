@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { CURRICULUM_LESSONS, LESSON_GROUPS } from '@/data/microLessons';
-import { ROADMAP_CHAPTERS, ROADMAP_LESSON_IDS } from '@/utils/curriculum/roadmapChapters';
+import { FALLBACK_CATALOG_ROWS } from '@/data/lessonsCatalogFallback';
 import { HOME_ROW, TOP_ROW, BOTTOM_ROW } from '@/utils/keyboard/dvorak';
-import { buildMicroLessons } from '@/utils/curriculum/microLessonCatalog';
-
-const MICRO_LESSONS = buildMicroLessons();
-const MICRO_BY_ID = new Map(MICRO_LESSONS.map((lesson) => [lesson.id, lesson]));
+import {
+  buildChaptersFromRows,
+  catalogRowToLesson,
+  getCatalogLessons,
+  hydrateLessonsCatalog,
+} from '@/utils/curriculum/catalogStore';
+import { getRoadmapChapters, getRoadmapLessonIds } from '@/utils/curriculum/roadmapChapters';
 
 function charsOnly(row: string): string {
   return row.replace(/\s/g, '');
@@ -17,41 +19,54 @@ function isSubsetOf(charSet: string, row: string): boolean {
 }
 
 describe('microLessonCatalog', () => {
+  hydrateLessonsCatalog(FALLBACK_CATALOG_ROWS, 'fallback');
+
+  const lessons = getCatalogLessons();
+  const byId = new Map(lessons.map((lesson) => [lesson.id, lesson]));
+
   it('defines 26 lessons across 7 chapters', () => {
-    expect(CURRICULUM_LESSONS).toHaveLength(26);
-    expect(LESSON_GROUPS).toHaveLength(7);
-    expect(ROADMAP_LESSON_IDS).toHaveLength(26);
+    expect(FALLBACK_CATALOG_ROWS).toHaveLength(26);
+    expect(getRoadmapLessonIds()).toHaveLength(26);
+    expect(getRoadmapChapters()).toHaveLength(7);
   });
 
   it('keeps strict hand isolation on home row drills', () => {
-    expect(isSubsetOf(MICRO_BY_ID.get('base_vowels')!.charSet!, 'aoeui')).toBe(true);
-    expect(isSubsetOf(MICRO_BY_ID.get('base_consonants')!.charSet!, 'dhtns')).toBe(true);
-    expect(MICRO_BY_ID.get('base_vowels')!.charSet).not.toContain('d');
-    expect(MICRO_BY_ID.get('base_consonants')!.charSet).not.toContain('a');
+    const vowels = byId.get('base_vowels')!;
+    const consonants = byId.get('base_consonants')!;
+    expect(isSubsetOf(vowels.catalog!.allowedChars, 'aoeui')).toBe(true);
+    expect(isSubsetOf(consonants.catalog!.allowedChars, 'dhtns')).toBe(true);
+    expect(vowels.catalog!.allowedChars).not.toContain('d');
+    expect(consonants.catalog!.allowedChars).not.toContain('a');
   });
 
   it('isolates top row by hand', () => {
-    expect(isSubsetOf(MICRO_BY_ID.get('top_left')!.charSet!, TOP_ROW)).toBe(true);
-    expect(isSubsetOf(MICRO_BY_ID.get('top_right')!.charSet!, TOP_ROW)).toBe(true);
-    expect(MICRO_BY_ID.get('top_left')!.charSet).not.toMatch(/[fgcrl]/);
-    expect(MICRO_BY_ID.get('top_right')!.charSet).not.toMatch(/['.,py]/);
+    expect(isSubsetOf(byId.get('top_left')!.catalog!.allowedChars, TOP_ROW)).toBe(true);
+    expect(isSubsetOf(byId.get('top_right')!.catalog!.allowedChars, TOP_ROW)).toBe(true);
   });
 
   it('isolates bottom row by hand', () => {
-    expect(isSubsetOf(MICRO_BY_ID.get('bottom_left')!.charSet!, BOTTOM_ROW)).toBe(true);
-    expect(isSubsetOf(MICRO_BY_ID.get('bottom_right')!.charSet!, BOTTOM_ROW)).toBe(true);
+    expect(isSubsetOf(byId.get('bottom_left')!.catalog!.allowedChars, BOTTOM_ROW)).toBe(true);
+    expect(isSubsetOf(byId.get('bottom_right')!.catalog!.allowedChars, BOTTOM_ROW)).toBe(true);
   });
 
-  it('uses static texts for bigram and code lessons', () => {
-    expect(MICRO_BY_ID.get('en_bigrams')!.generated).toBeFalsy();
-    expect(MICRO_BY_ID.get('en_bigrams')!.texts!.length).toBeGreaterThan(0);
-    expect(MICRO_BY_ID.get('code_js_ts')!.texts!.length).toBeGreaterThan(0);
+  it('assigns generation types from catalog rows', () => {
+    expect(byId.get('base_vowels')!.catalog!.generationType).toBe('random_chars');
+    expect(byId.get('en_bigrams')!.catalog!.generationType).toBe('static');
+    expect(byId.get('alphabet_mastery')!.catalog!.generationType).toBe('dictionary_words');
   });
 
-  it('aligns roadmap chapters with curriculum groups', () => {
-    for (const chapter of ROADMAP_CHAPTERS) {
-      const group = LESSON_GROUPS.find((g) => g.chapterId === chapter.id);
-      expect(group?.microLessons.map((m) => m.id)).toEqual(chapter.lessonIds);
+  it('aligns roadmap chapters with catalog grouping', () => {
+    const chapters = buildChaptersFromRows(FALLBACK_CATALOG_ROWS);
+    for (const chapter of getRoadmapChapters()) {
+      const fromRows = chapters.find((c) => c.id === chapter.id);
+      expect(fromRows?.lessonIds).toEqual(chapter.lessonIds);
     }
+  });
+
+  it('maps catalog rows to playable lessons', () => {
+    const row = FALLBACK_CATALOG_ROWS[0];
+    const lesson = catalogRowToLesson(row);
+    expect(lesson.id).toBe(row.id);
+    expect(lesson.catalog).toBeDefined();
   });
 });

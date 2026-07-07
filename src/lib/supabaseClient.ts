@@ -225,6 +225,33 @@ export type Database = {
         };
         Update: Partial<Database['public']['Tables']['rooms']['Insert']>;
       };
+      lessons_catalog: {
+        Row: {
+          id: string;
+          chapter_id: number;
+          title: string;
+          description: string;
+          difficulty: string;
+          generation_type: 'static' | 'random_chars' | 'dictionary_words';
+          allowed_chars: string;
+          static_text: string | null;
+          order_index: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          chapter_id: number;
+          title: string;
+          description?: string;
+          difficulty?: string;
+          generation_type: 'static' | 'random_chars' | 'dictionary_words';
+          allowed_chars?: string;
+          static_text?: string | null;
+          order_index?: number;
+        };
+        Update: Partial<Database['public']['Tables']['lessons_catalog']['Insert']>;
+      };
     };
     Functions: {
       purge_stale_rooms: {

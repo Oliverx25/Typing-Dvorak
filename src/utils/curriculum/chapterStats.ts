@@ -1,7 +1,7 @@
 import { gradeRank } from '@/utils/grading';
 import { UNLOCK_ACCURACY } from '@/utils/curriculum/constants';
 import { MASTERY_TIER_THRESHOLDS } from '@/utils/curriculum/mastery';
-import { ROADMAP_CHAPTERS, type RoadmapChapter } from '@/utils/curriculum/roadmapChapters';
+import { getRoadmapChapters, type RoadmapChapter } from '@/utils/curriculum/roadmapChapters';
 import { isRoadmapLessonCompleted } from '@/utils/curriculum/roadmapProgress';
 import { getCompletedLessonsMap, getHighestGradeForLesson, getMasteryXpForLesson } from '@/utils/progress/storage';
 
@@ -94,8 +94,9 @@ export function computeAllChapterStats(
   const stats: Record<string, ChapterStats> = {};
   let previousCompletion = 100;
 
-  for (let index = 0; index < ROADMAP_CHAPTERS.length; index++) {
-    const chapter = ROADMAP_CHAPTERS[index];
+  const chapters = getRoadmapChapters();
+  for (let index = 0; index < chapters.length; index++) {
+    const chapter = chapters[index];
     const chapterStats = computeChapterStats(chapter, index, previousCompletion, map);
     stats[chapter.id] = chapterStats;
     previousCompletion = chapterStats.completionPercentage;
@@ -106,8 +107,10 @@ export function computeAllChapterStats(
 
 /** Chapter containing the recommended lesson, or the first chapter. */
 export function getChapterIdForLesson(lessonId: string): string {
-  return ROADMAP_CHAPTERS.find((chapter) => chapter.lessonIds.includes(lessonId))?.id
-    ?? ROADMAP_CHAPTERS[0].id;
+  const chapters = getRoadmapChapters();
+  return chapters.find((chapter) => chapter.lessonIds.includes(lessonId))?.id
+    ?? chapters[0]?.id
+    ?? 'ch1_fundamentals';
 }
 
 export { UNLOCK_ACCURACY };

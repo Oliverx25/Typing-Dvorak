@@ -7,7 +7,7 @@ import {
   TEST_DURATION_SECONDS,
   type TypingStats,
 } from '@/utils/typing/typing';
-import { generateDrillText, generateTestStream } from '@/utils/typing/textGenerator';
+import { generateDrillText } from '@/utils/typing/textGenerator';
 import { saveSession } from '@/utils/progress/storage';
 import { getSessionWeakKeys, recordKeystroke } from '@/utils/stats/keyStats';
 import { playCompleteSound, playCorrectSound, playIncorrectSound } from '@/utils/typing/sound';
@@ -28,7 +28,7 @@ import {
 import type { PracticeMode } from '@/utils/app/settings';
 import type { Lesson } from '@/utils/curriculum/lessons';
 import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
-import { getLessonText } from '@/utils/curriculum/lessons';
+import { getLessonText, getLessonTestStream } from '@/utils/curriculum/lessons';
 import type { Locale } from '@/i18n';
 import { sanitizeCustomText } from '@/utils/progress/customText';
 import {
@@ -119,7 +119,7 @@ export function useTypingSession({
     const text = zenMode
       ? ''
       : isTestMode
-        ? generateTestStream(lesson.charSet ?? 'all')
+        ? getLessonTestStream(lesson, locale)
         : resolveInitialText(lesson, locale, customText);
     initialRef.current = { text, statuses: text.split('').map(() => 'pending' as CharStatus) };
   }

@@ -10,6 +10,7 @@ import { calculateGrade, bestGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { saveSongProgress } from '@/utils/progress/songProgress';
 import { masteryXpForSession, isMicroLessonForMastery } from '@/utils/curriculum/mastery';
+import { resolveLessonId } from '@/utils/progress/legacyLessonIds';
 import { accumulateMasteryXpFromSessions } from '@/utils/curriculum/masteryHistory';
 import {
   mergeSessionIntoLessonProgress,
@@ -108,8 +109,9 @@ export function saveSession(
   const score =
     options?.scoreOverride ??
     Math.round(stats.wpm * 10 * (stats.accuracy / 100) + maxCombo * 5);
+  const normalizedLessonId = resolveLessonId(lessonId);
   const record: SessionRecord = {
-    lessonId,
+    lessonId: normalizedLessonId,
     lessonTitle,
     wpm: stats.wpm,
     accuracy: stats.accuracy,
@@ -128,11 +130,11 @@ export function saveSession(
   writeJson(STORAGE_KEYS.history, history);
 
   const progress = updateStreak(getProgress());
-  const previousBest = progress.lessons[lessonId]?.bestWpm ?? 0;
-  const isNewRecord = lessonId !== MULTIPLAYER_LESSON_ID && stats.wpm > previousBest;
+  const previousBest = progress.lessons[normalizedLessonId]?.bestWpm ?? 0;
+  const isNewRecord = normalizedLessonId !== MULTIPLAYER_LESSON_ID && stats.wpm > previousBest;
 
-  if (lessonId !== MULTIPLAYER_LESSON_ID) {
-    const existing = progress.lessons[lessonId];
+  if (normalizedLessonId !== MULTIPLAYER_LESSON_ID) {
+    const existing = progress.lessons[normalizedLessonId];
     const merged = mergeSessionIntoLessonProgress(existing, record);
     const sessionXp = masteryXpForSession({
       wpm: stats.wpm,
@@ -142,7 +144,7 @@ export function saveSession(
       mode,
     });
 
-    progress.lessons[lessonId] = {
+    progress.lessons[normalizedLessonId] = {
       ...merged,
       masteryXp: (existing?.masteryXp ?? 0) + sessionXp,
     };

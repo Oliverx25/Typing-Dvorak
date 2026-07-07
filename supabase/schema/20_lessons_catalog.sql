@@ -1,0 +1,1 @@
+-- See supabase/migrations/add_lessons_catalog.sql

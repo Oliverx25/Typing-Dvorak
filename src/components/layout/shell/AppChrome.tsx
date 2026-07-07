@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { AppProvider } from '@/contexts/AppProvider';
+import { CatalogProvider } from '@/contexts/CatalogProvider';
 import { AuthProvider } from '@/contexts/AuthProvider';
 import AchievementToastHost from '@/components/ui/feedback/AchievementToastHost';
 import PageLayout from '@/components/layout/shell/PageLayout';
@@ -13,13 +14,15 @@ interface AppChromeProps {
 export default function AppChrome({ children }: AppChromeProps) {
   return (
     <AuthProvider>
-      <AppProvider>
+      <CatalogProvider>
+        <AppProvider>
         <div className="flex min-h-full flex-1 flex-col">
           <PageLayout>{children}</PageLayout>
           <SiteFooter />
           <AchievementToastHost />
         </div>
-      </AppProvider>
+        </AppProvider>
+      </CatalogProvider>
     </AuthProvider>
   );
 }

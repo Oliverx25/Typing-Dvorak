@@ -9,7 +9,12 @@ import {
   cloudRowToLessonProgress,
   type LessonMasteryCloudPayload,
 } from '@/utils/progress/lessonProgressAggregate';
-import { clearGuestProgress } from '@/utils/progress/guestProgress';
+import {
+  migrateLegacyProgress,
+  remapCloudMasteryRows,
+  remapCloudSessionRows,
+} from '@/utils/progress/migrateLegacyProgress';
+import { migrateCloudLegacyLessonIds } from '@/services/supabase/migrateCloudProgress';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
@@ -119,6 +124,12 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
   try {
     const user = await getAuthUser();
 
+    if (user) {
+      await migrateCloudLegacyLessonIds(user.id);
+    }
+
+    migrateLegacyProgress();
+
     const [sessions, keyErrors, profile, timestamps, masteryRows, achievementRows] = await Promise.all([
       fetchUserSessions(100),
       fetchUserKeyErrors(),
@@ -129,10 +140,12 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
     ]);
 
     const streakResult = computeStreakFromPracticeDates(collectPracticeDates(timestamps));
-    const history = sessions.map(mapSessionRow);
+    const remappedSessions = remapCloudSessionRows(sessions);
+    const remappedMastery = remapCloudMasteryRows(masteryRows);
+    const history = remappedSessions.map(mapSessionRow);
     const progress = mergeMasteryIntoProgress(
       buildProgressFromSessions(history, streakResult),
-      masteryRows,
+      remappedMastery,
     );
 
     clearGuestProgress();

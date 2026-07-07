@@ -1,6 +1,17 @@
 import { generateAdaptiveDrillText } from '@/utils/typing/adaptiveDrill';
-import { buildMicroLessons } from '@/utils/curriculum/microLessonCatalog';
-import { ROADMAP_LESSON_IDS } from '@/utils/curriculum/roadmapChapters';
+import {
+  generateDynamicLessonText,
+  generateDynamicTestStream,
+} from '@/utils/typing/dynamicTextGenerator';
+import {
+  getCatalogLessonById,
+  getCatalogLessons,
+  getCatalogRoadmapLessonIds,
+  isCatalogLessonId,
+} from '@/utils/curriculum/catalogStore';
+import type { LessonCatalogMeta } from '@/utils/curriculum/catalogTypes';
+import { generateTestStream } from '@/utils/typing/textGenerator';
+import type { Locale } from '@/i18n';
 
 export type LessonCategory = 'drill' | 'words' | 'sentences' | 'punctuation' | 'numbers' | 'symbols';
 
@@ -16,6 +27,10 @@ export interface Lesson {
   charSet?: string;
   optional?: boolean;
   adaptive?: boolean;
+  catalog?: LessonCatalogMeta;
+  /** Display strings from Supabase when available. */
+  catalogTitle?: string;
+  catalogDescription?: string;
 }
 
 const ADAPTIVE_DRILL: Lesson = {
@@ -29,32 +44,57 @@ const ADAPTIVE_DRILL: Lesson = {
   texts: ['aoeu dhtn aoeu dhtn'],
 };
 
-export const MICRO_LESSONS: Lesson[] = buildMicroLessons();
+export function getLessons(): Lesson[] {
+  return [...getCatalogLessons(), ADAPTIVE_DRILL];
+}
 
-/** All playable curriculum lessons (26) + optional adaptive drill. */
-export const LESSONS: Lesson[] = [...MICRO_LESSONS, ADAPTIVE_DRILL];
+/** @deprecated Use getLessons() for live catalog data. */
+export const LESSONS: Lesson[] = getLessons();
 
-/** Curriculum lessons in roadmap order — used for stats and legacy imports. */
+export const MICRO_LESSONS: Lesson[] = getCatalogLessons();
+
 export const CORE_LESSONS: Lesson[] = MICRO_LESSONS.filter((lesson) =>
-  ROADMAP_LESSON_IDS.includes(lesson.id),
+  getCatalogRoadmapLessonIds().includes(lesson.id),
 );
 
 export function getLessonById(id: string): Lesson | undefined {
-  return LESSONS.find((lesson) => lesson.id === id);
+  if (id === 'adaptive-drill') return ADAPTIVE_DRILL;
+  return getCatalogLessonById(id);
 }
 
 export function getLessonText(
   lesson: Lesson,
   pick: (texts: string[]) => string,
   generate?: (charSet: string) => string,
-  locale: 'en' | 'es' = 'en',
+  locale: Locale = 'en',
 ): string {
   if (lesson.adaptive) {
     return generateAdaptiveDrillText() ?? pick(lesson.texts);
   }
+
+  if (lesson.catalog) {
+    return generateDynamicLessonText(lesson.catalog, { locale });
+  }
+
   const pool = locale === 'es' && lesson.textsEs?.length ? lesson.textsEs : lesson.texts;
   if (lesson.generated && lesson.charSet && generate) {
     return generate(lesson.charSet);
   }
   return pick(pool);
 }
+
+export function getLessonTestStream(lesson: Lesson, locale: Locale = 'en'): string {
+  if (lesson.catalog) {
+    return generateDynamicTestStream(lesson.catalog, { locale, minLength: 200 });
+  }
+  if (lesson.charSet) {
+    return generateTestStream(lesson.charSet, 200);
+  }
+  return pickRandomFromTexts(lesson.texts);
+}
+
+function pickRandomFromTexts(texts: string[]): string {
+  return texts[Math.floor(Math.random() * texts.length)] ?? '';
+}
+
+export { isCatalogLessonId as isMicroLessonId };

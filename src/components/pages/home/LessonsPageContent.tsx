@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useApp } from '@/contexts/AppProvider';
+import { useCatalog } from '@/contexts/CatalogProvider';
 import { FocusedChapterProvider } from '@/contexts/FocusedChapterProvider';
 import { RoadmapProvider, useRoadmap } from '@/contexts/RoadmapProvider';
 import PrimaryActionCard from '@/components/lessons/cards/PrimaryActionCard';
@@ -71,6 +72,12 @@ function LessonsMain() {
 }
 
 function LessonsContent() {
+  const { ready: catalogReady } = useCatalog();
+
+  if (!catalogReady) {
+    return <LessonsProgressSkeleton />;
+  }
+
   return (
     <RoadmapProvider>
       <FocusedChapterProvider>
