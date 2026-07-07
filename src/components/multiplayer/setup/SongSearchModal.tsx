@@ -206,8 +206,10 @@ export default function SongSearchModal({
           <div className="relative">
             <input
               id="song-search-input"
-              type="search"
+              type="text"
               role="searchbox"
+              inputMode="search"
+              enterKeyHint="search"
               autoFocus
               value={query}
               onChange={(event) => setQuery(sanitizeSearchQuery(event.target.value))}

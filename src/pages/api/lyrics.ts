@@ -12,6 +12,7 @@ import {
 } from '@/utils/lyrics/typingDifficulty';
 import { fetchItunesMetadata } from '@/utils/lyrics/itunesMetadata';
 import type { LyricSongResult } from '@/utils/lyrics/types';
+import { resolveSongWpmStats } from '@/utils/lyrics/types';
 import { sanitizeSearchQuery, sanitizeTypableText, sanitizeUserText } from '@/utils/security/sanitizeText';
 
 const LRCLIB_SEARCH = 'https://lrclib.net/api/search';
