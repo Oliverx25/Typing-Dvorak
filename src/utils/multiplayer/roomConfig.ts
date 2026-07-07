@@ -297,6 +297,7 @@ export function createDefaultRoomState(ownerId: string): RoomBroadcastState {
     modifiers: [],
     phase: 'lobby',
     raceStartedAt: null,
+    raceParticipantIds: [],
     version: 1,
   };
 }
@@ -355,6 +356,10 @@ export function mergeRoomState(
       raceStartedAt: incoming.raceStartedAt !== undefined
         ? incoming.raceStartedAt
         : (current?.raceStartedAt ?? null),
+      raceParticipantIds:
+        incoming.raceParticipantIds !== undefined
+          ? incoming.raceParticipantIds
+          : (current?.raceParticipantIds ?? []),
       version: incoming.version ?? current?.version ?? 1,
     };
   }

@@ -152,6 +152,7 @@ export function useMultiplayerRace({
       progressMapRef.current.set(progress.userId, {
         ...normalized,
         ...peaks,
+        finished: Boolean(previous?.finished || normalized.finished),
       });
       scheduleFlushRef.current();
     };

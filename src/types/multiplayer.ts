@@ -38,6 +38,8 @@ export interface RoomBroadcastState {
   modifiers: RaceModifier[];
   phase: RoomPhase;
   raceStartedAt: number | null;
+  /** Snapshot of connected players when the race started — used to avoid ending early. */
+  raceParticipantIds: string[];
   version: number;
 }
 

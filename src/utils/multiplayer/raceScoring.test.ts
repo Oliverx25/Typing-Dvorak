@@ -34,14 +34,25 @@ describe('raceScoring', () => {
     expect(comboMultiplier(500)).toBe(4);
   });
 
-  it('never decreases peak score or wpm', () => {
-    expect(mergePeakRaceProgress(undefined, { wpm: 60, score: 400 })).toEqual({
+  it('never decreases peak score, wpm, or percentage', () => {
+    expect(mergePeakRaceProgress(undefined, { wpm: 60, score: 400, percentage: 40 })).toEqual({
       wpm: 60,
       score: 400,
+      percentage: 40,
+      maxCombo: 0,
+      accuracy: 0,
     });
-    expect(mergePeakRaceProgress({ wpm: 60, score: 400 }, { wpm: 30, score: 200 })).toEqual({
+    expect(
+      mergePeakRaceProgress(
+        { wpm: 60, score: 400, percentage: 55, maxCombo: 10, accuracy: 98 },
+        { wpm: 30, score: 200, percentage: 20, maxCombo: 4, accuracy: 90 },
+      ),
+    ).toEqual({
       wpm: 60,
       score: 400,
+      percentage: 55,
+      maxCombo: 10,
+      accuracy: 98,
     });
   });
 

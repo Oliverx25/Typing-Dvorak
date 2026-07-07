@@ -69,8 +69,9 @@ export default function MultiplayerRacePanel({
   const { t, locale } = useApp();
   const [localProgress, setLocalProgress] = useState<LocalRaceProgress>(EMPTY_PROGRESS);
   const [hasReportedFinish, setHasReportedFinish] = useState(false);
-  const peakProgressRef = useRef({ wpm: 0, score: 0 });
+  const peakProgressRef = useRef({ wpm: 0, score: 0, percentage: 0, maxCombo: 0, accuracy: 100 });
   const halfProgressRankRef = useRef<number | null>(null);
+  const raceSessionIdRef = useRef<number | null>(null);
 
   const lesson = getLessonById(roomState.lessonId) ?? getLessonById('common-words')!;
   const raceText = useMemo(
@@ -128,9 +129,12 @@ export default function MultiplayerRacePanel({
 
   useEffect(() => {
     if (phase !== 'racing' || !roomState.raceStartedAt) return;
+    if (raceSessionIdRef.current === roomState.raceStartedAt) return;
+
+    raceSessionIdRef.current = roomState.raceStartedAt;
     setLocalProgress(EMPTY_PROGRESS);
     setHasReportedFinish(false);
-    peakProgressRef.current = { wpm: 0, score: 0 };
+    peakProgressRef.current = { wpm: 0, score: 0, percentage: 0, maxCombo: 0, accuracy: 100 };
     halfProgressRankRef.current = null;
     clearRaceSessionExtras();
   }, [phase, roomState.raceStartedAt]);
@@ -141,14 +145,17 @@ export default function MultiplayerRacePanel({
       const peaks = mergePeakRaceProgress(peakProgressRef.current, {
         wpm: update.wpm,
         score: update.score,
+        percentage: update.percentage,
+        maxCombo: update.maxCombo,
+        accuracy: update.accuracy,
       });
       peakProgressRef.current = peaks;
 
       const next: LocalRaceProgress = {
         wpm: peaks.wpm,
-        percentage: update.percentage,
-        accuracy: update.accuracy,
-        maxCombo: update.maxCombo,
+        percentage: peaks.percentage,
+        accuracy: peaks.accuracy,
+        maxCombo: peaks.maxCombo,
         combo: update.combo,
         score: peaks.score,
         finished,
@@ -179,9 +186,9 @@ export default function MultiplayerRacePanel({
       if (!raceActive) return;
       void broadcastProgress(
         peaks.wpm,
-        update.percentage,
-        update.accuracy,
-        update.maxCombo,
+        peaks.percentage,
+        peaks.accuracy,
+        peaks.maxCombo,
         update.combo,
         peaks.score,
         finished,
@@ -198,10 +205,18 @@ export default function MultiplayerRacePanel({
 
   const lessonTitle = getLessonTitle(t, lesson.titleKey);
 
-  const pendingOpponents = useMemo(
-    () => countPendingPlayers(players, currentUserId),
-    [players, currentUserId],
-  );
+  const pendingOpponents = useMemo(() => {
+    const participants = roomState.raceParticipantIds;
+    if (participants.length > 0) {
+      const finishedIds = new Set(
+        players.filter((player) => player.hasFinished).map((player) => player.userId),
+      );
+      return participants.filter(
+        (participantId) => participantId !== currentUserId && !finishedIds.has(participantId),
+      ).length;
+    }
+    return countPendingPlayers(players, currentUserId);
+  }, [players, currentUserId, roomState.raceParticipantIds]);
 
   const recordedResultsRef = useRef<string | null>(null);
 
@@ -296,7 +311,7 @@ export default function MultiplayerRacePanel({
         />
         <AppErrorBoundary section="typing">
           <TypingTest
-          key={`${roomState.version}-${roomState.raceStartedAt}`}
+          key={`race-${roomState.raceStartedAt ?? roomState.version}`}
           lessonId={lesson.id}
           lesson={lesson}
           customText={raceText}

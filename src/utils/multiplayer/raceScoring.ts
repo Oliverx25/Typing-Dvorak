@@ -95,12 +95,35 @@ export function estimateMaxRaceScore(charCount: number, scoreMultiplier = 1): nu
 
 /** Score and WPM only increase during a race — never decrease mid-run. */
 export function mergePeakRaceProgress(
-  previous: { wpm: number; score: number } | undefined,
-  incoming: { wpm: number; score: number },
-): { wpm: number; score: number } {
+  previous:
+    | {
+        wpm: number;
+        score: number;
+        percentage?: number;
+        maxCombo?: number;
+        accuracy?: number;
+      }
+    | undefined,
+  incoming: {
+    wpm: number;
+    score: number;
+    percentage?: number;
+    maxCombo?: number;
+    accuracy?: number;
+  },
+): {
+  wpm: number;
+  score: number;
+  percentage: number;
+  maxCombo: number;
+  accuracy: number;
+} {
   return {
     wpm: Math.max(previous?.wpm ?? 0, incoming.wpm),
     score: Math.max(previous?.score ?? 0, incoming.score),
+    percentage: Math.max(previous?.percentage ?? 0, incoming.percentage ?? 0),
+    maxCombo: Math.max(previous?.maxCombo ?? 0, incoming.maxCombo ?? 0),
+    accuracy: Math.max(previous?.accuracy ?? 0, incoming.accuracy ?? 0),
   };
 }
 

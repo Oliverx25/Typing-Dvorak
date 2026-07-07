@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  areAllRaceParticipantsFinished,
   canAdvanceToResults,
   countPendingPlayers,
   isRaceCompleteForConnected,
@@ -30,12 +31,37 @@ describe('raceCompletion', () => {
     expect(isRaceCompleteForConnected([])).toBe(false);
   });
 
-  it('allows any connected player to advance results', () => {
+  it('requires every snapshotted participant to be connected and finished', () => {
+    const participants = ['a', 'b'];
+
+    expect(
+      areAllRaceParticipantsFinished([player('a', true), player('b', true)], participants),
+    ).toBe(true);
+
+    expect(
+      areAllRaceParticipantsFinished([player('a', true), player('b', false)], participants),
+    ).toBe(false);
+
+    // Opponent briefly missing from presence must not count as finished.
+    expect(areAllRaceParticipantsFinished([player('a', true)], participants)).toBe(false);
+  });
+
+  it('allows any connected participant to advance results', () => {
     const connected = [player('a', true), player('b', true)];
-    expect(canAdvanceToResults('racing', connected, 'a')).toBe(true);
-    expect(canAdvanceToResults('racing', connected, 'b')).toBe(true);
-    expect(canAdvanceToResults('racing', connected, 'c')).toBe(false);
-    expect(canAdvanceToResults('lobby', connected, 'a')).toBe(false);
+    const participants = ['a', 'b'];
+
+    expect(canAdvanceToResults('racing', connected, 'a', participants)).toBe(true);
+    expect(canAdvanceToResults('racing', connected, 'b', participants)).toBe(true);
+    expect(canAdvanceToResults('racing', connected, 'c', participants)).toBe(false);
+    expect(canAdvanceToResults('lobby', connected, 'a', participants)).toBe(false);
+  });
+
+  it('does not advance when only the finisher remains visible in presence', () => {
+    const participants = ['a', 'b'];
+    const connected = [player('a', true)];
+
+    expect(canAdvanceToResults('racing', connected, 'a', participants)).toBe(false);
+    expect(isRaceCompleteForConnected(connected)).toBe(true);
   });
 
   it('counts pending opponents', () => {

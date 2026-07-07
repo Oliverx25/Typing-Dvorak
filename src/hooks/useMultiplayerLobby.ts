@@ -193,17 +193,24 @@ export function useMultiplayerLobby({
 
   const maybeAdvanceToResults = useCallback(
     (connectedPlayers: LobbyPlayerPresence[]) => {
-      if (!canAdvanceToResults(roomStateRef.current?.phase, connectedPlayers, user?.id)) {
+      const current = roomStateRef.current;
+      if (
+        !canAdvanceToResults(
+          current?.phase,
+          connectedPlayers,
+          user?.id,
+          current?.raceParticipantIds ?? [],
+        )
+      ) {
         return;
       }
       if (returnLobbyCheckRef.current) return;
 
       returnLobbyCheckRef.current = true;
       const resultsState: RoomBroadcastState = {
-        ...roomStateRef.current!,
+        ...current!,
         phase: 'results',
-        raceStartedAt: null,
-        version: roomStateRef.current!.version + 1,
+        version: current!.version + 1,
       };
       applyRoomState(resultsState);
       void broadcastRoomState(resultsState);
@@ -631,18 +638,27 @@ export function useMultiplayerLobby({
     const phase = roomStateRef.current?.phase;
     if (phase !== 'lobby' && phase !== 'results') return;
 
+    const activeChannel = channelRef.current;
+    if (!activeChannel) return;
+
+    const connected = parsePresenceState(
+      activeChannel.presenceState<LobbyPlayerPresence>() as Record<string, unknown[]>,
+    );
+    if (connected.length < minPlayers) return;
+
     const raceStartedAt = Date.now();
     const next: RoomBroadcastState = {
       ...roomStateRef.current!,
       phase: 'racing',
       raceStartedAt,
+      raceParticipantIds: connected.map((player) => player.userId),
       version: roomStateRef.current!.version + 1,
     };
 
     applyRoomState(next);
     await broadcastRoomState(next);
     returnLobbyCheckRef.current = false;
-  }, [allReady, applyRoomState, broadcastRoomState, user?.id]);
+  }, [allReady, applyRoomState, broadcastRoomState, minPlayers, user?.id]);
 
   const markRaceFinished = useCallback(async () => {
     const activeChannel = channelRef.current;
