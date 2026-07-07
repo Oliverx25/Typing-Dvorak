@@ -90,6 +90,9 @@ export const es: TranslationKey = {
     roadmapArchive: 'Archivo del roadmap',
     viewRoadmapArchive: 'Ver archivo del roadmap',
     hideRoadmapArchive: 'Ocultar archivo del roadmap',
+    notPlayed: 'Sin jugar',
+    chapterLessonsDone: 'lecciones',
+    chapterAvgMastery: 'XP maestría prom.',
   },
   chapterMeta: {
     fundamentals: {

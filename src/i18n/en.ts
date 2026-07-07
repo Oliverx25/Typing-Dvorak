@@ -88,6 +88,9 @@ export const en = {
     roadmapArchive: 'Roadmap archive',
     viewRoadmapArchive: 'View roadmap archive',
     hideRoadmapArchive: 'Hide roadmap archive',
+    notPlayed: 'Not played',
+    chapterLessonsDone: 'lessons done',
+    chapterAvgMastery: 'avg mastery XP',
   },
   chapterMeta: {
     fundamentals: {

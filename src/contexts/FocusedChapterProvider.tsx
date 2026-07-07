@@ -4,66 +4,66 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import { useCurriculumState } from '@/hooks/useCurriculumState';
-import { getCompletedLessonsMap } from '@/utils/progress/storage';
-import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
-import { UNLOCK_ACCURACY } from '@/utils/curriculum/curriculum';
+import { getChapterIdForLesson } from '@/utils/curriculum/chapterStats';
+import { getRoadmapChapter, ROADMAP_CHAPTERS } from '@/utils/curriculum/roadmapChapters';
 
 interface FocusedChapterContextValue {
-  focusedLessonId: string;
+  selectedChapterId: string;
   recommendedId: string;
-  isRecommendedFocus: boolean;
-  focusedProgress: number;
-  setFocusedLessonId: (lessonId: string) => void;
+  isRecommendedChapter: boolean;
+  setSelectedChapterId: (chapterId: string, options?: { scrollToTop?: boolean }) => void;
+  selectRecommendedChapter: () => void;
 }
 
 const FocusedChapterContext = createContext<FocusedChapterContextValue | null>(null);
 
-function getLessonBestAccuracy(lessonId: string): number {
-  const completed = getCompletedLessonsMap();
-  return completed[lessonId]?.bestAccuracy ?? 0;
-}
-
-function getFocusedProgress(focusedLessonId: string, recommendedId: string, curriculumProgress: number): number {
-  if (focusedLessonId === recommendedId) return curriculumProgress;
-  const best = getLessonBestAccuracy(focusedLessonId);
-  return best >= UNLOCK_ACCURACY ? 100 : best;
-}
-
 export function FocusedChapterProvider({ children }: { children: ReactNode }) {
-  const { progress, recommendedId } = useCurriculumState();
-  const [focusedLessonId, setFocusedLessonIdState] = useState(recommendedId);
-  const [focusedProgress, setFocusedProgress] = useState(0);
+  const { recommendedId } = useCurriculumState();
+  const userPickedRef = useRef(false);
+  const [selectedChapterId, setSelectedChapterIdState] = useState(() =>
+    getChapterIdForLesson(recommendedId),
+  );
 
   useEffect(() => {
-    setFocusedLessonIdState(recommendedId);
+    if (!userPickedRef.current) {
+      setSelectedChapterIdState(getChapterIdForLesson(recommendedId));
+    }
   }, [recommendedId]);
 
-  useEffect(() => {
-    const refresh = () => {
-      setFocusedProgress(getFocusedProgress(focusedLessonId, recommendedId, progress));
-    };
-    refresh();
-    window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
-    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
-  }, [focusedLessonId, recommendedId, progress]);
+  const setSelectedChapterId = useCallback(
+    (chapterId: string, options?: { scrollToTop?: boolean }) => {
+      if (!getRoadmapChapter(chapterId)) return;
+      userPickedRef.current = true;
+      setSelectedChapterIdState(chapterId);
+      if (options?.scrollToTop) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+    [],
+  );
 
-  const setFocusedLessonId = useCallback((lessonId: string) => {
-    setFocusedLessonIdState(lessonId);
-  }, []);
+  const selectRecommendedChapter = useCallback(() => {
+    userPickedRef.current = false;
+    setSelectedChapterIdState(getChapterIdForLesson(recommendedId));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [recommendedId]);
+
+  const recommendedChapterId = getChapterIdForLesson(recommendedId);
 
   const value = useMemo<FocusedChapterContextValue>(
     () => ({
-      focusedLessonId,
+      selectedChapterId,
       recommendedId,
-      isRecommendedFocus: focusedLessonId === recommendedId,
-      focusedProgress,
-      setFocusedLessonId,
+      isRecommendedChapter: selectedChapterId === recommendedChapterId,
+      setSelectedChapterId,
+      selectRecommendedChapter,
     }),
-    [focusedLessonId, recommendedId, focusedProgress, setFocusedLessonId],
+    [selectedChapterId, recommendedId, recommendedChapterId, setSelectedChapterId, selectRecommendedChapter],
   );
 
   return <FocusedChapterContext.Provider value={value}>{children}</FocusedChapterContext.Provider>;
@@ -74,3 +74,5 @@ export function useFocusedChapter(): FocusedChapterContextValue {
   if (!ctx) throw new Error('useFocusedChapter must be used within FocusedChapterProvider');
   return ctx;
 }
+
+export { ROADMAP_CHAPTERS };

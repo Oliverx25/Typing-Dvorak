@@ -1,101 +1,36 @@
-import { useEffect, useRef, useState } from 'react';
-import { useApp, getLessonDescription, getLessonTitle } from '@/contexts/AppProvider';
+import { useRef } from 'react';
+import { useApp } from '@/contexts/AppProvider';
 import { useFocusedChapter } from '@/contexts/FocusedChapterProvider';
 import { useRoadmap } from '@/contexts/RoadmapProvider';
-import { t as translate } from '@/i18n';
-import { getLessonById } from '@/utils/curriculum/lessons';
-import { findLessonGroup } from '@/utils/curriculum/microLessonGroups';
+import { useChapterStats } from '@/hooks/useChapterStats';
+import { getRoadmapChapter } from '@/utils/curriculum/roadmapChapters';
 import CircularProgress from '@/components/ui/display/CircularProgress';
-import { Badge, BestScoreLabel, Icon } from '@/components/ui';
-import { useLessonCardState } from '@/hooks/useLessonCardState';
-import LessonMasteryPanel from '@/components/lessons/LessonMasteryPanel';
-import { MASTERY_RING_CLASSES } from '@/utils/curriculum/mastery';
-
-import type { MicroLesson } from '@/data/microLessons';
-
-function MicroLessonRow({ micro, title }: { micro: MicroLesson; title: string }) {
-  const { t } = useApp();
-  const { unlocked, highestGrade, highestScore, masteryTier } = useLessonCardState(micro.id);
-  const ringClass = MASTERY_RING_CLASSES[masteryTier];
-
-  if (!unlocked) {
-    return (
-      <li className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm opacity-50">
-        <span className="min-w-0 truncate text-[var(--color-text-muted)]">{title}</span>
-        <Badge variant="locked">{t.home.locked}</Badge>
-      </li>
-    );
-  }
-
-  return (
-    <li>
-      <a
-        href={`/lesson/${micro.id}`}
-        className={[
-          'flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm no-underline transition hover:bg-[var(--color-surface-elevated)]',
-          ringClass,
-        ].join(' ')}
-      >
-        <div className="min-w-0 flex-1">
-          <span className="block truncate text-[var(--color-text)]">{title}</span>
-          <LessonMasteryPanel lessonId={micro.id} size="sm" className="mt-1" />
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <BestScoreLabel
-            highestGrade={highestGrade}
-            highestScore={highestScore}
-            scoreUnit={t.multiplayer.raceScore}
-          />
-          <span className="font-mono text-xs tracking-widest text-[var(--color-highlight)]">
-            {micro.chars}
-          </span>
-        </div>
-      </a>
-    </li>
-  );
-}
+import { GradeBadge } from '@/components/ui';
+import HeroLessonCard from '@/components/lessons/cards/HeroLessonCard';
 
 export default function PrimaryActionCard() {
-  const { t, locale } = useApp();
-  const { focusedLessonId, recommendedId, isRecommendedFocus, setFocusedLessonId } =
-    useFocusedChapter();
+  const { t } = useApp();
+  const { selectedChapterId, isRecommendedChapter, selectRecommendedChapter } = useFocusedChapter();
   const { globalProgress } = useRoadmap();
-  const [microOpen, setMicroOpen] = useState(false);
+  const chapterStats = useChapterStats();
   const sectionRef = useRef<HTMLElement>(null);
-  const prevFocused = useRef(focusedLessonId);
 
-  useEffect(() => {
-    if (prevFocused.current !== focusedLessonId) {
-      setMicroOpen(true);
-      prevFocused.current = focusedLessonId;
-      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [focusedLessonId]);
+  const chapter = getRoadmapChapter(selectedChapterId);
+  if (!chapter) return null;
 
-  const { highestGrade, highestScore, masteryTier } = useLessonCardState(focusedLessonId);
-  const lesson = getLessonById(focusedLessonId);
-  if (!lesson) return null;
-
-  const ringClass = MASTERY_RING_CLASSES[masteryTier];
-
-  const title = getLessonTitle(t, lesson.titleKey);
-  const description = getLessonDescription(t, lesson.descriptionKey);
-  const group = findLessonGroup(focusedLessonId, lesson.titleKey);
-
-  const actionLabel = isRecommendedFocus
-    ? translate(locale, 'home.continueWith', { lesson: title.toUpperCase() })
-    : translate(locale, 'home.reviewLesson', { lesson: title.toUpperCase() });
+  const stats = chapterStats[selectedChapterId];
+  const meta = t.chapterMeta[chapter.titleKey as keyof typeof t.chapterMeta];
 
   return (
     <section ref={sectionRef} className="mb-10 scroll-mt-24">
       <div className="mb-4 flex items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
-          {isRecommendedFocus ? t.home.yourNextStep : t.home.selectedChapter}
+          {isRecommendedChapter ? t.home.yourNextStep : t.home.selectedChapter}
         </p>
-        {!isRecommendedFocus && (
+        {!isRecommendedChapter && (
           <button
             type="button"
-            onClick={() => setFocusedLessonId(recommendedId)}
+            onClick={selectRecommendedChapter}
             className="text-xs text-[var(--color-highlight)] transition hover:underline"
           >
             {t.home.backToRecommended}
@@ -103,61 +38,36 @@ export default function PrimaryActionCard() {
         )}
       </div>
 
-      <article
-        className={[
-          'overflow-hidden rounded-2xl border-2 border-[var(--color-highlight)]/35 bg-[var(--color-surface-elevated)] shadow-lg shadow-[var(--color-highlight)]/10',
-          ringClass,
-        ].join(' ')}
-      >
-        <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
+      <article className="overflow-hidden rounded-2xl border-2 border-[var(--color-highlight)]/35 bg-[var(--color-surface-elevated)] shadow-lg shadow-[var(--color-highlight)]/10">
+        <div className="flex flex-col gap-6 border-b border-[var(--color-border)] p-6 sm:flex-row sm:items-start">
           <CircularProgress value={globalProgress} />
 
           <div className="min-w-0 flex-1">
-            <h2 className="text-xl font-bold uppercase tracking-wide text-[var(--color-text)] sm:text-2xl">
-              {title}
-            </h2>
-            <BestScoreLabel
-              highestGrade={highestGrade}
-              highestScore={highestScore}
-              scoreUnit={t.multiplayer.raceScore}
-              size="md"
-              className="mt-2"
-            />
-            <LessonMasteryPanel lessonId={focusedLessonId} className="mt-3" />
-            <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">{description}</p>
-
-            <a
-              href={`/lesson/${focusedLessonId}`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-[var(--color-highlight)] px-6 py-3.5 text-base font-semibold uppercase tracking-wide text-white no-underline shadow-lg shadow-[var(--color-highlight)]/25 transition hover:bg-[var(--color-highlight-hover)]"
-            >
-              {actionLabel}
-            </a>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-highlight)]">
+              {meta?.title ?? chapter.titleKey}
+            </p>
+            <div className="mt-2 flex flex-wrap items-end gap-3">
+              <p className="text-3xl font-light tabular-nums text-[var(--color-text)]">
+                {stats?.completionPercentage ?? 0}%
+              </p>
+              {stats?.averageGrade ? (
+                <GradeBadge grade={stats.averageGrade} className="!h-7 !w-auto !px-2 !text-xs" />
+              ) : null}
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">
+              {meta?.description}
+            </p>
+            <p className="mt-2 text-xs text-[var(--color-text-muted)]">
+              {stats?.averageMasteryXp ?? 0} {t.home.chapterAvgMastery}
+            </p>
           </div>
         </div>
 
-        {group && group.microLessons.length > 0 && (
-          <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)]/40">
-            <button
-              type="button"
-              onClick={() => setMicroOpen((o) => !o)}
-              className="flex w-full items-center gap-2 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)] transition hover:text-[var(--color-text)]"
-            >
-              <Icon name={microOpen ? 'chevron-down' : 'chevron-right'} size={16} />
-              {title} — {group.microLessons.length} {t.home.microLessons}
-            </button>
-
-            {microOpen && (
-              <ul className="space-y-1 border-t border-[var(--color-border)] px-4 py-3">
-                {group.microLessons.map((micro) => {
-                  const microTitle =
-                    t.microLessonMeta[micro.titleKey as keyof typeof t.microLessonMeta]?.title ??
-                    micro.titleKey;
-                  return <MicroLessonRow key={micro.id} micro={micro} title={microTitle} />;
-                })}
-              </ul>
-            )}
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
+          {chapter.lessonIds.map((lessonId) => (
+            <HeroLessonCard key={lessonId} lessonId={lessonId} />
+          ))}
+        </div>
       </article>
     </section>
   );
