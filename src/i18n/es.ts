@@ -71,6 +71,7 @@ export const es: TranslationKey = {
     microLessons: 'micro-lecciones',
     allLessons: 'Todas las lecciones',
     yourNextStep: 'Tu siguiente paso',
+    loadingProgress: 'Cargando tu progreso…',
     continueWith: 'Continuar con {lesson}',
     lessonLibrary: 'Biblioteca de lecciones',
     extraPractice: 'Práctica extra',

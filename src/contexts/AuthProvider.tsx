@@ -21,6 +21,8 @@ interface AuthContextValue {
   user: User | null;
   profile: UserProfileRow | null;
   loading: boolean;
+  /** False while cloud progress is being fetched for a signed-in user. */
+  progressReady: boolean;
   isConfigured: boolean;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -32,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfileRow | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured());
+  const [progressReady, setProgressReady] = useState(!isSupabaseConfigured());
   const lastLoadedUserIdRef = useRef<string | null>(null);
   const syncedSessionKeysRef = useRef(new Set<string>());
 
@@ -39,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = getSupabaseClient();
     if (!supabase) {
       setLoading(false);
+      setProgressReady(true);
       return;
     }
 
@@ -48,8 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuthSessionUser(data.user ?? null);
         setUser(data.user);
         setLoading(false);
+        if (!data.user) setProgressReady(true);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        setProgressReady(true);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const nextUser = session?.user ?? null;
@@ -69,15 +77,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       syncedSessionKeysRef.current.clear();
       setProfile(null);
       setAuthSessionUser(null);
+      setProgressReady(true);
       return;
     }
 
-    if (lastLoadedUserIdRef.current === userId) return;
+    if (lastLoadedUserIdRef.current === userId) {
+      setProgressReady(true);
+      return;
+    }
 
     let cancelled = false;
+    setProgressReady(false);
 
     (async () => {
-      clearGuestProgress();
       const loadedProfile = await loadProgressFromCloud();
       await safeAsync('restore profile preferences', () => restoreProfilePreferencesFromProfile(loadedProfile), undefined);
       await safeAsync('restore profile display', () => restoreProfileDisplayFromProfile(loadedProfile), undefined);
@@ -88,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!cancelled) {
         setProfile(loadedProfile);
         lastLoadedUserIdRef.current = userId;
+        setProgressReady(true);
       }
     })();
 
@@ -148,11 +161,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       profile,
       loading,
+      progressReady,
       isConfigured: isSupabaseConfigured(),
       signOut,
       refreshUser,
     }),
-    [user, profile, loading, signOut, refreshUser],
+    [user, profile, loading, progressReady, signOut, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

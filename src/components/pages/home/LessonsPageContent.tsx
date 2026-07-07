@@ -1,4 +1,6 @@
 import { lazy, Suspense } from 'react';
+import { useAuth } from '@/contexts/AuthProvider';
+import { useApp } from '@/contexts/AppProvider';
 import { FocusedChapterProvider } from '@/contexts/FocusedChapterProvider';
 import PrimaryActionCard from '@/components/lessons/cards/PrimaryActionCard';
 import AdaptiveDrillCard from '@/components/lessons/cards/AdaptiveDrillCard';
@@ -20,8 +22,33 @@ function SectionSkeleton({ rows = 3 }: { rows?: number }) {
   );
 }
 
-/** Lessons home content — mount inside AppLayout chrome. */
-export default function LessonsPageContent() {
+function LessonsProgressSkeleton() {
+  const { t } = useApp();
+
+  return (
+    <div className="space-y-10" role="status" aria-live="polite" aria-busy="true">
+      <p className="sr-only">{t.home.loadingProgress}</p>
+
+      <div className="space-y-4">
+        <div className="h-3 w-36 animate-pulse rounded bg-[var(--color-border)]" />
+        <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+            <div className="size-20 shrink-0 animate-pulse rounded-full bg-[var(--color-border)]" />
+            <div className="min-w-0 flex-1 space-y-3">
+              <div className="h-6 w-2/3 animate-pulse rounded bg-[var(--color-border)]" />
+              <div className="h-4 w-full animate-pulse rounded bg-[var(--color-border)]/70" />
+              <div className="h-12 w-full animate-pulse rounded-xl bg-[var(--color-border)]/60" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <SectionSkeleton rows={4} />
+    </div>
+  );
+}
+
+function LessonsContent() {
   return (
     <FocusedChapterProvider>
       <PrimaryActionCard />
@@ -37,4 +64,16 @@ export default function LessonsPageContent() {
       </Suspense>
     </FocusedChapterProvider>
   );
+}
+
+/** Lessons home content — mount inside AppLayout chrome. */
+export default function LessonsPageContent() {
+  const { user, loading: authLoading, progressReady } = useAuth();
+  const waitingForProgress = authLoading || (Boolean(user) && !progressReady);
+
+  if (waitingForProgress) {
+    return <LessonsProgressSkeleton />;
+  }
+
+  return <LessonsContent />;
 }

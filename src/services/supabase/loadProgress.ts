@@ -3,6 +3,7 @@ import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessi
 import { getAuthUser } from '@/services/supabase/authSession';
 import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/progress/storage';
 import { replaceLocalProgress } from '@/utils/progress/storage';
+import { clearGuestProgress } from '@/utils/progress/guestProgress';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
@@ -18,6 +19,7 @@ import { setStoredTheme } from '@/utils/progress/storage';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { updateProfileStreak } from '@/services/supabase/syncProgress';
 import { syncBadgesFromSessionRows } from '@/services/supabase/syncBadges';
+import { safeAsyncVoid } from '@/utils/network/graceful';
 import type { LessonMasteryRow } from '@/services/supabase/queries';
 export type { UserProfileRow } from '@/services/supabase/profileRow';
 
@@ -143,18 +145,22 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
       buildProgressFromSessions(history, streakResult),
       masteryRows,
     );
+
+    clearGuestProgress();
     replaceLocalProgress(history, progress);
     replaceKeyStats(mapKeyErrors(keyErrors));
 
-    if (user) {
-      if (profile) primeUserProfileCache(user.id, profile);
-      await updateProfileStreak(user.id, streakResult);
-      const sessionSummaries = await fetchAllUserSessionSummaries();
-      await syncBadgesFromSessionRows(user.id, sessionSummaries, streakResult.streak);
-    }
-
     dispatchSessionComplete();
     dispatchKeyStatsUpdated();
+
+    if (user) {
+      if (profile) primeUserProfileCache(user.id, profile);
+      safeAsyncVoid('cloud progress extras', async () => {
+        await updateProfileStreak(user.id, streakResult);
+        const sessionSummaries = await fetchAllUserSessionSummaries();
+        await syncBadgesFromSessionRows(user.id, sessionSummaries, streakResult.streak);
+      });
+    }
 
     if (profile && user) {
       return {

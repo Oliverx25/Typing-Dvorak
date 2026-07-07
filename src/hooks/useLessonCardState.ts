@@ -3,18 +3,15 @@ import { isLessonUnlocked } from '@/utils/curriculum/curriculum';
 import {
   getBestScoreForLesson,
   getBestWpmForLesson,
-  getCompletedLessonsMap,
   getHighestGradeForLesson,
   getMasteryXpForLesson,
 } from '@/utils/progress/storage';
+import { buildUnlockMap } from '@/utils/progress/readCurriculumFromStorage';
 import { masteryTierFromXp } from '@/utils/curriculum/mastery';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
 function getUnlockState(lessonId: string) {
-  const completed = getCompletedLessonsMap();
-  const forUnlock = Object.fromEntries(
-    Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
-  );
+  const forUnlock = buildUnlockMap();
   return {
     unlocked: isLessonUnlocked(lessonId, forUnlock),
     bestWpm: getBestWpmForLesson(lessonId),
@@ -30,8 +27,7 @@ export function readLessonUnlockState(lessonId: string): boolean {
   return getUnlockState(lessonId).unlocked;
 }
 
-/** Stable defaults for SSR — localStorage sync runs after mount only. */
-const INITIAL_STATE = {
+const SSR_UNLOCK_STATE = {
   unlocked: false,
   bestWpm: null as number | null,
   highestGrade: null as string | null,
@@ -40,8 +36,13 @@ const INITIAL_STATE = {
   masteryTier: 0 as 0 | 1 | 2 | 3 | 4,
 };
 
+function readUnlockStateClient(lessonId: string) {
+  if (typeof window === 'undefined') return SSR_UNLOCK_STATE;
+  return getUnlockState(lessonId);
+}
+
 export function useLessonCardState(lessonId: string) {
-  const [state, setState] = useState(INITIAL_STATE);
+  const [state, setState] = useState(() => readUnlockStateClient(lessonId));
 
   useEffect(() => {
     const refresh = () => setState(getUnlockState(lessonId));

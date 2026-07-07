@@ -69,6 +69,7 @@ export const en = {
     microLessons: 'micro-lessons',
     allLessons: 'All lessons',
     yourNextStep: 'Your next step',
+    loadingProgress: 'Loading your lesson progress…',
     continueWith: 'Continue with {lesson}',
     lessonLibrary: 'Lesson library',
     extraPractice: 'Extra practice',

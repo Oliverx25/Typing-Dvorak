@@ -1,20 +1,23 @@
 import { useEffect, useState } from 'react';
-import { getRecommendedLessonId, getCurriculumProgress } from '@/utils/curriculum/curriculum';
-import { getCompletedLessonsMap } from '@/utils/progress/storage';
+import { readCurriculumFromStorage } from '@/utils/progress/readCurriculumFromStorage';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
+const SSR_CURRICULUM = { progress: 0, recommendedId: 'home-row' };
+
+function readCurriculumClient() {
+  if (typeof window === 'undefined') return SSR_CURRICULUM;
+  return readCurriculumFromStorage();
+}
+
 export function useCurriculumState() {
-  const [progress, setProgress] = useState(0);
-  const [recommendedId, setRecommendedId] = useState('home-row');
+  const [progress, setProgress] = useState(() => readCurriculumClient().progress);
+  const [recommendedId, setRecommendedId] = useState(() => readCurriculumClient().recommendedId);
 
   useEffect(() => {
     const refresh = () => {
-      const completed = getCompletedLessonsMap();
-      const forUnlock = Object.fromEntries(
-        Object.entries(completed).map(([k, v]) => [k, { bestAccuracy: v.bestAccuracy }]),
-      );
-      setProgress(getCurriculumProgress(forUnlock));
-      setRecommendedId(getRecommendedLessonId(forUnlock));
+      const next = readCurriculumFromStorage();
+      setProgress(next.progress);
+      setRecommendedId(next.recommendedId);
     };
     refresh();
     window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
