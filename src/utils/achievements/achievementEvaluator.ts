@@ -256,8 +256,14 @@ function metricValue(
   switch (metric) {
     case 'session_max_wpm':
       return Math.max(aggregate.highestWpmEver, lastSession?.wpm ?? 0);
-    case 'session_avg_wpm':
-      return lastSession?.avgWpm ?? lastSession?.wpm ?? 0;
+    case 'session_avg_wpm': {
+      const historyMax = getSessionHistory().reduce(
+        (max, session) => Math.max(max, session.wpm),
+        0,
+      );
+      const sessionWpm = lastSession?.avgWpm ?? lastSession?.wpm ?? 0;
+      return Math.max(historyMax, sessionWpm);
+    }
     case 'early_burst_wpm':
       return lastSession?.earlyBurstWpm ?? 0;
     case 'perfect_session_count':

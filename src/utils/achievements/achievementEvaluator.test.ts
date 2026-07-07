@@ -42,4 +42,39 @@ describe('achievementEvaluator', () => {
     expect(progress.unlockedAt).not.toBeNull();
     expect(progress.currentProgress).toBeGreaterThanOrEqual(1);
   });
+
+  it('uses session history max WPM for cruise speed achievements', () => {
+    writeJson(STORAGE_KEYS.history, [
+      {
+        lessonId: 'home-left',
+        lessonTitle: 'home-left',
+        wpm: 72,
+        accuracy: 95,
+        elapsedSeconds: 60,
+        mode: 'practice',
+        completedAt: '2026-07-06T12:00:00.000Z',
+      },
+    ]);
+
+    evaluateAchievementProgress();
+    const progress = getProgressForAchievement(CATALOG_BY_SLUG.get('speed_cruise_70')!.id);
+    expect(progress.currentProgress).toBe(70);
+  });
+
+  it('preserves early burst unlock when last session is absent', () => {
+    const entry = CATALOG_BY_SLUG.get('speed_early_burst_100')!;
+    replaceLocalAchievementProgress([
+      {
+        achievementId: entry.id,
+        slug: entry.slug,
+        currentProgress: 100,
+        unlockedAt: '2026-07-06T00:00:00.000Z',
+      },
+    ]);
+
+    evaluateAchievementProgress();
+    const progress = getProgressForAchievement(entry.id);
+    expect(progress.unlockedAt).not.toBeNull();
+    expect(progress.currentProgress).toBe(100);
+  });
 });

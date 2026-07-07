@@ -11,7 +11,6 @@ import {
   type CatalogCategory,
   type UserAchievementProgress,
 } from '@/utils/achievements/catalogTypes';
-import { evaluateAchievementProgress } from '@/utils/achievements/achievementEvaluator';
 import { getLocalAchievementProgress } from '@/utils/achievements/progressStorage';
 import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
@@ -23,7 +22,6 @@ export default function AchievementsGrid() {
   const [progressMap, setProgressMap] = useState<Record<string, UserAchievementProgress>>({});
 
   const refresh = useCallback(() => {
-    evaluateAchievementProgress();
     setProgressMap(getLocalAchievementProgress());
   }, []);
 

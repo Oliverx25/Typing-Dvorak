@@ -1,14 +1,14 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
-import { ACHIEVEMENT_CATALOG } from '@/utils/achievements/catalogData';
 import {
   evaluateAchievementProgress,
   type LastSessionSnapshot,
 } from '@/utils/achievements/achievementEvaluator';
 import {
   getLocalAchievementProgress,
-  replaceLocalAchievementProgress,
+  mergeLocalAchievementProgress,
 } from '@/utils/achievements/progressStorage';
 import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
+import { fetchUserAchievements } from '@/services/supabase/queries';
 
 async function persistUserAchievements(
   userId: string,
@@ -33,29 +33,7 @@ async function persistUserAchievements(
 }
 
 async function fetchCloudAchievementProgress(userId: string): Promise<UserAchievementProgress[]> {
-  const supabase = getSupabaseClient();
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from('user_achievements')
-    .select('achievement_id, current_progress, unlocked_at')
-    .eq('user_id', userId);
-
-  if (error) {
-    console.warn('[sync] user_achievements fetch failed:', error.message);
-    return [];
-  }
-
-  return (data ?? []).map((row) => {
-    const achievementId = row.achievement_id as number;
-    const catalog = ACHIEVEMENT_CATALOG.find((item) => item.id === achievementId);
-    return {
-      achievementId,
-      slug: catalog?.slug ?? String(achievementId),
-      currentProgress: row.current_progress as number,
-      unlockedAt: (row.unlocked_at as string | null) ?? null,
-    };
-  });
+  return fetchUserAchievements(userId);
 }
 
 /** Recompute local progress and mirror to Supabase user_achievements. */
@@ -73,7 +51,7 @@ export async function syncAchievementsToCloud(
 export async function syncAchievementsFromCloud(userId: string): Promise<string[]> {
   const cloudRows = await fetchCloudAchievementProgress(userId);
   if (cloudRows.length > 0) {
-    replaceLocalAchievementProgress(cloudRows);
+    mergeLocalAchievementProgress(cloudRows);
   }
   evaluateAchievementProgress();
   const rows = Object.values(getLocalAchievementProgress());

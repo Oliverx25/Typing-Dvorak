@@ -14,6 +14,7 @@ export const QUERY_CACHE_KEYS = {
   lessonMastery: 'lesson_mastery',
   sessionTimestamps: 'session_timestamps',
   sessionSummaries: 'session_summaries',
+  achievements: 'achievements',
   sessions: (limit: number) => `sessions:${limit}`,
   room: (code: string) => `room:${code}`,
 } as const;
@@ -58,5 +59,6 @@ export function invalidateUserProgressCache(userId: string): void {
   invalidateQueryCache(userId, QUERY_CACHE_KEYS.lessonMastery);
   invalidateQueryCache(userId, QUERY_CACHE_KEYS.sessionTimestamps);
   invalidateQueryCache(userId, QUERY_CACHE_KEYS.sessionSummaries);
+  invalidateQueryCache(userId, QUERY_CACHE_KEYS.achievements);
   invalidateQueryCache(userId, QUERY_CACHE_KEYS.profile);
 }

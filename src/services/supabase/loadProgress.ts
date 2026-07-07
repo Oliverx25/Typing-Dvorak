@@ -1,5 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
-import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchAllUserSessionSummaries, fetchUserLessonMastery, primeUserProfileCache } from '@/services/supabase/queries';
+import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchUserLessonMastery, fetchUserAchievements, primeUserProfileCache } from '@/services/supabase/queries';
 import { getAuthUser } from '@/services/supabase/authSession';
 import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/progress/storage';
 import { replaceLocalProgress } from '@/utils/progress/storage';
@@ -18,7 +18,9 @@ import { applyHighlightTheme } from '@/utils/app/highlightTheme';
 import { setStoredTheme } from '@/utils/progress/storage';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { updateProfileStreak } from '@/services/supabase/syncProgress';
-import { syncBadgesFromSessionRows } from '@/services/supabase/syncBadges';
+import { syncAchievementsToCloud } from '@/services/supabase/syncBadges';
+import { evaluateAchievementProgress } from '@/utils/achievements/achievementEvaluator';
+import { replaceLocalAchievementProgress } from '@/utils/achievements/progressStorage';
 import { safeAsyncVoid } from '@/utils/network/graceful';
 import type { LessonMasteryRow } from '@/services/supabase/queries';
 export type { UserProfileRow } from '@/services/supabase/profileRow';
@@ -131,12 +133,13 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
   try {
     const user = await getAuthUser();
 
-    const [sessions, keyErrors, profile, timestamps, masteryRows] = await Promise.all([
+    const [sessions, keyErrors, profile, timestamps, masteryRows, achievementRows] = await Promise.all([
       fetchUserSessions(100),
       fetchUserKeyErrors(),
       fetchUserProfile(),
       fetchUserSessionTimestamps(),
       fetchUserLessonMastery(),
+      user ? fetchUserAchievements(user.id) : Promise.resolve([]),
     ]);
 
     const streakResult = computeStreakFromPracticeDates(collectPracticeDates(timestamps));
@@ -150,6 +153,11 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
     replaceLocalProgress(history, progress);
     replaceKeyStats(mapKeyErrors(keyErrors));
 
+    if (achievementRows.length > 0) {
+      replaceLocalAchievementProgress(achievementRows);
+    }
+    evaluateAchievementProgress();
+
     dispatchSessionComplete();
     dispatchKeyStatsUpdated();
 
@@ -157,8 +165,7 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
       if (profile) primeUserProfileCache(user.id, profile);
       safeAsyncVoid('cloud progress extras', async () => {
         await updateProfileStreak(user.id, streakResult);
-        const sessionSummaries = await fetchAllUserSessionSummaries();
-        await syncBadgesFromSessionRows(user.id, sessionSummaries, streakResult.streak);
+        await syncAchievementsToCloud(user.id);
       });
     }
 

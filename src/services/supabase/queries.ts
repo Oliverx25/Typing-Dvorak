@@ -11,6 +11,8 @@ import {
   type ProfileQueryRow,
   type UserProfileRow,
 } from '@/services/supabase/profileRow';
+import { ACHIEVEMENT_CATALOG } from '@/utils/achievements/catalogData';
+import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
 
 async function resolveUserId(): Promise<string | null> {
   return getAuthSessionUserSync()?.id ?? (await getAuthUser())?.id ?? null;
@@ -235,6 +237,43 @@ export async function fetchUserLessonMastery(): Promise<LessonMasteryRow[]> {
     console.warn('[supabase] fetch lesson mastery failed:', error);
     return [];
   }
+}
+
+/** Per-user achievement progress stored in Supabase (source of truth when signed in). */
+export async function fetchUserAchievements(userId?: string): Promise<UserAchievementProgress[]> {
+  const resolvedUserId = userId ?? (await resolveUserId());
+  if (!resolvedUserId) return [];
+
+  const cacheKey = QUERY_CACHE_KEYS.achievements;
+  const cached = getCachedQuery<UserAchievementProgress[]>(cacheKey, resolvedUserId);
+  if (cached) return cached;
+
+  const supabase = getSupabaseClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('user_achievements')
+    .select('achievement_id, current_progress, unlocked_at')
+    .eq('user_id', resolvedUserId);
+
+  if (error) {
+    console.warn('[supabase] fetch user achievements failed:', error.message);
+    return [];
+  }
+
+  const rows = (data ?? []).map((row) => {
+    const achievementId = row.achievement_id as number;
+    const catalog = ACHIEVEMENT_CATALOG.find((item) => item.id === achievementId);
+    return {
+      achievementId,
+      slug: catalog?.slug ?? String(achievementId),
+      currentProgress: row.current_progress as number,
+      unlockedAt: (row.unlocked_at as string | null) ?? null,
+    };
+  });
+
+  setCachedQuery(cacheKey, resolvedUserId, rows);
+  return rows;
 }
 
 /** Seeds the profile cache after a full cloud load (avoids duplicate select on restore). */

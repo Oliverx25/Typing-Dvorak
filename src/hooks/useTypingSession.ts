@@ -252,9 +252,6 @@ export function useTypingSession({
       setIsNewRecord(record);
       setWpmDelta(result.wpm - previousBest);
 
-      dispatchSessionComplete(savedRecord);
-      dispatchKeyStatsUpdated();
-
       const sessionExtras = {
         earlyBurstWpm: earlyBurstMaxRef.current,
         errorRecoveryCombo: errorRecoveryMaxRef.current,
@@ -270,6 +267,9 @@ export function useTypingSession({
       } else {
         finalizeSingleplayerAchievements(savedRecord, sessionExtras);
       }
+
+      dispatchSessionComplete(savedRecord);
+      dispatchKeyStatsUpdated();
 
       if (sound) playCompleteSound();
     },
@@ -387,13 +387,14 @@ export function useTypingSession({
       if (!startTimeRef.current) return;
       const elapsed = Date.now() - startTimeRef.current - totalPausedMsRef.current;
       setElapsedMs(elapsed);
-      if (elapsed <= 5000) {
+      // Require at least 1s of typing before sampling burst WPM to avoid spikes on first keystrokes.
+      if (elapsed >= 1000 && elapsed <= 5000) {
         const burstWpm = raceMode
           ? calculateStableRaceWpm(correctCharsRef.current, elapsed)
           : buildStats(
               correctCharsRef.current,
               errorKeystrokesRef.current,
-              Math.max(elapsed, 1),
+              elapsed,
               isTestMode,
             ).wpm;
         earlyBurstMaxRef.current = Math.max(earlyBurstMaxRef.current, burstWpm);

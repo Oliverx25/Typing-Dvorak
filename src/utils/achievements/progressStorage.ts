@@ -39,6 +39,37 @@ export function replaceLocalAchievementProgress(rows: UserAchievementProgress[])
   saveLocalAchievementProgress(map);
 }
 
+/** Merge cloud rows with local — keeps max progress and earliest unlock timestamp. */
+export function mergeLocalAchievementProgress(rows: UserAchievementProgress[]): void {
+  if (rows.length === 0) return;
+
+  const map = getLocalAchievementProgress();
+
+  for (const row of rows) {
+    const key = String(row.achievementId);
+    const existing = map[key];
+    const catalog = CATALOG_BY_ID.get(row.achievementId);
+    const target = catalog?.targetValue ?? row.currentProgress;
+
+    if (!existing) {
+      map[key] = row;
+      continue;
+    }
+
+    const currentProgress = Math.max(existing.currentProgress, row.currentProgress);
+    const unlockedAt = existing.unlockedAt ?? row.unlockedAt;
+    map[key] = {
+      achievementId: row.achievementId,
+      slug: row.slug || existing.slug,
+      currentProgress:
+        unlockedAt && currentProgress < target ? target : Math.min(currentProgress, target),
+      unlockedAt,
+    };
+  }
+
+  saveLocalAchievementProgress(map);
+}
+
 export function isAchievementUnlocked(achievementId: number): boolean {
   return getProgressForAchievement(achievementId).unlockedAt != null;
 }
