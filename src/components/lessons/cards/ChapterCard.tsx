@@ -10,7 +10,7 @@ const CHAPTER_ICONS: Record<string, IconName> = {
   fundamentals: 'keyboard',
   expansion: 'zap',
   bilingual: 'book-open',
-  mechanics: 'gauge',
+  mechanics: 'speed',
   development: 'sparkles',
   mastery: 'trophy',
 };

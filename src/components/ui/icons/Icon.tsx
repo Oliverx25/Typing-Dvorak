@@ -134,6 +134,7 @@ interface IconProps extends SVGProps<SVGSVGElement> {
 
 export default function Icon({ name, size = 16, className = '', ...props }: IconProps) {
   const Component = ICONS[name];
+  if (!Component) return null;
   const filled = name === 'star-filled';
 
   return (
