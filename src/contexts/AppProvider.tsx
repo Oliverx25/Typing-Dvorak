@@ -108,14 +108,16 @@ export function useAppSafe(): AppContextValue | null {
 }
 
 export function getLessonTitle(t: TranslationKey, key: string): string {
+  const micro = t.microLessonMeta[key as keyof typeof t.microLessonMeta];
+  if (micro?.title) return micro.title;
   const meta = t.lessonMeta[key as keyof typeof t.lessonMeta];
   if (meta?.title) return meta.title;
-  const micro = t.microLessons[key as keyof typeof t.microLessons];
-  if (micro) return micro;
   return key;
 }
 
 export function getLessonDescription(t: TranslationKey, key: string): string {
+  const micro = t.microLessonMeta[key as keyof typeof t.microLessonMeta];
+  if (micro?.description) return micro.description;
   const meta = t.lessonMeta[key as keyof typeof t.lessonMeta];
   return meta?.description ?? key;
 }

@@ -434,22 +434,55 @@ export const en = {
     codeMode: { title: 'Code Mode', description: 'Real code snippets for developers.' },
     spanishDvorak: { title: 'Spanish Dvorak', description: 'Accents, ñ, and Spanish pangrams.' },
   },
-  microLessons: {
-    homeLeft: 'Left hand (A O E U)',
-    homeRight: 'Right hand (D H T N)',
-    homeFull: 'Full home row',
-    topNivel1: 'Level 1 (P G C R L)',
-    topNivel2: 'Level 2 (F V Z X)',
-    topFull: 'Full top row',
-    bottomNivel1: 'Level 1 (Q J K X)',
-    bottomNivel2: 'Level 2 (B M W V)',
-    bottomFull: 'Full bottom row',
-    codeHtml: 'HTML tags',
-    codeTs: 'TypeScript syntax',
-    codeFull: 'Full code challenge',
-    esAccents: 'Accents (á é í ó ú)',
-    esEnye: 'Letter ñ',
-    esFull: 'Spanish pangrams',
+  microLessonMeta: {
+    homeLeft: {
+      title: 'Left hand (A O E U)',
+      description: 'Practice only the left-hand vowels on the home row.',
+    },
+    homeRight: {
+      title: 'Right hand (D H T N)',
+      description: 'Practice D, H, T, and N on the home row.',
+    },
+    topNivel1: {
+      title: 'Level 1 (P Y G C R L)',
+      description: 'Practice P, Y, G, C, R, and L on the top row.',
+    },
+    topNivel2: {
+      title: "Level 2 (' , . F)",
+      description: 'Practice the remaining punctuation and F on the top row.',
+    },
+    bottomNivel1: {
+      title: 'Level 1 (Q J K X)',
+      description: 'Practice Q, J, K, and X on the bottom row.',
+    },
+    bottomNivel2: {
+      title: 'Level 2 (B M W V Z)',
+      description: 'Practice B, M, W, V, and Z on the bottom row.',
+    },
+    codeHtml: {
+      title: 'HTML tags',
+      description: 'Practice <, >, and / used in HTML tags.',
+    },
+    codeTs: {
+      title: 'TypeScript syntax',
+      description: 'Practice braces, parentheses, and semicolons from code.',
+    },
+    codeFull: {
+      title: 'Full code challenge',
+      description: 'Practice a mix of common programming symbols.',
+    },
+    esAccents: {
+      title: 'Accents (á é í ó ú)',
+      description: 'Practice accented Spanish vowels.',
+    },
+    esEnye: {
+      title: 'Letter ñ',
+      description: 'Practice lowercase and uppercase ñ.',
+    },
+    esFull: {
+      title: 'Spanish pangrams',
+      description: 'Full Spanish pangram sentences for rhythm and accuracy.',
+    },
   },
   qwerty: {
     qwerty: 'QWERTY',

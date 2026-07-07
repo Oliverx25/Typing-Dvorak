@@ -436,22 +436,55 @@ export const es: TranslationKey = {
     codeMode: { title: 'Modo código', description: 'Fragmentos de código reales para desarrolladores.' },
     spanishDvorak: { title: 'Dvorak español', description: 'Tildes, ñ y pangrams en español.' },
   },
-  microLessons: {
-    homeLeft: 'Mano izq. (A O E U)',
-    homeRight: 'Mano der. (D H T N)',
-    homeFull: 'Fila base completa',
-    topNivel1: 'Nivel 1 (P G C R L)',
-    topNivel2: 'Nivel 2 (F V Z X)',
-    topFull: 'Fila superior completa',
-    bottomNivel1: 'Nivel 1 (Q J K X)',
-    bottomNivel2: 'Nivel 2 (B M W V)',
-    bottomFull: 'Fila inferior completa',
-    codeHtml: 'Etiquetas HTML',
-    codeTs: 'Sintaxis TypeScript',
-    codeFull: 'Desafío de código completo',
-    esAccents: 'Tildes (á é í ó ú)',
-    esEnye: 'Letra ñ',
-    esFull: 'Pangrams en español',
+  microLessonMeta: {
+    homeLeft: {
+      title: 'Mano izq. (A O E U)',
+      description: 'Practica solo las vocales de la mano izquierda en la fila base.',
+    },
+    homeRight: {
+      title: 'Mano der. (D H T N)',
+      description: 'Practica D, H, T y N de la mano derecha en la fila base.',
+    },
+    topNivel1: {
+      title: 'Nivel 1 (P Y G C R L)',
+      description: 'Practica P, Y, G, C, R y L de la fila superior.',
+    },
+    topNivel2: {
+      title: "Nivel 2 (' , . F)",
+      description: 'Practica la puntuación y la F restantes de la fila superior.',
+    },
+    bottomNivel1: {
+      title: 'Nivel 1 (Q J K X)',
+      description: 'Practica Q, J, K y X de la fila inferior.',
+    },
+    bottomNivel2: {
+      title: 'Nivel 2 (B M W V Z)',
+      description: 'Practica B, M, W, V y Z de la fila inferior.',
+    },
+    codeHtml: {
+      title: 'Etiquetas HTML',
+      description: 'Practica los símbolos <, > y / usados en etiquetas HTML.',
+    },
+    codeTs: {
+      title: 'Sintaxis TypeScript',
+      description: 'Practica llaves, paréntesis y punto y coma de código.',
+    },
+    codeFull: {
+      title: 'Desafío de código completo',
+      description: 'Practica una mezcla de símbolos de programación.',
+    },
+    esAccents: {
+      title: 'Tildes (á é í ó ú)',
+      description: 'Practica vocales acentuadas en español.',
+    },
+    esEnye: {
+      title: 'Letra ñ',
+      description: 'Practica la letra ñ en mayúsculas y minúsculas.',
+    },
+    esFull: {
+      title: 'Pangrams en español',
+      description: 'Oraciones pangrama para ritmo y precisión en español.',
+    },
   },
   qwerty: {
     qwerty: 'QWERTY',

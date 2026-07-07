@@ -3,6 +3,18 @@ import type { Lesson } from '@/utils/curriculum/lessons';
 
 const MICRO_ENTRIES: MicroLesson[] = LESSON_GROUPS.flatMap((group) => group.microLessons);
 
+/** Symbols used in code-full micro lesson (subset of dev-symbols). */
+export const CODE_DRILL_CHARS = '<>/{}();[]=`~#$%^&*';
+
+/** Spanish pangrams for es-full — not copied from the main sentences lesson. */
+export const SPANISH_PANGRAM_TEXTS = [
+  'El veloz murcielago hindu comia feliz cardillo y kiwi.',
+  'Fabio me exige sin tapujos que un pez gordo saque la valla.',
+  'Jovencillo emponzonado de whisky, cigarrillo rubio.',
+  'Quien compra lana en invierno tiene panos en verano.',
+  'La ciguena gigante avanza con paso firme y elegante.',
+];
+
 export const MICRO_META_BY_ID = new Map(MICRO_ENTRIES.map((micro) => [micro.id, micro]));
 
 export function isMicroLessonId(lessonId: string): boolean {
@@ -22,46 +34,35 @@ export function buildMicroLessons(parentLookup: (id: string) => Lesson | undefin
   return MICRO_ENTRIES.map((micro) => buildMicroLesson(micro, parentLookup));
 }
 
+function resolveCharSet(micro: MicroLesson): string {
+  if (micro.chars === 'code') return CODE_DRILL_CHARS;
+  return micro.chars;
+}
+
 function buildMicroLesson(micro: MicroLesson, parentLookup: (id: string) => Lesson | undefined): Lesson {
   const parent = parentLookup(micro.parentLessonId);
-  const isPangram = micro.chars === 'pangrams';
-  const isAllChars = micro.chars === 'all';
+  const base = {
+    id: micro.id,
+    titleKey: micro.titleKey,
+    descriptionKey: micro.titleKey,
+    category: parent?.category ?? 'drill',
+    difficulty: micro.difficulty,
+    optional: true,
+  };
 
-  if (isPangram && parent) {
+  if (micro.chars === 'pangrams') {
     return {
-      id: micro.id,
-      titleKey: micro.titleKey,
-      descriptionKey: parent.descriptionKey,
-      category: parent.category,
-      difficulty: micro.difficulty,
-      optional: true,
-      texts: parent.texts,
-      textsEs: parent.textsEs,
-    };
-  }
-
-  if (isAllChars && parent && !parent.generated) {
-    return {
-      id: micro.id,
-      titleKey: micro.titleKey,
-      descriptionKey: parent.descriptionKey,
-      category: parent.category,
-      difficulty: micro.difficulty,
-      optional: true,
-      texts: parent.texts,
-      textsEs: parent.textsEs,
+      ...base,
+      category: 'sentences',
+      texts: SPANISH_PANGRAM_TEXTS,
+      textsEs: SPANISH_PANGRAM_TEXTS,
     };
   }
 
   return {
-    id: micro.id,
-    titleKey: micro.titleKey,
-    descriptionKey: parent?.descriptionKey ?? micro.titleKey,
-    category: parent?.category ?? 'drill',
-    difficulty: micro.difficulty,
-    optional: true,
+    ...base,
     generated: true,
-    charSet: isAllChars ? (parent?.charSet ?? 'all') : micro.chars,
-    texts: [`${micro.chars.split('').join(' ')}`],
+    charSet: resolveCharSet(micro),
+    texts: [`${resolveCharSet(micro).split('').join(' ')}`],
   };
 }

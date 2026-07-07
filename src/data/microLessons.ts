@@ -25,7 +25,6 @@ export const LESSON_GROUPS: LessonGroup[] = [
     microLessons: [
       { id: 'home-left', titleKey: 'homeLeft', chars: 'aoeu', parentLessonId: 'home-row', difficulty: 1 },
       { id: 'home-right', titleKey: 'homeRight', chars: 'dhtn', parentLessonId: 'home-row', difficulty: 1 },
-      { id: 'home-full', titleKey: 'homeFull', chars: 'aoeuidhtns', parentLessonId: 'home-row', difficulty: 1 },
     ],
   },
   {
@@ -34,8 +33,7 @@ export const LESSON_GROUPS: LessonGroup[] = [
     descriptionKey: 'topRow',
     microLessons: [
       { id: 'top-nivel-1', titleKey: 'topNivel1', chars: 'pygcrl', parentLessonId: 'top-row', difficulty: 2 },
-      { id: 'top-nivel-2', titleKey: 'topNivel2', chars: 'fvzx', parentLessonId: 'top-row', difficulty: 2 },
-      { id: 'top-full', titleKey: 'topFull', chars: "',.pyfgcrl", parentLessonId: 'top-row', difficulty: 2 },
+      { id: 'top-nivel-2', titleKey: 'topNivel2', chars: "',.f", parentLessonId: 'top-row', difficulty: 2 },
     ],
   },
   {
@@ -44,8 +42,7 @@ export const LESSON_GROUPS: LessonGroup[] = [
     descriptionKey: 'bottomRow',
     microLessons: [
       { id: 'bottom-nivel-1', titleKey: 'bottomNivel1', chars: 'qjkx', parentLessonId: 'bottom-row', difficulty: 2 },
-      { id: 'bottom-nivel-2', titleKey: 'bottomNivel2', chars: 'bmwv', parentLessonId: 'bottom-row', difficulty: 2 },
-      { id: 'bottom-full', titleKey: 'bottomFull', chars: ';qjkxbmwvz', parentLessonId: 'bottom-row', difficulty: 2 },
+      { id: 'bottom-nivel-2', titleKey: 'bottomNivel2', chars: 'bmwvz', parentLessonId: 'bottom-row', difficulty: 2 },
     ],
   },
   {
@@ -55,7 +52,7 @@ export const LESSON_GROUPS: LessonGroup[] = [
     microLessons: [
       { id: 'code-html', titleKey: 'codeHtml', chars: '<>/', parentLessonId: 'dev-symbols', difficulty: 4 },
       { id: 'code-ts', titleKey: 'codeTs', chars: '{}();', parentLessonId: 'dev-symbols', difficulty: 4 },
-      { id: 'code-full', titleKey: 'codeFull', chars: 'all', parentLessonId: 'dev-symbols', difficulty: 5 },
+      { id: 'code-full', titleKey: 'codeFull', chars: 'code', parentLessonId: 'dev-symbols', difficulty: 5 },
     ],
   },
   {

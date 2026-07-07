@@ -7,7 +7,8 @@ import { useLessonCardState } from '@/hooks/useLessonCardState';
 function MicroLessonLink({ micro }: { micro: MicroLesson }) {
   const { t } = useApp();
   const { unlocked, highestGrade, highestScore } = useLessonCardState(micro.id);
-  const title = t.microLessons[micro.titleKey as keyof typeof t.microLessons] ?? micro.titleKey;
+  const title =
+    t.microLessonMeta[micro.titleKey as keyof typeof t.microLessonMeta]?.title ?? micro.titleKey;
   const difficulty = t.difficulty[micro.difficulty];
 
   if (!unlocked) {

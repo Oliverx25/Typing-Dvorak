@@ -131,7 +131,8 @@ export default function PrimaryActionCard() {
               <ul className="space-y-1 border-t border-[var(--color-border)] px-4 py-3">
                 {group.microLessons.map((micro) => {
                   const microTitle =
-                    t.microLessons[micro.titleKey as keyof typeof t.microLessons] ?? micro.titleKey;
+                    t.microLessonMeta[micro.titleKey as keyof typeof t.microLessonMeta]?.title ??
+                    micro.titleKey;
                   return <MicroLessonRow key={micro.id} micro={micro} title={microTitle} />;
                 })}
               </ul>
