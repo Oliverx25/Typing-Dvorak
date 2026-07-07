@@ -9,7 +9,8 @@ import { readJson, writeJson, readString, writeString } from '@/utils/progress/l
 import { calculateGrade, bestGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { saveSongProgress } from '@/utils/progress/songProgress';
-import { masteryXpForGrade } from '@/utils/curriculum/mastery';
+import { masteryXpForSession, isMicroLessonForMastery } from '@/utils/curriculum/mastery';
+import { accumulateMasteryXpFromSessions } from '@/utils/curriculum/masteryHistory';
 
 export interface SessionRecord {
   lessonId: string;
@@ -88,10 +89,12 @@ export function saveSession(
     scoreOverride?: number;
     gradeOverride?: string;
     totalMultiplier?: number;
+    blindMode?: boolean;
   },
 ): { isNewRecord: boolean; previousBest: number; record: SessionRecord } {
+  const gradeMultiplier = options?.blindMode ? 1.2 : (options?.totalMultiplier ?? 1);
   const grade =
-    options?.gradeOverride ?? calculateGrade(stats.accuracy, options?.totalMultiplier ?? 1);
+    options?.gradeOverride ?? calculateGrade(stats.accuracy, gradeMultiplier);
   const score =
     options?.scoreOverride ??
     Math.round(stats.wpm * 10 * (stats.accuracy / 100) + maxCombo * 5);
@@ -128,7 +131,14 @@ export function saveSession(
       highestGrade: bestGrade(existing?.highestGrade, grade) ?? grade,
       highestScore: Math.max(existing?.highestScore ?? 0, score),
       maxWpm: Math.max(existing?.maxWpm ?? 0, stats.wpm),
-      masteryXp: (existing?.masteryXp ?? 0) + masteryXpForGrade(grade),
+      masteryXp:
+        (existing?.masteryXp ?? 0) +
+        masteryXpForSession({
+          wpm: stats.wpm,
+          accuracy: stats.accuracy,
+          grade,
+          isMicroLesson: isMicroLessonForMastery(lessonId),
+        }),
     };
   }
 
@@ -183,8 +193,22 @@ export function getLessonProgress(lessonId: string): LessonProgress | null {
   return getProgress().lessons[lessonId] ?? null;
 }
 
+export function getBestAccuracyForLesson(lessonId: string): number | null {
+  const stored = getProgress().lessons[lessonId]?.bestAccuracy;
+  if (stored != null && stored > 0) return stored;
+
+  let best = 0;
+  for (const session of getSessionHistory()) {
+    if (session.lessonId !== lessonId) continue;
+    best = Math.max(best, session.accuracy);
+  }
+  return best > 0 ? best : null;
+}
+
 export function getMasteryXpForLesson(lessonId: string): number {
-  return getProgress().lessons[lessonId]?.masteryXp ?? 0;
+  const stored = getProgress().lessons[lessonId]?.masteryXp ?? 0;
+  const fromHistory = accumulateMasteryXpFromSessions(getSessionHistory(), lessonId);
+  return Math.max(stored, fromHistory);
 }
 
 export function getCompletedLessonsMap(): Record<string, { bestAccuracy: number; bestWpm: number }> {

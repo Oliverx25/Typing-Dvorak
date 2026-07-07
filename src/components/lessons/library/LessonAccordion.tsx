@@ -1,12 +1,15 @@
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { LESSON_GROUPS, type MicroLesson } from '@/data/microLessons';
 import { Accordion, Badge, BestScoreLabel } from '@/components/ui';
+import LessonMasteryPanel from '@/components/lessons/LessonMasteryPanel';
+import { MASTERY_RING_CLASSES } from '@/utils/curriculum/mastery';
 import type { AccordionItem } from '@/components/ui';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 
 function MicroLessonLink({ micro }: { micro: MicroLesson }) {
   const { t } = useApp();
-  const { unlocked, highestGrade, highestScore } = useLessonCardState(micro.id);
+  const { unlocked, highestGrade, highestScore, masteryTier } = useLessonCardState(micro.id);
+  const ringClass = MASTERY_RING_CLASSES[masteryTier];
   const title =
     t.microLessonMeta[micro.titleKey as keyof typeof t.microLessonMeta]?.title ?? micro.titleKey;
   const difficulty = t.difficulty[micro.difficulty];
@@ -26,11 +29,15 @@ function MicroLessonLink({ micro }: { micro: MicroLesson }) {
   return (
     <a
       href={`/lesson/${micro.id}`}
-      className="flex items-center justify-between rounded-lg px-3 py-2 no-underline transition hover:bg-[var(--color-surface)]/80"
+      className={[
+        'flex items-center justify-between rounded-lg px-3 py-2 no-underline transition hover:bg-[var(--color-surface)]/80',
+        ringClass,
+      ].join(' ')}
     >
-      <div>
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
         <p className="font-mono text-xs tracking-widest text-[var(--color-highlight)]">{micro.chars}</p>
+        <LessonMasteryPanel lessonId={micro.id} size="sm" className="mt-1" />
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
         <BestScoreLabel

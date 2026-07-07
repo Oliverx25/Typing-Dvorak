@@ -82,6 +82,17 @@ export const es: TranslationKey = {
     reviewLesson: 'Repasar {lesson}',
     tapToReview: 'Toca para ver micro-lecciones',
     backToRecommended: 'Volver a tu siguiente paso',
+    masteryXpToNext: '{xp} XP para el siguiente nivel',
+    masteryRequirements: 'Requiere {wpm} WPM y {accuracy}% precisión',
+    masteryRequirementsGrade: 'Requiere {wpm} WPM, {accuracy}% y rango {grade}+',
+  },
+  mastery: {
+    bronze: 'Bronce',
+    silver: 'Plata',
+    gold: 'Oro',
+    diamond: 'Diamante',
+    ascended: 'Maestro',
+    label: 'Maestría',
   },
   auth: {
     signInGithub: 'GitHub',

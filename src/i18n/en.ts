@@ -80,6 +80,17 @@ export const en = {
     reviewLesson: 'Review {lesson}',
     tapToReview: 'Tap to review micro-lessons',
     backToRecommended: 'Back to your next step',
+    masteryXpToNext: '{xp} XP to next level',
+    masteryRequirements: 'Requires {wpm} WPM and {accuracy}% accuracy',
+    masteryRequirementsGrade: 'Requires {wpm} WPM, {accuracy}% and grade {grade}+',
+  },
+  mastery: {
+    bronze: 'Bronze',
+    silver: 'Silver',
+    gold: 'Gold',
+    diamond: 'Diamond',
+    ascended: 'Master',
+    label: 'Mastery',
   },
   auth: {
     signInGithub: 'GitHub',

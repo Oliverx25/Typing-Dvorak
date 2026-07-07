@@ -68,6 +68,7 @@ interface UseTypingSessionOptions {
   zenMode?: boolean;
   stopOnError?: boolean;
   stopOnWord?: boolean;
+  blindMode?: boolean;
 }
 
 function wordHasUncorrectedErrors(input: string, statuses: CharStatus[]): boolean {
@@ -106,6 +107,7 @@ export function useTypingSession({
   zenMode = false,
   stopOnError = false,
   stopOnWord = false,
+  blindMode = false,
 }: UseTypingSessionOptions) {
   const isTestMode = mode === 'test' && !zenMode;
 
@@ -247,6 +249,7 @@ export function useTypingSession({
           scoreOverride: raceMode ? raceScoreRef.current : sessionPersist?.scoreOverride,
           gradeOverride: sessionPersist?.gradeOverride,
           totalMultiplier: sessionPersist?.totalMultiplier ?? (raceMode ? scoreMultiplier : undefined),
+          blindMode: !raceMode && blindMode,
         },
       );
       setIsNewRecord(record);
@@ -273,7 +276,7 @@ export function useTypingSession({
 
       if (sound) playCompleteSound();
     },
-    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled],
+    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled, blindMode],
   );
 
   const forceFinishEarly = useCallback(() => {

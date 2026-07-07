@@ -3,8 +3,11 @@ import { useFocusedChapter } from '@/contexts/FocusedChapterProvider';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
 import { LockIcon, BestScoreLabel } from '@/components/ui';
+import LessonMasteryPanel from '@/components/lessons/LessonMasteryPanel';
+import { MASTERY_RING_CLASSES } from '@/utils/curriculum/mastery';
 
 interface LibraryCardProps {
+  lessonId: string;
   title: string;
   difficultyLabel: string;
   locked: boolean;
@@ -19,6 +22,7 @@ interface LibraryCardProps {
 }
 
 function LibraryCard({
+  lessonId,
   title,
   difficultyLabel,
   locked,
@@ -63,6 +67,7 @@ function LibraryCard({
           scoreUnit={scoreUnit}
           className="mt-2"
         />
+        <LessonMasteryPanel lessonId={lessonId} size="sm" className="mt-2" />
         <p className="mt-2 text-xs text-[var(--color-text-muted)]">
           {isRecommended ? inProgressLabel : tapToReviewLabel}
         </p>
@@ -76,9 +81,10 @@ function LibraryCard({
       onClick={onSelect}
       className={`${baseClass} flex items-center justify-between border border-[var(--color-border)] bg-[var(--color-surface-elevated)] hover:border-[var(--color-highlight)]/40 hover:bg-[var(--color-surface)]`}
     >
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
         <p className="text-[10px] text-[var(--color-text-muted)]">{difficultyLabel}</p>
+        <LessonMasteryPanel lessonId={lessonId} size="sm" className="mt-1.5" />
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <BestScoreLabel
@@ -95,15 +101,18 @@ function LibraryCard({
 function LibraryCardRow({ lessonId }: { lessonId: string }) {
   const { t } = useApp();
   const { focusedLessonId, recommendedId, setFocusedLessonId } = useFocusedChapter();
-  const { unlocked, highestGrade, highestScore } = useLessonCardState(lessonId);
+  const { unlocked, highestGrade, highestScore, masteryTier } = useLessonCardState(lessonId);
   const lesson = CORE_LESSONS.find((l) => l.id === lessonId);
   if (!lesson) return null;
 
   const title = getLessonTitle(t, lesson.titleKey);
   const difficultyLabel = t.difficulty[lesson.difficulty];
+  const ringClass = MASTERY_RING_CLASSES[masteryTier];
 
   return (
-    <LibraryCard
+    <div className={ringClass ? `rounded-xl ${ringClass}` : undefined}>
+      <LibraryCard
+        lessonId={lessonId}
       title={title}
       difficultyLabel={difficultyLabel}
       locked={!unlocked}
@@ -115,7 +124,8 @@ function LibraryCardRow({ lessonId }: { lessonId: string }) {
       inProgressLabel={t.home.inProgress}
       tapToReviewLabel={t.home.tapToReview}
       onSelect={() => setFocusedLessonId(lessonId)}
-    />
+      />
+    </div>
   );
 }
 

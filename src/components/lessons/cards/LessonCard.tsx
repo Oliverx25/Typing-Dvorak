@@ -6,9 +6,9 @@ import type { Lesson } from '@/utils/curriculum/lessons';
 import { CORE_LESSONS } from '@/utils/curriculum/lessons';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
-import { MASTERY_BADGE_CLASSES, MASTERY_RING_CLASSES, MASTERY_TIER_LABELS } from '@/utils/curriculum/mastery';
-import type { MasteryTier } from '@/utils/curriculum/mastery';
-import { Card, Badge, BestScoreLabel, Icon, LockIcon } from '@/components/ui';
+import { MASTERY_RING_CLASSES, type MasteryTier } from '@/utils/curriculum/mastery';
+import LessonMasteryPanel from '@/components/lessons/LessonMasteryPanel';
+import { Card, Badge, BestScoreLabel, LockIcon } from '@/components/ui';
 
 interface LessonCardProps {
   lesson: Lesson;
@@ -90,7 +90,6 @@ function UnlockedLessonCard({
   scoreUnit: string;
 }) {
   const ringClass = MASTERY_RING_CLASSES[masteryTier];
-  const badgeClass = MASTERY_BADGE_CLASSES[masteryTier];
 
   return (
     <Card
@@ -100,15 +99,6 @@ function UnlockedLessonCard({
       padding="md"
       className={['group relative block no-underline hover:shadow-md', ringClass].filter(Boolean).join(' ')}
     >
-      {masteryTier > 0 && (
-        <div
-          className={['absolute left-3 top-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider', badgeClass].join(' ')}
-          title={MASTERY_TIER_LABELS[masteryTier]}
-        >
-          <Icon name="award" size={14} />
-          <span>{MASTERY_TIER_LABELS[masteryTier]}</span>
-        </div>
-      )}
       <div className="absolute right-2 top-2">
         <BestScoreLabel
           highestGrade={highestGrade}
@@ -127,6 +117,7 @@ function UnlockedLessonCard({
         {title}
       </h3>
       <p className="mt-1.5 text-sm text-[var(--color-text-muted)]">{description}</p>
+      <LessonMasteryPanel lessonId={lesson.id} className="mt-3" />
       <div className="mt-4">
         <span className="text-sm font-medium text-[var(--color-highlight)]">{startLabel} →</span>
       </div>

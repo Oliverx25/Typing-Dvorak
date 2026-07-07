@@ -7,12 +7,15 @@ import { findLessonGroup } from '@/utils/curriculum/microLessonGroups';
 import CircularProgress from '@/components/ui/display/CircularProgress';
 import { Badge, BestScoreLabel, Icon } from '@/components/ui';
 import { useLessonCardState } from '@/hooks/useLessonCardState';
+import LessonMasteryPanel from '@/components/lessons/LessonMasteryPanel';
+import { MASTERY_RING_CLASSES } from '@/utils/curriculum/mastery';
 
 import type { MicroLesson } from '@/data/microLessons';
 
 function MicroLessonRow({ micro, title }: { micro: MicroLesson; title: string }) {
   const { t } = useApp();
-  const { unlocked, highestGrade, highestScore } = useLessonCardState(micro.id);
+  const { unlocked, highestGrade, highestScore, masteryTier } = useLessonCardState(micro.id);
+  const ringClass = MASTERY_RING_CLASSES[masteryTier];
 
   if (!unlocked) {
     return (
@@ -27,9 +30,15 @@ function MicroLessonRow({ micro, title }: { micro: MicroLesson; title: string })
     <li>
       <a
         href={`/lesson/${micro.id}`}
-        className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm no-underline transition hover:bg-[var(--color-surface-elevated)]"
+        className={[
+          'flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm no-underline transition hover:bg-[var(--color-surface-elevated)]',
+          ringClass,
+        ].join(' ')}
       >
-        <span className="min-w-0 truncate text-[var(--color-text)]">{title}</span>
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-[var(--color-text)]">{title}</span>
+          <LessonMasteryPanel lessonId={micro.id} size="sm" className="mt-1" />
+        </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <BestScoreLabel
             highestGrade={highestGrade}
@@ -61,9 +70,11 @@ export default function PrimaryActionCard() {
     }
   }, [focusedLessonId]);
 
-  const { highestGrade, highestScore } = useLessonCardState(focusedLessonId);
+  const { highestGrade, highestScore, masteryTier } = useLessonCardState(focusedLessonId);
   const lesson = getLessonById(focusedLessonId);
   if (!lesson) return null;
+
+  const ringClass = MASTERY_RING_CLASSES[masteryTier];
 
   const title = getLessonTitle(t, lesson.titleKey);
   const description = getLessonDescription(t, lesson.descriptionKey);
@@ -90,7 +101,12 @@ export default function PrimaryActionCard() {
         )}
       </div>
 
-      <article className="overflow-hidden rounded-2xl border-2 border-[var(--color-highlight)]/35 bg-[var(--color-surface-elevated)] shadow-lg shadow-[var(--color-highlight)]/10">
+      <article
+        className={[
+          'overflow-hidden rounded-2xl border-2 border-[var(--color-highlight)]/35 bg-[var(--color-surface-elevated)] shadow-lg shadow-[var(--color-highlight)]/10',
+          ringClass,
+        ].join(' ')}
+      >
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
           <CircularProgress value={focusedProgress} />
 
@@ -105,6 +121,7 @@ export default function PrimaryActionCard() {
               size="md"
               className="mt-2"
             />
+            <LessonMasteryPanel lessonId={focusedLessonId} className="mt-3" />
             <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">{description}</p>
 
             <a

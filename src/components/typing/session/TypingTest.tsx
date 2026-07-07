@@ -92,6 +92,7 @@ export default function TypingTest({
     zenMode: zenEnabled,
     stopOnError: settings.stopOnError,
     stopOnWord: settings.stopOnWord,
+    blindMode: effectiveBlindMode,
   });
 
   const {
