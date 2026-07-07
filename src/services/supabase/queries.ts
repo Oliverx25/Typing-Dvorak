@@ -203,6 +203,14 @@ export async function fetchAllUserSessionSummaries(): Promise<SessionSummaryRow[
 export interface LessonMasteryRow {
   lesson_id: string;
   mastery_xp: number;
+  best_wpm: number;
+  best_accuracy: number;
+  highest_grade: string | null;
+  highest_score: number;
+  best_test_wpm: number;
+  best_test_accuracy: number;
+  best_test_grade: string | null;
+  test_attempts: number;
 }
 
 /** Per-lesson mastery XP stored in Supabase (source of truth when signed in). */
@@ -219,7 +227,9 @@ export async function fetchUserLessonMastery(): Promise<LessonMasteryRow[]> {
   try {
     const { data, error } = await supabase
       .from('user_lesson_mastery')
-      .select('lesson_id, mastery_xp')
+      .select(
+        'lesson_id, mastery_xp, best_wpm, best_accuracy, highest_grade, highest_score, best_test_wpm, best_test_accuracy, best_test_grade, test_attempts',
+      )
       .eq('user_id', userId);
 
     if (error) {
@@ -230,6 +240,14 @@ export async function fetchUserLessonMastery(): Promise<LessonMasteryRow[]> {
     const rows = (data ?? []).map((row) => ({
       lesson_id: row.lesson_id as string,
       mastery_xp: row.mastery_xp as number,
+      best_wpm: (row.best_wpm as number) ?? 0,
+      best_accuracy: Number(row.best_accuracy ?? 0),
+      highest_grade: (row.highest_grade as string | null) ?? null,
+      highest_score: (row.highest_score as number) ?? 0,
+      best_test_wpm: (row.best_test_wpm as number) ?? 0,
+      best_test_accuracy: Number(row.best_test_accuracy ?? 0),
+      best_test_grade: (row.best_test_grade as string | null) ?? null,
+      test_attempts: (row.test_attempts as number) ?? 0,
     }));
     setCachedQuery(QUERY_CACHE_KEYS.lessonMastery, userId, rows);
     return rows;

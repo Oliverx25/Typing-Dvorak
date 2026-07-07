@@ -1,15 +1,21 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchUserLessonMastery, fetchUserAchievements, primeUserProfileCache } from '@/services/supabase/queries';
 import { getAuthUser } from '@/services/supabase/authSession';
-import type { SessionRecord, UserProgress, LessonProgress } from '@/utils/progress/storage';
+import type { SessionRecord, UserProgress } from '@/utils/progress/storage';
 import { replaceLocalProgress } from '@/utils/progress/storage';
+import {
+  aggregateLessonsFromSessions,
+  mergeLessonProgressEntries,
+  cloudRowToLessonProgress,
+  type LessonMasteryCloudPayload,
+} from '@/utils/progress/lessonProgressAggregate';
 import { clearGuestProgress } from '@/utils/progress/guestProgress';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 import type { PracticeMode } from '@/utils/app/settings';
-import { calculateGrade, bestGrade } from '@/utils/grading';
+import { calculateGrade } from '@/utils/grading';
 import { parseStoredRaceModifiers } from '@/utils/stats/sessionDisplay';
 import { getSettings, saveSettings } from '@/utils/app/settings';
 import { appPreferencesFromUserSettings } from '@/utils/app/settingsSync';
@@ -62,27 +68,8 @@ function buildProgressFromSessions(
   sessions: SessionRecord[],
   streakResult: { streak: number; lastPracticeDate: string | null },
 ): UserProgress {
-  const lessons: Record<string, LessonProgress> = {};
-
-  for (const session of sessions) {
-    if (session.lessonId === 'multiplayer') continue;
-    const existing = lessons[session.lessonId];
-    lessons[session.lessonId] = {
-      bestWpm: Math.max(existing?.bestWpm ?? 0, session.wpm),
-      bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, session.accuracy),
-      attempts: (existing?.attempts ?? 0) + 1,
-      lastPlayedAt:
-        !existing || session.completedAt > existing.lastPlayedAt
-          ? session.completedAt
-          : existing.lastPlayedAt,
-      highestGrade: bestGrade(existing?.highestGrade, session.grade) ?? undefined,
-      highestScore: Math.max(existing?.highestScore ?? 0, session.score ?? 0),
-      maxWpm: Math.max(existing?.maxWpm ?? 0, session.wpm),
-    };
-  }
-
   return {
-    lessons,
+    lessons: aggregateLessonsFromSessions(sessions),
     streak: streakResult.streak,
     lastPracticeDate: streakResult.lastPracticeDate,
   };
@@ -97,19 +84,18 @@ function mergeMasteryIntoProgress(
   const lessons = { ...progress.lessons };
 
   for (const row of masteryRows) {
+    const fromCloud = cloudRowToLessonProgress(row as LessonMasteryCloudPayload);
     const existing = lessons[row.lesson_id];
-    const masteryXp = Math.max(existing?.masteryXp ?? 0, row.mastery_xp);
+    const merged = mergeLessonProgressEntries(existing, fromCloud);
 
-    lessons[row.lesson_id] = {
-      bestWpm: existing?.bestWpm ?? 0,
-      bestAccuracy: existing?.bestAccuracy ?? 0,
-      attempts: existing?.attempts ?? 0,
-      lastPlayedAt: existing?.lastPlayedAt ?? '',
-      highestGrade: existing?.highestGrade,
-      highestScore: existing?.highestScore,
-      maxWpm: existing?.maxWpm,
-      masteryXp,
-    };
+    if (merged) {
+      lessons[row.lesson_id] = {
+        ...merged,
+        masteryXp: Math.max(existing?.masteryXp ?? 0, row.mastery_xp),
+        attempts: Math.max(existing?.attempts ?? 0, merged.attempts),
+        lastPlayedAt: existing?.lastPlayedAt || merged.lastPlayedAt,
+      };
+    }
   }
 
   return { ...progress, lessons };

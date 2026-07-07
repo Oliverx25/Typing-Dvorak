@@ -33,12 +33,12 @@ export default function LessonMasteryPanel({
     useLessonCardState(lessonId);
 
   const requirementsHint = blockedRequirements
-    ? formatMasteryRequirementsHint(
-        blockedRequirements,
-        blockedRequirements.minGrade
-          ? t.home.masteryRequirementsGrade
-          : t.home.masteryRequirements,
-      )
+    ? formatMasteryRequirementsHint(blockedRequirements, {
+        default: t.home.masteryRequirements,
+        withGrade: t.home.masteryRequirementsGrade,
+        test: t.home.masteryRequirementsTest,
+        testWithGrade: t.home.masteryRequirementsTestGrade,
+      })
     : null;
 
   if (masteryTier === 0 && masteryXp <= 0) return null;

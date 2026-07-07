@@ -14,6 +14,7 @@ export function accumulateMasteryXpFromSessions(sessions: SessionRecord[], lesso
       accuracy: session.accuracy,
       grade: session.grade ?? calculateGrade(session.accuracy),
       isMicroLesson: isMicro,
+      mode: session.mode,
     });
   }
 

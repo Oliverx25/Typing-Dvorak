@@ -48,6 +48,7 @@ interface TypingTestProps {
   suddenDeathMode?: boolean;
   sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
+  testDurationSeconds?: number;
 }
 
 export default function TypingTest({
@@ -68,6 +69,7 @@ export default function TypingTest({
   suddenDeathMode = false,
   sessionPersist,
   onProgressChange,
+  testDurationSeconds,
 }: TypingTestProps) {
   const { t, settings } = useApp();
   const lessonTitle = ariaLabel ?? getLessonTitle(t, lesson.titleKey);
@@ -93,6 +95,7 @@ export default function TypingTest({
     stopOnError: settings.stopOnError,
     stopOnWord: settings.stopOnWord,
     blindMode: effectiveBlindMode,
+    testDurationSeconds,
   });
 
   const {

@@ -2,7 +2,9 @@ import { lazy, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useApp } from '@/contexts/AppProvider';
 import { FocusedChapterProvider } from '@/contexts/FocusedChapterProvider';
+import { RoadmapProvider, useRoadmap } from '@/contexts/RoadmapProvider';
 import PrimaryActionCard from '@/components/lessons/cards/PrimaryActionCard';
+import SandboxConfigurator from '@/components/lessons/sandbox/SandboxConfigurator';
 import AdaptiveDrillCard from '@/components/lessons/cards/AdaptiveDrillCard';
 
 const LessonLibraryGrid = lazy(() => import('@/components/lessons/library/LessonLibraryGrid'));
@@ -48,10 +50,12 @@ function LessonsProgressSkeleton() {
   );
 }
 
-function LessonsContent() {
+function LessonsMain() {
+  const { isRoadmapComplete } = useRoadmap();
+
   return (
-    <FocusedChapterProvider>
-      <PrimaryActionCard />
+  <>
+      {isRoadmapComplete ? <SandboxConfigurator /> : <PrimaryActionCard />}
       <AdaptiveDrillCard />
       <Suspense fallback={<SectionSkeleton rows={4} />}>
         <LessonLibraryGrid />
@@ -62,7 +66,17 @@ function LessonsContent() {
       <Suspense fallback={<SectionSkeleton rows={1} />}>
         <LearnMoreSection />
       </Suspense>
-    </FocusedChapterProvider>
+    </>
+  );
+}
+
+function LessonsContent() {
+  return (
+    <RoadmapProvider>
+      <FocusedChapterProvider>
+        <LessonsMain />
+      </FocusedChapterProvider>
+    </RoadmapProvider>
   );
 }
 

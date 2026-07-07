@@ -86,8 +86,21 @@ export default function MasteryBadge({
 
 export function formatMasteryRequirementsHint(
   requirements: MasteryTierRequirements,
-  template: string,
+  templates: {
+    default: string;
+    withGrade: string;
+    test: string;
+    testWithGrade: string;
+  },
 ): string {
+  const template = requirements.testMode
+    ? requirements.minGrade
+      ? templates.testWithGrade
+      : templates.test
+    : requirements.minGrade
+      ? templates.withGrade
+      : templates.default;
+
   return template
     .replace('{wpm}', String(requirements.minWpm))
     .replace('{accuracy}', String(requirements.minAccuracy))

@@ -4,6 +4,8 @@ import {
   SPECIAL_SS_MULTIPLIER,
   type Grade,
 } from '@/utils/grading';
+import type { PracticeMode } from '@/utils/app/settings';
+import type { LessonMasteryPerformance } from '@/utils/progress/lessonProgressAggregate';
 import { isMicroLessonId } from '@/utils/curriculum/microLessonCatalog';
 
 /** Cumulative XP thresholds per mastery tier. */
@@ -30,11 +32,14 @@ export interface MasteryTierRequirements {
   minWpm: number;
   minAccuracy: number;
   minGrade?: Grade;
+  /** When true, WPM/accuracy/grade must come from timed test sessions. */
+  testMode?: boolean;
 }
 
 export const MASTERY_TIER_REQUIREMENTS: Partial<Record<MasteryTier, MasteryTierRequirements>> = {
-  4: { minWpm: 55, minAccuracy: 94 },
-  5: { minWpm: 75, minAccuracy: 97, minGrade: 'S+' },
+  3: { minWpm: 40, minAccuracy: 90 },
+  4: { minWpm: 50, minAccuracy: 92, testMode: true },
+  5: { minWpm: 70, minAccuracy: 96, minGrade: 'S+', testMode: true },
 };
 
 const THRESHOLD_LIST = [
@@ -69,14 +74,18 @@ export interface MasterySessionInput {
   accuracy: number;
   grade?: string;
   isMicroLesson?: boolean;
+  mode?: PracticeMode;
 }
+
+const TEST_MODE_XP_MULTIPLIER = 1.35;
+const PRACTICE_MODE_XP_MULTIPLIER = 1;
 
 /**
  * XP earned per session — requires minimum skill and scales with WPM × accuracy.
- * Micro-lessons award 60% XP.
+ * Test mode awards more XP; micro-lessons award 60% XP.
  */
 export function masteryXpForSession(input: MasterySessionInput): number {
-  const { wpm, accuracy, grade, isMicroLesson = false } = input;
+  const { wpm, accuracy, grade, isMicroLesson = false, mode = 'practice' } = input;
 
   if (accuracy < 78 || wpm < 12) return 0;
 
@@ -84,7 +93,8 @@ export function masteryXpForSession(input: MasterySessionInput): number {
   const gradeBase = masteryXpForGrade(resolvedGrade);
   const wpmFactor = Math.min(1.8, 0.35 + wpm / 55);
   const accuracyFactor = Math.min(1.2, accuracy / 100);
-  let xp = Math.round(gradeBase * wpmFactor * accuracyFactor);
+  const modeFactor = mode === 'test' ? TEST_MODE_XP_MULTIPLIER : PRACTICE_MODE_XP_MULTIPLIER;
+  let xp = Math.round(gradeBase * wpmFactor * accuracyFactor * modeFactor);
 
   if (isMicroLesson) xp = Math.round(xp * 0.6);
 
@@ -100,30 +110,48 @@ export function masteryTierFromXp(xp: number): MasteryTier {
   return 0;
 }
 
+function performanceForRequirement(
+  req: MasteryTierRequirements,
+  perf: LessonMasteryPerformance,
+): { wpm: number; accuracy: number; grade: string | null } {
+  if (req.testMode) {
+    return {
+      wpm: perf.testBestWpm,
+      accuracy: perf.testBestAccuracy,
+      grade: perf.testHighestGrade,
+    };
+  }
+  return {
+    wpm: perf.bestWpm,
+    accuracy: perf.bestAccuracy,
+    grade: perf.highestGrade,
+  };
+}
+
 export function meetsTierRequirements(
   tier: MasteryTier,
-  bestWpm: number,
-  bestAccuracy: number,
-  highestGrade: string | null,
+  perf: LessonMasteryPerformance,
 ): boolean {
   const req = MASTERY_TIER_REQUIREMENTS[tier];
   if (!req) return true;
-  if (bestWpm < req.minWpm) return false;
-  if (bestAccuracy < req.minAccuracy) return false;
-  if (req.minGrade && gradeRank(highestGrade) < gradeRank(req.minGrade)) return false;
+
+  const { wpm, accuracy, grade } = performanceForRequirement(req, perf);
+
+  if (req.testMode && perf.testAttempts <= 0) return false;
+  if (wpm < req.minWpm) return false;
+  if (accuracy < req.minAccuracy) return false;
+  if (req.minGrade && gradeRank(grade) < gradeRank(req.minGrade)) return false;
   return true;
 }
 
-/** Effective tier — XP tier capped until WPM/accuracy/grade requirements are met. */
+/** Effective tier — XP tier capped until WPM/accuracy/grade/test requirements are met. */
 export function effectiveMasteryTier(
   xp: number,
-  bestWpm: number,
-  bestAccuracy: number,
-  highestGrade: string | null,
+  perf: LessonMasteryPerformance,
 ): MasteryTier {
   let tier = masteryTierFromXp(xp);
 
-  while (tier > 0 && !meetsTierRequirements(tier, bestWpm, bestAccuracy, highestGrade)) {
+  while (tier > 0 && !meetsTierRequirements(tier, perf)) {
     tier = (tier - 1) as MasteryTier;
   }
 
@@ -159,12 +187,10 @@ export interface LessonMasterySnapshot {
 
 export function buildLessonMasterySnapshot(
   xp: number,
-  bestWpm: number,
-  bestAccuracy: number,
-  highestGrade: string | null,
+  perf: LessonMasteryPerformance,
 ): LessonMasterySnapshot {
   const xpTier = masteryTierFromXp(xp);
-  const masteryTier = effectiveMasteryTier(xp, bestWpm, bestAccuracy, highestGrade);
+  const masteryTier = effectiveMasteryTier(xp, perf);
   const xpProgress = masteryTierProgress(xp);
 
   let blockedTier: MasteryTier | null = null;

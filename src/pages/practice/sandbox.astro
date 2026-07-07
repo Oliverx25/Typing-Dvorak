@@ -1,0 +1,10 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import SandboxPracticeAppRoot from '@/components/pages/practice/SandboxPracticeAppRoot';
+
+export const prerender = true;
+---
+
+<AppLayout title="Typing Dvorak — Free Training">
+  <SandboxPracticeAppRoot client:load />
+</AppLayout>

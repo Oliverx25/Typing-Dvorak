@@ -150,12 +150,28 @@ export type Database = {
           user_id: string;
           lesson_id: string;
           mastery_xp: number;
+          best_wpm: number;
+          best_accuracy: number;
+          highest_grade: string | null;
+          highest_score: number;
+          best_test_wpm: number;
+          best_test_accuracy: number;
+          best_test_grade: string | null;
+          test_attempts: number;
           updated_at: string;
         };
         Insert: {
           user_id: string;
           lesson_id: string;
           mastery_xp?: number;
+          best_wpm?: number;
+          best_accuracy?: number;
+          highest_grade?: string | null;
+          highest_score?: number;
+          best_test_wpm?: number;
+          best_test_accuracy?: number;
+          best_test_grade?: string | null;
+          test_attempts?: number;
           updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['user_lesson_mastery']['Insert']>;

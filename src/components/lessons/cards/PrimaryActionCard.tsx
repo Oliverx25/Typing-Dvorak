@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp, getLessonDescription, getLessonTitle } from '@/contexts/AppProvider';
 import { useFocusedChapter } from '@/contexts/FocusedChapterProvider';
+import { useRoadmap } from '@/contexts/RoadmapProvider';
 import { t as translate } from '@/i18n';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import { findLessonGroup } from '@/utils/curriculum/microLessonGroups';
@@ -56,8 +57,9 @@ function MicroLessonRow({ micro, title }: { micro: MicroLesson; title: string })
 
 export default function PrimaryActionCard() {
   const { t, locale } = useApp();
-  const { focusedLessonId, recommendedId, isRecommendedFocus, focusedProgress, setFocusedLessonId } =
+  const { focusedLessonId, recommendedId, isRecommendedFocus, setFocusedLessonId } =
     useFocusedChapter();
+  const { globalProgress } = useRoadmap();
   const [microOpen, setMicroOpen] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const prevFocused = useRef(focusedLessonId);
@@ -108,7 +110,7 @@ export default function PrimaryActionCard() {
         ].join(' ')}
       >
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
-          <CircularProgress value={focusedProgress} />
+          <CircularProgress value={globalProgress} />
 
           <div className="min-w-0 flex-1">
             <h2 className="text-xl font-bold uppercase tracking-wide text-[var(--color-text)] sm:text-2xl">

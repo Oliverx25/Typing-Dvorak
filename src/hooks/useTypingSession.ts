@@ -69,6 +69,7 @@ interface UseTypingSessionOptions {
   stopOnError?: boolean;
   stopOnWord?: boolean;
   blindMode?: boolean;
+  testDurationSeconds?: number;
 }
 
 function wordHasUncorrectedErrors(input: string, statuses: CharStatus[]): boolean {
@@ -108,8 +109,10 @@ export function useTypingSession({
   stopOnError = false,
   stopOnWord = false,
   blindMode = false,
+  testDurationSeconds = TEST_DURATION_SECONDS,
 }: UseTypingSessionOptions) {
   const isTestMode = mode === 'test' && !zenMode;
+  const durationMs = testDurationSeconds * 1000;
 
   const initialRef = useRef<{ text: string; statuses: CharStatus[] } | null>(null);
   if (!initialRef.current) {
@@ -189,12 +192,12 @@ export function useTypingSession({
   const stats = finished && finalStats ? finalStats : liveStats;
 
   const progress = isTestMode
-    ? (elapsedMs / (TEST_DURATION_SECONDS * 1000)) * 100
+    ? (elapsedMs / durationMs) * 100
     : targetText.length > 0
       ? (input.length / targetText.length) * 100
       : 0;
 
-  const timeRemaining = Math.max(0, TEST_DURATION_SECONDS - Math.floor(elapsedMs / 1000));
+  const timeRemaining = Math.max(0, testDurationSeconds - Math.floor(elapsedMs / 1000));
   const nextChar = targetText[input.length];
   const targetKey = !finished && !paused && nextChar ? charToKeyCode(nextChar) : undefined;
 
@@ -402,7 +405,7 @@ export function useTypingSession({
             ).wpm;
         earlyBurstMaxRef.current = Math.max(earlyBurstMaxRef.current, burstWpm);
       }
-      if (isTestMode && elapsed >= TEST_DURATION_SECONDS * 1000) {
+      if (isTestMode && elapsed >= durationMs) {
         finishSession(
           buildStats(correctCharsRef.current, errorKeystrokesRef.current, elapsed, true),
         );

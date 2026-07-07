@@ -4,8 +4,20 @@ import {
   masteryXpForGrade,
   masteryXpForSession,
   effectiveMasteryTier,
+  meetsTierRequirements,
   MASTERY_TIER_THRESHOLDS,
 } from '@/utils/curriculum/mastery';
+import type { LessonMasteryPerformance } from '@/utils/progress/lessonProgressAggregate';
+
+const BASE_PERF: LessonMasteryPerformance = {
+  bestWpm: 80,
+  bestAccuracy: 98,
+  highestGrade: 'S+',
+  testBestWpm: 75,
+  testBestAccuracy: 97,
+  testHighestGrade: 'S+',
+  testAttempts: 3,
+};
 
 describe('mastery', () => {
   it('awards more XP for higher grades', () => {
@@ -32,6 +44,12 @@ describe('mastery', () => {
     expect(high).toBeGreaterThan(low);
   });
 
+  it('awards more XP in test mode than practice', () => {
+    const practice = masteryXpForSession({ wpm: 50, accuracy: 95, grade: 'A', mode: 'practice' });
+    const test = masteryXpForSession({ wpm: 50, accuracy: 95, grade: 'A', mode: 'test' });
+    expect(test).toBeGreaterThan(practice);
+  });
+
   it('awards less XP for micro-lessons', () => {
     const main = masteryXpForSession({ wpm: 50, accuracy: 95, grade: 'A', isMicroLesson: false });
     const micro = masteryXpForSession({ wpm: 50, accuracy: 95, grade: 'A', isMicroLesson: true });
@@ -43,15 +61,40 @@ describe('mastery', () => {
     expect(masteryXpForSession({ wpm: 30, accuracy: 70, grade: 'C' })).toBe(0);
   });
 
-  it('caps tier until WPM and accuracy requirements are met', () => {
+  it('caps diamond tier until test requirements are met', () => {
     const xp = MASTERY_TIER_THRESHOLDS.diamond;
-    expect(effectiveMasteryTier(xp, 40, 90, 'A')).toBeLessThan(4);
-    expect(effectiveMasteryTier(xp, 60, 95, 'S')).toBe(4);
+    const noTest: LessonMasteryPerformance = {
+      ...BASE_PERF,
+      testBestWpm: 0,
+      testBestAccuracy: 0,
+      testHighestGrade: null,
+      testAttempts: 0,
+    };
+    expect(effectiveMasteryTier(xp, noTest)).toBeLessThan(4);
+
+    const weakTest: LessonMasteryPerformance = {
+      ...BASE_PERF,
+      testBestWpm: 40,
+      testBestAccuracy: 85,
+      testHighestGrade: 'B',
+      testAttempts: 1,
+    };
+    expect(effectiveMasteryTier(xp, weakTest)).toBeLessThan(4);
+    expect(effectiveMasteryTier(xp, BASE_PERF)).toBe(4);
   });
 
-  it('requires S+ grade for ascended tier', () => {
+  it('requires S+ grade in test for ascended tier', () => {
     const xp = MASTERY_TIER_THRESHOLDS.ascended;
-    expect(effectiveMasteryTier(xp, 80, 98, 'S')).toBeLessThan(5);
-    expect(effectiveMasteryTier(xp, 80, 98, 'S+')).toBe(5);
+    const sOnly: LessonMasteryPerformance = {
+      ...BASE_PERF,
+      testHighestGrade: 'S',
+    };
+    expect(effectiveMasteryTier(xp, sOnly)).toBeLessThan(5);
+    expect(effectiveMasteryTier(xp, BASE_PERF)).toBe(5);
+  });
+
+  it('requires overall stats for gold tier', () => {
+    expect(meetsTierRequirements(3, { ...BASE_PERF, bestWpm: 30, bestAccuracy: 80, highestGrade: 'B' })).toBe(false);
+    expect(meetsTierRequirements(3, BASE_PERF)).toBe(true);
   });
 });

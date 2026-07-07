@@ -11,6 +11,12 @@ import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { saveSongProgress } from '@/utils/progress/songProgress';
 import { masteryXpForSession, isMicroLessonForMastery } from '@/utils/curriculum/mastery';
 import { accumulateMasteryXpFromSessions } from '@/utils/curriculum/masteryHistory';
+import {
+  mergeSessionIntoLessonProgress,
+  aggregateLessonsFromSessions,
+  lessonProgressToPerformance,
+  type LessonMasteryPerformance,
+} from '@/utils/progress/lessonProgressAggregate';
 
 export interface SessionRecord {
   lessonId: string;
@@ -40,6 +46,10 @@ export interface LessonProgress {
   highestScore?: number;
   maxWpm?: number;
   masteryXp?: number;
+  testBestWpm?: number;
+  testBestAccuracy?: number;
+  testHighestGrade?: string;
+  testAttempts?: number;
 }
 
 export interface UserProgress {
@@ -123,22 +133,18 @@ export function saveSession(
 
   if (lessonId !== MULTIPLAYER_LESSON_ID) {
     const existing = progress.lessons[lessonId];
+    const merged = mergeSessionIntoLessonProgress(existing, record);
+    const sessionXp = masteryXpForSession({
+      wpm: stats.wpm,
+      accuracy: stats.accuracy,
+      grade,
+      isMicroLesson: isMicroLessonForMastery(lessonId),
+      mode,
+    });
+
     progress.lessons[lessonId] = {
-      bestWpm: Math.max(previousBest, stats.wpm),
-      bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, stats.accuracy),
-      attempts: (existing?.attempts ?? 0) + 1,
-      lastPlayedAt: record.completedAt,
-      highestGrade: bestGrade(existing?.highestGrade, grade) ?? grade,
-      highestScore: Math.max(existing?.highestScore ?? 0, score),
-      maxWpm: Math.max(existing?.maxWpm ?? 0, stats.wpm),
-      masteryXp:
-        (existing?.masteryXp ?? 0) +
-        masteryXpForSession({
-          wpm: stats.wpm,
-          accuracy: stats.accuracy,
-          grade,
-          isMicroLesson: isMicroLessonForMastery(lessonId),
-        }),
+      ...merged,
+      masteryXp: (existing?.masteryXp ?? 0) + sessionXp,
     };
   }
 
@@ -190,7 +196,35 @@ export function getHighestGradeForLesson(lessonId: string): string | null {
 }
 
 export function getLessonProgress(lessonId: string): LessonProgress | null {
-  return getProgress().lessons[lessonId] ?? null;
+  const stored = getProgress().lessons[lessonId];
+  const fromHistory = aggregateLessonsFromSessions(
+    getSessionHistory().filter((s) => s.lessonId === lessonId),
+  )[lessonId];
+
+  if (!stored && !fromHistory) return null;
+
+  if (!stored) return fromHistory ?? null;
+  if (!fromHistory) return stored;
+
+  return {
+    ...stored,
+    bestWpm: Math.max(stored.bestWpm, fromHistory.bestWpm),
+    bestAccuracy: Math.max(stored.bestAccuracy, fromHistory.bestAccuracy),
+    attempts: Math.max(stored.attempts, fromHistory.attempts),
+    lastPlayedAt: stored.lastPlayedAt > fromHistory.lastPlayedAt ? stored.lastPlayedAt : fromHistory.lastPlayedAt,
+    highestGrade: bestGrade(stored.highestGrade, fromHistory.highestGrade) ?? stored.highestGrade,
+    highestScore: Math.max(stored.highestScore ?? 0, fromHistory.highestScore ?? 0),
+    maxWpm: Math.max(stored.maxWpm ?? 0, fromHistory.maxWpm ?? 0),
+    testBestWpm: Math.max(stored.testBestWpm ?? 0, fromHistory.testBestWpm ?? 0),
+    testBestAccuracy: Math.max(stored.testBestAccuracy ?? 0, fromHistory.testBestAccuracy ?? 0),
+    testHighestGrade: bestGrade(stored.testHighestGrade, fromHistory.testHighestGrade) ?? stored.testHighestGrade,
+    testAttempts: Math.max(stored.testAttempts ?? 0, fromHistory.testAttempts ?? 0),
+  };
+}
+
+/** Combined performance metrics for mastery tier checks. */
+export function getLessonMasteryPerformance(lessonId: string): LessonMasteryPerformance {
+  return lessonProgressToPerformance(getLessonProgress(lessonId) ?? undefined);
 }
 
 export function getBestAccuracyForLesson(lessonId: string): number | null {

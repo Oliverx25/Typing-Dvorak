@@ -1,6 +1,10 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import type { SessionRecord } from '@/utils/progress/storage';
-import { getMasteryXpForLesson } from '@/utils/progress/storage';
+import { getMasteryXpForLesson, getLessonProgress } from '@/utils/progress/storage';
+import {
+  lessonProgressToCloudPayload,
+  type LessonMasteryCloudPayload,
+} from '@/utils/progress/lessonProgressAggregate';
 import { calculateStars } from '@/utils/curriculum/stars';
 import { calculateGrade } from '@/utils/grading';
 import { getKeyStats } from '@/utils/stats/keyStats';
@@ -42,13 +46,21 @@ export async function syncStreakToProfile(userId: string): Promise<StreakResult>
   return result;
 }
 
-/** Persists per-lesson mastery XP to Supabase (source of truth for signed-in users). */
+/** Persists per-lesson mastery stats to Supabase (source of truth for signed-in users). */
 export async function syncLessonMasteryToCloud(
   userId: string,
   lessonId: string,
-  masteryXp: number,
+  payload?: LessonMasteryCloudPayload,
 ): Promise<void> {
-  if (lessonId === 'multiplayer' || masteryXp <= 0) return;
+  if (lessonId === 'multiplayer') return;
+
+  const progress = getLessonProgress(lessonId);
+  if (!progress && !payload) return;
+
+  const masteryXp = payload?.mastery_xp ?? getMasteryXpForLesson(lessonId);
+  if (masteryXp <= 0 && !progress) return;
+
+  const row = payload ?? lessonProgressToCloudPayload(lessonId, progress!, masteryXp);
 
   try {
     const supabase = getSupabaseClient();
@@ -57,8 +69,16 @@ export async function syncLessonMasteryToCloud(
     const { error } = await supabase.from('user_lesson_mastery').upsert(
       {
         user_id: userId,
-        lesson_id: lessonId,
-        mastery_xp: masteryXp,
+        lesson_id: row.lesson_id,
+        mastery_xp: row.mastery_xp,
+        best_wpm: row.best_wpm,
+        best_accuracy: row.best_accuracy,
+        highest_grade: row.highest_grade,
+        highest_score: row.highest_score,
+        best_test_wpm: row.best_test_wpm,
+        best_test_accuracy: row.best_test_accuracy,
+        best_test_grade: row.best_test_grade,
+        test_attempts: row.test_attempts,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id,lesson_id' },
@@ -68,6 +88,12 @@ export async function syncLessonMasteryToCloud(
   } catch (error) {
     console.warn('[sync] lesson mastery upsert failed:', error);
   }
+}
+
+/** Bulk-sync all lessons with mastery data after migration or login. */
+export async function syncAllLessonMasteryToCloud(userId: string, lessonIds: string[]): Promise<void> {
+  const unique = [...new Set(lessonIds.filter((id) => id !== 'multiplayer'))];
+  await Promise.all(unique.map((lessonId) => syncLessonMasteryToCloud(userId, lessonId)));
 }
 
 /** Persists a session to Supabase. No-op when unauthenticated or offline. */
@@ -98,7 +124,7 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
     }
 
     await syncStreakToProfile(userId);
-    await syncLessonMasteryToCloud(userId, record.lessonId, getMasteryXpForLesson(record.lessonId));
+    await syncLessonMasteryToCloud(userId, record.lessonId);
   } catch (error) {
     console.warn('[sync] session insert failed:', error);
   }
@@ -162,6 +188,7 @@ export async function migrateLocalSessionsToCloud(userId: string, history: Sessi
     }
 
     await syncStreakToProfile(userId);
+    await syncAllLessonMasteryToCloud(userId, [...new Set(history.map((r) => r.lessonId))]);
     return payload.length;
   } catch (error) {
     console.warn('[sync] migration failed:', error);

@@ -6,6 +6,7 @@ import {
   getBestAccuracyForLesson,
   getHighestGradeForLesson,
   getMasteryXpForLesson,
+  getLessonMasteryPerformance,
 } from '@/utils/progress/storage';
 import { buildUnlockMap } from '@/utils/progress/readCurriculumFromStorage';
 import { buildLessonMasterySnapshot, type LessonMasterySnapshot } from '@/utils/curriculum/mastery';
@@ -14,15 +15,13 @@ import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 function getUnlockState(lessonId: string) {
   const forUnlock = buildUnlockMap();
   const masteryXp = getMasteryXpForLesson(lessonId);
-  const bestWpm = getBestWpmForLesson(lessonId) ?? 0;
-  const bestAccuracy = getBestAccuracyForLesson(lessonId) ?? 0;
-  const highestGrade = getHighestGradeForLesson(lessonId);
-  const mastery = buildLessonMasterySnapshot(masteryXp, bestWpm, bestAccuracy, highestGrade);
+  const performance = getLessonMasteryPerformance(lessonId);
+  const mastery = buildLessonMasterySnapshot(masteryXp, performance);
 
   return {
     unlocked: isLessonUnlocked(lessonId, forUnlock),
     bestWpm: getBestWpmForLesson(lessonId),
-    highestGrade,
+    highestGrade: getHighestGradeForLesson(lessonId),
     highestScore: getBestScoreForLesson(lessonId),
     masteryXp,
     masteryTier: mastery.masteryTier,
