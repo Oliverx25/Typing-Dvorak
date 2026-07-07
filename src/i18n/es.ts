@@ -95,29 +95,33 @@ export const es: TranslationKey = {
     chapterAvgMastery: 'XP maestría prom.',
   },
   chapterMeta: {
-    fundamentals: {
-      title: 'Capítulo 1 — Fundamentos',
-      description: 'Fila base y micro-lecciones por mano.',
+    ch1Fundamentals: {
+      title: 'Capítulo 1 — Fundamentos Dvorak',
+      description: 'Fila base con vocales izquierdas y consonantes derechas aisladas.',
     },
-    expansion: {
-      title: 'Capítulo 2 — Expansión',
-      description: 'Filas superior e inferior, puntuación y palabras completas.',
+    ch2TopExpansion: {
+      title: 'Capítulo 2 — Expansión Superior',
+      description: 'Alcance superior por mano e integración con la fila base.',
     },
-    bilingual: {
-      title: 'Capítulo 3 — Bilingüe',
-      description: 'Palabras comunes y tildes en español.',
+    ch3BottomReach: {
+      title: 'Capítulo 3 — Alcance Inferior',
+      description: 'Fila inferior aislada y dominio del alfabeto completo.',
     },
-    mechanics: {
-      title: 'Capítulo 4 — Mecánica',
-      description: 'Shift, mayúsculas y números.',
+    ch4Bilingual: {
+      title: 'Capítulo 4 — Maestría Bilingüe',
+      description: 'N-gramas en inglés, ortografía española y flujo mixto.',
     },
-    development: {
-      title: 'Capítulo 5 — Desarrollo',
-      description: 'Símbolos de código y drills de desarrollo.',
+    ch5Mechanics: {
+      title: 'Capítulo 5 — Precisión Mecánica',
+      description: 'Shift, patrones de mayúsculas y fila numérica.',
     },
-    masteryChapter: {
-      title: 'Capítulo 6 — Maestría',
-      description: 'Oraciones, pangramas en español y desafío avanzado.',
+    ch6Development: {
+      title: 'Capítulo 6 — Arsenal de Desarrollo',
+      description: 'Matemáticas, brackets, cadenas y terminal.',
+    },
+    ch7FireTest: {
+      title: 'Capítulo 7 — Pruebas de Fuego',
+      description: 'Snippets de código y prosa avanzada.',
     },
   },
   sandbox: {
@@ -503,54 +507,32 @@ export const es: TranslationKey = {
     spanishDvorak: { title: 'Dvorak español', description: 'Tildes, ñ y pangrams en español.' },
   },
   microLessonMeta: {
-    homeLeft: {
-      title: 'Mano izq. (A O E U)',
-      description: 'Practica solo las vocales de la mano izquierda en la fila base.',
-    },
-    homeRight: {
-      title: 'Mano der. (D H T N)',
-      description: 'Practica D, H, T y N de la mano derecha en la fila base.',
-    },
-    topNivel1: {
-      title: 'Nivel 1 (P Y G C R L)',
-      description: 'Practica P, Y, G, C, R y L de la fila superior.',
-    },
-    topNivel2: {
-      title: "Nivel 2 (' , . F)",
-      description: 'Practica la puntuación y la F restantes de la fila superior.',
-    },
-    bottomNivel1: {
-      title: 'Nivel 1 (Q J K X)',
-      description: 'Practica Q, J, K y X de la fila inferior.',
-    },
-    bottomNivel2: {
-      title: 'Nivel 2 (B M W V Z)',
-      description: 'Practica B, M, W, V y Z de la fila inferior.',
-    },
-    codeHtml: {
-      title: 'Etiquetas HTML',
-      description: 'Practica los símbolos <, > y / usados en etiquetas HTML.',
-    },
-    codeTs: {
-      title: 'Sintaxis TypeScript',
-      description: 'Practica llaves, paréntesis y punto y coma de código.',
-    },
-    codeFull: {
-      title: 'Desafío de código completo',
-      description: 'Practica una mezcla de símbolos de programación.',
-    },
-    esAccents: {
-      title: 'Tildes (á é í ó ú)',
-      description: 'Practica vocales acentuadas en español.',
-    },
-    esEnye: {
-      title: 'Letra ñ',
-      description: 'Practica la letra ñ en mayúsculas y minúsculas.',
-    },
-    esFull: {
-      title: 'Pangrams en español',
-      description: 'Oraciones pangrama para ritmo y precisión en español.',
-    },
+    baseVowels: { title: 'Mano izq.: Vocales (A O E U I)', description: 'Aísla las vocales de la mano izquierda en la fila base.' },
+    baseConsonants: { title: 'Mano der.: Consonantes (D H T N S)', description: 'Aísla las consonantes de la mano derecha en la fila base.' },
+    baseAlternation: { title: 'Flujo alterno (Fila base)', description: 'Alterna teclas izquierda y derecha en la fila base.' },
+    topLeft: { title: 'Alcance superior izq. (\' , . P Y)', description: 'Fila superior izquierda sin mezclar la mano derecha.' },
+    topRight: { title: 'Alcance superior der. (F G C R L)', description: 'Fila superior derecha sin mezclar la mano izquierda.' },
+    baseTopIntegration: { title: 'Integración: base + superior', description: 'Combina fila base y fila superior.' },
+    bottomLeft: { title: 'Mano izq. inferior (; Q J K X)', description: 'Aislamiento de la fila inferior izquierda.' },
+    bottomRight: { title: 'Mano der. inferior (B M W V Z)', description: 'Aislamiento de la fila inferior derecha.' },
+    alphabetMastery: { title: 'Alfabeto completo (A–Z)', description: 'Todo el alfabeto en minúsculas.' },
+    enBigrams: { title: 'Bigramas ingleses', description: 'th, he, in, er, nd — memoria muscular.' },
+    enTrigrams: { title: 'Trigramas ingleses', description: 'Patrones the, and, ion, ent.' },
+    esAccents: { title: 'Tildes y ñ', description: 'á é í ó ú ñ en mayúsculas y minúsculas.' },
+    esSuffixes: { title: 'Sufijos españoles', description: 'Patrones -mente, -ción, -dad.' },
+    bilingualFlow: { title: 'Palabras frecuentes ES/EN', description: 'Flujo mixto bilingüe.' },
+    shiftCross: { title: 'Shift cruzado', description: 'Mayúsculas aisladas con shift.' },
+    camelPascal: { title: 'CamelCase y PascalCase', description: 'Patrones de identificadores.' },
+    numRowLeft: { title: 'Números izquierda (1–5)', description: 'Fila numérica de la mano izquierda.' },
+    numRowRight: { title: 'Números derecha (6–0)', description: 'Fila numérica de la mano derecha.' },
+    numMixed: { title: 'Secuencias alfanuméricas', description: 'Letras y dígitos mezclados.' },
+    devMathLogic: { title: 'Matemáticas y lógica', description: '+ - * / = < >' },
+    devBrackets: { title: 'Estructuras y scopes', description: '{ } [ ] ( )' },
+    devStrings: { title: 'Cadenas y cierres', description: 'Comillas, punto y coma, comas.' },
+    devTerminal: { title: 'Terminal y Bash', description: '_ | \\ / ~ $ & @ # % ^' },
+    codeJsTs: { title: 'Snippets JS / TS', description: 'Drills cortos de JavaScript y TypeScript.' },
+    codePython: { title: 'Snippets Python', description: 'Drills cortos de Python.' },
+    advancedProse: { title: 'Prosa avanzada', description: 'Oraciones largas para resistencia.' },
   },
   qwerty: {
     qwerty: 'QWERTY',

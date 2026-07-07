@@ -9,7 +9,7 @@ describe('headerNav', () => {
     expect(resolveNavSection('/multiplayer/room')).toBe('multiplayer');
     expect(resolveNavSection('/lessons')).toBe('lessons');
     expect(resolveNavSection('/')).toBe('lessons');
-    expect(resolveNavSection('/lesson/home-row')).toBe('lessons');
+    expect(resolveNavSection('/lesson/base_vowels')).toBe('lessons');
   });
 
   it('hides the current section from header links', () => {

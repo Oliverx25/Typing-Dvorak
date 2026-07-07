@@ -12,7 +12,7 @@ import type { RaceModifier, VictoryCondition } from '@/utils/multiplayer/roomCon
 export type { RaceModifier, VictoryCondition } from '@/utils/multiplayer/roomConfig.types';
 export { MODIFIER_EXCLUSIVE_PAIRS, resolveModifierConflicts, toggleRaceModifier };
 
-export const DEFAULT_RACE_LESSON_ID = 'common-words';
+export const DEFAULT_RACE_LESSON_ID = 'alphabet_mastery';
 
 export const RACE_LESSONS = CORE_LESSONS.filter(
   (lesson) => !lesson.adaptive && lesson.texts.length > 0,
@@ -274,15 +274,22 @@ export const CUSTOM_RACE_TEXT_MIN = 10;
 export const LESSON_GRID_GROUPS = [
   {
     id: 'basics' as const,
-    lessonIds: ['home-row', 'top-row', 'bottom-row', 'shift-caps', 'all-rows', 'common-words'],
+    lessonIds: [
+      'base_vowels',
+      'base_consonants',
+      'base_alternation',
+      'top_left',
+      'top_right',
+      'alphabet_mastery',
+    ],
   },
   {
     id: 'symbols' as const,
-    lessonIds: ['punctuation', 'numbers', 'dev-symbols'],
+    lessonIds: ['num_mixed', 'dev_math_logic', 'dev_brackets', 'dev_strings', 'dev_terminal'],
   },
   {
     id: 'advanced' as const,
-    lessonIds: ['sentences', 'advanced'],
+    lessonIds: ['code_js_ts', 'code_python', 'advanced_prose'],
   },
 ];
 

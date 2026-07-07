@@ -39,14 +39,9 @@ export default function HeroLessonCard({ lessonId }: HeroLessonCardProps) {
 
   if (!unlocked) {
     return (
-      <div className="flex min-h-[10rem] flex-col justify-between rounded-xl border border-[var(--color-border)]/60 bg-[var(--color-surface-elevated)]/40 p-4 opacity-50">
-        <div>
-          <p className="text-sm font-semibold text-[var(--color-text-muted)]">{title}</p>
-          <p className="mt-1 text-[10px] text-[var(--color-text-muted)]">
-            {t.difficulty[lesson.difficulty]}
-          </p>
-        </div>
-        <LockIcon size={16} className="self-end text-[var(--color-text-muted)]" />
+      <div className="flex items-center justify-between rounded-md border border-slate-800/40 bg-slate-900/40 p-3 opacity-50 grayscale">
+        <span className="text-sm font-medium text-[var(--color-text-muted)]">{title}</span>
+        <LockIcon size={16} className="shrink-0 text-slate-500" />
       </div>
     );
   }
@@ -54,15 +49,12 @@ export default function HeroLessonCard({ lessonId }: HeroLessonCardProps) {
   return (
     <article
       className={[
-        'flex min-h-[10rem] flex-col justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4',
+        'flex flex-col justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4',
         ringClass,
       ].join(' ')}
     >
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-highlight)]">
-          {t.difficulty[lesson.difficulty]}
-        </p>
-        <h3 className="mt-1 text-base font-semibold text-[var(--color-text)]">{title}</h3>
+        <h3 className="text-base font-semibold text-[var(--color-text)]">{title}</h3>
         <BestScoreLabel
           highestGrade={highestGrade}
           highestScore={highestScore}
@@ -74,7 +66,7 @@ export default function HeroLessonCard({ lessonId }: HeroLessonCardProps) {
 
       <a
         href={`/lesson/${lessonId}`}
-        className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-[var(--color-highlight)] px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-white no-underline transition hover:bg-[var(--color-highlight-hover)]"
+        className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-[var(--color-highlight)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white no-underline transition hover:bg-[var(--color-highlight-hover)]"
       >
         {actionLabel}
       </a>

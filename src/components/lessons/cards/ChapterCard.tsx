@@ -7,12 +7,13 @@ import { GradeBadge, Icon, LockIcon } from '@/components/ui';
 import ChapterProgressBar from '@/components/ui/display/ChapterProgressBar';
 
 const CHAPTER_ICONS: Record<string, IconName> = {
-  fundamentals: 'keyboard',
-  expansion: 'zap',
-  bilingual: 'book-open',
-  mechanics: 'speed',
-  development: 'sparkles',
-  mastery: 'trophy',
+  ch1_fundamentals: 'keyboard',
+  ch2_top_expansion: 'chevron-up',
+  ch3_bottom_reach: 'target',
+  ch4_bilingual: 'book-open',
+  ch5_mechanics: 'speed',
+  ch6_development: 'sparkles',
+  ch7_fire_test: 'trophy',
 };
 
 interface ChapterCardProps {

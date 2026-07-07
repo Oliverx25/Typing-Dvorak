@@ -1,13 +1,10 @@
-import { CORE_LESSONS, getLessonById } from '@/utils/curriculum/lessons';
+import { getLessonById } from '@/utils/curriculum/lessons';
 import { UNLOCK_ACCURACY } from '@/utils/curriculum/constants';
-import {
-  findGroupForMicro,
-  getMicroMeta,
-  isMicroLessonId,
-} from '@/utils/curriculum/microLessonCatalog';
+import { ROADMAP_LESSON_IDS } from '@/utils/curriculum/roadmapChapters';
+import { isMicroLessonId } from '@/utils/curriculum/microLessonCatalog';
 
-/** Lesson unlock order — first lesson is always available. Optional lessons excluded. */
-export const LESSON_ORDER = CORE_LESSONS.map((l) => l.id);
+/** Sequential unlock order for the 26-lesson ergonomic curriculum. */
+export const LESSON_ORDER = ROADMAP_LESSON_IDS;
 
 export { UNLOCK_ACCURACY };
 
@@ -21,48 +18,20 @@ export function getPreviousLessonId(lessonId: string): string | null {
   return LESSON_ORDER[idx - 1];
 }
 
-function isCoreLessonUnlocked(
+export function isLessonUnlocked(
   lessonId: string,
   completedLessons: Record<string, { bestAccuracy: number }>,
 ): boolean {
   const lesson = getLessonById(lessonId);
   if (lesson?.optional) return true;
+  if (!isMicroLessonId(lessonId) && getLessonIndex(lessonId) < 0) return false;
 
   const idx = getLessonIndex(lessonId);
   if (idx <= 0) return true;
+
   const prevId = LESSON_ORDER[idx - 1];
   const prev = completedLessons[prevId];
   return prev !== undefined && prev.bestAccuracy >= UNLOCK_ACCURACY;
-}
-
-export function isMicroLessonUnlocked(
-  microId: string,
-  completedLessons: Record<string, { bestAccuracy: number }>,
-): boolean {
-  const meta = getMicroMeta(microId);
-  if (!meta) return false;
-
-  if (!isCoreLessonUnlocked(meta.parentLessonId, completedLessons)) return false;
-
-  const group = findGroupForMicro(microId);
-  if (!group) return true;
-
-  const index = group.microLessons.findIndex((micro) => micro.id === microId);
-  if (index <= 0) return true;
-
-  const previousId = group.microLessons[index - 1].id;
-  const previous = completedLessons[previousId];
-  return previous !== undefined && previous.bestAccuracy >= UNLOCK_ACCURACY;
-}
-
-export function isLessonUnlocked(
-  lessonId: string,
-  completedLessons: Record<string, { bestAccuracy: number }>,
-): boolean {
-  if (isMicroLessonId(lessonId)) {
-    return isMicroLessonUnlocked(lessonId, completedLessons);
-  }
-  return isCoreLessonUnlocked(lessonId, completedLessons);
 }
 
 export function getRecommendedLessonId(

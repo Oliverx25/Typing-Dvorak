@@ -46,8 +46,8 @@ describe('achievementEvaluator', () => {
   it('uses session history max WPM for cruise speed achievements', () => {
     writeJson(STORAGE_KEYS.history, [
       {
-        lessonId: 'home-left',
-        lessonTitle: 'home-left',
+        lessonId: 'base_vowels',
+        lessonTitle: 'base_vowels',
         wpm: 72,
         accuracy: 95,
         elapsedSeconds: 60,

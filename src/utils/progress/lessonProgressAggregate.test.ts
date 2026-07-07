@@ -9,8 +9,8 @@ import type { SessionRecord } from '@/utils/progress/storage';
 
 function session(overrides: Partial<SessionRecord> = {}): SessionRecord {
   return {
-    lessonId: 'home-row',
-    lessonTitle: 'home-row',
+    lessonId: 'base_vowels',
+    lessonTitle: 'base_vowels',
     wpm: 50,
     accuracy: 95,
     elapsedSeconds: 60,
@@ -47,14 +47,14 @@ describe('lessonProgressAggregate', () => {
       session({ lessonId: 'top-row', wpm: 45 }),
     ]);
 
-    expect(lessons['home-row'].attempts).toBe(2);
-    expect(lessons['home-row'].testAttempts).toBe(1);
+    expect(lessons['base_vowels'].attempts).toBe(2);
+    expect(lessons['base_vowels'].testAttempts).toBe(1);
     expect(lessons['top-row'].bestWpm).toBe(45);
   });
 
   it('round-trips cloud payload', () => {
     const progress = mergeSessionIntoLessonProgress(undefined, session({ mode: 'test', wpm: 62 }));
-    const payload = lessonProgressToCloudPayload('home-row', progress, 120);
+    const payload = lessonProgressToCloudPayload('base_vowels', progress, 120);
     const restored = cloudRowToLessonProgress(payload);
 
     expect(restored.testBestWpm).toBe(62);

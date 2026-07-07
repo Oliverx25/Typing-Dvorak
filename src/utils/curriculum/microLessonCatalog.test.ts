@@ -1,13 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { LESSON_GROUPS } from '@/data/microLessons';
-import { BOTTOM_ROW, HOME_ROW, TOP_ROW } from '@/utils/keyboard/dvorak';
-import {
-  CODE_DRILL_CHARS,
-  SPANISH_PANGRAM_TEXTS,
-  buildMicroLessons,
-} from '@/utils/curriculum/microLessonCatalog';
+import { CURRICULUM_LESSONS, LESSON_GROUPS } from '@/data/microLessons';
+import { ROADMAP_CHAPTERS, ROADMAP_LESSON_IDS } from '@/utils/curriculum/roadmapChapters';
+import { HOME_ROW, TOP_ROW, BOTTOM_ROW } from '@/utils/keyboard/dvorak';
+import { buildMicroLessons } from '@/utils/curriculum/microLessonCatalog';
 
-const MICRO_LESSONS = buildMicroLessons(() => undefined);
+const MICRO_LESSONS = buildMicroLessons();
 const MICRO_BY_ID = new Map(MICRO_LESSONS.map((lesson) => [lesson.id, lesson]));
 
 function charsOnly(row: string): string {
@@ -20,61 +17,41 @@ function isSubsetOf(charSet: string, row: string): boolean {
 }
 
 describe('microLessonCatalog', () => {
-  it('defines 12 micro lessons across 5 groups (no full-row duplicates)', () => {
-    const ids = LESSON_GROUPS.flatMap((group) => group.microLessons.map((micro) => micro.id));
-    expect(ids).toHaveLength(12);
-    expect(ids).not.toContain('home-full');
-    expect(ids).not.toContain('top-full');
-    expect(ids).not.toContain('bottom-full');
+  it('defines 26 lessons across 7 chapters', () => {
+    expect(CURRICULUM_LESSONS).toHaveLength(26);
+    expect(LESSON_GROUPS).toHaveLength(7);
+    expect(ROADMAP_LESSON_IDS).toHaveLength(26);
   });
 
-  it('uses micro-specific descriptions, not parent chapter descriptions', () => {
-    for (const lesson of MICRO_LESSONS) {
-      expect(lesson.descriptionKey).toBe(lesson.titleKey);
-      expect(lesson.descriptionKey).not.toBe('homeRow');
-      expect(lesson.descriptionKey).not.toBe('topRow');
-      expect(lesson.descriptionKey).not.toBe('bottomRow');
-      expect(lesson.descriptionKey).not.toBe('devSymbols');
-      expect(lesson.descriptionKey).not.toBe('sentences');
+  it('keeps strict hand isolation on home row drills', () => {
+    expect(isSubsetOf(MICRO_BY_ID.get('base_vowels')!.charSet!, 'aoeui')).toBe(true);
+    expect(isSubsetOf(MICRO_BY_ID.get('base_consonants')!.charSet!, 'dhtns')).toBe(true);
+    expect(MICRO_BY_ID.get('base_vowels')!.charSet).not.toContain('d');
+    expect(MICRO_BY_ID.get('base_consonants')!.charSet).not.toContain('a');
+  });
+
+  it('isolates top row by hand', () => {
+    expect(isSubsetOf(MICRO_BY_ID.get('top_left')!.charSet!, TOP_ROW)).toBe(true);
+    expect(isSubsetOf(MICRO_BY_ID.get('top_right')!.charSet!, TOP_ROW)).toBe(true);
+    expect(MICRO_BY_ID.get('top_left')!.charSet).not.toMatch(/[fgcrl]/);
+    expect(MICRO_BY_ID.get('top_right')!.charSet).not.toMatch(/['.,py]/);
+  });
+
+  it('isolates bottom row by hand', () => {
+    expect(isSubsetOf(MICRO_BY_ID.get('bottom_left')!.charSet!, BOTTOM_ROW)).toBe(true);
+    expect(isSubsetOf(MICRO_BY_ID.get('bottom_right')!.charSet!, BOTTOM_ROW)).toBe(true);
+  });
+
+  it('uses static texts for bigram and code lessons', () => {
+    expect(MICRO_BY_ID.get('en_bigrams')!.generated).toBeFalsy();
+    expect(MICRO_BY_ID.get('en_bigrams')!.texts!.length).toBeGreaterThan(0);
+    expect(MICRO_BY_ID.get('code_js_ts')!.texts!.length).toBeGreaterThan(0);
+  });
+
+  it('aligns roadmap chapters with curriculum groups', () => {
+    for (const chapter of ROADMAP_CHAPTERS) {
+      const group = LESSON_GROUPS.find((g) => g.chapterId === chapter.id);
+      expect(group?.microLessons.map((m) => m.id)).toEqual(chapter.lessonIds);
     }
-  });
-
-  it('never copies parent lesson static texts except dedicated pangrams', () => {
-    const esFull = MICRO_BY_ID.get('es-full')!;
-    expect(esFull.texts).toEqual(SPANISH_PANGRAM_TEXTS);
-    expect(esFull.generated).toBeFalsy();
-
-    for (const lesson of MICRO_LESSONS) {
-      if (lesson.id === 'es-full') continue;
-      expect(lesson.generated).toBe(true);
-      expect(lesson.charSet).toBeTruthy();
-    }
-  });
-
-  it('keeps home and row micro char sets within their parent row', () => {
-    expect(isSubsetOf(MICRO_BY_ID.get('home-left')!.charSet!, HOME_ROW)).toBe(true);
-    expect(isSubsetOf(MICRO_BY_ID.get('home-right')!.charSet!, HOME_ROW)).toBe(true);
-    expect(isSubsetOf(MICRO_BY_ID.get('top-nivel-1')!.charSet!, TOP_ROW)).toBe(true);
-    expect(isSubsetOf(MICRO_BY_ID.get('top-nivel-2')!.charSet!, TOP_ROW)).toBe(true);
-    expect(isSubsetOf(MICRO_BY_ID.get('bottom-nivel-1')!.charSet!, BOTTOM_ROW)).toBe(true);
-    expect(isSubsetOf(MICRO_BY_ID.get('bottom-nivel-2')!.charSet!, BOTTOM_ROW)).toBe(true);
-  });
-
-  it('covers each row micro group without duplicating the full row lesson', () => {
-    const topMicro =
-      MICRO_BY_ID.get('top-nivel-1')!.charSet! + MICRO_BY_ID.get('top-nivel-2')!.charSet!;
-    expect(charsOnly(TOP_ROW).split('').sort().join('')).toBe(
-      [...new Set(topMicro.split(''))].sort().join(''),
-    );
-
-    const bottomMicro =
-      MICRO_BY_ID.get('bottom-nivel-1')!.charSet! + MICRO_BY_ID.get('bottom-nivel-2')!.charSet!;
-    expect(charsOnly(BOTTOM_ROW).replace(';', '').split('').sort().join('')).toBe(
-      [...new Set(bottomMicro.split(''))].sort().join(''),
-    );
-  });
-
-  it('uses a dedicated symbol set for code-full', () => {
-    expect(MICRO_BY_ID.get('code-full')!.charSet).toBe(CODE_DRILL_CHARS);
   });
 });

@@ -1,58 +1,54 @@
-/** Roadmap chapter taxonomy — maps existing core + micro lessons without changing IDs. */
+/** Roadmap chapter taxonomy — 7 progressive ergonomic chapters. */
 
 export interface RoadmapChapter {
   id: string;
   titleKey: string;
   descriptionKey: string;
-  /** Core and micro lesson IDs belonging to this chapter. */
   lessonIds: string[];
 }
 
 export const ROADMAP_CHAPTERS: RoadmapChapter[] = [
   {
-    id: 'fundamentals',
-    titleKey: 'fundamentals',
-    descriptionKey: 'fundamentals',
-    lessonIds: ['home-row', 'home-left', 'home-right'],
+    id: 'ch1_fundamentals',
+    titleKey: 'ch1Fundamentals',
+    descriptionKey: 'ch1Fundamentals',
+    lessonIds: ['base_vowels', 'base_consonants', 'base_alternation'],
   },
   {
-    id: 'expansion',
-    titleKey: 'expansion',
-    descriptionKey: 'expansion',
-    lessonIds: [
-      'top-row',
-      'top-nivel-1',
-      'top-nivel-2',
-      'bottom-row',
-      'bottom-nivel-1',
-      'bottom-nivel-2',
-      'punctuation',
-      'all-rows',
-    ],
+    id: 'ch2_top_expansion',
+    titleKey: 'ch2TopExpansion',
+    descriptionKey: 'ch2TopExpansion',
+    lessonIds: ['top_left', 'top_right', 'base_top_integration'],
   },
   {
-    id: 'bilingual',
-    titleKey: 'bilingual',
-    descriptionKey: 'bilingual',
-    lessonIds: ['common-words', 'es-accents', 'es-enye'],
+    id: 'ch3_bottom_reach',
+    titleKey: 'ch3BottomReach',
+    descriptionKey: 'ch3BottomReach',
+    lessonIds: ['bottom_left', 'bottom_right', 'alphabet_mastery'],
   },
   {
-    id: 'mechanics',
-    titleKey: 'mechanics',
-    descriptionKey: 'mechanics',
-    lessonIds: ['shift-caps', 'numbers'],
+    id: 'ch4_bilingual',
+    titleKey: 'ch4Bilingual',
+    descriptionKey: 'ch4Bilingual',
+    lessonIds: ['en_bigrams', 'en_trigrams', 'es_accents', 'es_suffixes', 'bilingual_flow'],
   },
   {
-    id: 'development',
-    titleKey: 'development',
-    descriptionKey: 'development',
-    lessonIds: ['dev-symbols', 'code-html', 'code-ts', 'code-full'],
+    id: 'ch5_mechanics',
+    titleKey: 'ch5Mechanics',
+    descriptionKey: 'ch5Mechanics',
+    lessonIds: ['shift_cross', 'camel_pascal', 'num_row_left', 'num_row_right', 'num_mixed'],
   },
   {
-    id: 'mastery',
-    titleKey: 'masteryChapter',
-    descriptionKey: 'masteryChapter',
-    lessonIds: ['sentences', 'es-full', 'advanced'],
+    id: 'ch6_development',
+    titleKey: 'ch6Development',
+    descriptionKey: 'ch6Development',
+    lessonIds: ['dev_math_logic', 'dev_brackets', 'dev_strings', 'dev_terminal'],
+  },
+  {
+    id: 'ch7_fire_test',
+    titleKey: 'ch7FireTest',
+    descriptionKey: 'ch7FireTest',
+    lessonIds: ['code_js_ts', 'code_python', 'advanced_prose'],
   },
 ];
 

@@ -17,12 +17,12 @@ describe('roadmapProgress', () => {
   });
 
   it('computes chapter progress independently', () => {
-    const fundamentals = computeChapterProgress('fundamentals', completed);
-    expect(fundamentals).toBe(33);
+    const ch1 = computeChapterProgress('ch1_fundamentals', completed);
+    expect(ch1).toBe(33);
   });
 
   it('marks lesson complete at 90%+ accuracy', () => {
-    expect(isRoadmapLessonCompleted('home-row', completed)).toBe(true);
-    expect(isRoadmapLessonCompleted('home-left', completed)).toBe(false);
+    expect(isRoadmapLessonCompleted('base_vowels', completed)).toBe(true);
+    expect(isRoadmapLessonCompleted('base_consonants', completed)).toBe(false);
   });
 });

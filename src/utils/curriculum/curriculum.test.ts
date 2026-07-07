@@ -1,40 +1,40 @@
 import { describe, expect, it } from 'vitest';
 import { isLessonUnlocked, getCurriculumProgress, UNLOCK_ACCURACY } from '@/utils/curriculum/curriculum';
+import { ROADMAP_LESSON_IDS } from '@/utils/curriculum/roadmapChapters';
 
 describe('curriculum', () => {
   it('always unlocks the first lesson', () => {
-    expect(isLessonUnlocked('home-row', {})).toBe(true);
+    expect(isLessonUnlocked('base_vowels', {})).toBe(true);
   });
 
   it('locks lessons until previous is completed with enough accuracy', () => {
-    expect(isLessonUnlocked('top-row', {})).toBe(false);
+    expect(isLessonUnlocked('base_consonants', {})).toBe(false);
     expect(
-      isLessonUnlocked('top-row', {
-        'home-row': { bestAccuracy: UNLOCK_ACCURACY },
+      isLessonUnlocked('base_consonants', {
+        base_vowels: { bestAccuracy: UNLOCK_ACCURACY },
       }),
     ).toBe(true);
     expect(
-      isLessonUnlocked('top-row', {
-        'home-row': { bestAccuracy: UNLOCK_ACCURACY - 1 },
+      isLessonUnlocked('base_consonants', {
+        base_vowels: { bestAccuracy: UNLOCK_ACCURACY - 1 },
       }),
     ).toBe(false);
   });
 
-  it('unlocks first micro-lesson when parent chapter is unlocked', () => {
-    expect(isLessonUnlocked('home-left', {})).toBe(true);
-    expect(isLessonUnlocked('home-right', {})).toBe(false);
+  it('unlocks lessons sequentially within a chapter', () => {
+    expect(isLessonUnlocked('base_alternation', {})).toBe(false);
     expect(
-      isLessonUnlocked('home-right', {
-        'home-left': { bestAccuracy: UNLOCK_ACCURACY },
+      isLessonUnlocked('base_alternation', {
+        base_consonants: { bestAccuracy: UNLOCK_ACCURACY },
       }),
     ).toBe(true);
   });
 
-  it('locks micro-lessons until parent chapter is unlocked', () => {
-    expect(isLessonUnlocked('top-nivel-1', {})).toBe(false);
+  it('locks cross-chapter lessons until previous chapter lesson is done', () => {
+    expect(isLessonUnlocked('top_left', {})).toBe(false);
     expect(
-      isLessonUnlocked('top-nivel-1', {
-        'home-row': { bestAccuracy: UNLOCK_ACCURACY },
+      isLessonUnlocked('top_left', {
+        base_alternation: { bestAccuracy: UNLOCK_ACCURACY },
       }),
     ).toBe(true);
   });
@@ -42,8 +42,8 @@ describe('curriculum', () => {
   it('calculates curriculum progress percentage', () => {
     expect(getCurriculumProgress({})).toBe(0);
     const progress = getCurriculumProgress({
-      'home-row': { bestAccuracy: 100 },
+      base_vowels: { bestAccuracy: 100 },
     });
-    expect(progress).toBeGreaterThan(0);
+    expect(progress).toBe(Math.round((1 / ROADMAP_LESSON_IDS.length) * 100));
   });
 });

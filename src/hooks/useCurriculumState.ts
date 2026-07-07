@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readCurriculumFromStorage } from '@/utils/progress/readCurriculumFromStorage';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
-const SSR_CURRICULUM = { progress: 0, recommendedId: 'home-row' };
+const SSR_CURRICULUM = { progress: 0, recommendedId: 'base_vowels' };
 
 function readCurriculumClient() {
   if (typeof window === 'undefined') return SSR_CURRICULUM;

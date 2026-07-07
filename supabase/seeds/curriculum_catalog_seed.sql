@@ -1,0 +1,11 @@
+-- Curriculum catalog reference (lesson_id values stored in typing_sessions / user_lesson_mastery).
+-- Source of truth for playable content: src/data/microLessons.ts + src/utils/curriculum/roadmapChapters.ts
+
+-- Chapter 1: base_vowels, base_consonants, base_alternation
+-- Chapter 2: top_left, top_right, base_top_integration
+-- Chapter 3: bottom_left, bottom_right, alphabet_mastery
+-- Chapter 4: en_bigrams, en_trigrams, es_accents, es_suffixes, bilingual_flow
+-- Chapter 5: shift_cross, camel_pascal, num_row_left, num_row_right, num_mixed
+-- Chapter 6: dev_math_logic, dev_brackets, dev_strings, dev_terminal
+-- Chapter 7: code_js_ts, code_python, advanced_prose
+-- Optional: adaptive-drill

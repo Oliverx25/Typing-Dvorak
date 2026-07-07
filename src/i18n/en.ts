@@ -93,29 +93,33 @@ export const en = {
     chapterAvgMastery: 'avg mastery XP',
   },
   chapterMeta: {
-    fundamentals: {
-      title: 'Chapter 1 — Fundamentals',
-      description: 'Home row and split-hand drills.',
+    ch1Fundamentals: {
+      title: 'Chapter 1 — Dvorak Fundamentals',
+      description: 'Home row with strict left-hand vowels and right-hand consonants.',
     },
-    expansion: {
-      title: 'Chapter 2 — Expansion',
-      description: 'Top, bottom rows, punctuation, and full-row words.',
+    ch2TopExpansion: {
+      title: 'Chapter 2 — Top Row Expansion',
+      description: 'Upper reach by hand, then integrate with the home row.',
     },
-    bilingual: {
-      title: 'Chapter 3 — Bilingual',
-      description: 'Common words and Spanish accents.',
+    ch3BottomReach: {
+      title: 'Chapter 3 — Bottom Reach',
+      description: 'Lower row isolation and full alphabet mastery.',
     },
-    mechanics: {
-      title: 'Chapter 4 — Mechanics',
-      description: 'Shift, caps, and numbers.',
+    ch4Bilingual: {
+      title: 'Chapter 4 — Bilingual Mastery',
+      description: 'English n-grams, Spanish orthography, and mixed flow.',
     },
-    development: {
-      title: 'Chapter 5 — Development',
-      description: 'Code symbols and developer drills.',
+    ch5Mechanics: {
+      title: 'Chapter 5 — Mechanical Precision',
+      description: 'Shift, casing patterns, and number row.',
     },
-    masteryChapter: {
-      title: 'Chapter 6 — Mastery',
-      description: 'Sentences, Spanish pangrams, and advanced challenge.',
+    ch6Development: {
+      title: 'Chapter 6 — Developer Arsenal',
+      description: 'Math, brackets, strings, and terminal symbols.',
+    },
+    ch7FireTest: {
+      title: 'Chapter 7 — Trial by Fire',
+      description: 'Code snippets and advanced prose.',
     },
   },
   sandbox: {
@@ -501,54 +505,32 @@ export const en = {
     spanishDvorak: { title: 'Spanish Dvorak', description: 'Accents, ñ, and Spanish pangrams.' },
   },
   microLessonMeta: {
-    homeLeft: {
-      title: 'Left hand (A O E U)',
-      description: 'Practice only the left-hand vowels on the home row.',
-    },
-    homeRight: {
-      title: 'Right hand (D H T N)',
-      description: 'Practice D, H, T, and N on the home row.',
-    },
-    topNivel1: {
-      title: 'Level 1 (P Y G C R L)',
-      description: 'Practice P, Y, G, C, R, and L on the top row.',
-    },
-    topNivel2: {
-      title: "Level 2 (' , . F)",
-      description: 'Practice the remaining punctuation and F on the top row.',
-    },
-    bottomNivel1: {
-      title: 'Level 1 (Q J K X)',
-      description: 'Practice Q, J, K, and X on the bottom row.',
-    },
-    bottomNivel2: {
-      title: 'Level 2 (B M W V Z)',
-      description: 'Practice B, M, W, V, and Z on the bottom row.',
-    },
-    codeHtml: {
-      title: 'HTML tags',
-      description: 'Practice <, >, and / used in HTML tags.',
-    },
-    codeTs: {
-      title: 'TypeScript syntax',
-      description: 'Practice braces, parentheses, and semicolons from code.',
-    },
-    codeFull: {
-      title: 'Full code challenge',
-      description: 'Practice a mix of common programming symbols.',
-    },
-    esAccents: {
-      title: 'Accents (á é í ó ú)',
-      description: 'Practice accented Spanish vowels.',
-    },
-    esEnye: {
-      title: 'Letter ñ',
-      description: 'Practice lowercase and uppercase ñ.',
-    },
-    esFull: {
-      title: 'Spanish pangrams',
-      description: 'Full Spanish pangram sentences for rhythm and accuracy.',
-    },
+    baseVowels: { title: 'Left hand: Vowels (A O E U I)', description: 'Isolate left-hand vowels on the home row.' },
+    baseConsonants: { title: 'Right hand: Consonants (D H T N S)', description: 'Isolate right-hand home row consonants.' },
+    baseAlternation: { title: 'Alternating flow (Home row)', description: 'Alternate between left and right home keys.' },
+    topLeft: { title: 'Upper left reach (\' , . P Y)', description: 'Left-hand top row without right-hand keys.' },
+    topRight: { title: 'Upper right reach (F G C R L)', description: 'Right-hand top row without left-hand keys.' },
+    baseTopIntegration: { title: 'Home + top integration', description: 'Combine home and top rows.' },
+    bottomLeft: { title: 'Lower left (; Q J K X)', description: 'Left-hand bottom row isolation.' },
+    bottomRight: { title: 'Lower right (B M W V Z)', description: 'Right-hand bottom row isolation.' },
+    alphabetMastery: { title: 'Full alphabet (A–Z)', description: 'Complete lowercase alphabet.' },
+    enBigrams: { title: 'English bigrams', description: 'th, he, in, er, nd muscle memory.' },
+    enTrigrams: { title: 'English trigrams', description: 'the, and, ion, ent patterns.' },
+    esAccents: { title: 'Spanish accents & ñ', description: 'á é í ó ú ñ uppercase and lowercase.' },
+    esSuffixes: { title: 'Spanish suffixes', description: '-mente, -ción, -dad patterns.' },
+    bilingualFlow: { title: 'Mixed ES/EN words', description: 'Frequent words in both languages.' },
+    shiftCross: { title: 'Cross-hand shift', description: 'Isolated capitals with shift.' },
+    camelPascal: { title: 'CamelCase & PascalCase', description: 'Identifier casing patterns.' },
+    numRowLeft: { title: 'Numbers left (1–5)', description: 'Left-hand number row.' },
+    numRowRight: { title: 'Numbers right (6–0)', description: 'Right-hand number row.' },
+    numMixed: { title: 'Alphanumeric sequences', description: 'Mixed letters and digits.' },
+    devMathLogic: { title: 'Math & logic symbols', description: '+ - * / = < >' },
+    devBrackets: { title: 'Brackets & scopes', description: '{ } [ ] ( )' },
+    devStrings: { title: 'Strings & delimiters', description: 'Quotes, semicolons, commas.' },
+    devTerminal: { title: 'Terminal & Bash', description: '_ | \\ / ~ $ & @ # % ^' },
+    codeJsTs: { title: 'JS / TS snippets', description: 'Short JavaScript and TypeScript drills.' },
+    codePython: { title: 'Python snippets', description: 'Short Python code drills.' },
+    advancedProse: { title: 'Advanced prose', description: 'Long-form sentences for endurance.' },
   },
   qwerty: {
     qwerty: 'QWERTY',
