@@ -3,60 +3,60 @@ import type { AchievementMetric, CatalogCategory, CatalogEntry, CatalogTier } fr
 let nextId = 1;
 
 const METRIC_SUBCATEGORY: Partial<Record<AchievementMetric, string>> = {
-  session_max_wpm: 'Picos de velocidad',
-  session_avg_wpm: 'Velocidad sostenida',
-  early_burst_wpm: 'Arranque explosivo',
-  perfect_session_count: 'Sesiones perfectas',
+  session_max_wpm: 'Speed Peaks',
+  session_avg_wpm: 'Sustained Speed',
+  early_burst_wpm: 'Explosive Start',
+  perfect_session_count: 'Perfect Sessions',
   max_combo: 'Combos',
-  consecutive_high_accuracy_sessions: 'Consistencia',
-  error_recovery_combo: 'Recuperación',
-  mp_wins: 'Victorias',
-  mp_win_clutch: 'Hazañas de carrera',
-  mp_win_dominant: 'Hazañas de carrera',
-  mp_win_perfect_grade: 'Hazañas de carrera',
-  mp_win_streak: 'Rachas de victoria',
-  mp_comeback_win: 'Hazañas de carrera',
-  mp_race_player_count: 'Salas multijugador',
-  mp_win_full_lobby: 'Salas multijugador',
-  mp_photo_finish_win: 'Hazañas de carrera',
-  modifier_sudden_death_win: 'Modificadores',
-  modifier_blind_high_accuracy: 'Modificadores',
-  modifier_strict_high_grade: 'Modificadores',
-  modifier_flashlight_complete: 'Modificadores',
-  modifier_vampire_survive: 'Modificadores',
-  modifier_double_time_grade: 'Modificadores',
-  modifier_rhythm_lock_perfect: 'Modificadores',
-  modifier_masocore: 'Modificadores',
-  left_hand_perfect: 'Dominio por mano',
-  right_hand_perfect: 'Dominio por mano',
-  dev_symbols_grade: 'Código',
-  custom_code_grade: 'Código',
-  day_streak: 'Rachas diarias',
-  total_sessions: 'Volumen',
-  active_typing_minutes: 'Maratón',
-  total_correct_keystrokes: 'Volumen de teclas',
-  same_artist_song_plays: 'Artistas',
-  song_languages_count: 'Idiomas',
-  full_lobby_song_race: 'Salas musicales',
-  first_grade_a: 'Primeros rangos',
-  first_grade_s: 'Primeros rangos',
-  first_grade_ss: 'Primeros rangos',
-  first_grade_ascended: 'Primeros rangos',
-  grade_s_or_better_count: 'Colección de rangos',
+  consecutive_high_accuracy_sessions: 'Consistency',
+  error_recovery_combo: 'Recovery',
+  mp_wins: 'Victories',
+  mp_win_clutch: 'Race Feats',
+  mp_win_dominant: 'Race Feats',
+  mp_win_perfect_grade: 'Race Feats',
+  mp_win_streak: 'Win Streaks',
+  mp_comeback_win: 'Race Feats',
+  mp_race_player_count: 'Multiplayer Lobbies',
+  mp_win_full_lobby: 'Multiplayer Lobbies',
+  mp_photo_finish_win: 'Race Feats',
+  modifier_sudden_death_win: 'Modifiers',
+  modifier_blind_high_accuracy: 'Modifiers',
+  modifier_strict_high_grade: 'Modifiers',
+  modifier_flashlight_complete: 'Modifiers',
+  modifier_vampire_survive: 'Modifiers',
+  modifier_double_time_grade: 'Modifiers',
+  modifier_rhythm_lock_perfect: 'Modifiers',
+  modifier_masocore: 'Modifiers',
+  left_hand_perfect: 'Hand Mastery',
+  right_hand_perfect: 'Hand Mastery',
+  dev_symbols_grade: 'Code',
+  custom_code_grade: 'Code',
+  day_streak: 'Daily Streaks',
+  total_sessions: 'Volume',
+  active_typing_minutes: 'Marathon',
+  total_correct_keystrokes: 'Keystroke Volume',
+  same_artist_song_plays: 'Artists',
+  song_languages_count: 'Languages',
+  full_lobby_song_race: 'Music Lobbies',
+  first_grade_a: 'First Ranks',
+  first_grade_s: 'First Ranks',
+  first_grade_ss: 'First Ranks',
+  first_grade_ascended: 'First Ranks',
+  grade_s_or_better_count: 'Rank Collection',
 };
 
 function resolveSubcategory(slug: string, metric: AchievementMetric): string {
-  if (slug.startsWith('speed_cruise_')) return 'Velocidad sostenida';
-  if (slug.startsWith('speed_wpm_')) return 'Picos de velocidad';
-  if (slug.startsWith('speed_')) return 'Retos de velocidad';
-  if (slug.startsWith('mp_')) return METRIC_SUBCATEGORY[metric] ?? 'Multijugador';
-  if (slug.startsWith('mod_')) return 'Modificadores';
-  if (slug.startsWith('rank_')) return METRIC_SUBCATEGORY[metric] ?? 'Rangos';
-  if (slug.startsWith('music_')) return METRIC_SUBCATEGORY[metric] ?? 'Música';
-  if (slug.startsWith('tech_')) return 'Técnica';
-  if (slug.startsWith('endurance_')) return METRIC_SUBCATEGORY[metric] ?? 'Resistencia';
-  if (slug.startsWith('precision_')) return METRIC_SUBCATEGORY[metric] ?? 'Precisión';
-  if (slug.startsWith('perfect_') || slug.startsWith('combo_')) return METRIC_SUBCATEGORY[metric] ?? 'Precisión';
+  if (slug.startsWith('speed_cruise_')) return 'Sustained Speed';
+  if (slug.startsWith('speed_wpm_')) return 'Speed Peaks';
+  if (slug.startsWith('speed_')) return 'Speed Challenges';
+  if (slug.startsWith('mp_')) return METRIC_SUBCATEGORY[metric] ?? 'Multiplayer';
+  if (slug.startsWith('mod_')) return 'Modifiers';
+  if (slug.startsWith('rank_')) return METRIC_SUBCATEGORY[metric] ?? 'Ranks';
+  if (slug.startsWith('music_')) return METRIC_SUBCATEGORY[metric] ?? 'Music';
+  if (slug.startsWith('tech_')) return 'Technique';
+  if (slug.startsWith('endurance_')) return METRIC_SUBCATEGORY[metric] ?? 'Endurance';
+  if (slug.startsWith('precision_')) return METRIC_SUBCATEGORY[metric] ?? 'Precision';
+  if (slug.startsWith('perfect_') || slug.startsWith('combo_')) return METRIC_SUBCATEGORY[metric] ?? 'Precision';
   return METRIC_SUBCATEGORY[metric] ?? 'General';
 }
 
@@ -176,18 +176,18 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   const items: CatalogEntry[] = [];
 
   items.push(
-    speedSession(30, 'bronce', 'Paseante'),
-    speedSession(45, 'bronce', 'Trotador'),
-    speedSession(60, 'plata', 'Corredor'),
-    speedSession(75, 'plata', 'Veloz'),
-    speedSession(90, 'oro', 'Velocista'),
-    speedSession(105, 'oro', 'Impulso'),
-    speedSession(120, 'diamante', 'Relámpago'),
-    speedSession(135, 'diamante', 'Hipervelocidad'),
-    speedSession(150, 'diamante', 'Supersónico'),
-    speedSession(165, 'diamante', 'Fotón'),
-    speedSession(180, 'diamante', 'Taquión'),
-    speedSession(200, 'especial', 'Singularidad Rítmica'),
+    speedSession(30, 'bronce', 'Walker'),
+    speedSession(45, 'bronce', 'Trotter'),
+    speedSession(60, 'plata', 'Runner'),
+    speedSession(75, 'plata', 'Swift'),
+    speedSession(90, 'oro', 'Sprinter'),
+    speedSession(105, 'oro', 'Surge'),
+    speedSession(120, 'diamante', 'Lightning'),
+    speedSession(135, 'diamante', 'Hyperspeed'),
+    speedSession(150, 'diamante', 'Supersonic'),
+    speedSession(165, 'diamante', 'Photon'),
+    speedSession(180, 'diamante', 'Tachyon'),
+    speedSession(200, 'especial', 'Rhythmic Singularity'),
   );
 
   for (let i = 0; i < 7; i += 1) {
@@ -197,8 +197,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   items.push(
     entry(
       'speed_early_burst_100',
-      'Arranque Explosivo',
-      'Llega a 100 WPM en los primeros 5 segundos de una partida.',
+      'Explosive Start',
+      'Reach 100 WPM within the first 5 seconds of a race.',
       'velocidad',
       'oro',
       100,
@@ -206,8 +206,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'speed_sustain_80_300s',
-      'Motor Constante',
-      'Mantén 80+ WPM durante 5 minutos continuos en una sesión.',
+      'Steady Engine',
+      'Maintain 80+ WPM for 5 continuous minutes in a session.',
       'velocidad',
       'plata',
       80,
@@ -215,8 +215,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'speed_peak_220',
-      'Horizonte de Eventos',
-      'Alcanza 220 WPM en una sesión (modo test).',
+      'Event Horizon',
+      'Reach 220 WPM in a test-mode session.',
       'velocidad',
       'especial',
       220,
@@ -225,33 +225,33 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   );
 
   items.push(
-    perfectSessions(1, 'bronce', 'Tiro Limpio'),
-    perfectSessions(5, 'bronce', 'Ojo de Águila'),
-    perfectSessions(10, 'plata', 'Cirujano'),
-    perfectSessions(25, 'plata', 'Precisión Quirúrgica'),
-    perfectSessions(50, 'oro', 'Máquina'),
-    perfectSessions(75, 'oro', 'Automata'),
-    perfectSessions(100, 'diamante', 'Perfección Absoluta'),
-    perfectSessions(250, 'especial', 'Entidad Perfecta'),
+    perfectSessions(1, 'bronce', 'Clean Shot'),
+    perfectSessions(5, 'bronce', 'Eagle Eye'),
+    perfectSessions(10, 'plata', 'Surgeon'),
+    perfectSessions(25, 'plata', 'Surgical Precision'),
+    perfectSessions(50, 'oro', 'Machine'),
+    perfectSessions(75, 'oro', 'Automaton'),
+    perfectSessions(100, 'diamante', 'Absolute Perfection'),
+    perfectSessions(250, 'especial', 'Perfect Entity'),
   );
 
   items.push(
-    comboTarget(50, 'bronce', 'Concentración'),
-    comboTarget(100, 'bronce', 'Cadena Sólida'),
-    comboTarget(150, 'plata', 'Flujo'),
-    comboTarget(200, 'plata', 'Corriente'),
+    comboTarget(50, 'bronce', 'Focus'),
+    comboTarget(100, 'bronce', 'Solid Chain'),
+    comboTarget(150, 'plata', 'Flow'),
+    comboTarget(200, 'plata', 'Current'),
     comboTarget(300, 'oro', 'Trance'),
-    comboTarget(400, 'oro', 'Estado Zen'),
-    comboTarget(500, 'diamante', 'Imparable'),
-    comboTarget(750, 'diamante', 'Titán del Combo'),
-    comboTarget(1000, 'especial', 'Divino'),
+    comboTarget(400, 'oro', 'Zen State'),
+    comboTarget(500, 'diamante', 'Unstoppable'),
+    comboTarget(750, 'diamante', 'Combo Titan'),
+    comboTarget(1000, 'especial', 'Divine'),
   );
 
   items.push(
     entry(
       'precision_steady_hand_5',
-      'Mano Firme',
-      'Juega 5 partidas consecutivas sin bajar del 98% de precisión.',
+      'Steady Hand',
+      'Play 5 consecutive sessions without dropping below 98% accuracy.',
       'precision',
       'plata',
       5,
@@ -259,8 +259,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'precision_steady_hand_10',
-      'Pulso de Acero',
-      'Juega 10 partidas consecutivas sin bajar del 98% de precisión.',
+      'Steel Pulse',
+      'Play 10 consecutive sessions without dropping below 98% accuracy.',
       'precision',
       'oro',
       10,
@@ -268,8 +268,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'precision_recovery_100',
-      'Recuperación Rápida',
-      'Comete un error y levanta un combo de 100 teclas en la misma partida.',
+      'Quick Recovery',
+      'Make a mistake and rebuild a 100-keystroke combo in the same session.',
       'precision',
       'oro',
       100,
@@ -277,8 +277,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'precision_recovery_200',
-      'Fénix del Combo',
-      'Comete un error y levanta un combo de 200 teclas en la misma partida.',
+      'Combo Phoenix',
+      'Make a mistake and rebuild a 200-keystroke combo in the same session.',
       'precision',
       'diamante',
       200,
@@ -287,18 +287,18 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   );
 
   items.push(
-    mpWins(1, 'bronce', 'Contendiente'),
+    mpWins(1, 'bronce', 'Contender'),
     mpWins(5, 'bronce', 'Rival'),
-    mpWins(10, 'plata', 'Gladiador'),
-    mpWins(25, 'plata', 'Veterano de Arena'),
-    mpWins(50, 'oro', 'Campeón'),
-    mpWins(100, 'diamante', 'Dominador'),
-    mpWins(250, 'diamante', 'Conquistador'),
-    mpWins(500, 'especial', 'Leyenda'),
+    mpWins(10, 'plata', 'Gladiator'),
+    mpWins(25, 'plata', 'Arena Veteran'),
+    mpWins(50, 'oro', 'Champion'),
+    mpWins(100, 'diamante', 'Dominator'),
+    mpWins(250, 'diamante', 'Conqueror'),
+    mpWins(500, 'especial', 'Legend'),
     entry(
       'mp_clutch_win',
       'Clutch',
-      'Gana una carrera multijugador por una diferencia menor a 1 segundo.',
+      'Win a multiplayer race by less than 1 second.',
       'multijugador',
       'oro',
       1,
@@ -307,7 +307,7 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     entry(
       'mp_dominant_win',
       'Top Fragger',
-      'Gana una carrera superando al segundo lugar por más de 30 WPM.',
+      'Win a race beating second place by more than 30 WPM.',
       'multijugador',
       'oro',
       1,
@@ -315,8 +315,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mp_grade_ss_win',
-      'Dominio Absoluto',
-      'Gana una carrera multijugador obteniendo rango SS o SS+.',
+      'Absolute Dominance',
+      'Win a multiplayer race with grade SS or SS+.',
       'multijugador',
       'diamante',
       1,
@@ -324,8 +324,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mp_win_streak_5',
-      'Invicto',
-      'Gana 5 carreras multijugador consecutivas.',
+      'Undefeated',
+      'Win 5 multiplayer races in a row.',
       'multijugador',
       'diamante',
       5,
@@ -333,8 +333,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mp_win_streak_10',
-      'Imparable en Red',
-      'Gana 10 carreras multijugador consecutivas.',
+      'Unstoppable Online',
+      'Win 10 multiplayer races in a row.',
       'multijugador',
       'especial',
       10,
@@ -342,8 +342,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mp_comeback_win',
-      'Remontada Épica',
-      'Pasa del último lugar en la primera mitad al primer lugar al terminar.',
+      'Epic Comeback',
+      'Go from last place at the halfway point to first at the finish.',
       'multijugador',
       'especial',
       1,
@@ -351,8 +351,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mp_players_4',
-      'Sala Populosa',
-      'Completa una carrera multijugador con 4 o más jugadores.',
+      'Crowded Room',
+      'Complete a multiplayer race with 4 or more players.',
       'multijugador',
       'plata',
       4,
@@ -360,8 +360,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mp_players_8',
-      'Multitud',
-      'Completa una carrera multijugador con 8 jugadores.',
+      'Crowd',
+      'Complete a multiplayer race with 8 players.',
       'multijugador',
       'diamante',
       8,
@@ -369,8 +369,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mp_win_full_lobby',
-      'Rey de la Arena',
-      'Gana una carrera multijugador con 4 o más jugadores en la sala.',
+      'King of the Arena',
+      'Win a multiplayer race with 4 or more players in the lobby.',
       'multijugador',
       'oro',
       1,
@@ -378,8 +378,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mp_photo_finish',
-      'Foto Finish',
-      'Gana una carrera multijugador por menos de 0.5 segundos de diferencia.',
+      'Photo Finish',
+      'Win a multiplayer race by less than 0.5 seconds.',
       'multijugador',
       'diamante',
       1,
@@ -390,8 +390,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   items.push(
     entry(
       'mod_sudden_death_win',
-      'Viviendo al Límite',
-      'Gana una partida con Sudden Death activado.',
+      'Living on the Edge',
+      'Win a match with Sudden Death enabled.',
       'riesgo',
       'oro',
       1,
@@ -399,8 +399,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mod_blind_95',
-      'Memoria Muscular Pura',
-      'Termina una partida en Blind Mode con más del 95% de precisión.',
+      'Pure Muscle Memory',
+      'Finish a Blind Mode session with over 95% accuracy.',
       'riesgo',
       'oro',
       95,
@@ -408,8 +408,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mod_strict_grade_s',
-      'Teclado Inmisericorde',
-      'Completa una sesión con Strict (sin backspace) con rango S o superior.',
+      'Merciless Keyboard',
+      'Complete a Strict session (no backspace) with grade S or higher.',
       'riesgo',
       'diamante',
       1,
@@ -417,8 +417,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mod_flashlight_complete',
-      'Visión de Túnel',
-      'Supera una carrera con el modificador Flashlight activado.',
+      'Tunnel Vision',
+      'Complete a race with the Flashlight modifier enabled.',
       'riesgo',
       'plata',
       1,
@@ -426,8 +426,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mod_vampire_survive',
-      'Sobreviviente',
-      'Gana una partida en Vampire terminando con menos del 10% de vida.',
+      'Survivor',
+      'Win a Vampire match finishing with less than 10% HP.',
       'riesgo',
       'diamante',
       1,
@@ -435,8 +435,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mod_double_time_grade_a',
-      'Adrenalina',
-      'Completa una canción con Double Time con rango A o superior.',
+      'Adrenaline',
+      'Complete a song with Double Time at grade A or higher.',
       'riesgo',
       'oro',
       1,
@@ -444,8 +444,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'mod_rhythm_lock_perfect',
-      'Metrónomo Humano',
-      'Completa una canción con Rhythm Lock sin romper el combo por desfase.',
+      'Human Metronome',
+      'Complete a song with Rhythm Lock without breaking combo from drift.',
       'riesgo',
       'diamante',
       1,
@@ -454,7 +454,7 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     entry(
       'mod_masocore',
       'Masocore',
-      'Termina una partida con Sudden Death, Blind Mode y Flashlight activos simultáneamente.',
+      'Finish a match with Sudden Death, Blind Mode, and Flashlight active together.',
       'riesgo',
       'especial',
       1,
@@ -465,8 +465,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   items.push(
     entry(
       'tech_left_hand_perfect',
-      'Vocales Dominadas',
-      '100% de precisión en las teclas de la mano izquierda (A, O, E, U, I) en una sesión completa.',
+      'Vowels Mastered',
+      '100% accuracy on left-hand keys (A, O, E, U, I) in a full session.',
       'tecnica',
       'oro',
       1,
@@ -474,8 +474,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'tech_right_hand_perfect',
-      'Consonantes Letales',
-      '100% de precisión en las teclas de la mano derecha en una sesión completa.',
+      'Lethal Consonants',
+      '100% accuracy on right-hand keys in a full session.',
       'tecnica',
       'oro',
       1,
@@ -483,8 +483,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'tech_dev_symbols_ss',
-      'Código Limpio',
-      'Completa la lección de símbolos de desarrollo con rango SS.',
+      'Clean Code',
+      'Complete the developer symbols lesson with grade SS.',
       'tecnica',
       'diamante',
       1,
@@ -493,7 +493,7 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     entry(
       'tech_custom_code_s',
       'SysAdmin',
-      'Termina una sesión de texto personalizado con código fuente real con rango S o superior.',
+      'Finish a custom practice session with real source code at grade S or higher.',
       'tecnica',
       'oro',
       1,
@@ -502,26 +502,26 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   );
 
   items.push(
-    streakDays(3, 'bronce', 'Hábito'),
-    streakDays(7, 'plata', 'Disciplina'),
+    streakDays(3, 'bronce', 'Habit'),
+    streakDays(7, 'plata', 'Discipline'),
     streakDays(14, 'plata', 'Ritual'),
-    streakDays(30, 'oro', 'Estilo de Vida'),
-    streakDays(60, 'oro', 'Devoción'),
-    streakDays(100, 'diamante', 'Inquebrantable'),
-    streakDays(180, 'diamante', 'Monolito'),
-    streakDays(365, 'especial', 'Constancia Ancestral'),
-    totalSessions(10, 'bronce', 'Estudiante'),
-    totalSessions(50, 'bronce', 'Aprendiz'),
-    totalSessions(100, 'plata', 'Practicante'),
-    totalSessions(250, 'plata', 'Dedicado'),
-    totalSessions(500, 'oro', 'Veterano'),
-    totalSessions(1000, 'diamante', 'Gran Maestro'),
-    totalSessions(2500, 'diamante', 'Inmortal del Teclado'),
-    totalSessions(5000, 'especial', 'Deidad'),
+    streakDays(30, 'oro', 'Lifestyle'),
+    streakDays(60, 'oro', 'Devotion'),
+    streakDays(100, 'diamante', 'Unbreakable'),
+    streakDays(180, 'diamante', 'Monolith'),
+    streakDays(365, 'especial', 'Ancestral Consistency'),
+    totalSessions(10, 'bronce', 'Student'),
+    totalSessions(50, 'bronce', 'Apprentice'),
+    totalSessions(100, 'plata', 'Practitioner'),
+    totalSessions(250, 'plata', 'Dedicated'),
+    totalSessions(500, 'oro', 'Veteran'),
+    totalSessions(1000, 'diamante', 'Grand Master'),
+    totalSessions(2500, 'diamante', 'Keyboard Immortal'),
+    totalSessions(5000, 'especial', 'Deity'),
     entry(
       'endurance_typing_60min',
-      'Maratonista',
-      'Acumula 1 hora de tecleo activo continuo (pausas menores a 30s).',
+      'Marathoner',
+      'Accumulate 1 hour of active typing (pauses under 30s).',
       'resistencia',
       'oro',
       60,
@@ -529,8 +529,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'endurance_keys_1m',
-      'Millonario de Teclas',
-      'Alcanza 1,000,000 de pulsaciones correctas totales acumuladas.',
+      'Keystroke Millionaire',
+      'Reach 1,000,000 total correct keystrokes.',
       'resistencia',
       'especial',
       1_000_000,
@@ -538,8 +538,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'endurance_keys_100k',
-      'Centena de Miles',
-      'Alcanza 100,000 pulsaciones correctas totales.',
+      'Hundred Thousand',
+      'Reach 100,000 total correct keystrokes.',
       'resistencia',
       'oro',
       100_000,
@@ -547,8 +547,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'endurance_keys_10k',
-      'Diez Mil Toques',
-      'Alcanza 10,000 pulsaciones correctas totales.',
+      'Ten Thousand Touches',
+      'Reach 10,000 total correct keystrokes.',
       'resistencia',
       'bronce',
       10_000,
@@ -559,8 +559,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   items.push(
     entry(
       'music_same_artist_10',
-      'Fanático',
-      'Juega canciones del mismo artista 10 veces.',
+      'Fan',
+      'Play songs by the same artist 10 times.',
       'musica',
       'plata',
       10,
@@ -569,7 +569,7 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     entry(
       'music_same_artist_25',
       'Superfan',
-      'Juega canciones del mismo artista 25 veces.',
+      'Play songs by the same artist 25 times.',
       'musica',
       'oro',
       25,
@@ -577,8 +577,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'music_languages_3',
-      'Políglota',
-      'Completa canciones en 3 idiomas diferentes.',
+      'Polyglot',
+      'Complete songs in 3 different languages.',
       'musica',
       'oro',
       3,
@@ -586,8 +586,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'music_languages_5',
-      'Embajador Global',
-      'Completa canciones en 5 idiomas diferentes.',
+      'Global Ambassador',
+      'Complete songs in 5 different languages.',
       'musica',
       'diamante',
       5,
@@ -595,8 +595,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'music_full_lobby',
-      'Estadio Lleno',
-      'Completa una carrera multijugador en modo canción en una sala llena.',
+      'Full Stadium',
+      'Complete a multiplayer song race in a full lobby.',
       'musica',
       'diamante',
       1,
@@ -607,8 +607,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
   items.push(
     entry(
       'rank_first_a',
-      'Buscando la Perfección',
-      'Obtén tu primer rango A global.',
+      'Seeking Perfection',
+      'Earn your first global A grade.',
       'rangos',
       'bronce',
       1,
@@ -616,8 +616,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'rank_first_s',
-      'Élite',
-      'Obtén tu primer rango S global.',
+      'Elite',
+      'Earn your first global S grade.',
       'rangos',
       'plata',
       1,
@@ -625,8 +625,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'rank_first_ss',
-      'Maestro Dvorak',
-      'Obtén tu primer rango SS global.',
+      'Dvorak Master',
+      'Earn your first global SS grade.',
       'rangos',
       'oro',
       1,
@@ -634,8 +634,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'rank_ascended',
-      'Ascendido',
-      'Obtén tu primer rango S+ o SS+ usando modificadores difíciles.',
+      'Ascended',
+      'Earn your first S+ or SS+ grade using hard modifiers.',
       'rangos',
       'diamante',
       1,
@@ -643,8 +643,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'rank_gold_collector_50',
-      'Coleccionista de Oro',
-      'Acumula 50 rangos S o superiores en tu historial general.',
+      'Gold Collector',
+      'Accumulate 50 S-grade or better results in your history.',
       'rangos',
       'diamante',
       50,
@@ -652,8 +652,8 @@ export function buildAchievementCatalog(): CatalogEntry[] {
     ),
     entry(
       'rank_gold_collector_100',
-      'Curador de Excelencia',
-      'Acumula 100 rangos S o superiores en tu historial general.',
+      'Curator of Excellence',
+      'Accumulate 100 S-grade or better results in your history.',
       'rangos',
       'especial',
       100,

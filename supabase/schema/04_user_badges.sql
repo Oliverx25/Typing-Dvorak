@@ -1,4 +1,6 @@
 -- Typing Dvorak — user achievements (badges)
+-- DEPRECATED: superseded by public.user_achievements (achievement catalog v2).
+-- Kept for historical exports only; no new writes from the app.
 -- Run AFTER 03_profile_avatars_storage.sql in Supabase SQL Editor
 
 create table if not exists public.user_badges (

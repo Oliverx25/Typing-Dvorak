@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
+import { translateSubcategory } from '@/i18n/achievements';
 import {
   ACHIEVEMENT_CATALOG,
   type CatalogEntry,
@@ -17,7 +18,7 @@ import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events
 const AchievementCard = lazy(() => import('@/components/achievements/AchievementCard'));
 
 export default function AchievementsGrid() {
-  const { t } = useApp();
+  const { t, locale } = useApp();
   const [activeCategory, setActiveCategory] = useState<CatalogCategory>('velocidad');
   const [progressMap, setProgressMap] = useState<Record<string, UserAchievementProgress>>({});
 
@@ -102,7 +103,7 @@ export default function AchievementsGrid() {
           <div key={subcategory} className="mb-10 w-full">
             <div className="mb-4 flex items-center gap-4">
               <h3 className="whitespace-nowrap text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
-                {subcategory}
+                {translateSubcategory(subcategory, locale)}
               </h3>
               <div className="h-px flex-grow bg-slate-800/50" />
             </div>

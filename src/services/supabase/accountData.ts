@@ -1,6 +1,7 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { exportProgress } from '@/utils/progress/exportImport';
-import { fetchUserKeyErrors, fetchUserProfile, fetchUserSessions } from '@/services/supabase/queries';
+import { fetchUserKeyErrors, fetchUserProfile, fetchUserSessions, fetchUserAchievements } from '@/services/supabase/queries';
+import { getAuthUser } from '@/services/supabase/authSession';
 
 export interface AccountExportBundle {
   version: 2;
@@ -10,7 +11,9 @@ export interface AccountExportBundle {
     profile: unknown;
     sessions: unknown[];
     keyErrors: unknown[];
+    /** @deprecated Legacy user_badges — kept empty; use achievements. */
     badges: unknown[];
+    achievements: unknown[];
   };
 }
 
@@ -18,14 +21,14 @@ export async function buildAccountExportBundle(): Promise<AccountExportBundle | 
   const supabase = getSupabaseClient();
   if (!supabase) return null;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return null;
 
-  const [profile, sessions, keyErrors, badgesResult] = await Promise.all([
+  const [profile, sessions, keyErrors, achievements] = await Promise.all([
     fetchUserProfile(),
     fetchUserSessions(500),
     fetchUserKeyErrors(),
-    supabase.from('user_badges').select('*').eq('user_id', user.id),
+    fetchUserAchievements(user.id),
   ]);
 
   return {
@@ -36,31 +39,8 @@ export async function buildAccountExportBundle(): Promise<AccountExportBundle | 
       profile,
       sessions,
       keyErrors,
-      badges: badgesResult.data ?? [],
+      badges: [],
+      achievements,
     },
   };
-}
-
-export function downloadAccountExport(bundle: AccountExportBundle): void {
-  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = `typing-dvorak-account-${new Date().toISOString().slice(0, 10)}.json`;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
-export async function deleteOwnAccount(): Promise<{ error: string | null }> {
-  const supabase = getSupabaseClient();
-  if (!supabase) return { error: 'notConfigured' };
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'notAuthenticated' };
-
-  const { error } = await supabase.rpc('delete_own_account');
-  if (error) return { error: error.message };
-
-  await supabase.auth.signOut();
-  return { error: null };
 }

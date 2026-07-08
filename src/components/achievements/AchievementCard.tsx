@@ -1,7 +1,6 @@
-import type { CatalogEntry } from '@/utils/achievements/catalogData';
 import { useApp } from '@/contexts/AppProvider';
 import { getAchievementText } from '@/i18n/achievements';
-import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
+import type { CatalogEntry, UserAchievementProgress } from '@/utils/achievements/catalogTypes';
 import { getCategoryIcon, TIER_VISUALS } from '@/utils/achievements/achievementIcons';
 import { Icon } from '@/components/ui';
 
