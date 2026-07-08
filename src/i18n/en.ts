@@ -407,6 +407,12 @@ export const en = {
     consistencyTitle: 'Keystroke consistency',
     showConsistency: 'View consistency analysis',
     hideConsistency: 'Hide analysis',
+    backToLessons: 'Back to lessons',
+    nextLesson: 'Next lesson',
+    rawWpm: 'Raw WPM',
+    consistency: 'Consistency',
+    troubleKeys: 'Trouble keys',
+    noTroubleKeys: 'None',
     starsEarned: 'Stars earned',
   },
   fingers: {

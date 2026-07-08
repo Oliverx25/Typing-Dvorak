@@ -122,7 +122,9 @@ export default function TypingTest({
     vampireDamaged,
     errorKeystrokes,
     startTime,
+    elapsedMs,
     keystrokeLog,
+    errorIndexHistory,
     clearComboBroke,
     containerRef,
     retryButtonRef,
@@ -270,6 +272,7 @@ export default function TypingTest({
           targetText={targetText}
           inputLength={input.length}
           statuses={statuses}
+          errorIndexHistory={errorIndexHistory}
           finished={finished}
           paused={paused}
           pacerIndex={pacerIndex}
@@ -290,9 +293,13 @@ export default function TypingTest({
 
       {finished && !hideCompletionPanel && (
         <CompletionPanel
+          lessonId={lessonId}
           wpm={stats.wpm}
           accuracy={stats.accuracy}
           elapsedSeconds={stats.elapsedSeconds}
+          elapsedMs={session.elapsedMs}
+          correctChars={stats.correctChars}
+          incorrectChars={stats.incorrectChars}
           maxCombo={maxCombo}
           isNewRecord={isNewRecord}
           wpmDelta={wpmDelta}

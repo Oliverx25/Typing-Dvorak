@@ -409,6 +409,12 @@ export const es: TranslationKey = {
     consistencyTitle: 'Consistencia de pulsaciones',
     showConsistency: 'Ver análisis de consistencia',
     hideConsistency: 'Ocultar análisis',
+    backToLessons: 'Regresar a lecciones',
+    nextLesson: 'Siguiente lección',
+    rawWpm: 'PPM bruto',
+    consistency: 'Consistencia',
+    troubleKeys: 'Teclas difíciles',
+    noTroubleKeys: 'Ninguna',
     starsEarned: 'Estrellas obtenidas',
   },
   fingers: {

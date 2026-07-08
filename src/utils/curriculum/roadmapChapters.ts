@@ -42,4 +42,12 @@ export function getChapterIdForLesson(lessonId: string): string | undefined {
   return getChapterForLesson(lessonId)?.id;
 }
 
+/** Next lesson in roadmap order, or null if current is last / not in catalog. */
+export function getNextRoadmapLessonId(currentLessonId: string): string | null {
+  const ids = getRoadmapLessonIds();
+  const index = ids.indexOf(currentLessonId);
+  if (index < 0 || index >= ids.length - 1) return null;
+  return ids[index + 1] ?? null;
+}
+
 export { getChapterLessonById as getLessonById };

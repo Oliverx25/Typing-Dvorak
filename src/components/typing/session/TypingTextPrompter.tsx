@@ -17,6 +17,7 @@ interface TypingTextPrompterProps {
   targetText: string;
   inputLength: number;
   statuses: CharStatus[];
+  errorIndexHistory?: ReadonlySet<number>;
   finished: boolean;
   paused: boolean;
   pacerIndex: number | null;
@@ -31,6 +32,7 @@ function TypingTextPrompter({
   targetText,
   inputLength,
   statuses,
+  errorIndexHistory,
   finished,
   paused,
   pacerIndex,
@@ -136,6 +138,12 @@ function TypingTextPrompter({
                 <TypedChar
                   char={char}
                   status={statuses[index]}
+                  wasCorrected={
+                    statuses[index] === 'correct' && (errorIndexHistory?.has(index) ?? false)
+                  }
+                  needsCorrection={
+                    statuses[index] !== 'correct' && (errorIndexHistory?.has(index) ?? false)
+                  }
                   isCurrent={isCurrent}
                   active={!finished && !paused}
                   hideInlineCaret={hideInlineCaret}

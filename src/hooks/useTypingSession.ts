@@ -72,15 +72,7 @@ interface UseTypingSessionOptions {
   testDurationSeconds?: number;
 }
 
-function wordHasUncorrectedErrors(input: string, statuses: CharStatus[]): boolean {
-  const start = Math.max(0, input.lastIndexOf(' ') + 1);
-  for (let i = start; i < input.length; i += 1) {
-    if (statuses[i] === 'incorrect') return true;
-  }
-  return false;
-}
-
-function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string): string {
+import { wordHasUncorrectedErrors } from '@/utils/typing/wordErrors';(lesson: Lesson, locale: Locale, customText?: string): string {
   if (customText?.trim()) return sanitizeCustomText(customText).trim();
   return getLessonText(
     lesson,
@@ -161,6 +153,7 @@ export function useTypingSession({
   const startTimeRef = useRef<number | null>(null);
   const earlyBurstMaxRef = useRef(0);
   const errorRecoveryMaxRef = useRef(0);
+  const errorIndexHistoryRef = useRef<Set<number>>(new Set());
   const sessionHadErrorRef = useRef(false);
   const rhythmLockBrokenRef = useRef(false);
   const vampireHpRef = useRef(VAMPIRE_MAX_HP);
@@ -374,6 +367,7 @@ export function useTypingSession({
     vampireEliminatedRef.current = false;
     earlyBurstMaxRef.current = 0;
     errorRecoveryMaxRef.current = 0;
+    errorIndexHistoryRef.current.clear();
     sessionHadErrorRef.current = false;
     rhythmLockBrokenRef.current = false;
     if (vampireDamageTimerRef.current !== null) {
@@ -584,7 +578,7 @@ export function useTypingSession({
       typedChar = e.key;
     }
 
-    if (stopOnWord && typedChar === ' ' && wordHasUncorrectedErrors(input, statuses)) {
+    if (stopOnWord && typedChar === ' ' && wordHasUncorrectedErrors(input, statuses, errorIndexHistoryRef.current)) {
       e.preventDefault();
       return;
     }
@@ -614,11 +608,11 @@ export function useTypingSession({
       const nextErrors = errorKeystrokesRef.current + 1;
       dispatch({
         type: 'STOP_ON_ERROR',
-        index: input.length,
         errorKeystrokes: nextErrors,
         comboBroke: combo > 0,
       });
       sessionHadErrorRef.current = true;
+      errorIndexHistoryRef.current.add(input.length);
       sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
       if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
       recordKeystroke(typedChar, false);
@@ -672,6 +666,7 @@ export function useTypingSession({
         comboBroke: combo > 0,
       });
       sessionHadErrorRef.current = true;
+      errorIndexHistoryRef.current.add(input.length);
       sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
       if (suddenDeathMode) {
         requestAnimationFrame(() => forceFinishEarly());
@@ -759,6 +754,7 @@ export function useTypingSession({
     startTime,
     elapsedMs,
     keystrokeLog: keystrokeLogSnapshot,
+    errorIndexHistory: errorIndexHistoryRef.current,
     zenMode,
     clearComboBroke,
     containerRef,

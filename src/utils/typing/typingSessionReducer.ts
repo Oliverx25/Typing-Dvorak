@@ -26,7 +26,6 @@ export type TypingCoreAction =
     }
   | {
       type: 'STOP_ON_ERROR';
-      index: number;
       errorKeystrokes: number;
       comboBroke: boolean;
     }
@@ -77,11 +76,8 @@ export function typingCoreReducer(state: TypingCoreState, action: TypingCoreActi
         comboBroke: action.comboBroke,
       };
     case 'STOP_ON_ERROR': {
-      const next = [...state.statuses];
-      next[action.index] = 'incorrect';
       return {
         ...state,
-        statuses: next,
         errorKeystrokes: action.errorKeystrokes,
         combo: 0,
         comboBroke: action.comboBroke,
