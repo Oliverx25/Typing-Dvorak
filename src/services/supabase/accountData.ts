@@ -44,3 +44,27 @@ export async function buildAccountExportBundle(): Promise<AccountExportBundle | 
     },
   };
 }
+
+export function downloadAccountExport(bundle: AccountExportBundle): void {
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `typing-dvorak-account-${new Date().toISOString().slice(0, 10)}.json`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function deleteOwnAccount(): Promise<{ error: string | null }> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return { error: 'notConfigured' };
+
+  const user = await getAuthUser();
+  if (!user) return { error: 'notAuthenticated' };
+
+  const { error } = await supabase.rpc('delete_own_account');
+  if (error) return { error: error.message };
+
+  await supabase.auth.signOut();
+  return { error: null };
+}
