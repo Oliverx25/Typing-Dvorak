@@ -39,7 +39,18 @@ export function getChapterTitleByKey(titleKey: string, locale: Locale): string {
   return meta?.title ?? titleKey;
 }
 
-/** Resolve chapter description from chapter titleKey. */
+/** Short pill label for chapter tabs (e.g. "1. Fundamentals"). */
+export function getChapterShortTitleByKey(titleKey: string, locale: Locale, chapterNumber: number): string {
+  const full = getChapterTitleByKey(titleKey, locale);
+  const subtitle =
+    full.split(/\s*[—–-]\s*/).slice(1).join(' — ').trim() || full;
+  const short = subtitle
+    .replace(/^Dvorak\s+/i, '')
+    .replace(/\s+Dvorak$/i, '')
+    .trim();
+  return `${chapterNumber}. ${short}`;
+}
+
 export function getChapterDescriptionByKey(titleKey: string, locale: Locale): string {
   const meta = getTranslations(locale).chapterMeta[
     titleKey as keyof ReturnType<typeof getTranslations>['chapterMeta']

@@ -1,4 +1,5 @@
 import { focusRingCardClassName } from '@/utils/a11y/focusRing';
+import Icon from '@/components/ui/icons/Icon';
 
 interface LessonCardProps {
   title: string;
@@ -24,14 +25,19 @@ export default function LessonCard({
       aria-pressed={isActive}
       onClick={onSelect}
       className={[
-        'flex h-full flex-col items-start gap-3 rounded-xl border p-4 text-left transition transform',
+        'relative flex h-full flex-col items-start gap-3 rounded-xl border-2 p-4 text-left transition',
         focusRingCardClassName,
         isActive
-          ? 'scale-105 border-[var(--color-highlight)] bg-[var(--color-highlight)]/10 ring-2 ring-[var(--color-highlight)]/40 shadow-lg shadow-[var(--color-highlight)]/10'
-          : 'border-[var(--color-border)] bg-[var(--color-surface-elevated)] hover:-translate-y-0.5 hover:border-[var(--color-highlight)]/50',
+          ? 'border-[var(--color-highlight)] bg-[var(--color-highlight)]/10 shadow-lg shadow-[var(--color-highlight)]/10'
+          : 'border-transparent bg-[var(--color-surface-elevated)] hover:-translate-y-0.5 hover:border-[var(--color-highlight)]/50',
         disabled ? 'cursor-not-allowed opacity-50' : '',
       ].join(' ')}
     >
+      {isActive ? (
+        <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-highlight)] text-white">
+          <Icon name="check" size={12} aria-hidden />
+        </span>
+      ) : null}
       <span
         className={[
           'rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
