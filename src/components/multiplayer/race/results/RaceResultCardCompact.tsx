@@ -19,7 +19,7 @@ interface RaceResultCardCompactProps {
   wpmLabel: string;
   scoreLabel: string;
   coverUrl?: string | null;
-  onFocus: () => void;
+  onActivate: () => void;
 }
 
 function RaceResultCardCompact({
@@ -34,19 +34,21 @@ function RaceResultCardCompact({
   wpmLabel,
   scoreLabel,
   coverUrl,
-  onFocus,
+  onActivate,
 }: RaceResultCardCompactProps) {
   return (
     <article
       className={[
-        'relative w-full scale-[0.88] cursor-pointer overflow-visible rounded-2xl opacity-50 shadow-xl transition-all duration-500 ease-out will-change-transform origin-center hover:scale-[0.92] hover:opacity-75',
+        'relative z-0 w-full scale-90 cursor-pointer overflow-visible rounded-2xl opacity-50',
+        'origin-center transition-all duration-300 ease-out will-change-transform',
+        'hover:scale-95 hover:opacity-80',
         focusRingCardClassName,
       ].join(' ')}
-      onClick={onFocus}
+      onClick={onActivate}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          onFocus();
+          onActivate();
         }
       }}
       role="button"

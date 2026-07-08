@@ -1,8 +1,7 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import LeaveRoomButton from '@/components/multiplayer/lobby/LeaveRoomControls';
 import RaceResultCard from '@/components/multiplayer/race/RaceResultCard';
 import { Button } from '@/components/ui';
-import { useScrollSnapCenter } from '@/hooks/useScrollSnapCenter';
 import type { VictoryCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceModifier } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
@@ -39,6 +38,17 @@ interface RaceResultsPanelProps {
   onReturnToLobby: () => void;
 }
 
+function resolveDefaultActiveId(
+  entries: RaceParticipantProgress[],
+  currentUserId: string | null,
+): string | null {
+  if (entries.length === 0) return null;
+  if (currentUserId && entries.some((entry) => entry.userId === currentUserId)) {
+    return currentUserId;
+  }
+  return entries[0].userId;
+}
+
 export default function RaceResultsPanel({
   entries,
   currentUserId,
@@ -68,14 +78,46 @@ export default function RaceResultsPanel({
   raceStartedAt = null,
   onReturnToLobby,
 }: RaceResultsPanelProps) {
-  const { scrollRef, setItemRef, activeIndex, scrollToIndex, centerItem } = useScrollSnapCenter(
-    entries.length,
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const didInitialScrollRef = useRef(false);
+  const [activePlayerId, setActivePlayerId] = useState<string | null>(() =>
+    resolveDefaultActiveId(entries, currentUserId),
   );
 
   useEffect(() => {
-    if (entries.length <= 1) return;
-    centerItem(0, 'auto');
-  }, [entries.length, centerItem]);
+    setActivePlayerId(resolveDefaultActiveId(entries, currentUserId));
+    didInitialScrollRef.current = false;
+  }, [entries, currentUserId]);
+
+  useEffect(() => {
+    if (!activePlayerId || didInitialScrollRef.current) return;
+    const card = cardRefs.current.get(activePlayerId);
+    if (!card) return;
+
+    card.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
+    didInitialScrollRef.current = true;
+  }, [activePlayerId, entries.length]);
+
+  const handleActivate = useCallback((userId: string) => {
+    setActivePlayerId(userId);
+    cardRefs.current.get(userId)?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }, []);
+
+  const setCardRef = useCallback(
+    (userId: string) => (element: HTMLDivElement | null) => {
+      if (element) {
+        cardRefs.current.set(userId, element);
+      } else {
+        cardRefs.current.delete(userId);
+      }
+    },
+    [],
+  );
 
   if (entries.length === 0) {
     return null;
@@ -111,24 +153,21 @@ export default function RaceResultsPanel({
       <div
         ref={scrollRef}
         className={[
-          'flex flex-row items-center gap-4 overflow-x-auto py-8 pt-10 will-change-transform',
-          'snap-x snap-mandatory scroll-smooth',
-          'pl-[max(1rem,calc(50%-min(46vw,200px)))] pr-[max(1rem,calc(50%-min(46vw,200px)))]',
-          'md:pl-[max(1rem,calc(50%-250px))] md:pr-[max(1rem,calc(50%-250px))]',
+          'flex flex-row items-center gap-8 overflow-x-auto py-8',
+          'px-[max(1rem,50vw)]',
           '[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]',
         ].join(' ')}
       >
         {entries.map((entry, index) => (
           <div
             key={entry.userId}
-            ref={setItemRef(index)}
-            data-snap-index={index}
-            className="w-[min(92vw,400px)] shrink-0 snap-center md:w-[500px]"
+            ref={setCardRef(entry.userId)}
+            className="w-[min(92vw,400px)] shrink-0 md:w-[500px]"
           >
             <RaceResultCard
               entry={entry}
               rank={index + 1}
-              isActive={index === activeIndex}
+              isActive={entry.userId === activePlayerId}
               isSelf={entry.userId === currentUserId}
               labels={cardLabels}
               totalMultiplier={totalMultiplier}
@@ -139,7 +178,7 @@ export default function RaceResultsPanel({
               trackCoverUrl={trackCoverUrl}
               songDifficulty={songDifficulty}
               raceStartedAt={raceStartedAt}
-              onFocus={() => scrollToIndex(index)}
+              onActivate={() => handleActivate(entry.userId)}
             />
           </div>
         ))}

@@ -697,7 +697,7 @@ export const en = {
     raceCombo: 'combo',
     maxComboLabel: 'Max combo',
     raceResultsTitle: 'Race results',
-    raceResultsSwipe: 'Scroll horizontally to see other placements',
+    raceResultsSwipe: 'Click a card to view its results',
     raceResultsCorrect: 'Perfect',
     raceResultsErrors: 'Misses',
     raceResultsRank: 'Placement',

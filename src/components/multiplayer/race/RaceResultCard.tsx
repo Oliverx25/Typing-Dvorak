@@ -44,7 +44,7 @@ interface RaceResultCardProps {
   trackCoverUrl?: string | null;
   songDifficulty?: TypingDifficulty | null;
   raceStartedAt?: number | null;
-  onFocus: () => void;
+  onActivate: () => void;
 }
 
 export default function RaceResultCard({
@@ -61,7 +61,7 @@ export default function RaceResultCard({
   trackCoverUrl,
   songDifficulty,
   raceStartedAt,
-  onFocus,
+  onActivate,
 }: RaceResultCardProps) {
   const grade = calculateGrade(entry.accuracy, totalMultiplier);
   const isWinner = rank === 1;
@@ -103,7 +103,7 @@ export default function RaceResultCard({
         wpmLabel={labels.wpmLabel}
         scoreLabel={labels.scoreLabel}
         coverUrl={trackCoverUrl}
-        onFocus={onFocus}
+        onActivate={onActivate}
       />
     );
   }
@@ -111,7 +111,8 @@ export default function RaceResultCard({
   return (
     <article
       className={[
-        'relative w-full scale-100 overflow-visible rounded-2xl opacity-100 shadow-2xl shadow-black/40 transition-all duration-500 ease-out will-change-transform origin-center',
+        'relative z-10 w-full scale-100 overflow-visible rounded-2xl opacity-100 shadow-2xl shadow-black/40',
+        'origin-center transition-all duration-300 ease-out will-change-transform',
         focusRingCardClassName,
       ].join(' ')}
       aria-current="true"

@@ -12,16 +12,17 @@ interface GradeDonutProps {
 // osu!lazer style: thick accuracy fill ring (outer) + thin segmented thresholds ring (inner).
 const FILL_RADIUS = 46;
 const THRESHOLD_RADIUS = 38;
+const LABEL_ORBIT = FILL_RADIUS + 9;
 
 function GradeDonut({ grade, accuracy, size = 'lg' }: GradeDonutProps) {
   const outer = size === 'lg' ? 'h-44 w-44' : 'h-32 w-32';
   const gradeText = size === 'lg' ? 'text-5xl' : 'text-3xl';
+  const badgeText = size === 'lg' ? 'text-[9px]' : 'text-[8px]';
   const isSpecial = grade === 'SS+' || grade === 'S+';
   const ringClass = gradeRingClass(grade);
 
   const thresholdArcs = buildSegmentArcs(THRESHOLD_RADIUS, grade);
-  // Labels sit near the outer ring, anchored to the start of each threshold.
-  const segmentLabels = buildSegmentLabels(FILL_RADIUS, grade);
+  const segmentLabels = buildSegmentLabels(LABEL_ORBIT, grade);
   const fillCircumference = 2 * Math.PI * FILL_RADIUS;
   const safeAccuracy = Math.max(0, Math.min(100, accuracy));
   const accuracyLength = (safeAccuracy / 100) * fillCircumference;
@@ -29,7 +30,10 @@ function GradeDonut({ grade, accuracy, size = 'lg' }: GradeDonutProps) {
 
   return (
     <div className={`relative ${outer}`} aria-hidden>
-      <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+      <svg
+        className="h-full w-full -rotate-90 overflow-visible"
+        viewBox="-8 -8 116 116"
+      >
         {/* Thick accuracy fill ring (outer) */}
         <circle
           cx="50"
@@ -64,20 +68,36 @@ function GradeDonut({ grade, accuracy, size = 'lg' }: GradeDonutProps) {
           strokeDasharray={`${accuracyLength} ${fillCircumference}`}
         />
 
+        {/* Orbital grade badges */}
         {segmentLabels.map((label) => (
-          <text
+          <g
             key={`label-${label.key}`}
-            x={label.x}
-            y={label.y}
-            fill={`rgba(255,255,255,${label.opacity})`}
-            fontSize={size === 'lg' ? 6.5 : 6}
-            fontWeight={700}
-            textAnchor="middle"
-            dominantBaseline="middle"
             transform={`rotate(90 ${label.x} ${label.y})`}
           >
-            {label.text}
-          </text>
+            <foreignObject
+              x={label.x - 16}
+              y={label.y - 9}
+              width={32}
+              height={18}
+              className="overflow-visible"
+            >
+              <div
+                xmlns="http://www.w3.org/1999/xhtml"
+                className={[
+                  'flex h-full w-full items-center justify-center rounded-full border border-white/15',
+                  'bg-slate-950/85 px-1.5 font-bold leading-none text-white shadow-sm',
+                  badgeText,
+                ].join(' ')}
+                style={{
+                  opacity: label.opacity,
+                  color: label.color,
+                  borderColor: `${label.color}55`,
+                }}
+              >
+                {label.text}
+              </div>
+            </foreignObject>
+          </g>
         ))}
 
         {/* Thin segmented thresholds ring (inner) */}

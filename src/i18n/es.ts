@@ -699,7 +699,7 @@ export const es: TranslationKey = {
     raceCombo: 'combo',
     maxComboLabel: 'Combo máx.',
     raceResultsTitle: 'Resultados de la carrera',
-    raceResultsSwipe: 'Desliza horizontalmente para ver otras posiciones',
+    raceResultsSwipe: 'Haz clic en una tarjeta para ver sus resultados',
     raceResultsCorrect: 'Perfectos',
     raceResultsErrors: 'Fallos',
     raceResultsRank: 'Posición',

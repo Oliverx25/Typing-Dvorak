@@ -18,6 +18,9 @@ export const GRADE_THRESHOLD_SEGMENTS: GradeThresholdSegment[] = [
   { label: 'SS', min: 99.5, max: 100, color: '#22d3ee' },
 ];
 
+const TAU = Math.PI * 2;
+const CENTER = { x: 50, y: 50 };
+
 export function segmentActiveForGrade(segmentLabel: string, grade: Grade): boolean {
   if (grade === 'SS+' || grade === 'SS') return segmentLabel === 'SS';
   if (grade === 'S+' || grade === 'S') return segmentLabel === 'S';
@@ -34,11 +37,27 @@ function segmentLabelText(segmentLabel: string, grade: Grade): string {
   return segmentLabel;
 }
 
+/** Map accuracy % to radians on the SVG circle (0% = 3 o'clock, clockwise). */
+function percentToRadians(percent: number): number {
+  return (percent / 100) * TAU;
+}
+
+/** Polar coords on the donut orbit (viewBox space, pre CSS rotation). */
+export function polarOnOrbit(
+  orbitRadius: number,
+  angleRad: number,
+): { x: number; y: number } {
+  return {
+    x: CENTER.x + orbitRadius * Math.cos(angleRad),
+    y: CENTER.y + orbitRadius * Math.sin(angleRad),
+  };
+}
+
 export function buildSegmentArcs(
   radius: number,
   grade: Grade,
 ): Array<{ key: string; dasharray: string; dashoffset: number; color: string; opacity: number }> {
-  const circumference = 2 * Math.PI * radius;
+  const circumference = TAU * radius;
   let offset = 0;
 
   return GRADE_THRESHOLD_SEGMENTS.map((segment) => {
@@ -56,29 +75,33 @@ export function buildSegmentArcs(
   });
 }
 
-export function buildSegmentLabels(
-  radius: number,
-  grade: Grade,
-): Array<{ key: string; x: number; y: number; text: string; opacity: number }> {
-  const centerX = 50;
-  const centerY = 50;
-  const labelRadius = radius + 7.5;
+export interface SegmentLabel {
+  key: string;
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  opacity: number;
+}
+
+/** Place grade badges on an orbit outside the main ring, at each segment midpoint. */
+export function buildSegmentLabels(orbitRadius: number, grade: Grade): SegmentLabel[] {
+  const labelRadius = orbitRadius + 12;
 
   return GRADE_THRESHOLD_SEGMENTS.map((segment) => {
     const active = segmentActiveForGrade(segment.label, grade);
-    // Labels anchor to the START of each threshold, like osu!lazer.
-    // -90deg aligns 0% to top, matching the -rotate-90 applied on the SVG.
-    const angleDeg = segment.min * 3.6 - 90;
-    const angleRad = (angleDeg * Math.PI) / 180;
-    const x = centerX + labelRadius * Math.cos(angleRad);
-    const y = centerY + labelRadius * Math.sin(angleRad);
+    const startAngle = percentToRadians(segment.min);
+    const endAngle = percentToRadians(segment.max);
+    const midAngle = (startAngle + endAngle) / 2;
+    const { x, y } = polarOnOrbit(labelRadius, midAngle);
 
     return {
       key: segment.label,
       x,
       y,
       text: segmentLabelText(segment.label, grade),
-      opacity: active ? 0.95 : 0.38,
+      color: segment.color,
+      opacity: active ? 1 : 0.45,
     };
   });
 }
