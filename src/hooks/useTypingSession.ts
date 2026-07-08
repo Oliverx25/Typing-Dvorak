@@ -41,6 +41,7 @@ import {
   zenWpmFromChars,
   type KeystrokeLogEntry,
 } from '@/utils/typing/keystrokeTelemetry';
+import { wordHasUncorrectedErrors } from '@/utils/typing/wordErrors';
 
 /** Live WPM / elapsed refresh — 10 fps keeps stats smooth without excess renders. */
 const STATS_TICK_MS = 100;
@@ -72,7 +73,7 @@ interface UseTypingSessionOptions {
   testDurationSeconds?: number;
 }
 
-import { wordHasUncorrectedErrors } from '@/utils/typing/wordErrors';(lesson: Lesson, locale: Locale, customText?: string): string {
+function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string): string {
   if (customText?.trim()) return sanitizeCustomText(customText).trim();
   return getLessonText(
     lesson,

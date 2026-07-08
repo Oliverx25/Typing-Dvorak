@@ -294,6 +294,29 @@ export async function fetchUserAchievements(userId?: string): Promise<UserAchiev
   return rows;
 }
 
+/** Seeds query caches after a full cloud hydration pass (fetch once, read anywhere). */
+export function primeUserProgressCaches(
+  userId: string,
+  payload: {
+    profile: UserProfileRow | null;
+    sessions: Awaited<ReturnType<typeof fetchUserSessions>>;
+    keyErrors: Awaited<ReturnType<typeof fetchUserKeyErrors>>;
+    timestamps: string[];
+    masteryRows: LessonMasteryRow[];
+    achievementRows: UserAchievementProgress[];
+    sessionsLimit?: number;
+  },
+): void {
+  if (payload.profile) {
+    primeUserProfileCache(userId, payload.profile);
+  }
+  setCachedQuery(QUERY_CACHE_KEYS.sessions(payload.sessionsLimit ?? 100), userId, payload.sessions);
+  setCachedQuery(QUERY_CACHE_KEYS.keyErrors, userId, payload.keyErrors);
+  setCachedQuery(QUERY_CACHE_KEYS.sessionTimestamps, userId, payload.timestamps);
+  setCachedQuery(QUERY_CACHE_KEYS.lessonMastery, userId, payload.masteryRows);
+  setCachedQuery(QUERY_CACHE_KEYS.achievements, userId, payload.achievementRows);
+}
+
 /** Seeds the profile cache after a full cloud load (avoids duplicate select on restore). */
 export function primeUserProfileCache(userId: string, profile: UserProfileRow): void {
   setCachedQuery(QUERY_CACHE_KEYS.profile, userId, profile);

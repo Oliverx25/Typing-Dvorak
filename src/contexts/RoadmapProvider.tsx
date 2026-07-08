@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useAuth } from '@/contexts/AuthProvider';
 import {
   computeRoadmapProgress,
   type RoadmapProgressSnapshot,
@@ -35,6 +36,7 @@ function readRoadmapClient(): RoadmapProgressSnapshot {
 }
 
 export function RoadmapProvider({ children }: { children: ReactNode }) {
+  const { progressReady } = useAuth();
   const [snapshot, setSnapshot] = useState(readRoadmapClient);
   const [archiveOpen, setArchiveOpen] = useState(false);
 
@@ -43,7 +45,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
     refresh();
     window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
     return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
-  }, []);
+  }, [progressReady]);
 
   const toggleArchive = useCallback(() => setArchiveOpen((open) => !open), []);
 

@@ -1,5 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
-import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchUserLessonMastery, fetchUserAchievements, primeUserProfileCache } from '@/services/supabase/queries';
+import { fetchUserProfile, fetchUserKeyErrors, fetchUserSessions, fetchUserSessionTimestamps, fetchUserLessonMastery, fetchUserAchievements, primeUserProgressCaches } from '@/services/supabase/queries';
 import { getAuthUser } from '@/services/supabase/authSession';
 import type { SessionRecord, UserProgress } from '@/utils/progress/storage';
 import { replaceLocalProgress } from '@/utils/progress/storage';
@@ -161,7 +161,15 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
     dispatchKeyStatsUpdated();
 
     if (user) {
-      if (profile) primeUserProfileCache(user.id, profile);
+      primeUserProgressCaches(user.id, {
+        profile,
+        sessions: remappedSessions,
+        keyErrors,
+        timestamps,
+        masteryRows: remappedMastery,
+        achievementRows,
+        sessionsLimit: 100,
+      });
       safeAsyncVoid('cloud progress extras', async () => {
         await updateProfileStreak(user.id, streakResult);
         await syncAchievementsToCloud(user.id);

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useAppHydration } from '@/hooks/useAppHydration';
 import { useApp } from '@/contexts/AppProvider';
 import { useCatalog } from '@/contexts/CatalogProvider';
 import { FocusedChapterProvider } from '@/contexts/FocusedChapterProvider';
@@ -89,10 +89,9 @@ function LessonsContent() {
 
 /** Lessons home content — mount inside AppLayout chrome. */
 export default function LessonsPageContent() {
-  const { user, loading: authLoading, progressReady } = useAuth();
-  const waitingForProgress = authLoading || (Boolean(user) && !progressReady);
+  const { isHydrating, authReady } = useAppHydration();
 
-  if (waitingForProgress) {
+  if (!authReady || isHydrating) {
     return <LessonsProgressSkeleton />;
   }
 

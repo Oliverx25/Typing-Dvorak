@@ -38,10 +38,13 @@ function NavLinks({ showMultiplayer }: { showMultiplayer: boolean }) {
 
 export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
   const { t } = useApp();
-  const { user, loading } = useAuth();
+  const { user, loading, progressReady, isHydrating } = useAuth();
   const isLanding = variant === 'landing';
   const showNav = !isLanding || Boolean(user);
   const showMultiplayer = Boolean(user);
+
+  const showUserMenu = Boolean(user) && progressReady;
+  const showAuthSkeleton = loading || (Boolean(user) && isHydrating);
 
   if (isLanding && !user && !loading) {
     return (
@@ -78,11 +81,13 @@ export default function HeaderActions({ variant = 'app' }: HeaderActionsProps) {
         <ThemeToggle />
       </div>
 
-      {!loading && (
-        <>
-          <div className={headerDividerClassName} aria-hidden="true" />
-          {user ? <UserProfileDropdown /> : <AuthControls variant={variant} />}
-        </>
+      <div className={headerDividerClassName} aria-hidden="true" />
+      {showAuthSkeleton ? (
+        <div className="size-9 animate-pulse rounded-full bg-[var(--color-surface-elevated)]" aria-hidden="true" />
+      ) : showUserMenu ? (
+        <UserProfileDropdown />
+      ) : (
+        <AuthControls variant={variant} />
       )}
     </nav>
   );
