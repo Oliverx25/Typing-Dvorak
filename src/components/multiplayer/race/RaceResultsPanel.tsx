@@ -101,7 +101,7 @@ export default function RaceResultsPanel({
       <div
         ref={scrollRef}
         className={[
-          'flex flex-row items-center gap-4 overflow-x-auto py-6',
+          'flex flex-row items-center gap-4 overflow-x-auto py-6 will-change-transform',
           'snap-x snap-mandatory scroll-smooth',
           'pl-[max(1rem,calc(50%-min(46vw,200px)))] pr-[max(1rem,calc(50%-min(46vw,200px)))]',
           'md:pl-[max(1rem,calc(50%-250px))] md:pr-[max(1rem,calc(50%-250px))]',

@@ -13,7 +13,7 @@ import { getSessionWeakKeys, recordKeystroke } from '@/utils/stats/keyStats';
 import { playCompleteSound, playCorrectSound, playIncorrectSound } from '@/utils/typing/sound';
 import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '@/utils/app/events';
 import { finalizeSingleplayerAchievements } from '@/utils/achievements/badges';
-import { calculateConsistencyScore } from '@/utils/typing/completionMetrics';
+import { calculateConsistencyScore, accuracyFromKeystrokeLog } from '@/utils/typing/completionMetrics';
 import { setRaceSessionExtras } from '@/utils/achievements/raceSessionExtras';
 import {
   calculateStableRaceWpm,
@@ -227,9 +227,17 @@ export function useTypingSession({
       const sessionMaxCombo = maxComboRef.current;
       const weak = getSessionWeakKeys(sessionMissesRef.current);
       const keystrokeLog = [...keystrokeLogRef.current];
+
+      // Single source of truth: corrected (amber) keystrokes penalize accuracy in
+      // every mode. Zen stays at 100% by design (no-pressure practice).
+      const gradedResult: TypingStats =
+        zenMode || keystrokeLog.length === 0
+          ? result
+          : { ...result, accuracy: accuracyFromKeystrokeLog(keystrokeLog) };
+
       setSessionWeakKeys(weak);
-      setElapsedMs(result.elapsedSeconds * 1000);
-      setFinalStats(result);
+      setElapsedMs(gradedResult.elapsedSeconds * 1000);
+      setFinalStats(gradedResult);
       setFinished(true);
       setPaused(false);
       setKeystrokeLogSnapshot(keystrokeLog);
@@ -237,7 +245,7 @@ export function useTypingSession({
       const { isNewRecord: record, previousBest, record: savedRecord } = saveSession(
         persistLessonId,
         persistLessonTitle,
-        result,
+        gradedResult,
         mode,
         sessionMaxCombo,
         {
@@ -261,12 +269,12 @@ export function useTypingSession({
         },
       );
       setIsNewRecord(record);
-      setWpmDelta(result.wpm - previousBest);
+      setWpmDelta(gradedResult.wpm - previousBest);
 
       const sessionExtras = {
         earlyBurstWpm: earlyBurstMaxRef.current,
         errorRecoveryCombo: errorRecoveryMaxRef.current,
-        avgWpm: result.wpm,
+        avgWpm: gradedResult.wpm,
         vampireHpPercentEnd: vampireMode
           ? Math.round((vampireHpRef.current / VAMPIRE_MAX_HP) * 100)
           : undefined,
@@ -284,7 +292,7 @@ export function useTypingSession({
 
       if (sound) playCompleteSound();
     },
-    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled, blindMode, stopOnError],
+    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled, blindMode, stopOnError, zenMode],
   );
 
   const forceFinishEarly = useCallback(() => {

@@ -34,17 +34,17 @@ describe('raceScoring', () => {
     expect(comboMultiplier(500)).toBe(4);
   });
 
-  it('never decreases peak score, wpm, or percentage', () => {
+  it('never decreases peak score, wpm, or percentage but tracks latest accuracy', () => {
     expect(mergePeakRaceProgress(undefined, { wpm: 60, score: 400, percentage: 40 })).toEqual({
       wpm: 60,
       score: 400,
       percentage: 40,
       maxCombo: 0,
-      accuracy: 0,
+      accuracy: 100,
     });
     expect(
       mergePeakRaceProgress(
-        { wpm: 60, score: 400, percentage: 55, maxCombo: 10, accuracy: 98 },
+        { wpm: 60, score: 400, percentage: 55, maxCombo: 10, accuracy: 100 },
         { wpm: 30, score: 200, percentage: 20, maxCombo: 4, accuracy: 90 },
       ),
     ).toEqual({
@@ -52,7 +52,8 @@ describe('raceScoring', () => {
       score: 400,
       percentage: 55,
       maxCombo: 10,
-      accuracy: 98,
+      // Corrected keystrokes must be able to pull accuracy down from its early 100%.
+      accuracy: 90,
     });
   });
 

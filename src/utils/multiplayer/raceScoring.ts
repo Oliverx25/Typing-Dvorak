@@ -123,7 +123,9 @@ export function mergePeakRaceProgress(
     score: Math.max(previous?.score ?? 0, incoming.score),
     percentage: Math.max(previous?.percentage ?? 0, incoming.percentage ?? 0),
     maxCombo: Math.max(previous?.maxCombo ?? 0, incoming.maxCombo ?? 0),
-    accuracy: Math.max(previous?.accuracy ?? 0, incoming.accuracy ?? 0),
+    // Accuracy is NOT peaked — it must track the latest cumulative value so
+    // corrected keystrokes lower it. Peaking would freeze it at the initial 100%.
+    accuracy: incoming.accuracy ?? previous?.accuracy ?? 100,
   };
 }
 

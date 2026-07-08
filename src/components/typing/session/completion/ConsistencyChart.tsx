@@ -9,8 +9,11 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
+import { downsampleKeystrokes, type KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
 import { averageKeystrokeDelta } from '@/utils/typing/completionMetrics';
+
+/** Cap visual scatter points to protect the DOM from massive SVG node counts. */
+const MAX_SCATTER_POINTS = 150;
 
 interface ConsistencyChartProps {
   data: KeystrokeLogEntry[];
@@ -52,7 +55,8 @@ function ConsistencyChart({
   yLabel = 'ms between keys',
 }: ConsistencyChartProps) {
   const { points, maxMs, averageDelta } = useMemo(() => {
-    const plotPoints: PlotPoint[] = data
+    const sampled = downsampleKeystrokes(data, MAX_SCATTER_POINTS);
+    const plotPoints: PlotPoint[] = sampled
       .filter((entry) => entry.timeSinceLastKey > 0)
       .map((entry) => ({
         index: entry.index,
@@ -65,6 +69,7 @@ function ConsistencyChart({
     return {
       points: plotPoints,
       maxMs: Math.min(2000, peakMs),
+      // AVG line uses the full log so the statistical baseline stays accurate.
       averageDelta: averageKeystrokeDelta(data),
     };
   }, [data]);

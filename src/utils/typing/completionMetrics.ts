@@ -115,3 +115,21 @@ export function calculateKeystrokeDistribution(log: KeystrokeLogEntry[]): Keystr
 
   return { pureCorrect, corrected, errors };
 }
+
+/**
+ * Single source of truth for accuracy across every mode.
+ *
+ * Only pure-correct keystrokes count as hits; both corrected (amber) and
+ * committed errors (red) penalize the score:
+ * `accuracy = pureCorrect / (pureCorrect + corrected + errors) * 100`.
+ */
+export function accuracyFromDistribution(distribution: KeystrokeDistribution): number {
+  const total = distribution.pureCorrect + distribution.corrected + distribution.errors;
+  if (total <= 0) return 100;
+  return Math.round((distribution.pureCorrect / total) * 100);
+}
+
+/** Convenience: derive unified accuracy straight from a keystroke log. */
+export function accuracyFromKeystrokeLog(log: KeystrokeLogEntry[]): number {
+  return accuracyFromDistribution(calculateKeystrokeDistribution(log));
+}

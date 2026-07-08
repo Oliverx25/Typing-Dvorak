@@ -62,7 +62,7 @@ export default function RaceResultCard({
   );
 
   const cardShell = [
-    'w-full overflow-hidden rounded-[1.75rem] border bg-[var(--color-surface-elevated)]/95 backdrop-blur-md transition-all duration-500 ease-out origin-center',
+    'w-full overflow-hidden rounded-[1.75rem] border bg-[var(--color-surface-elevated)]/95 backdrop-blur-md transition-all duration-500 ease-out origin-center will-change-transform',
     focusRingCardClassName,
     isActive
       ? 'scale-100 border-[var(--color-border)] opacity-100 shadow-2xl shadow-black/30'
