@@ -1,6 +1,6 @@
 import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
 import { gradeRank } from '@/utils/grading';
-import { getSessionHistory, type SessionRecord } from '@/utils/progress/storage';
+import { getProgress, getSessionHistory, type SessionRecord } from '@/utils/progress/storage';
 import { getKeyStats } from '@/utils/stats/keyStats';
 import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 import {
@@ -8,13 +8,13 @@ import {
   CATALOG_BY_ID,
   type CatalogEntry,
 } from '@/utils/achievements/catalogData';
-import type { AchievementMetric, EvaluationResult } from '@/utils/achievements/catalogTypes';
+import type { AchievementMetric, EvaluationResult, UserAchievementProgress } from '@/utils/achievements/catalogTypes';
 import { getMultiplayerStats } from '@/utils/achievements/multiplayerStats';
 import {
   getLocalAchievementProgress,
   saveLocalAchievementProgress,
 } from '@/utils/achievements/progressStorage';
-import { buildUserAchievementStatsFromLocal } from '@/utils/achievements/userStats';
+import { validateAchievementDelta } from '@/utils/achievements/achievementDiff';
 
 const HIGH_GRADES = new Set(['S', 'S+', 'SS', 'SS+']);
 const SS_GRADES = new Set(['SS', 'SS+']);
@@ -41,6 +41,8 @@ export interface LastSessionSnapshot {
   halfProgressRank?: number;
   finalRank?: number;
   rhythmLockBroken?: boolean;
+  /** Used to isolate per-session deltas from session history. */
+  completedAt?: string;
 }
 
 export interface AggregatedAchievementMetrics {
@@ -77,12 +79,20 @@ function gradeAtLeast(grade: string | undefined, min: string): boolean {
   return gradeRank(grade) >= gradeRank(min);
 }
 
-function buildAggregatedMetrics(lastSession?: LastSessionSnapshot): AggregatedAchievementMetrics {
-  const history = getSessionHistory();
-  const base = buildUserAchievementStatsFromLocal();
+function buildAggregatedMetrics(
+  lastSession?: LastSessionSnapshot,
+  options?: { excludeCompletedAt?: string },
+): AggregatedAchievementMetrics {
+  const history = getSessionHistory().filter(
+    (session) => session.completedAt !== options?.excludeCompletedAt,
+  );
+  const progress = getProgress();
   const mp = getMultiplayerStats();
   const keyStats = getKeyStats();
 
+  let totalPerfectSessions = 0;
+  let highestWpmEver = 0;
+  let maxComboEver = 0;
   let gradeSOrBetterCount = 0;
   let hasGradeA = false;
   let hasGradeS = false;
@@ -96,6 +106,10 @@ function buildAggregatedMetrics(lastSession?: LastSessionSnapshot): AggregatedAc
   let activeTypingMinutes = 0;
 
   for (const session of history) {
+    if (session.accuracy === 100) totalPerfectSessions += 1;
+    highestWpmEver = Math.max(highestWpmEver, session.wpm);
+    maxComboEver = Math.max(maxComboEver, session.maxCombo ?? 0);
+
     const grade = session.grade;
     if (grade && HIGH_GRADES.has(grade)) gradeSOrBetterCount += 1;
     if (grade && gradeRank(grade) >= gradeRank('A')) hasGradeA = true;
@@ -124,6 +138,10 @@ function buildAggregatedMetrics(lastSession?: LastSessionSnapshot): AggregatedAc
   }
 
   if (lastSession) {
+    if (lastSession.accuracy === 100) totalPerfectSessions += 1;
+    highestWpmEver = Math.max(highestWpmEver, lastSession.wpm);
+    maxComboEver = Math.max(maxComboEver, lastSession.maxCombo);
+
     if (
       lastSession.isMultiplayerWin &&
       hasModifier(lastSession.raceModifiers, 'sudden_death')
@@ -225,12 +243,14 @@ function buildAggregatedMetrics(lastSession?: LastSessionSnapshot): AggregatedAc
     totalCorrectKeystrokes += count;
   }
 
+  const totalSessions = history.length + (lastSession ? 1 : 0);
+
   return {
-    highestWpmEver: base.highestWpmEver,
-    totalPerfectSessions: base.totalPerfectSessions,
-    maxComboEver: base.highestComboEver,
-    dayStreak: base.currentDayStreak,
-    totalSessions: base.totalSessionsPlayed,
+    highestWpmEver,
+    totalPerfectSessions,
+    maxComboEver,
+    dayStreak: progress.streak,
+    totalSessions,
     mpWins: mp.wins,
     mpWinStreak: mp.winStreak ?? 0,
     consecutiveHighAccuracySessions,
@@ -371,51 +391,102 @@ function isBooleanMetric(metric: AchievementMetric): boolean {
   ].includes(metric);
 }
 
+function computeProgressForEntry(
+  entry: CatalogEntry,
+  aggregate: AggregatedAchievementMetrics,
+  lastSession: LastSessionSnapshot | undefined,
+  previous: UserAchievementProgress | undefined,
+): UserAchievementProgress {
+  const raw = metricValue(entry.metric, entry, aggregate, lastSession);
+  const previousProgress = previous?.currentProgress ?? 0;
+  const wasUnlocked = previous?.unlockedAt != null;
+  const now = new Date().toISOString();
+
+  let currentProgress: number;
+  if (isBooleanMetric(entry.metric)) {
+    currentProgress =
+      raw >= entry.targetValue ? entry.targetValue : Math.max(previousProgress, raw);
+  } else {
+    currentProgress = Math.max(previousProgress, raw);
+    if (currentProgress >= entry.targetValue) currentProgress = entry.targetValue;
+  }
+
+  const unlocked = wasUnlocked || currentProgress >= entry.targetValue;
+  if (unlocked && currentProgress < entry.targetValue) {
+    currentProgress = entry.targetValue;
+  }
+
+  const newlyUnlocked = !wasUnlocked && unlocked;
+
+  return {
+    achievementId: entry.id,
+    slug: entry.slug,
+    currentProgress,
+    unlockedAt: unlocked ? (previous?.unlockedAt ?? (newlyUnlocked ? now : null)) : null,
+  };
+}
+
+/**
+ * Session-isolated delta for cloud writes. Compares metrics derived from the
+ * completed session against a **server-trusted** baseline — never localStorage
+ * fingerprints or a client-mutable diff cache.
+ */
+export function evaluateSessionAchievementDelta(
+  lastSession: LastSessionSnapshot,
+  serverBaseline: Record<string, UserAchievementProgress>,
+): UserAchievementProgress[] {
+  const excludeCompletedAt = lastSession.completedAt;
+  const aggregateBefore = buildAggregatedMetrics(undefined, { excludeCompletedAt });
+  const aggregateAfter = buildAggregatedMetrics(lastSession, { excludeCompletedAt });
+  const delta: UserAchievementProgress[] = [];
+  const catalogTargets = new Map(ACHIEVEMENT_CATALOG.map((entry) => [entry.id, entry.targetValue]));
+
+  for (const entry of ACHIEVEMENT_CATALOG) {
+    const previous = serverBaseline[String(entry.id)];
+    const previousProgress = previous?.currentProgress ?? 0;
+    const wasUnlocked = previous?.unlockedAt != null;
+
+    const before = computeProgressForEntry(entry, aggregateBefore, undefined, previous);
+    const after = computeProgressForEntry(entry, aggregateAfter, lastSession, previous);
+
+    const sessionProgressed =
+      after.currentProgress > before.currentProgress ||
+      (!before.unlockedAt && after.unlockedAt != null);
+    const serverProgressed =
+      after.currentProgress > previousProgress || (!wasUnlocked && after.unlockedAt != null);
+
+    if (sessionProgressed && serverProgressed) {
+      delta.push(after);
+    }
+  }
+
+  return validateAchievementDelta(serverBaseline, delta, catalogTargets);
+}
+
+/** Local/guest evaluation — updates localStorage only, never used for Supabase writes. */
 export function evaluateAchievementProgress(
   lastSession?: LastSessionSnapshot,
 ): EvaluationResult[] {
   const aggregate = buildAggregatedMetrics(lastSession);
   const stored = getLocalAchievementProgress();
-  const now = new Date().toISOString();
   const results: EvaluationResult[] = [];
 
   for (const entry of ACHIEVEMENT_CATALOG) {
-    const raw = metricValue(entry.metric, entry, aggregate, lastSession);
     const previous = stored[String(entry.id)];
     const previousProgress = previous?.currentProgress ?? 0;
     const wasUnlocked = previous?.unlockedAt != null;
+    const next = computeProgressForEntry(entry, aggregate, lastSession, previous);
 
-    let currentProgress: number;
-    if (isBooleanMetric(entry.metric)) {
-      currentProgress =
-        raw >= entry.targetValue ? entry.targetValue : Math.max(previousProgress, raw);
-    } else {
-      currentProgress = Math.max(previousProgress, raw);
-      if (currentProgress >= entry.targetValue) currentProgress = entry.targetValue;
-    }
+    stored[String(entry.id)] = next;
 
-    const unlocked = wasUnlocked || currentProgress >= entry.targetValue;
-    if (unlocked && currentProgress < entry.targetValue) {
-      currentProgress = entry.targetValue;
-    }
-
-    const newlyUnlocked = !wasUnlocked && unlocked;
-
-    stored[String(entry.id)] = {
-      achievementId: entry.id,
-      slug: entry.slug,
-      currentProgress,
-      unlockedAt: unlocked ? (previous?.unlockedAt ?? (newlyUnlocked ? now : null)) : null,
-    };
-
-    if (newlyUnlocked || currentProgress !== previousProgress) {
+    if ((!wasUnlocked && next.unlockedAt != null) || next.currentProgress !== previousProgress) {
       results.push({
         slug: entry.slug,
         achievementId: entry.id,
         previousProgress,
-        currentProgress,
+        currentProgress: next.currentProgress,
         targetValue: entry.targetValue,
-        newlyUnlocked,
+        newlyUnlocked: !wasUnlocked && next.unlockedAt != null,
       });
     }
   }
@@ -437,6 +508,7 @@ export function snapshotFromSessionRecord(
     lessonId: record.lessonId,
     multiplayerSource: record.multiplayerSource,
     raceModifiers: record.raceModifiers,
+    completedAt: record.completedAt,
     ...extras,
   };
 }

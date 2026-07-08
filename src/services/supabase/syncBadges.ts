@@ -1,67 +1,101 @@
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import {
-  evaluateAchievementProgress,
+  evaluateSessionAchievementDelta,
   type LastSessionSnapshot,
 } from '@/utils/achievements/achievementEvaluator';
-import {
-  getLocalAchievementProgress,
-  mergeLocalAchievementProgress,
-} from '@/utils/achievements/progressStorage';
 import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
 import { fetchUserAchievements } from '@/services/supabase/queries';
+import { getAppStoreState } from '@/store/useAppStore';
 
+/** Batch upsert — a single request instead of one per achievement. */
 async function persistUserAchievements(
   userId: string,
   rows: UserAchievementProgress[],
-): Promise<void> {
+): Promise<boolean> {
+  if (rows.length === 0) return true;
+
   const supabase = getSupabaseClient();
-  if (!supabase) return;
+  if (!supabase) return false;
 
-  for (const row of rows) {
-    const { error } = await supabase.from('user_achievements').upsert(
-      {
-        user_id: userId,
-        achievement_id: row.achievementId,
-        current_progress: row.currentProgress,
-        unlocked_at: row.unlockedAt,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id,achievement_id' },
-    );
-    if (error) console.warn('[sync] user_achievements upsert failed:', error.message);
+  const updatedAt = new Date().toISOString();
+  const payload = rows.map((row) => ({
+    user_id: userId,
+    achievement_id: row.achievementId,
+    current_progress: row.currentProgress,
+    unlocked_at: row.unlockedAt,
+    updated_at: updatedAt,
+  }));
+
+  const { error } = await supabase
+    .from('user_achievements')
+    .upsert(payload, { onConflict: 'user_id,achievement_id' });
+
+  if (error) {
+    console.warn('[sync] user_achievements upsert failed:', error.message);
+    return false;
   }
+  return true;
 }
 
-async function fetchCloudAchievementProgress(userId: string): Promise<UserAchievementProgress[]> {
-  return fetchUserAchievements(userId);
+function rowsToBaseline(rows: UserAchievementProgress[]): Record<string, UserAchievementProgress> {
+  const map: Record<string, UserAchievementProgress> = {};
+  for (const row of rows) {
+    map[String(row.achievementId)] = row;
+  }
+  return map;
 }
 
-/** Recompute local progress and mirror to Supabase user_achievements. */
+/**
+ * Event-driven cloud sync: fetch trusted baseline from Supabase, compute a
+ * session-isolated delta, bulk-upsert only that delta, then merge into Zustand.
+ */
 export async function syncAchievementsToCloud(
   userId: string,
   lastSession?: LastSessionSnapshot,
 ): Promise<string[]> {
-  evaluateAchievementProgress(lastSession);
-  const rows = Object.values(getLocalAchievementProgress());
-  await persistUserAchievements(userId, rows);
-  return rows.filter((row) => row.unlockedAt).map((row) => row.slug);
+  if (!lastSession) {
+    return Object.values(getAppStoreState().userAchievements)
+      .filter((row) => row.unlockedAt)
+      .map((row) => row.slug);
+  }
+
+  const cloudRows = await fetchUserAchievements(userId);
+  const serverBaseline = rowsToBaseline(cloudRows);
+
+  const delta = evaluateSessionAchievementDelta(lastSession, serverBaseline);
+  if (delta.length === 0) {
+    return cloudRows.filter((row) => row.unlockedAt).map((row) => row.slug);
+  }
+
+  const ok = await persistUserAchievements(userId, delta);
+  if (ok) {
+    getAppStoreState().commitSyncedAchievements(delta);
+  }
+
+  const merged = { ...serverBaseline };
+  for (const row of delta) {
+    merged[String(row.achievementId)] = row;
+  }
+  return Object.values(merged)
+    .filter((row) => row.unlockedAt)
+    .map((row) => row.slug);
 }
 
-/** Load cloud progress, merge locally, and re-evaluate. */
+/** Load cloud progress into the store (read path only — no writes). */
 export async function syncAchievementsFromCloud(userId: string): Promise<string[]> {
-  const cloudRows = await fetchCloudAchievementProgress(userId);
+  const cloudRows = await fetchUserAchievements(userId);
   if (cloudRows.length > 0) {
-    mergeLocalAchievementProgress(cloudRows);
+    getAppStoreState().setAchievements(cloudRows);
   }
-  evaluateAchievementProgress();
-  const rows = Object.values(getLocalAchievementProgress());
-  await persistUserAchievements(userId, rows);
-  return rows.filter((row) => row.unlockedAt).map((row) => row.slug);
+  return cloudRows.filter((row) => row.unlockedAt).map((row) => row.slug);
 }
 
 /** @deprecated Use syncAchievementsToCloud */
-export async function syncBadgesToCloud(userId: string): Promise<string[]> {
-  return syncAchievementsToCloud(userId);
+export async function syncBadgesToCloud(
+  userId: string,
+  lastSession?: LastSessionSnapshot,
+): Promise<string[]> {
+  return syncAchievementsToCloud(userId, lastSession);
 }
 
 /** @deprecated Use syncAchievementsFromCloud */

@@ -1,12 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
-import { SESSION_COMPLETE_EVENT, dispatchKeyStatsUpdated, dispatchSessionComplete, sessionCompleteDetail } from '@/utils/app/events';
+import {
+  SESSION_COMPLETE_EVENT,
+  dispatchKeyStatsUpdated,
+  dispatchSessionComplete,
+  sessionCompleteDetail,
+} from '@/utils/app/events';
 import { clearGuestProgress } from '@/utils/progress/guestProgress';
 import { scheduleSessionCloudSync, scheduleKeyErrorsCloudSync } from '@/services/supabase/syncProgress';
 import { syncBadgesToCloud } from '@/services/supabase/syncBadges';
 import { safeAsync, safeAsyncVoid } from '@/utils/network/graceful';
-import { setAuthSessionUser } from '@/services/supabase/authSession';
 import { invalidateQueryCache, invalidateUserProgressCache } from '@/services/supabase/queryCache';
 import {
   loadProgressFromCloud,
@@ -16,6 +20,9 @@ import {
   type UserProfileRow,
 } from '@/services/supabase/loadProgress';
 import { fetchUserProfile, primeUserProfileCache } from '@/services/supabase/queries';
+import { useAppStore } from '@/store/useAppStore';
+import { createHydrationGuard, useAuthInitializer } from '@/hooks/useAuthInitializer';
+import { snapshotFromSessionRecord } from '@/utils/achievements/achievementEvaluator';
 
 interface AuthContextValue {
   user: User | null;
@@ -32,103 +39,86 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const hydrationGuard = createHydrationGuard();
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfileRow | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured());
   const [progressReady, setProgressReady] = useState(!isSupabaseConfigured());
-  const activeUserIdRef = useRef<string | null>(null);
-  const lastLoadedUserIdRef = useRef<string | null>(null);
-  const forceHydrationRef = useRef(false);
-  const hydrationTaskRef = useRef(0);
   const syncedSessionKeysRef = useRef(new Set<string>());
+  const clearStore = useAppStore((state) => state.clearStore);
+  const storeHydrated = useAppStore((state) => state.isHydrated);
+  const storeUserId = useAppStore((state) => state.userId);
+  const storeProfile = useAppStore((state) => state.userProfile);
 
-  const resetAccountState = useCallback((userId?: string) => {
-    if (userId) invalidateQueryCache(userId);
-    else invalidateQueryCache();
-    lastLoadedUserIdRef.current = null;
-    forceHydrationRef.current = false;
-    syncedSessionKeysRef.current.clear();
-    setProfile(null);
-    clearGuestProgress();
-    dispatchSessionComplete();
-    dispatchKeyStatsUpdated();
+  const resetAccountState = useCallback(
+    (userId?: string) => {
+      if (userId) invalidateQueryCache(userId);
+      else invalidateQueryCache();
+      syncedSessionKeysRef.current.clear();
+      setProfile(null);
+      clearStore();
+      clearGuestProgress();
+      dispatchSessionComplete();
+      dispatchKeyStatsUpdated();
+    },
+    [clearStore],
+  );
+
+  const handleSignedOut = useCallback(() => {
+    resetAccountState(user?.id);
+    setUser(null);
+  }, [resetAccountState, user?.id]);
+
+  const handleSignedIn = useCallback((nextUser: User) => {
+    setUser(nextUser);
   }, []);
 
-  useEffect(() => {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      setLoading(false);
-      setProgressReady(true);
-      return;
-    }
+  const handleLoadingResolved = useCallback(() => {
+    setLoading(false);
+  }, []);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const nextUser = session?.user ?? null;
-
-      if (event === 'SIGNED_OUT' || !nextUser) {
-        resetAccountState(activeUserIdRef.current ?? undefined);
-        activeUserIdRef.current = null;
-        setAuthSessionUser(null);
-        setUser(null);
-        setLoading(false);
-        setProgressReady(true);
-        return;
-      }
-
-      activeUserIdRef.current = nextUser.id;
-      setAuthSessionUser(nextUser);
-      setUser(nextUser);
-      setLoading(false);
-
-      // Supabase re-emits SIGNED_IN / INITIAL_SESSION on every tab refocus and
-      // token refresh, always with the same account. Only trigger a fresh
-      // hydration when the signed-in user differs from the one already loaded,
-      // so switching windows never bounces the UI back to a loading state.
-      if (lastLoadedUserIdRef.current !== nextUser.id) {
-        setProgressReady(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [resetAccountState]);
+  useAuthInitializer({
+    onSignedOut: handleSignedOut,
+    onSignedIn: handleSignedIn,
+    onLoadingResolved: handleLoadingResolved,
+  });
 
   const userId = user?.id ?? null;
 
-  /** On login / initial session: invalidate cache, load cloud progress, restore profile prefs. */
+  /** Single cloud fetch per sign-in — Zustand persist skips this on MPA navigations. */
   useEffect(() => {
     if (!userId) return;
 
-    const shouldHydrate =
-      forceHydrationRef.current || lastLoadedUserIdRef.current !== userId;
-
-    if (!shouldHydrate) {
+    if (storeHydrated && storeUserId === userId) {
+      useAppStore.getState().restoreServerBaselineFromUiCache();
+      setProfile(storeProfile);
       setProgressReady(true);
       return;
     }
 
-    const taskId = hydrationTaskRef.current + 1;
-    hydrationTaskRef.current = taskId;
-    forceHydrationRef.current = false;
+    const taskId = hydrationGuard.start();
     setProgressReady(false);
 
     (async () => {
       invalidateUserProgressCache(userId);
 
-      const loadedProfile = await loadProgressFromCloud();
+      const loadedProfile = await loadProgressFromCloud(userId);
+      if (!hydrationGuard.isCurrent(taskId)) return;
+
       await safeAsync('restore profile preferences', () => restoreProfilePreferencesFromProfile(loadedProfile), undefined);
       await safeAsync('restore profile display', () => restoreProfileDisplayFromProfile(loadedProfile), undefined);
       await safeAsync('restore custom avatar', () => restoreCustomAvatarFromProfile(loadedProfile), undefined);
 
-      if (hydrationTaskRef.current !== taskId) return;
+      if (!hydrationGuard.isCurrent(taskId)) return;
 
       setProfile(loadedProfile);
-      lastLoadedUserIdRef.current = userId;
       setProgressReady(true);
     })();
-  }, [userId]);
+  }, [userId, storeHydrated, storeUserId, storeProfile]);
 
-  /** Background sync only when a session actually completes (event carries the record). */
+  /** Achievement sync only when a session actually completes — never on route change. */
   useEffect(() => {
     if (!user) return;
 
@@ -143,7 +133,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       scheduleSessionCloudSync(user.id, record);
       scheduleKeyErrorsCloudSync(user.id);
       invalidateUserProgressCache(user.id);
-      safeAsyncVoid('badges cloud sync', () => syncBadgesToCloud(user.id));
+
+      const lastSession = snapshotFromSessionRecord(record);
+      safeAsyncVoid('achievements cloud sync', () => syncBadgesToCloud(user.id, lastSession));
     };
 
     window.addEventListener(SESSION_COMPLETE_EVENT, handler);
@@ -161,22 +153,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data } = await supabase.auth.getUser();
     const nextUser = data.user ?? null;
-    setAuthSessionUser(nextUser);
     setUser(nextUser);
 
     if (!nextUser) {
-      resetAccountState(activeUserIdRef.current ?? undefined);
-      activeUserIdRef.current = null;
+      resetAccountState(user?.id);
       setProgressReady(true);
       return;
     }
 
-    activeUserIdRef.current = nextUser.id;
     invalidateUserProgressCache(nextUser.id);
     const nextProfile = (await fetchUserProfile()) as UserProfileRow | null;
-    if (nextProfile) primeUserProfileCache(nextUser.id, nextProfile);
+    if (nextProfile) {
+      primeUserProfileCache(nextUser.id, nextProfile);
+      useAppStore.getState().setProfile(nextProfile);
+    }
     setProfile(nextProfile);
-  }, [resetAccountState]);
+  }, [resetAccountState, user?.id]);
 
   const isHydrating = Boolean(userId) && !progressReady;
 

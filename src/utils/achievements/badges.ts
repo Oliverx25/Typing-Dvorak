@@ -2,6 +2,7 @@ import { dispatchBadgesUpdated } from '@/utils/app/events';
 import { notifyAchievementUnlocks } from '@/utils/achievements/achievementNotifications';
 import {
   evaluateAchievementProgress,
+  evaluateSessionAchievementDelta,
   getNewlyUnlockedSlugs,
   snapshotFromSessionRecord,
   type LastSessionSnapshot,
@@ -15,10 +16,20 @@ import {
 } from '@/utils/achievements/progressStorage';
 import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
 import type { SessionRecord } from '@/utils/progress/storage';
+import { getAppStoreState } from '@/store/useAppStore';
 
 export interface BadgeProgressState {
   current: number;
   target: number;
+}
+
+function newlyUnlockedFromDelta(
+  delta: UserAchievementProgress[],
+  baseline: Record<string, UserAchievementProgress>,
+): string[] {
+  return delta
+    .filter((row) => row.unlockedAt && !baseline[String(row.achievementId)]?.unlockedAt)
+    .map((row) => row.slug);
 }
 
 /** Run post-match achievement evaluation and return newly unlocked slugs. */
@@ -27,12 +38,24 @@ export function processAchievementsAfterSession(
   extras?: Partial<LastSessionSnapshot>,
 ): string[] {
   const snapshot = record ? snapshotFromSessionRecord(record, extras) : undefined;
-  const results = evaluateAchievementProgress(snapshot);
-  const newly = getNewlyUnlockedSlugs(results);
-  if (newly.length > 0) {
-    dispatchBadgesUpdated();
+  const store = getAppStoreState();
+
+  // Guest / offline — local evaluation only, no cloud writes.
+  if (!store.userId || !store.isHydrated) {
+    const results = evaluateAchievementProgress(snapshot);
+    const newly = getNewlyUnlockedSlugs(results);
+    if (newly.length > 0) {
+      dispatchBadgesUpdated();
+    }
+    return newly;
   }
-  return newly;
+
+  if (!snapshot) return [];
+
+  // Signed-in: preview toasts from session delta vs in-memory server baseline.
+  // Authoritative write happens in AuthProvider after Supabase accepts the upsert.
+  const delta = evaluateSessionAchievementDelta(snapshot, store.serverAchievements);
+  return newlyUnlockedFromDelta(delta, store.serverAchievements);
 }
 
 /** Evaluate achievements after a singleplayer session and show unlock toasts. */

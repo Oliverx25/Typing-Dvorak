@@ -1,25 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useApp } from '@/contexts/AppProvider';
-import { BADGES, getUnlockedBadges } from '@/utils/achievements/badges';
-import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
+import { BADGES } from '@/utils/achievements/badges';
+import { useAppStore } from '@/store/useAppStore';
 import { Icon } from '@/components/ui';
 
 export default function BadgesRow() {
   const { t } = useApp();
-  const [unlocked, setUnlocked] = useState<string[]>([]);
+  const userAchievements = useAppStore((state) => state.userAchievements);
 
-  const refresh = () => setUnlocked(getUnlockedBadges());
-
-  useEffect(() => {
-    refresh();
-    const handler = () => refresh();
-    window.addEventListener(SESSION_COMPLETE_EVENT, handler);
-    window.addEventListener(BADGES_UPDATED_EVENT, handler);
-    return () => {
-      window.removeEventListener(SESSION_COMPLETE_EVENT, handler);
-      window.removeEventListener(BADGES_UPDATED_EVENT, handler);
-    };
-  }, []);
+  const unlocked = useMemo(
+    () =>
+      Object.values(userAchievements)
+        .filter((row) => row.unlockedAt)
+        .map((row) => row.slug),
+    [userAchievements],
+  );
 
   if (unlocked.length === 0) return null;
 

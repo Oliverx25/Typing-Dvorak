@@ -30,9 +30,11 @@ import { applyHighlightTheme } from '@/utils/app/highlightTheme';
 import { setStoredTheme } from '@/utils/progress/storage';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { updateProfileStreak } from '@/services/supabase/syncProgress';
-import { syncAchievementsToCloud } from '@/services/supabase/syncBadges';
-import { evaluateAchievementProgress } from '@/utils/achievements/achievementEvaluator';
-import { replaceLocalAchievementProgress } from '@/utils/achievements/progressStorage';
+import {
+  getLocalAchievementProgress,
+  replaceLocalAchievementProgress,
+} from '@/utils/achievements/progressStorage';
+import { useAppStore } from '@/store/useAppStore';
 import { safeAsyncVoid } from '@/utils/network/graceful';
 import type { LessonMasteryRow } from '@/services/supabase/queries';
 export type { UserProfileRow } from '@/services/supabase/profileRow';
@@ -120,10 +122,15 @@ function mapKeyErrors(rows: { key_char: string; error_count: number; hit_count?:
   return { hits, misses };
 }
 
-/** Replace local progress with this account's cloud data. Call after clearing guest keys. */
-export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
+/** Replace local progress with this account's cloud data. Call once per sign-in. */
+export async function loadProgressFromCloud(userId: string): Promise<UserProfileRow | null> {
   try {
     const user = await getAuthUser();
+
+    if (user && user.id !== userId) {
+      console.warn('[load] userId mismatch — aborting hydration');
+      return null;
+    }
 
     if (user) {
       await migrateCloudLegacyLessonIds(user.id);
@@ -137,7 +144,7 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
       fetchUserProfile(),
       fetchUserSessionTimestamps(),
       fetchUserLessonMastery(),
-      user ? fetchUserAchievements(user.id) : Promise.resolve([]),
+      fetchUserAchievements(userId),
     ]);
 
     const streakResult = computeStreakFromPracticeDates(collectPracticeDates(timestamps));
@@ -156,10 +163,25 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
     if (achievementRows.length > 0) {
       replaceLocalAchievementProgress(achievementRows);
     }
-    evaluateAchievementProgress();
 
     dispatchSessionComplete();
     dispatchKeyStatsUpdated();
+
+    const profileWithStreak =
+      profile && user
+        ? {
+            ...profile,
+            current_streak: streakResult.streak,
+            last_practice_date: streakResult.lastPracticeDate,
+          }
+        : profile;
+
+    useAppStore.getState().hydrateFromCloud({
+      userId,
+      profile: profileWithStreak,
+      achievements: Object.values(getLocalAchievementProgress()),
+      progress,
+    });
 
     if (user) {
       primeUserProgressCaches(user.id, {
@@ -168,24 +190,15 @@ export async function loadProgressFromCloud(): Promise<UserProfileRow | null> {
         keyErrors,
         timestamps,
         masteryRows: remappedMastery,
-        achievementRows,
+        achievementRows: Object.values(getLocalAchievementProgress()),
         sessionsLimit: 100,
       });
       safeAsyncVoid('cloud progress extras', async () => {
         await updateProfileStreak(user.id, streakResult);
-        await syncAchievementsToCloud(user.id);
       });
     }
 
-    if (profile && user) {
-      return {
-        ...profile,
-        current_streak: streakResult.streak,
-        last_practice_date: streakResult.lastPracticeDate,
-      };
-    }
-
-    return profile;
+    return profileWithStreak;
   } catch (error) {
     console.warn('[load] cloud progress failed:', error);
     return null;

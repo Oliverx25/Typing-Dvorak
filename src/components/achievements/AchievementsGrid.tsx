@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { translateSubcategory } from '@/i18n/achievements';
 import {
@@ -12,30 +12,14 @@ import {
   type CatalogCategory,
   type UserAchievementProgress,
 } from '@/utils/achievements/catalogTypes';
-import { getLocalAchievementProgress } from '@/utils/achievements/progressStorage';
-import { BADGES_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
+import { useAppStore } from '@/store/useAppStore';
 
 const AchievementCard = lazy(() => import('@/components/achievements/AchievementCard'));
 
 export default function AchievementsGrid() {
   const { t, locale } = useApp();
   const [activeCategory, setActiveCategory] = useState<CatalogCategory>('velocidad');
-  const [progressMap, setProgressMap] = useState<Record<string, UserAchievementProgress>>({});
-
-  const refresh = useCallback(() => {
-    setProgressMap(getLocalAchievementProgress());
-  }, []);
-
-  useEffect(() => {
-    refresh();
-    const handler = () => refresh();
-    window.addEventListener(SESSION_COMPLETE_EVENT, handler);
-    window.addEventListener(BADGES_UPDATED_EVENT, handler);
-    return () => {
-      window.removeEventListener(SESSION_COMPLETE_EVENT, handler);
-      window.removeEventListener(BADGES_UPDATED_EVENT, handler);
-    };
-  }, [refresh]);
+  const progressMap = useAppStore((state) => state.userAchievements);
 
   const unlockedCount = useMemo(
     () => Object.values(progressMap).filter((row) => row.unlockedAt).length,
@@ -144,7 +128,7 @@ export default function AchievementsGrid() {
 
 function AchievementCardRow(props: {
   achievement: CatalogEntry;
-  progress: ReturnType<typeof getLocalAchievementProgress>[string];
+  progress: UserAchievementProgress;
   tierLabel: string;
   unlockedLabel: string;
   lockedLabel: string;
