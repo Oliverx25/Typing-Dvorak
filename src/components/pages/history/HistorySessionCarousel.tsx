@@ -45,16 +45,17 @@ export default function HistorySessionCarousel({
     <div className="relative">
       <div
         ref={scrollRef}
-        className="scrollbar-hide h-[70vh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-pt-[30vh] scroll-smooth motion-reduce:scroll-auto"
+        className="scrollbar-hide h-[70vh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-pt-4 scroll-smooth motion-reduce:scroll-auto"
         role="list"
         aria-label={t.history.title}
       >
-        <div className="flex flex-col gap-5 px-1 pt-4 pb-[50vh]">
-          {sessions.map((session) => (
+        <div className="flex flex-col gap-5 px-1 pt-4 pb-24">
+          {sessions.map((session, index) => (
             <HistorySessionCard
               key={session.id}
               session={session}
               scrollRootRef={scrollRef}
+              isDefaultActive={index === 0}
               onViewDetails={onViewDetails}
               onBecameActive={handleBecameActive}
             />
@@ -62,7 +63,7 @@ export default function HistorySessionCarousel({
 
           {loadingMore ? (
             <div
-              className="snap-center flex h-20 items-center justify-center"
+              className="snap-start flex h-20 items-center justify-center"
               role="status"
               aria-live="polite"
             >
