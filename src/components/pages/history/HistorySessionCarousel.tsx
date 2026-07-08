@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import type { HistorySession } from '@/utils/history/historySessions';
 import HistorySessionCard from '@/components/pages/history/HistorySessionCard';
@@ -54,10 +54,15 @@ export default function HistorySessionCarousel({
     <div className="relative">
       <div
         ref={scrollRef}
-        className="scrollbar-hide flex h-[70vh] flex-col gap-4 overflow-y-auto pb-10"
+        className="scrollbar-hide mask-dynamic flex h-[70vh] flex-col gap-4 overflow-y-auto overflow-x-hidden px-6 pt-6 pb-24 -mx-6 -mt-6"
         role="list"
         aria-label={t.history.title}
         onMouseLeave={() => setHoveredIndex(null)}
+        style={
+          {
+            '--mask-start': hoveredIndex !== null && hoveredIndex < 2 ? '0px' : '40px',
+          } as CSSProperties
+        }
       >
         {sessions.map((session, index) => (
           <HistorySessionCard
@@ -82,15 +87,6 @@ export default function HistorySessionCarousel({
             })
           : null}
       </div>
-
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[var(--color-surface)] to-transparent"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[var(--color-surface)] to-transparent"
-        aria-hidden
-      />
     </div>
   );
 }

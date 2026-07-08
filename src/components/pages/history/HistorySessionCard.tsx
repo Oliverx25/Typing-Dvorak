@@ -39,12 +39,12 @@ function HistorySessionCard({
       onMouseEnter={onMouseEnter}
       style={spotlightInlineStyle(spotlightStyle)}
       className={[
-        'flex w-full flex-col gap-4 rounded-xl border bg-slate-900/30 p-4',
+        'relative flex w-full flex-col gap-4 rounded-xl border bg-slate-900/30 p-4',
         'transition-all duration-300 ease-out will-change-transform motion-reduce:transition-none',
         'sm:flex-row sm:items-center',
         isFocused
-          ? 'border-slate-600 bg-slate-800/80 shadow-xl shadow-black/25'
-          : 'border-slate-800 shadow-lg shadow-black/10',
+          ? 'border-slate-600 bg-slate-800/80 shadow-xl shadow-indigo-500/10 z-50'
+          : 'border-slate-800/50 bg-slate-900/50 shadow-lg shadow-black/10 z-0',
       ].join(' ')}
     >
       <div className="min-w-0 flex-1">

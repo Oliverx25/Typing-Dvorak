@@ -219,3 +219,29 @@ html[lang="en"] [data-lang="es"],
 html:not([lang="es"]) [data-lang="es"] {
   display: none !important;
 }
+
+/* --- Dynamic edge mask for scroll lists (history spotlight) --- */
+@property --mask-start {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 40px;
+}
+
+.mask-dynamic {
+  --mask-start: 40px;
+  transition: --mask-start 0.3s ease-out;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent var(--mask-start),
+    black 60px,
+    black calc(100% - 60px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent var(--mask-start),
+    black 60px,
+    black calc(100% - 60px),
+    transparent 100%
+  );
+}
