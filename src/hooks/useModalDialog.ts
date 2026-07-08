@@ -10,6 +10,7 @@ interface UseModalDialogOptions {
 export function useModalDialog({ open, onClose, returnFocusRef }: UseModalDialogOptions) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const returnFocusTargetRef = useRef<HTMLElement | null>(null);
+  const suppressCloseCallbackRef = useRef(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -20,6 +21,7 @@ export function useModalDialog({ open, onClose, returnFocusRef }: UseModalDialog
         returnFocusRef?.current ?? (document.activeElement as HTMLElement | null);
       dialog.showModal();
     } else if (!open && dialog.open) {
+      suppressCloseCallbackRef.current = true;
       dialog.close();
     }
   }, [open, returnFocusRef]);
@@ -34,6 +36,10 @@ export function useModalDialog({ open, onClose, returnFocusRef }: UseModalDialog
   }, [open, returnFocusRef]);
 
   const handleDialogClose = useCallback(() => {
+    if (suppressCloseCallbackRef.current) {
+      suppressCloseCallbackRef.current = false;
+      return;
+    }
     onClose();
   }, [onClose]);
 

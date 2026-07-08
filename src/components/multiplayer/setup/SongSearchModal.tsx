@@ -43,14 +43,14 @@ export default function SongSearchModal({
   const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS);
   const hasQuery = query.length > 0;
 
-  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName } =
+  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName, closing } =
     useAnimatedModalDialog({
       open,
       onClose,
       returnFocusRef,
     });
 
-  useLockBodyScroll(open);
+  useLockBodyScroll(open || closing);
 
   const handleSelect = useCallback(
     (song: LyricSongResult) => {
@@ -160,8 +160,9 @@ export default function SongSearchModal({
   }, [open]);
 
   const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
-    if (!open) return;
+    if (!open || closing) return;
     if (event.target === dialogRef.current) {
+      event.preventDefault();
       requestClose();
     }
   };
@@ -184,7 +185,6 @@ export default function SongSearchModal({
       className={[
         dialogClassName,
         'fixed inset-0 z-[200] m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70',
-        open ? '' : 'pointer-events-none invisible',
       ].join(' ')}
     >
       <div

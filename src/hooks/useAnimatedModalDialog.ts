@@ -14,7 +14,7 @@ export function useAnimatedModalDialog({
   onClose,
   returnFocusRef,
 }: UseAnimatedModalDialogOptions) {
-  const { closing, requestClose, panelClassName, dialogClassName } = useModalTransition(onClose);
+  const { closing, requestClose, panelClassName, dialogClassName } = useModalTransition(onClose, open);
   const { dialogRef, handleDialogClose, handleCancel } = useModalDialog({
     open,
     onClose: requestClose,

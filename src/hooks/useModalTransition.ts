@@ -6,11 +6,21 @@ import {
   modalPanelClass,
 } from '@/utils/modal/modalAnimation';
 
-/** Delays `onClose` until exit animation finishes. */
-export function useModalTransition(onClose: () => void) {
+/** Delays `onClose` until exit animation finishes. Pass `open` when the modal stays mounted between opens. */
+export function useModalTransition(onClose: () => void, open = true) {
   const [closing, setClosing] = useState(false);
   const closingRef = useRef(false);
   const timerRef = useRef<number>();
+
+  useEffect(() => {
+    if (!open) return;
+    closingRef.current = false;
+    setClosing(false);
+    if (timerRef.current != null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = undefined;
+    }
+  }, [open]);
 
   useEffect(() => {
     return () => {
@@ -29,6 +39,7 @@ export function useModalTransition(onClose: () => void) {
     setClosing(true);
     timerRef.current = window.setTimeout(() => {
       closingRef.current = false;
+      setClosing(false);
       onClose();
     }, durationMs);
   }, [onClose]);
