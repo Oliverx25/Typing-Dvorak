@@ -52,6 +52,22 @@ export function recordKeystroke(char: string, isCorrect: boolean): void {
   dispatchKeyStatsUpdated();
 }
 
+/**
+ * Maps typing outcomes to per-key heatmap stats:
+ * - Correct (pure or corrected): +1 hit on the key pressed.
+ * - Incorrect: +1 miss on the key pressed AND +1 miss on the expected key.
+ */
+export function recordHeatmapKeystroke(expected: string, typedChar: string, isCorrect: boolean): void {
+  if (isCorrect) {
+    recordKeystroke(typedChar, true);
+    return;
+  }
+  recordKeystroke(typedChar, false);
+  if (typedChar !== expected) {
+    recordKeystroke(expected, false);
+  }
+}
+
 /** Minimum keystrokes before heatmap uses full red/green intensity. */
 export const HEATMAP_MIN_SAMPLES = 5;
 

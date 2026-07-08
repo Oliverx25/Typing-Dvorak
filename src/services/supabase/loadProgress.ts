@@ -116,8 +116,8 @@ function mapKeyErrors(rows: { key_char: string; error_count: number; hit_count?:
     const code = charToKeyCode(row.key_char) ?? row.key_char;
     const hitCount = row.hit_count ?? 0;
     const errorCount = row.error_count ?? 0;
-    if (hitCount > 0) hits[code] = hitCount;
-    if (errorCount > 0) misses[code] = errorCount;
+    if (hitCount > 0) hits[code] = (hits[code] ?? 0) + hitCount;
+    if (errorCount > 0) misses[code] = (misses[code] ?? 0) + errorCount;
   }
   return { hits, misses };
 }

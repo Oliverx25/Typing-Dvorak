@@ -8,7 +8,7 @@ import {
 import { calculateStars } from '@/utils/curriculum/stars';
 import { calculateGrade } from '@/utils/grading';
 import { serializeKeystrokeLogForCloud } from '@/utils/history/sessionTelemetry';
-import { getKeyStats } from '@/utils/stats/keyStats';
+import { getKeyStats, codeToLabel } from '@/utils/stats/keyStats';
 import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '@/utils/progress/streak';
 import { fetchUserSessionTimestamps } from '@/services/supabase/queries';
 import { safeAsyncVoid } from '@/utils/network/graceful';
@@ -148,7 +148,7 @@ export async function syncKeyErrorsToCloud(userId: string): Promise<void> {
 
     const rows = [...codes].map((code) => ({
       user_id: userId,
-      key_char: code.slice(-1),
+      key_char: codeToLabel(code),
       hit_count: stats.hits[code] ?? 0,
       error_count: stats.misses[code] ?? 0,
     }));

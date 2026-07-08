@@ -9,7 +9,7 @@ import {
 } from '@/utils/typing/typing';
 import { generateDrillText } from '@/utils/typing/textGenerator';
 import { saveSession } from '@/utils/progress/storage';
-import { getSessionWeakKeys, recordKeystroke } from '@/utils/stats/keyStats';
+import { getSessionWeakKeys, recordHeatmapKeystroke, recordKeystroke } from '@/utils/stats/keyStats';
 import { playCompleteSound, playCorrectSound, playIncorrectSound } from '@/utils/typing/sound';
 import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '@/utils/app/events';
 import { finalizeSingleplayerAchievements } from '@/utils/achievements/badges';
@@ -635,7 +635,7 @@ export function useTypingSession({
       errorIndexHistoryRef.current.add(input.length);
       sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
       if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
-      recordKeystroke(typedChar, false);
+      recordHeatmapKeystroke(expected, typedChar, false);
       if (sound) playIncorrectSound();
       if (suddenDeathMode) {
         requestAnimationFrame(() => forceFinishEarly());
@@ -695,6 +695,8 @@ export function useTypingSession({
       }
       if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
     }
+
+    recordHeatmapKeystroke(expected, typedChar, isCorrect);
 
     if (sound) {
       if (isCorrect) playCorrectSound();
