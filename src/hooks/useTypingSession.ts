@@ -105,6 +105,9 @@ export function useTypingSession({
   blindMode = false,
   testDurationSeconds = TEST_DURATION_SECONDS,
 }: UseTypingSessionOptions) {
+  const effectiveStopOnError = raceMode ? false : stopOnError;
+  const effectiveStopOnWord = raceMode ? false : stopOnWord;
+
   const isTestMode = mode === 'test' && !zenMode;
   const durationMs = testDurationSeconds * 1000;
 
@@ -264,7 +267,7 @@ export function useTypingSession({
             correctChars: result.correctChars,
             incorrectChars: result.incorrectChars,
             elapsedMs: result.elapsedSeconds * 1000,
-            stopOnError,
+            stopOnError: effectiveStopOnError,
           },
         },
       );
@@ -292,7 +295,7 @@ export function useTypingSession({
 
       if (sound) playCompleteSound();
     },
-    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled, blindMode, stopOnError, zenMode],
+    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled, blindMode, effectiveStopOnError, zenMode],
   );
 
   const forceFinishEarly = useCallback(() => {
@@ -598,7 +601,7 @@ export function useTypingSession({
       typedChar = e.key;
     }
 
-    if (stopOnWord && typedChar === ' ' && wordHasUncorrectedErrors(input, statuses, errorIndexHistoryRef.current)) {
+    if (effectiveStopOnWord && typedChar === ' ' && wordHasUncorrectedErrors(input, statuses, errorIndexHistoryRef.current)) {
       e.preventDefault();
       return;
     }
@@ -624,7 +627,7 @@ export function useTypingSession({
     lastKeystrokeTsRef.current = logEntry.timestamp;
     keystrokeLogRef.current.push(logEntry);
 
-    if (!isCorrect && stopOnError) {
+    if (!isCorrect && effectiveStopOnError) {
       const nextErrors = errorKeystrokesRef.current + 1;
       dispatch({
         type: 'STOP_ON_ERROR',
@@ -730,11 +733,11 @@ export function useTypingSession({
     togglePause,
     paused,
     statuses,
-    stopOnWord,
+    stopOnWord: effectiveStopOnWord,
     targetText,
     started,
     sound,
-    stopOnError,
+    stopOnError: effectiveStopOnError,
     suddenDeathMode,
     vampireMode,
     applyVampireHit,

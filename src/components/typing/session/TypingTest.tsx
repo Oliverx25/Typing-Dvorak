@@ -92,8 +92,8 @@ export default function TypingTest({
     musicPacerEnabled,
     sessionPersist,
     zenMode: zenEnabled,
-    stopOnError: settings.stopOnError,
-    stopOnWord: settings.stopOnWord,
+    stopOnError: raceMode ? false : settings.stopOnError,
+    stopOnWord: raceMode ? false : settings.stopOnWord,
     blindMode: effectiveBlindMode,
     testDurationSeconds,
   });
