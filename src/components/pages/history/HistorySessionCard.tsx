@@ -2,7 +2,7 @@ import { memo, useEffect, type RefObject } from 'react';
 import { LuEye } from 'react-icons/lu';
 import { useApp } from '@/contexts/AppProvider';
 import { GradeBadge } from '@/components/ui';
-import { useCarouselTopFocus } from '@/hooks/useCarouselTopFocus';
+import { useCarouselCenterFocus } from '@/hooks/useCarouselCenterFocus';
 import {
   formatHistoryDate,
   formatHistorySessionLabel,
@@ -26,7 +26,7 @@ function HistorySessionCard({
   onBecameActive,
 }: HistorySessionCardProps) {
   const { t, settings } = useApp();
-  const { itemRef, isActive } = useCarouselTopFocus(scrollRootRef, isDefaultActive);
+  const { itemRef, isActive } = useCarouselCenterFocus(scrollRootRef, isDefaultActive);
   const locale = settings.locale;
   const title = formatHistorySessionLabel(session, locale);
   const typeLabel = formatHistorySessionType(session, locale);
@@ -39,8 +39,9 @@ function HistorySessionCard({
   return (
     <article
       ref={itemRef}
+      data-history-card
       className={[
-        'snap-start flex w-full flex-col gap-4 rounded-xl border p-4 transition-all duration-500 ease-out motion-reduce:transition-none sm:flex-row sm:items-center',
+        'snap-center flex w-full flex-col gap-4 rounded-xl border p-4 transition-all duration-500 ease-out motion-reduce:transition-none sm:flex-row sm:items-center',
         isActive
           ? 'scale-100 border-slate-700 bg-slate-800/80 opacity-100 shadow-xl shadow-black/20'
           : 'scale-[0.97] border-slate-800 bg-slate-900/30 opacity-40 blur-[1px] motion-reduce:scale-100 motion-reduce:blur-none',

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 
 /**
- * True when the card sits in the top focus band of a scroll-snap carousel.
- * `defaultActive` ensures index 0 is highlighted on first paint (scrollTop === 0).
+ * True when the card sits in the CENTER band of a scroll-snap carousel.
+ * Use with `snap-center` items.
  */
-export function useCarouselTopFocus(
+export function useCarouselCenterFocus(
   scrollRootRef: RefObject<HTMLElement | null>,
   defaultActive = false,
 ) {
@@ -22,27 +22,16 @@ export function useCarouselTopFocus(
       },
       {
         root,
-        rootMargin: '-10% 0px -70% 0px',
+        // Centered focus: only intersecting within the middle band.
+        rootMargin: '-50% 0px -50% 0px',
         threshold: 0,
       },
     );
 
     observer.observe(item);
-
-    const syncAtTop = () => {
-      if (defaultActive && root.scrollTop <= 4) {
-        setIsActive(true);
-      }
-    };
-
-    syncAtTop();
-    root.addEventListener('scroll', syncAtTop, { passive: true });
-
-    return () => {
-      observer.disconnect();
-      root.removeEventListener('scroll', syncAtTop);
-    };
-  }, [scrollRootRef, defaultActive]);
+    return () => observer.disconnect();
+  }, [scrollRootRef]);
 
   return { itemRef, isActive };
 }
+

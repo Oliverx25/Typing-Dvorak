@@ -8,6 +8,7 @@ import {
   type HistorySession,
 } from '@/utils/history/historySessions';
 import HistoryEmptyState from '@/components/pages/history/HistoryEmptyState';
+import HistoryCardSkeleton from '@/components/pages/history/HistoryCardSkeleton';
 import HistorySessionCarousel from '@/components/pages/history/HistorySessionCarousel';
 import HistorySessionDetailModal from '@/components/pages/history/HistorySessionDetailModal';
 
@@ -71,15 +72,9 @@ export default function HistoryTimeline() {
         role="status"
         aria-busy="true"
       >
-        {Array.from({ length: 3 }, (_, index) => (
-          <div
-            key={index}
-            className={[
-              'h-28 animate-pulse rounded-xl border border-slate-800 bg-slate-900/40',
-              index === 1 ? 'opacity-100' : 'opacity-50',
-            ].join(' ')}
-          />
-        ))}
+        <HistoryCardSkeleton />
+        <HistoryCardSkeleton emphasis />
+        <HistoryCardSkeleton />
       </div>
     );
   }
