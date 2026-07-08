@@ -15,6 +15,7 @@ import {
   remapCloudSessionRows,
 } from '@/utils/progress/migrateLegacyProgress';
 import { migrateCloudLegacyLessonIds } from '@/services/supabase/migrateCloudProgress';
+import { clearGuestProgress } from '@/utils/progress/guestProgress';
 import { replaceKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { charToKeyCode } from '@/utils/keyboard/dvorak';
 import { getLessonById } from '@/utils/curriculum/lessons';

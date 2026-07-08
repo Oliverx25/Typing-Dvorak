@@ -81,14 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(nextUser);
       setLoading(false);
 
-      if (event === 'SIGNED_IN') {
-        forceHydrationRef.current = true;
-        lastLoadedUserIdRef.current = null;
-        setProgressReady(false);
-        return;
-      }
-
-      if (event === 'INITIAL_SESSION' && lastLoadedUserIdRef.current !== nextUser.id) {
+      // Supabase re-emits SIGNED_IN / INITIAL_SESSION on every tab refocus and
+      // token refresh, always with the same account. Only trigger a fresh
+      // hydration when the signed-in user differs from the one already loaded,
+      // so switching windows never bounces the UI back to a loading state.
+      if (lastLoadedUserIdRef.current !== nextUser.id) {
         setProgressReady(false);
       }
     });
