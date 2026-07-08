@@ -407,6 +407,8 @@ export const es: TranslationKey = {
     weakKeysHint: 'Estas teclas causaron más errores en esta sesión.',
     gradeEarned: 'Rango obtenido',
     consistencyTitle: 'Consistencia de pulsaciones',
+    showConsistency: 'Ver análisis de consistencia',
+    hideConsistency: 'Ocultar análisis',
     starsEarned: 'Estrellas obtenidas',
   },
   fingers: {

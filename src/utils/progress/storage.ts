@@ -10,7 +10,7 @@ import { calculateGrade, bestGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { saveSongProgress } from '@/utils/progress/songProgress';
 import { masteryXpForSession, isMicroLessonForMastery } from '@/utils/curriculum/mastery';
-import { resolveLessonId } from '@/utils/progress/legacyLessonIds';
+import { resolveLessonId, LEGACY_LESSON_ID_MAP } from '@/utils/progress/legacyLessonIds';
 import { accumulateMasteryXpFromSessions } from '@/utils/curriculum/masteryHistory';
 import {
   mergeSessionIntoLessonProgress,
@@ -241,10 +241,27 @@ export function getBestAccuracyForLesson(lessonId: string): number | null {
   return best > 0 ? best : null;
 }
 
+function lessonIdsForMasteryLookup(lessonId: string): string[] {
+  const resolved = resolveLessonId(lessonId);
+  const ids = new Set([resolved, lessonId]);
+  for (const [legacy, mapped] of Object.entries(LEGACY_LESSON_ID_MAP)) {
+    if (mapped === resolved) ids.add(legacy);
+  }
+  return [...ids];
+}
+
 export function getMasteryXpForLesson(lessonId: string): number {
-  const stored = getProgress().lessons[lessonId]?.masteryXp ?? 0;
-  const fromHistory = accumulateMasteryXpFromSessions(getSessionHistory(), lessonId);
-  return Math.max(stored, fromHistory);
+  let best = 0;
+  const history = getSessionHistory();
+  const progress = getProgress();
+
+  for (const id of lessonIdsForMasteryLookup(lessonId)) {
+    const stored = progress.lessons[id]?.masteryXp ?? 0;
+    const fromHistory = accumulateMasteryXpFromSessions(history, id);
+    best = Math.max(best, stored, fromHistory);
+  }
+
+  return best;
 }
 
 export function getCompletedLessonsMap(): Record<string, { bestAccuracy: number; bestWpm: number }> {

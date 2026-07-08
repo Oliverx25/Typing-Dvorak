@@ -14,9 +14,7 @@ export { MODIFIER_EXCLUSIVE_PAIRS, resolveModifierConflicts, toggleRaceModifier 
 
 export const DEFAULT_RACE_LESSON_ID = 'alphabet_mastery';
 
-export const RACE_LESSONS = CORE_LESSONS.filter(
-  (lesson) => !lesson.adaptive && lesson.texts.length > 0,
-);
+export const RACE_LESSONS = CORE_LESSONS.filter((lesson) => !lesson.adaptive);
 
 /** @deprecated Legacy alias — use VictoryCondition or RaceModifier. */
 export type WinCondition = VictoryCondition | 'sudden_death';

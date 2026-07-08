@@ -1,4 +1,6 @@
 import type { CatalogEntry } from '@/utils/achievements/catalogData';
+import { useApp } from '@/contexts/AppProvider';
+import { getAchievementText } from '@/i18n/achievements';
 import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
 import { getCategoryIcon, TIER_VISUALS } from '@/utils/achievements/achievementIcons';
 import { Icon } from '@/components/ui';
@@ -20,6 +22,8 @@ export default function AchievementCard({
   lockedLabel,
   progressLabel,
 }: AchievementCardProps) {
+  const { locale } = useApp();
+  const { title, description } = getAchievementText(achievement, locale);
   const isUnlocked = userProgress.unlockedAt != null;
   const isLocked = !isUnlocked && userProgress.currentProgress <= 0;
   const tierStyle = TIER_VISUALS[achievement.tier];
@@ -60,7 +64,7 @@ export default function AchievementCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-semibold text-[var(--color-text)]">
-              {achievement.title}
+              {title}
             </h2>
             <span
               className={[
@@ -83,7 +87,7 @@ export default function AchievementCard({
             )}
           </div>
           <p className="mt-1 text-sm leading-relaxed text-[var(--color-text-muted)]">
-            {achievement.description}
+            {description}
           </p>
         </div>
       </div>

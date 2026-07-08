@@ -57,7 +57,7 @@ export default function PrimaryActionCard() {
             <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">
               {meta?.description}
             </p>
-            <p className="mt-2 text-xs text-[var(--color-text-muted)]">
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
               {stats?.averageMasteryXp ?? 0} {t.home.chapterAvgMastery}
             </p>
           </div>

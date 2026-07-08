@@ -405,6 +405,8 @@ export const en = {
     weakKeysHint: 'These keys caused the most errors in this session.',
     gradeEarned: 'Grade earned',
     consistencyTitle: 'Keystroke consistency',
+    showConsistency: 'View consistency analysis',
+    hideConsistency: 'Hide analysis',
     starsEarned: 'Stars earned',
   },
   fingers: {

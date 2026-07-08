@@ -8,11 +8,15 @@ import { getCompletedLessonsMap, getHighestGradeForLesson, getMasteryXpForLesson
 export interface ChapterStats {
   chapterId: string;
   completionPercentage: number;
+  /** Sum of mastery XP across all lessons in the chapter. */
+  totalMasteryXp: number;
+  /** Average mastery XP among lessons with XP > 0. */
   averageMasteryXp: number;
   masteryProgressPct: number;
   averageGrade: string | null;
   completedLessons: number;
   totalLessons: number;
+  playedLessons: number;
   isLocked: boolean;
 }
 
@@ -68,8 +72,11 @@ export function computeChapterStats(
   const completionPercentage =
     totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0;
 
-  const totalXp = chapter.lessonIds.reduce((sum, id) => sum + getMasteryXpForLesson(id), 0);
-  const averageMasteryXp = totalLessons > 0 ? Math.round(totalXp / totalLessons) : 0;
+  const xpByLesson = chapter.lessonIds.map((id) => getMasteryXpForLesson(id));
+  const playedXp = xpByLesson.filter((xp) => xp > 0);
+  const totalMasteryXp = xpByLesson.reduce((sum, xp) => sum + xp, 0);
+  const averageMasteryXp =
+    playedXp.length > 0 ? Math.round(totalMasteryXp / playedXp.length) : 0;
   const masteryProgressPct = Math.min(
     100,
     Math.round((averageMasteryXp / MASTERY_TIER_THRESHOLDS.ascended) * 100),
@@ -78,11 +85,13 @@ export function computeChapterStats(
   return {
     chapterId: chapter.id,
     completionPercentage,
+    totalMasteryXp,
     averageMasteryXp,
     masteryProgressPct,
     averageGrade: averageGradeForLessons(chapter.lessonIds, map),
     completedLessons: completedLessonsCount,
     totalLessons,
+    playedLessons: playedXp.length,
     isLocked: chapterIndex > 0 && previousChapterCompletion === 0,
   };
 }

@@ -4,7 +4,7 @@ import { Accordion, SegmentedControl } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 import { focusRingCardClassName } from '@/utils/a11y/focusRing';
-import LessonGrid from '@/components/multiplayer/setup/LessonGrid';
+import MultiplayerChapterLessonPicker from '@/components/multiplayer/setup/MultiplayerChapterLessonPicker';
 import MatchRulesPanel from '@/components/multiplayer/setup/MatchRulesPanel';
 import SongSearchModal from '@/components/multiplayer/setup/SongSearchModal';
 import ActiveTrackCard from '@/components/multiplayer/setup/ActiveTrackCard';
@@ -140,12 +140,11 @@ export default function CreateRoomSettings({
 
       <div key={value.textSource} className="mp-fade-in transition-opacity duration-300 ease-in-out">
         {value.textSource === 'lesson' ? (
-          <LessonGrid
+          <MultiplayerChapterLessonPicker
             lessons={RACE_LESSONS}
             selectedId={value.lessonId}
             disabled={disabled}
             onSelect={(lessonId) => onChange({ lessonId })}
-            t={t}
           />
         ) : value.textSource === 'song' ? (
           <div className="space-y-3">

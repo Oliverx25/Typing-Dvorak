@@ -90,7 +90,7 @@ function speedSession(wpm: number, tier: CatalogTier, title: string): CatalogEnt
   return entry(
     `speed_wpm_${wpm}`,
     title,
-    `Alcanza ${wpm} WPM en una sesión.`,
+    `Reach ${wpm} WPM in a single session.`,
     'velocidad',
     tier,
     wpm,
@@ -102,7 +102,7 @@ function perfectSessions(count: number, tier: CatalogTier, title: string): Catal
   return entry(
     `perfect_sessions_${count}`,
     title,
-    `Completa ${count} sesión${count === 1 ? '' : 'es'} con 100% de precisión.`,
+    `Complete ${count} session${count === 1 ? '' : 's'} with 100% accuracy.`,
     'precision',
     tier,
     count,
@@ -114,7 +114,7 @@ function comboTarget(combo: number, tier: CatalogTier, title: string): CatalogEn
   return entry(
     `combo_max_${combo}`,
     title,
-    `Alcanza un combo de ${combo} teclas correctas seguidas.`,
+    `Reach a ${combo}-keystroke correct combo.`,
     'precision',
     tier,
     combo,
@@ -126,7 +126,7 @@ function mpWins(count: number, tier: CatalogTier, title: string): CatalogEntry {
   return entry(
     `mp_wins_${count}`,
     title,
-    `Gana ${count} carrera${count === 1 ? '' : 's'} multijugador.`,
+    `Win ${count} multiplayer race${count === 1 ? '' : 's'}.`,
     'multijugador',
     tier,
     count,
@@ -138,7 +138,7 @@ function streakDays(days: number, tier: CatalogTier, title: string): CatalogEntr
   return entry(
     `streak_days_${days}`,
     title,
-    `Practica ${days} días seguidos.`,
+    `Practice ${days} days in a row.`,
     'resistencia',
     tier,
     days,
@@ -150,7 +150,7 @@ function totalSessions(count: number, tier: CatalogTier, title: string): Catalog
   return entry(
     `total_sessions_${count}`,
     title,
-    `Completa ${count.toLocaleString('es')} sesiones totales.`,
+    `Complete ${count.toLocaleString('en')} total sessions.`,
     'resistencia',
     tier,
     count,
@@ -162,8 +162,8 @@ function cruiseSpeed(avg: number, level: number): CatalogEntry {
   const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][level - 1] ?? String(level);
   return entry(
     `speed_cruise_${avg}`,
-    `Velocidad de Crucero ${roman}`,
-    `Mantén un WPM promedio superior a ${avg} en una lección o canción completa.`,
+    `Cruise Speed ${roman}`,
+    `Maintain an average WPM above ${avg} in a full lesson or song.`,
     'velocidad',
     level <= 2 ? 'plata' : level <= 4 ? 'oro' : 'diamante',
     avg,

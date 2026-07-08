@@ -39,9 +39,9 @@ export default function HeroLessonCard({ lessonId }: HeroLessonCardProps) {
 
   if (!unlocked) {
     return (
-      <div className="flex items-center justify-between rounded-md border border-slate-800/40 bg-slate-900/40 p-3 opacity-50 grayscale">
-        <span className="text-sm font-medium text-[var(--color-text-muted)]">{title}</span>
-        <LockIcon size={16} className="shrink-0 text-slate-500" />
+      <div className="flex items-center justify-between rounded-md border border-slate-200/80 bg-slate-50/80 p-3 opacity-50 grayscale dark:border-slate-800/40 dark:bg-slate-900/40">
+        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</span>
+        <LockIcon size={16} className="shrink-0 text-slate-400" />
       </div>
     );
   }
@@ -49,12 +49,12 @@ export default function HeroLessonCard({ lessonId }: HeroLessonCardProps) {
   return (
     <article
       className={[
-        'flex flex-col justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4',
+        'flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/60',
         ringClass,
       ].join(' ')}
     >
       <div>
-        <h3 className="text-base font-semibold text-[var(--color-text)]">{title}</h3>
+        <h3 className="text-base font-semibold text-slate-900 dark:text-white">{title}</h3>
         <BestScoreLabel
           highestGrade={highestGrade}
           highestScore={highestScore}
