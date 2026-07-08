@@ -9,6 +9,7 @@ import {
 } from '@/utils/history/historySessions';
 import HistoryEmptyState from '@/components/pages/history/HistoryEmptyState';
 import HistoryCardSkeleton from '@/components/pages/history/HistoryCardSkeleton';
+import { getSpotlightStyle } from '@/components/pages/history/historySpotlight';
 import HistorySessionCarousel from '@/components/pages/history/HistorySessionCarousel';
 import HistorySessionDetailModal from '@/components/pages/history/HistorySessionDetailModal';
 
@@ -72,9 +73,13 @@ export default function HistoryTimeline() {
         role="status"
         aria-busy="true"
       >
-        <HistoryCardSkeleton />
-        <HistoryCardSkeleton emphasis />
-        <HistoryCardSkeleton />
+        {Array.from({ length: 3 }, (_, index) => (
+          <HistoryCardSkeleton
+            key={index}
+            spotlightStyle={getSpotlightStyle(null, index)}
+            onMouseEnter={() => {}}
+          />
+        ))}
       </div>
     );
   }

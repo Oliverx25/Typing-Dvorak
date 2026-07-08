@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import type { HistorySession } from '@/utils/history/historySessions';
 import HistorySessionCard from '@/components/pages/history/HistorySessionCard';
 import HistoryCardSkeleton from '@/components/pages/history/HistoryCardSkeleton';
+import { getSpotlightStyle } from '@/components/pages/history/historySpotlight';
 
 interface HistorySessionCarouselProps {
   sessions: HistorySession[];
@@ -22,86 +23,64 @@ export default function HistorySessionCarousel({
   const { t } = useApp();
   const scrollRef = useRef<HTMLDivElement>(null);
   const loadTriggeredRef = useRef(false);
-  const didInitialScrollRef = useRef(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!loadingMore) loadTriggeredRef.current = false;
   }, [loadingMore]);
 
-  const handleBecameActive = useCallback(
-    (session: HistorySession) => {
-      const isLast = sessions[sessions.length - 1]?.id === session.id;
-      if (!isLast || !hasMore || loadingMore) {
-        loadTriggeredRef.current = false;
-        return;
-      }
+  const skeletonCount = useMemo(() => {
+    if (!hasMore && !loadingMore) return 0;
+    return 3;
+  }, [hasMore, loadingMore]);
 
-      if (loadTriggeredRef.current) return;
-      loadTriggeredRef.current = true;
-      onLoadMore();
-    },
-    [sessions, hasMore, loadingMore, onLoadMore],
-  );
-
-  // On mount (or when the dataset resets), jump to the first real card so the top spacer
-  // doesn't look like empty content.
   useEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
-    if (sessions.length === 0) return;
-    if (didInitialScrollRef.current) return;
 
-    const firstCard = root.querySelector('[data-history-card]') as HTMLElement | null;
-    if (!firstCard) return;
+    const onScroll = () => {
+      if (!hasMore || loadingMore || loadTriggeredRef.current) return;
+      if (root.scrollTop + root.clientHeight >= root.scrollHeight - 220) {
+        loadTriggeredRef.current = true;
+        onLoadMore();
+      }
+    };
 
-    // Sync scroll (no animation) to the first card.
-    firstCard.scrollIntoView({ block: 'center', behavior: 'auto' });
-    didInitialScrollRef.current = true;
-  }, [sessions]);
-
-  // If sessions shrink (e.g., user changes auth state), allow re-centering.
-  useEffect(() => {
-    if (sessions.length <= 1) didInitialScrollRef.current = false;
-  }, [sessions.length]);
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => root.removeEventListener('scroll', onScroll);
+  }, [hasMore, loadingMore, onLoadMore]);
 
   return (
     <div className="relative">
       <div
         ref={scrollRef}
-        className="scrollbar-hide h-[70vh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth motion-reduce:scroll-auto"
+        className="scrollbar-hide flex h-[70vh] flex-col gap-4 overflow-y-auto pb-10"
         role="list"
         aria-label={t.history.title}
+        onMouseLeave={() => setHoveredIndex(null)}
       >
-        <div className="flex flex-col gap-5 px-1 py-6">
-          <div
-            className="h-[calc(50vh-8rem)] shrink-0 pointer-events-none"
-            aria-hidden="true"
+        {sessions.map((session, index) => (
+          <HistorySessionCard
+            key={session.id}
+            session={session}
+            spotlightStyle={getSpotlightStyle(hoveredIndex, index)}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onViewDetails={onViewDetails}
           />
+        ))}
 
-          {sessions.map((session, index) => (
-            <HistorySessionCard
-              key={session.id}
-              session={session}
-              scrollRootRef={scrollRef}
-              isDefaultActive={index === 0}
-              onViewDetails={onViewDetails}
-              onBecameActive={handleBecameActive}
-            />
-          ))}
-
-          {hasMore || loadingMore ? (
-            <>
-              <HistoryCardSkeleton />
-              <HistoryCardSkeleton emphasis />
-              <HistoryCardSkeleton />
-            </>
-          ) : (
-            <div
-              className="h-[calc(50vh-8rem)] shrink-0 pointer-events-none"
-              aria-hidden="true"
-            />
-          )}
-        </div>
+        {skeletonCount > 0
+          ? Array.from({ length: skeletonCount }, (_, offset) => {
+              const index = sessions.length + offset;
+              return (
+                <HistoryCardSkeleton
+                  key={`sk-${index}`}
+                  spotlightStyle={getSpotlightStyle(hoveredIndex, index)}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                />
+              );
+            })
+          : null}
       </div>
 
       <div

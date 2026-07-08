@@ -1,17 +1,20 @@
 import { memo } from 'react';
+import {
+  spotlightInlineStyle,
+  type SpotlightStyle,
+} from '@/components/pages/history/historySpotlight';
 
 interface HistoryCardSkeletonProps {
-  /** Slightly higher opacity for the centered loading placeholder. */
-  emphasis?: boolean;
+  spotlightStyle: SpotlightStyle;
+  onMouseEnter: () => void;
 }
 
-function HistoryCardSkeleton({ emphasis = false }: HistoryCardSkeletonProps) {
+function HistoryCardSkeleton({ spotlightStyle, onMouseEnter }: HistoryCardSkeletonProps) {
   return (
     <div
-      className={[
-        'snap-center h-28 w-full animate-pulse rounded-xl border border-slate-800 bg-slate-900/40',
-        emphasis ? 'opacity-100' : 'opacity-60',
-      ].join(' ')}
+      onMouseEnter={onMouseEnter}
+      style={spotlightInlineStyle(spotlightStyle)}
+      className="h-28 w-full animate-pulse rounded-xl border border-slate-800 bg-slate-900/40 transition-all duration-300 ease-out will-change-transform motion-reduce:transition-none"
       role="status"
       aria-hidden="true"
     />
@@ -19,4 +22,3 @@ function HistoryCardSkeleton({ emphasis = false }: HistoryCardSkeletonProps) {
 }
 
 export default memo(HistoryCardSkeleton);
-

@@ -1,50 +1,50 @@
-import { memo, useEffect, type RefObject } from 'react';
+import { memo } from 'react';
 import { LuEye } from 'react-icons/lu';
 import { useApp } from '@/contexts/AppProvider';
 import { GradeBadge } from '@/components/ui';
-import { useCarouselCenterFocus } from '@/hooks/useCarouselCenterFocus';
 import {
   formatHistoryDate,
   formatHistorySessionLabel,
   formatHistorySessionType,
   type HistorySession,
 } from '@/utils/history/historySessions';
+import {
+  spotlightInlineStyle,
+  type SpotlightStyle,
+} from '@/components/pages/history/historySpotlight';
 
 interface HistorySessionCardProps {
   session: HistorySession;
-  scrollRootRef: RefObject<HTMLElement | null>;
-  isDefaultActive?: boolean;
+  spotlightStyle: SpotlightStyle;
+  onMouseEnter: () => void;
   onViewDetails: (session: HistorySession) => void;
-  onBecameActive?: (session: HistorySession) => void;
 }
 
 function HistorySessionCard({
   session,
-  scrollRootRef,
-  isDefaultActive = false,
+  spotlightStyle,
+  onMouseEnter,
   onViewDetails,
-  onBecameActive,
 }: HistorySessionCardProps) {
   const { t, settings } = useApp();
-  const { itemRef, isActive } = useCarouselCenterFocus(scrollRootRef, isDefaultActive);
   const locale = settings.locale;
   const title = formatHistorySessionLabel(session, locale);
   const typeLabel = formatHistorySessionType(session, locale);
   const dateLabel = formatHistoryDate(session.completedAt, locale);
-
-  useEffect(() => {
-    if (isActive) onBecameActive?.(session);
-  }, [isActive, onBecameActive, session]);
+  const isFocused = spotlightStyle.scale > 1;
 
   return (
     <article
-      ref={itemRef}
       data-history-card
+      onMouseEnter={onMouseEnter}
+      style={spotlightInlineStyle(spotlightStyle)}
       className={[
-        'snap-center flex w-full flex-col gap-4 rounded-xl border p-4 transition-all duration-500 ease-out motion-reduce:transition-none sm:flex-row sm:items-center',
-        isActive
-          ? 'scale-100 border-slate-700 bg-slate-800/80 opacity-100 shadow-xl shadow-black/20'
-          : 'scale-[0.97] border-slate-800 bg-slate-900/30 opacity-40 blur-[1px] motion-reduce:scale-100 motion-reduce:blur-none',
+        'flex w-full flex-col gap-4 rounded-xl border bg-slate-900/30 p-4',
+        'transition-all duration-300 ease-out will-change-transform motion-reduce:transition-none',
+        'sm:flex-row sm:items-center',
+        isFocused
+          ? 'border-slate-600 bg-slate-800/80 shadow-xl shadow-black/25'
+          : 'border-slate-800 shadow-lg shadow-black/10',
       ].join(' ')}
     >
       <div className="min-w-0 flex-1">
@@ -74,12 +74,7 @@ function HistorySessionCard({
       <button
         type="button"
         onClick={() => onViewDetails(session)}
-        className={[
-          'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border px-4 py-2 text-sm font-medium transition',
-          isActive
-            ? 'border-slate-600 bg-slate-700/50 text-white hover:bg-slate-700'
-            : 'border-slate-700 text-slate-300 hover:border-slate-600 hover:bg-slate-800 hover:text-white',
-        ].join(' ')}
+        className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
       >
         <LuEye size={16} aria-hidden />
         {t.history.viewDetails}
