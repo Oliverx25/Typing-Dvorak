@@ -62,7 +62,7 @@ const cardClassName =
 
 const optionButtonClassName = (selected: boolean) =>
   [
-    'rounded-md px-3 py-1.5 text-xs font-medium uppercase transition',
+    'shrink-0 rounded-md px-2 py-1 text-xs font-medium uppercase transition',
     focusRingInsetClassName,
     selected
       ? 'bg-[var(--color-highlight)] text-white'
@@ -113,7 +113,7 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
 
       <div
         ref={panelRef}
-        className="relative flex max-h-[min(92vh,820px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl"
+        className="relative flex max-h-[min(92vh,820px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl"
       >
         <div className="shrink-0 border-b border-[var(--color-border)] px-6 py-4">
           <h2 id="settings-modal-title" className="text-base font-semibold text-[var(--color-text)]">
@@ -128,14 +128,14 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 md:gap-x-6">
             <section className={cardClassName}>
               <h3 className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
                 {t.settings.sectionPreferences}
               </h3>
               <div className="mt-4 space-y-4">
                 <SettingRow label={t.settings.language}>
-                  <div className="flex gap-1">
+                  <div className="flex flex-nowrap gap-1">
                     {(['en', 'es'] as Locale[]).map((loc) => (
                       <button
                         key={loc}
@@ -166,6 +166,19 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
                   description={t.settings.fingerDesc}
                   checked={draft.fingerColors}
                   onChange={(v) => patchDraft({ fingerColors: v })}
+                />
+              </div>
+
+              <div className="mt-5 border-t border-[var(--color-border)] pt-5">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+                  {t.settings.sectionAppearance}
+                </h3>
+                <HighlightThemePicker
+                  label={t.settings.highlightTheme}
+                  description={t.settings.highlightThemeDesc}
+                  value={draft.highlightTheme}
+                  themeLabels={t.settings.highlightThemes}
+                  onChange={(id) => patchDraft({ highlightTheme: id })}
                 />
               </div>
             </section>
@@ -209,7 +222,7 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
                   </SettingRow>
                 )}
                 <SettingRow label={t.settings.caretStyle}>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-nowrap gap-1">
                     {(['line', 'block', 'underline'] as const).map((style) => (
                       <button
                         key={style}
@@ -228,7 +241,7 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
                   </div>
                 </SettingRow>
                 <SettingRow label={t.settings.caretAnimation}>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-nowrap gap-1">
                     {(['smooth', 'blink', 'off'] as const).map((anim) => (
                       <button
                         key={anim}
@@ -260,59 +273,38 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
                 />
               </div>
             </section>
-
-            <section className={`${cardClassName} md:col-span-2`}>
-              <h3 className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
-                {t.settings.sectionAppearance}
-              </h3>
-              <HighlightThemePicker
-                label={t.settings.highlightTheme}
-                description={t.settings.highlightThemeDesc}
-                value={draft.highlightTheme}
-                themeLabels={t.settings.highlightThemes}
-                onChange={(id) => patchDraft({ highlightTheme: id })}
-              />
-            </section>
-
-            <section className={`${cardClassName} md:col-span-2`}>
-              <h3 className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
-                {t.settings.sectionData}
-              </h3>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-text)]">{t.settings.exportData}</p>
-                  <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">{t.settings.exportDesc}</p>
-                  <Button type="button" variant="secondary" size="sm" className="mt-2.5" onClick={() => downloadExport()}>
-                    {t.settings.exportBtn}
-                  </Button>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-text)]">{t.settings.importData}</p>
-                  <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">{t.settings.importDesc}</p>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="application/json,.json"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImport(file);
-                      e.target.value = '';
-                    }}
-                  />
-                  <Button type="button" variant="secondary" size="sm" className="mt-2.5" onClick={() => fileRef.current?.click()}>
-                    {t.settings.importBtn}
-                  </Button>
-                  {importMsg === 'success' && (
-                    <p className="mt-1.5 text-[11px] text-[var(--color-correct)]">{t.settings.importSuccess}</p>
-                  )}
-                  {importMsg === 'error' && (
-                    <p className="mt-1.5 text-[11px] text-[var(--color-incorrect)]">{t.settings.importError}</p>
-                  )}
-                </div>
-              </div>
-            </section>
           </div>
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-[var(--color-border)] px-6 py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+              {t.settings.sectionData}:
+            </span>
+            <Button type="button" variant="secondary" size="sm" onClick={() => downloadExport()}>
+              {t.settings.exportBtn}
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImport(file);
+                e.target.value = '';
+              }}
+            />
+            <Button type="button" variant="secondary" size="sm" onClick={() => fileRef.current?.click()}>
+              {t.settings.importBtn}
+            </Button>
+          </div>
+          {importMsg === 'success' && (
+            <p className="text-[11px] text-[var(--color-correct)]">{t.settings.importSuccess}</p>
+          )}
+          {importMsg === 'error' && (
+            <p className="text-[11px] text-[var(--color-incorrect)]">{t.settings.importError}</p>
+          )}
         </div>
 
         <div className="flex shrink-0 justify-end gap-2 border-t border-[var(--color-border)] px-6 py-4">
@@ -354,7 +346,7 @@ function HighlightThemePicker({
     <div className="mt-4">
       <p className="text-sm font-medium text-[var(--color-text)]">{label}</p>
       <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">{description}</p>
-      <div className="mt-3 flex flex-wrap gap-3">
+      <div className="mt-2.5 flex flex-wrap gap-2.5">
         {HIGHLIGHT_THEME_IDS.map((id) => {
           const selected = value === id;
           return (
