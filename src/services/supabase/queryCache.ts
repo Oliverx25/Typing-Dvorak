@@ -17,6 +17,7 @@ export const QUERY_CACHE_KEYS = {
   achievements: 'achievements',
   sessions: (limit: number) => `sessions:${limit}`,
   sessionsPage: (page: number, pageSize: number) => `sessions:page:${page}:${pageSize}`,
+  sessionTelemetry: (sessionId: string) => `session_telemetry:${sessionId}`,
   room: (code: string) => `room:${code}`,
 } as const;
 

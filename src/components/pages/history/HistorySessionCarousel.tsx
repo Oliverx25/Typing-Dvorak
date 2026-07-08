@@ -45,11 +45,11 @@ export default function HistorySessionCarousel({
     <div className="relative">
       <div
         ref={scrollRef}
-        className="scrollbar-hide h-[70vh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth motion-reduce:scroll-auto"
+        className="scrollbar-hide h-[70vh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-pt-[30vh] scroll-smooth motion-reduce:scroll-auto"
         role="list"
         aria-label={t.history.title}
       >
-        <div className="flex flex-col gap-5 px-1 py-[calc(35vh-5rem)]">
+        <div className="flex flex-col gap-5 px-1 pt-4 pb-[50vh]">
           {sessions.map((session) => (
             <HistorySessionCard
               key={session.id}

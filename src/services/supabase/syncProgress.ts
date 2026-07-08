@@ -7,6 +7,7 @@ import {
 } from '@/utils/progress/lessonProgressAggregate';
 import { calculateStars } from '@/utils/curriculum/stars';
 import { calculateGrade } from '@/utils/grading';
+import { serializeKeystrokeLogForCloud } from '@/utils/history/sessionTelemetry';
 import { getKeyStats } from '@/utils/stats/keyStats';
 import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '@/utils/progress/streak';
 import { fetchUserSessionTimestamps } from '@/services/supabase/queries';
@@ -116,6 +117,11 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
       race_source: record.multiplayerSource ?? null,
       song_title: record.songTitle ?? null,
       race_modifiers: record.raceModifiers ?? [],
+      keystroke_log: record.keystrokeLog?.length
+        ? serializeKeystrokeLogForCloud(record.keystrokeLog)
+        : null,
+      consistency: record.consistency ?? null,
+      trouble_keys: record.troubleKeys?.length ? record.troubleKeys : null,
     });
 
     if (error) {

@@ -8,6 +8,10 @@ import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
 import { calculateGrade } from '@/utils/grading';
 import { MULTIPLAYER_LESSON_ID, parseStoredRaceModifiers } from '@/utils/stats/sessionDisplay';
+import { getSessionHistory } from '@/utils/progress/storage';
+import type { SessionTelemetryData } from '@/services/supabase/queries';
+import type { KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
+import { isCloudSessionId } from '@/utils/history/sessionTelemetry';
 
 export interface HistorySession {
   id: string;
@@ -116,6 +120,44 @@ export function formatHistoryDate(iso: string, locale: Locale): string {
     minute: '2-digit',
   });
 }
+
+export function getLocalSessionTelemetry(completedAt: string): SessionTelemetryData | null {
+  const record = getSessionHistory().find((session) => session.completedAt === completedAt);
+  if (!record?.keystrokeLog?.length) return null;
+
+  return {
+    keystrokeLog: record.keystrokeLog,
+    consistency: record.consistency ?? null,
+    troubleKeys: record.troubleKeys ?? [],
+  };
+}
+
+export function resolveSessionAnalyticsMetrics(
+  session: HistorySession,
+  telemetry: SessionTelemetryData | null,
+): {
+  correctChars: number;
+  incorrectChars: number;
+  elapsedMs: number;
+  keystrokeLog: KeystrokeLogEntry[];
+  weakKeys: string[];
+  stopOnError: boolean;
+} {
+  const local = getSessionHistory().find((entry) => entry.completedAt === session.completedAt);
+  const estimated = estimateCharsFromSession(session);
+  const keystrokeLog = telemetry?.keystrokeLog ?? local?.keystrokeLog ?? [];
+
+  return {
+    correctChars: local?.correctChars ?? estimated.correctChars,
+    incorrectChars: local?.incorrectChars ?? estimated.incorrectChars,
+    elapsedMs: local?.elapsedMs ?? estimated.elapsedMs,
+    keystrokeLog,
+    weakKeys: telemetry?.troubleKeys ?? local?.troubleKeys ?? [],
+    stopOnError: local?.stopOnError ?? false,
+  };
+}
+
+export { isCloudSessionId };
 
 export function estimateCharsFromSession(session: HistorySession): {
   correctChars: number;

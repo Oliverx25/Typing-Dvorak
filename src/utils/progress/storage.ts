@@ -2,6 +2,7 @@ import type { TypingStats } from '@/utils/typing/typing';
 import type { PracticeMode } from '@/utils/app/settings';
 import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
+import type { KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
 import { MULTIPLAYER_LESSON_ID } from '@/utils/stats/sessionDisplay';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { STORAGE_KEYS } from '@/utils/progress/keys';
@@ -36,6 +37,14 @@ export interface SessionRecord {
   songTitle?: string;
   /** Active race modifiers (excludes victory condition). */
   raceModifiers?: RaceModifier[];
+  /** Session telemetry for history detail replay. */
+  keystrokeLog?: KeystrokeLogEntry[];
+  consistency?: number;
+  troubleKeys?: string[];
+  correctChars?: number;
+  incorrectChars?: number;
+  elapsedMs?: number;
+  stopOnError?: boolean;
 }
 
 export interface LessonProgress {
@@ -101,6 +110,15 @@ export function saveSession(
     gradeOverride?: string;
     totalMultiplier?: number;
     blindMode?: boolean;
+    telemetry?: {
+      keystrokeLog: KeystrokeLogEntry[];
+      consistency: number;
+      troubleKeys: string[];
+      correctChars: number;
+      incorrectChars: number;
+      elapsedMs: number;
+      stopOnError?: boolean;
+    };
   },
 ): { isNewRecord: boolean; previousBest: number; record: SessionRecord } {
   const gradeMultiplier = options?.blindMode ? 1.2 : (options?.totalMultiplier ?? 1);
@@ -124,6 +142,13 @@ export function saveSession(
     multiplayerSource: options?.multiplayerSource,
     songTitle: options?.songTitle,
     raceModifiers: options?.raceModifiers?.length ? options.raceModifiers : undefined,
+    keystrokeLog: options?.telemetry?.keystrokeLog,
+    consistency: options?.telemetry?.consistency,
+    troubleKeys: options?.telemetry?.troubleKeys,
+    correctChars: options?.telemetry?.correctChars,
+    incorrectChars: options?.telemetry?.incorrectChars,
+    elapsedMs: options?.telemetry?.elapsedMs,
+    stopOnError: options?.telemetry?.stopOnError,
   };
 
   const history = [record, ...getSessionHistory()].slice(0, MAX_RECORDS);

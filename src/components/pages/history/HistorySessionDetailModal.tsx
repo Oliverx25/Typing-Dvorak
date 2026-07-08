@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LuX } from 'react-icons/lu';
 import { useApp } from '@/contexts/AppProvider';
 import { GradeBadge } from '@/components/ui';
+import { fetchSessionTelemetry } from '@/services/supabase/queries';
 import SessionAnalyticsPanel from '@/components/typing/session/completion/SessionAnalyticsPanel';
 import {
-  estimateCharsFromSession,
   formatHistoryDate,
   formatHistorySessionLabel,
   formatHistorySessionType,
+  getLocalSessionTelemetry,
+  isCloudSessionId,
+  resolveSessionAnalyticsMetrics,
   type HistorySession,
 } from '@/utils/history/historySessions';
 
@@ -16,16 +19,56 @@ interface HistorySessionDetailModalProps {
   onClose: () => void;
 }
 
+function AnalyticsSkeleton() {
+  return (
+    <div className="space-y-4" role="status" aria-busy="true">
+      <div className="h-[300px] animate-pulse rounded-xl border border-slate-800 bg-slate-900/40" />
+      <div className="grid grid-cols-3 gap-3">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div
+            key={index}
+            className="h-16 animate-pulse rounded-lg border border-slate-800 bg-slate-900/30"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function HistorySessionDetailModal({ session, onClose }: HistorySessionDetailModalProps) {
   const { t, settings } = useApp();
   const locale = settings.locale;
+  const [telemetryLoading, setTelemetryLoading] = useState(true);
+  const [telemetry, setTelemetry] = useState<Awaited<ReturnType<typeof fetchSessionTelemetry>>>(null);
 
   const title = formatHistorySessionLabel(session, locale);
   const typeLabel = formatHistorySessionType(session, locale);
   const dateLabel = formatHistoryDate(session.completedAt, locale);
-  const { correctChars, incorrectChars, elapsedMs } = useMemo(
-    () => estimateCharsFromSession(session),
-    [session],
+
+  useEffect(() => {
+    let cancelled = false;
+    setTelemetryLoading(true);
+    setTelemetry(null);
+
+    const load = async () => {
+      const data = isCloudSessionId(session.id)
+        ? await fetchSessionTelemetry(session.id)
+        : getLocalSessionTelemetry(session.completedAt);
+
+      if (cancelled) return;
+      setTelemetry(data);
+      setTelemetryLoading(false);
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [session.id, session.completedAt]);
+
+  const metrics = useMemo(
+    () => resolveSessionAnalyticsMetrics(session, telemetry),
+    [session, telemetry],
   );
 
   const analyticsLabels = useMemo(
@@ -126,13 +169,20 @@ export default function HistorySessionDetailModal({ session, onClose }: HistoryS
             ) : null}
           </div>
 
-          <SessionAnalyticsPanel
-            wpm={session.wpm}
-            correctChars={correctChars}
-            incorrectChars={incorrectChars}
-            elapsedMs={elapsedMs}
-            labels={analyticsLabels}
-          />
+          {telemetryLoading ? (
+            <AnalyticsSkeleton />
+          ) : (
+            <SessionAnalyticsPanel
+              wpm={session.wpm}
+              correctChars={metrics.correctChars}
+              incorrectChars={metrics.incorrectChars}
+              elapsedMs={metrics.elapsedMs}
+              keystrokeLog={metrics.keystrokeLog}
+              weakKeys={metrics.weakKeys}
+              stopOnError={metrics.stopOnError}
+              labels={analyticsLabels}
+            />
+          )}
         </div>
       </div>
     </div>

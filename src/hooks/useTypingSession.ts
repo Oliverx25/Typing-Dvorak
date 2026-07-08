@@ -13,6 +13,7 @@ import { getSessionWeakKeys, recordKeystroke } from '@/utils/stats/keyStats';
 import { playCompleteSound, playCorrectSound, playIncorrectSound } from '@/utils/typing/sound';
 import { dispatchKeyStatsUpdated, dispatchSessionComplete } from '@/utils/app/events';
 import { finalizeSingleplayerAchievements } from '@/utils/achievements/badges';
+import { calculateConsistencyScore } from '@/utils/typing/completionMetrics';
 import { setRaceSessionExtras } from '@/utils/achievements/raceSessionExtras';
 import {
   calculateStableRaceWpm,
@@ -225,12 +226,13 @@ export function useTypingSession({
 
       const sessionMaxCombo = maxComboRef.current;
       const weak = getSessionWeakKeys(sessionMissesRef.current);
+      const keystrokeLog = [...keystrokeLogRef.current];
       setSessionWeakKeys(weak);
       setElapsedMs(result.elapsedSeconds * 1000);
       setFinalStats(result);
       setFinished(true);
       setPaused(false);
-      setKeystrokeLogSnapshot([...keystrokeLogRef.current]);
+      setKeystrokeLogSnapshot(keystrokeLog);
 
       const { isNewRecord: record, previousBest, record: savedRecord } = saveSession(
         persistLessonId,
@@ -247,6 +249,15 @@ export function useTypingSession({
           gradeOverride: sessionPersist?.gradeOverride,
           totalMultiplier: sessionPersist?.totalMultiplier ?? (raceMode ? scoreMultiplier : undefined),
           blindMode: !raceMode && blindMode,
+          telemetry: {
+            keystrokeLog,
+            consistency: calculateConsistencyScore(keystrokeLog),
+            troubleKeys: weak,
+            correctChars: result.correctChars,
+            incorrectChars: result.incorrectChars,
+            elapsedMs: result.elapsedSeconds * 1000,
+            stopOnError,
+          },
         },
       );
       setIsNewRecord(record);
@@ -273,7 +284,7 @@ export function useTypingSession({
 
       if (sound) playCompleteSound();
     },
-    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled, blindMode],
+    [lessonId, lessonTitle, mode, sound, sessionPersist, raceMode, scoreMultiplier, vampireMode, musicPacerEnabled, blindMode, stopOnError],
   );
 
   const forceFinishEarly = useCallback(() => {

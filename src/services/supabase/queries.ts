@@ -13,6 +13,15 @@ import {
 } from '@/services/supabase/profileRow';
 import { ACHIEVEMENT_CATALOG } from '@/utils/achievements/catalogData';
 import type { UserAchievementProgress } from '@/utils/achievements/catalogTypes';
+import {
+  parseCloudKeystrokeLog,
+  parseCloudTroubleKeys,
+} from '@/utils/history/sessionTelemetry';
+import type { KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
+
+/** Columns for list/history views — excludes heavy telemetry JSONB. */
+const SESSION_LIST_SELECT =
+  'id,user_id,lesson_id,wpm,accuracy,stars,mode,created_at,grade,score,max_combo,race_source,song_title,race_modifiers';
 
 async function resolveUserId(): Promise<string | null> {
   return getAuthSessionUserSync()?.id ?? (await getAuthUser())?.id ?? null;
@@ -31,7 +40,7 @@ export async function fetchUserSessions(limit = 50) {
 
   const { data, error } = await supabase
     .from('typing_sessions')
-    .select('*')
+    .select(SESSION_LIST_SELECT)
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -90,7 +99,7 @@ export async function fetchUserSessionsPage(
 
   const { data, error, count } = await supabase
     .from('typing_sessions')
-    .select('*', { count: 'exact' })
+    .select(SESSION_LIST_SELECT, { count: 'exact' })
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(from, to);
@@ -105,6 +114,47 @@ export async function fetchUserSessionsPage(
     total: count ?? 0,
     page,
     pageSize,
+  };
+
+  setCachedQuery(cacheKey, userId, result, 60_000);
+  return result;
+}
+
+export interface SessionTelemetryData {
+  keystrokeLog: KeystrokeLogEntry[];
+  consistency: number | null;
+  troubleKeys: string[];
+}
+
+export async function fetchSessionTelemetry(sessionId: string): Promise<SessionTelemetryData | null> {
+  const userId = await resolveUserId();
+  if (!userId) return null;
+
+  const cacheKey = QUERY_CACHE_KEYS.sessionTelemetry(sessionId);
+  const cached = getCachedQuery<SessionTelemetryData>(cacheKey, userId);
+  if (cached) return cached;
+
+  const supabase = getSupabaseClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('typing_sessions')
+    .select('keystroke_log, consistency, trouble_keys')
+    .eq('id', sessionId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[supabase] fetch session telemetry failed:', error.message);
+    return null;
+  }
+
+  if (!data) return null;
+
+  const result: SessionTelemetryData = {
+    keystrokeLog: parseCloudKeystrokeLog(data.keystroke_log),
+    consistency: data.consistency != null ? Number(data.consistency) : null,
+    troubleKeys: parseCloudTroubleKeys(data.trouble_keys),
   };
 
   setCachedQuery(cacheKey, userId, result, 60_000);
