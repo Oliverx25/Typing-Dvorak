@@ -2,8 +2,7 @@ import { useRef, useState, type RefObject } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
-import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
-import { useOverlayModal } from '@/hooks/useOverlayModal';
+import { useModalOverlay } from '@/hooks/useModalOverlay';
 import { focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import { updatePassword } from '@/services/supabase/auth';
 import {
@@ -45,8 +44,10 @@ const panelClassName =
   'rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3';
 
 export default function EditProfileModal({ user, onClose, returnFocusRef }: EditProfileModalProps) {
-  useLockBodyScroll();
-  const { panelRef } = useOverlayModal({ onClose, returnFocusRef });
+  const { requestClose, panelRef, backdropClassName, panelClassName } = useModalOverlay({
+    onClose,
+    returnFocusRef,
+  });
 
   const { t } = useApp();
   const { refreshUser, profile } = useAuth();
@@ -126,7 +127,7 @@ export default function EditProfileModal({ user, onClose, returnFocusRef }: Edit
     }
 
     await refreshUser();
-    onClose();
+    requestClose();
   };
 
   const handleChangePassword = async () => {
@@ -229,11 +230,15 @@ export default function EditProfileModal({ user, onClose, returnFocusRef }: Edit
       aria-modal="true"
       aria-labelledby="edit-profile-title"
     >
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+      <div
+        className={`absolute inset-0 bg-black/50 ${backdropClassName}`}
+        onClick={requestClose}
+        aria-hidden="true"
+      />
 
       <div
         ref={panelRef}
-        className="relative flex max-h-[min(92vh,820px)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl"
+        className={`relative ${panelClassName} flex max-h-[min(92vh,820px)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl`}
       >
         <div className="shrink-0 border-b border-[var(--color-border)] px-6 py-4">
           <h2 id="edit-profile-title" className="text-base font-semibold text-[var(--color-text)]">
@@ -504,7 +509,7 @@ export default function EditProfileModal({ user, onClose, returnFocusRef }: Edit
         />
 
         <div className="flex shrink-0 justify-end gap-2 border-t border-[var(--color-border)] px-6 py-4">
-          <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>
+          <Button type="button" variant="ghost" disabled={busy} onClick={requestClose}>
             {t.auth.cancel}
           </Button>
           <Button type="button" disabled={busy} onClick={handleSave}>

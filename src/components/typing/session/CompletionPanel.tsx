@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { t as translate } from '@/i18n';
 import type { KeystrokeLogEntry } from '@/hooks/useTypingSession';
+import { useModalTransition } from '@/hooks/useModalTransition';
 import { GradeScoreRing } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
@@ -51,6 +52,7 @@ export default function CompletionPanel({
   retryButtonRef,
 }: CompletionPanelProps) {
   const { t, settings } = useApp();
+  const { requestClose, backdropClassName, panelClassName } = useModalTransition(onRetry);
   const [isExpanded, setIsExpanded] = useState(false);
   const isPerfect = accuracy === 100;
   const grade = calculateGrade(accuracy);
@@ -180,7 +182,7 @@ export default function CompletionPanel({
         isExpanded={isExpanded}
         hasNextLesson={hasNextLesson}
         onToggleAnalysis={handleToggleAnalysis}
-        onRetry={onRetry}
+        onRetry={requestClose}
         onBackToLessons={handleBackToLessons}
         onNextLesson={handleNextLesson}
         retryButtonRef={retryButtonRef}
@@ -197,13 +199,14 @@ export default function CompletionPanel({
       aria-labelledby="completion-title"
     >
       <div
-        className="absolute inset-0 bg-[var(--color-surface)]/60 backdrop-blur-sm motion-reduce:backdrop-blur-none"
+        className={`absolute inset-0 bg-[var(--color-surface)]/60 backdrop-blur-sm motion-reduce:backdrop-blur-none ${backdropClassName}`}
         aria-hidden="true"
       />
 
       <div
         className={[
-          'completion-enter relative flex w-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/95 shadow-2xl shadow-black/30 backdrop-blur-md motion-reduce:animate-none',
+          panelClassName,
+          'relative flex w-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/95 shadow-2xl shadow-black/30 backdrop-blur-md motion-reduce:animate-none',
           'transition-[max-width] duration-500 ease-in-out',
           showExpandedLayout ? 'max-w-5xl' : 'max-w-sm',
         ].join(' ')}

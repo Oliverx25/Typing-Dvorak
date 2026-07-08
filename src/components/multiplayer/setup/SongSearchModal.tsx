@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { useApp } from '@/contexts/AppProvider';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { useModalDialog } from '@/hooks/useModalDialog';
+import { useAnimatedModalDialog } from '@/hooks/useAnimatedModalDialog';
 import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
 import Icon from '@/components/ui/icons/Icon';
 import SongCard, { SongCardSkeleton, difficultyTierLabel } from '@/components/multiplayer/setup/SongCard';
@@ -43,20 +43,21 @@ export default function SongSearchModal({
   const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS);
   const hasQuery = query.length > 0;
 
-  const { dialogRef, handleDialogClose, handleCancel } = useModalDialog({
-    open,
-    onClose,
-    returnFocusRef,
-  });
+  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName } =
+    useAnimatedModalDialog({
+      open,
+      onClose,
+      returnFocusRef,
+    });
 
   useLockBodyScroll(open);
 
   const handleSelect = useCallback(
     (song: LyricSongResult) => {
       onSelect(song);
-      onClose();
+      requestClose();
     },
-    [onClose, onSelect],
+    [onSelect, requestClose],
   );
 
   const handleActivate = useCallback(
@@ -161,7 +162,7 @@ export default function SongSearchModal({
   const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
     if (!open) return;
     if (event.target === dialogRef.current) {
-      onClose();
+      requestClose();
     }
   };
 
@@ -181,13 +182,15 @@ export default function SongSearchModal({
       aria-labelledby="song-search-title"
       aria-modal="true"
       className={[
-        'modal-enter fixed inset-0 z-[200] m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70',
+        dialogClassName,
+        'fixed inset-0 z-[200] m-0 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4 backdrop:bg-black/70',
         open ? '' : 'pointer-events-none invisible',
       ].join(' ')}
     >
       <div
         role="document"
         className={[
+          panelClassName,
           'flex w-[min(100%,56rem)] flex-col rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl',
           needsScroll ? 'max-h-[min(90vh,52rem)] overflow-hidden' : '',
         ].join(' ')}

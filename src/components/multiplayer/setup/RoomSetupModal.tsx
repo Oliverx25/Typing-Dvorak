@@ -7,7 +7,7 @@ import CreateRoomSettings, {
 import { Button } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
-import { useModalDialog } from '@/hooks/useModalDialog';
+import { useAnimatedModalDialog } from '@/hooks/useAnimatedModalDialog';
 import { focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import {
   normalizeModifiers,
@@ -50,11 +50,12 @@ export default function RoomSetupModal({
   const { t } = useApp();
   const [draft, setDraft] = useState<CreateRoomSettingsValue>(() => toSettingsValue(roomState));
 
-  const { dialogRef, handleDialogClose, handleCancel } = useModalDialog({
-    open,
-    onClose,
-    returnFocusRef,
-  });
+  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName } =
+    useAnimatedModalDialog({
+      open,
+      onClose,
+      returnFocusRef,
+    });
 
   useLockBodyScroll(open);
 
@@ -86,7 +87,7 @@ export default function RoomSetupModal({
       winCondition: draft.winCondition,
       modifiers,
     });
-    onClose();
+    requestClose();
   };
 
   return (
@@ -96,7 +97,11 @@ export default function RoomSetupModal({
       onCancel={handleCancel}
       aria-labelledby="room-setup-title"
       aria-modal="true"
-      className="modal-enter m-auto w-[min(100%-1.5rem,56rem)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-0 text-[var(--color-text)] shadow-2xl backdrop:bg-black/60"
+      className={[
+        dialogClassName,
+        panelClassName,
+        'm-auto w-[min(100%-1.5rem,56rem)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-0 text-[var(--color-text)] shadow-2xl backdrop:bg-black/60',
+      ].join(' ')}
     >
       <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-6 py-4">
         <div>
@@ -109,7 +114,7 @@ export default function RoomSetupModal({
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={requestClose}
           aria-label={t.multiplayer.close}
           className={[
             'rounded-lg p-1.5 text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
@@ -138,7 +143,7 @@ export default function RoomSetupModal({
         </div>
 
       <div className="flex justify-end gap-3 border-t border-[var(--color-border)] px-6 py-4">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={requestClose}>
           {t.multiplayer.close}
         </Button>
         <Button onClick={handleSave} disabled={!canSave}>

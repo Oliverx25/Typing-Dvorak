@@ -2,8 +2,7 @@ import { useRef, useState, type RefObject } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import type { Locale } from '@/i18n';
-import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
-import { useOverlayModal } from '@/hooks/useOverlayModal';
+import { useModalOverlay } from '@/hooks/useModalOverlay';
 import { focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import { downloadExport, importProgress } from '@/utils/progress/exportImport';
 import { dispatchSessionComplete, dispatchKeyStatsUpdated } from '@/utils/app/events';
@@ -70,8 +69,10 @@ const optionButtonClassName = (selected: boolean) =>
   ].join(' ');
 
 export default function SettingsModal({ onClose, returnFocusRef }: SettingsModalProps) {
-  useLockBodyScroll();
-  const { panelRef } = useOverlayModal({ onClose, returnFocusRef });
+  const { requestClose, panelRef, backdropClassName, panelClassName } = useModalOverlay({
+    onClose,
+    returnFocusRef,
+  });
 
   const { t, settings, updateSettings } = useApp();
   const { user } = useAuth();
@@ -85,7 +86,7 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
 
   const handleSave = () => {
     updateSettings(draft);
-    onClose();
+    requestClose();
   };
 
   const handleImport = (file: File) => {
@@ -109,11 +110,15 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
       aria-modal="true"
       aria-labelledby="settings-modal-title"
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <div
+        className={`absolute inset-0 bg-black/50 backdrop-blur-sm ${backdropClassName}`}
+        onClick={requestClose}
+        aria-hidden="true"
+      />
 
       <div
         ref={panelRef}
-        className="relative flex max-h-[min(92vh,820px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl"
+        className={`relative ${panelClassName} flex max-h-[min(92vh,820px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-2xl`}
       >
         <div className="shrink-0 border-b border-[var(--color-border)] px-6 py-4">
           <h2 id="settings-modal-title" className="text-base font-semibold text-[var(--color-text)]">
@@ -308,7 +313,7 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
         </div>
 
         <div className="flex shrink-0 justify-end gap-2 border-t border-[var(--color-border)] px-6 py-4">
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button type="button" variant="ghost" onClick={requestClose}>
             {t.auth.cancel}
           </Button>
           <Button type="button" onClick={handleSave}>

@@ -113,6 +113,62 @@
   }
 }
 
+@keyframes modal-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-backdrop-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-panel-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modal-panel-exit {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+}
+
+.modal-backdrop-enter {
+  animation: modal-backdrop-enter 0.2s ease-out forwards;
+}
+
+.modal-backdrop-exit {
+  animation: modal-backdrop-exit 0.2s ease-in forwards;
+}
+
+.modal-panel-enter {
+  animation: modal-panel-enter 0.2s ease-out forwards;
+}
+
+.modal-panel-exit {
+  animation: modal-panel-exit 0.2s ease-in forwards;
+}
+
 @keyframes modal-enter {
   from {
     opacity: 0;
@@ -126,6 +182,14 @@
 
 .modal-enter {
   animation: modal-enter 0.2s ease-out;
+}
+
+dialog.modal-dialog-open::backdrop {
+  animation: modal-backdrop-enter 0.2s ease-out forwards;
+}
+
+dialog.modal-dialog-closing::backdrop {
+  animation: modal-backdrop-exit 0.2s ease-in forwards;
 }
 
 @keyframes shake {
@@ -145,7 +209,16 @@
   .completion-enter,
   .mp-fade-in,
   .modal-enter,
+  .modal-backdrop-enter,
+  .modal-backdrop-exit,
+  .modal-panel-enter,
+  .modal-panel-exit,
   .shake {
+    animation: none;
+  }
+
+  dialog.modal-dialog-open::backdrop,
+  dialog.modal-dialog-closing::backdrop {
     animation: none;
   }
 }

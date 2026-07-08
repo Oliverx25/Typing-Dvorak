@@ -2,7 +2,7 @@ import { useEffect, useState, type RefObject } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { Button } from '@/components/ui';
 import Icon from '@/components/ui/icons/Icon';
-import { useModalDialog } from '@/hooks/useModalDialog';
+import { useAnimatedModalDialog } from '@/hooks/useAnimatedModalDialog';
 import { focusRingClassName, focusRingInsetClassName } from '@/utils/a11y/focusRing';
 import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import { fetchRoomByCode, isRoomJoinable } from '@/services/supabase/rooms';
@@ -22,11 +22,12 @@ export default function JoinRoomModal({ open, onClose, onJoin, returnFocusRef }:
   const [joinError, setJoinError] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
 
-  const { dialogRef, handleDialogClose, handleCancel } = useModalDialog({
-    open,
-    onClose,
-    returnFocusRef,
-  });
+  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName } =
+    useAnimatedModalDialog({
+      open,
+      onClose,
+      returnFocusRef,
+    });
 
   useEffect(() => {
     if (open) {
@@ -76,7 +77,11 @@ export default function JoinRoomModal({ open, onClose, onJoin, returnFocusRef }:
       onCancel={handleCancel}
       aria-labelledby="join-room-title"
       aria-modal="true"
-      className="modal-enter m-auto w-[min(100%-2rem,26rem)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-0 text-[var(--color-text)] shadow-2xl backdrop:bg-black/60"
+      className={[
+        dialogClassName,
+        panelClassName,
+        'm-auto w-[min(100%-2rem,26rem)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-0 text-[var(--color-text)] shadow-2xl backdrop:bg-black/60',
+      ].join(' ')}
     >
       <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-6 py-4">
         <div>
@@ -87,7 +92,7 @@ export default function JoinRoomModal({ open, onClose, onJoin, returnFocusRef }:
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={requestClose}
           aria-label={t.multiplayer.close}
           className={[
             'rounded-lg p-1.5 text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',

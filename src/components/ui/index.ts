@@ -22,4 +22,5 @@ export { default as HoverTooltip } from '@/components/ui/HoverTooltip';
 export { default as ErrorBoundary } from '@/components/ui/ErrorBoundary';
 export { default as AppErrorBoundary } from '@/components/ui/AppErrorBoundary';
 export { default as NetworkEmptyState } from '@/components/ui/NetworkEmptyState';
+export { default as ModalOverlay, useModalRequestClose } from '@/components/ui/ModalOverlay';
 export type { AccordionItem } from '@/components/ui/controls/Accordion';

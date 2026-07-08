@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LuX } from 'react-icons/lu';
 import { useApp } from '@/contexts/AppProvider';
-import { GradeBadge } from '@/components/ui';
+import { GradeBadge, ModalOverlay, useModalRequestClose } from '@/components/ui';
 import { fetchSessionTelemetry } from '@/services/supabase/queries';
 import SessionAnalyticsPanel from '@/components/typing/session/completion/SessionAnalyticsPanel';
 import {
@@ -36,6 +36,20 @@ function AnalyticsSkeleton() {
 }
 
 export default function HistorySessionDetailModal({ session, onClose }: HistorySessionDetailModalProps) {
+  return (
+    <ModalOverlay
+      onClose={onClose}
+      overlayClassName="z-50"
+      backdropClassName="bg-[var(--color-surface)]/70"
+      panelClassName="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl"
+    >
+      <HistorySessionDetailContent session={session} />
+    </ModalOverlay>
+  );
+}
+
+function HistorySessionDetailContent({ session }: { session: HistorySession }) {
+  const requestClose = useModalRequestClose();
   const { t, settings } = useApp();
   const locale = settings.locale;
   const [telemetryLoading, setTelemetryLoading] = useState(true);
@@ -90,36 +104,8 @@ export default function HistorySessionDetailModal({ session, onClose }: HistoryS
     [t],
   );
 
-  const handleBackdropClick = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <button
-        type="button"
-        className="absolute inset-0 bg-[var(--color-surface)]/70 backdrop-blur-sm"
-        aria-label={t.history.closeDetails}
-        onClick={handleBackdropClick}
-      />
-
-      <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl">
+    <>
         <header className="flex items-start justify-between gap-4 border-b border-slate-800 px-5 py-4">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{dateLabel}</p>
@@ -128,7 +114,7 @@ export default function HistorySessionDetailModal({ session, onClose }: HistoryS
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
             aria-label={t.history.closeDetails}
           >
@@ -184,7 +170,6 @@ export default function HistorySessionDetailModal({ session, onClose }: HistoryS
             />
           )}
         </div>
-      </div>
-    </div>
+    </>
   );
 }
