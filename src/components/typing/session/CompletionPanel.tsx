@@ -111,6 +111,84 @@ export default function CompletionPanel({
     };
   }, []);
 
+  const summaryColumn = (
+    <div className={showExpandedLayout ? 'flex h-full flex-col md:col-span-5' : ''}>
+      <div className="flex flex-col items-center py-1">
+        <GradeScoreRing
+          score={score}
+          maxScore={maxScore}
+          finalGrade={grade}
+          scoreLabel={t.completion.gradeEarned}
+          animateKey={`${score}-${grade}`}
+          size="md"
+        />
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-border)]">
+        <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            {t.typing.wpm}
+          </p>
+          <p className="mt-1 font-mono text-lg font-bold text-[var(--color-text)] sm:text-xl">{wpm}</p>
+        </div>
+        <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            {t.typing.accuracy}
+          </p>
+          <p
+            className={[
+              'mt-1 font-mono text-lg font-bold sm:text-xl',
+              accuracy === 100 ? 'text-[var(--color-correct)]' : 'text-[var(--color-text)]',
+            ].join(' ')}
+          >
+            {accuracy}%
+          </p>
+        </div>
+        <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            {t.typing.time}
+          </p>
+          <p className="mt-1 font-mono text-lg font-bold text-[var(--color-text)] sm:text-xl">
+            {formatTime(elapsedSeconds)}
+          </p>
+        </div>
+      </div>
+
+      {weakKeys.length > 0 && !showExpandedLayout ? (
+        <div className="mt-4 rounded-xl border border-[var(--color-incorrect)]/20 bg-[var(--color-incorrect)]/5 px-4 py-3 text-left">
+          <p className="text-center text-xs font-medium text-[var(--color-text-muted)]">
+            {t.completion.weakKeys}
+          </p>
+          <div className="mt-2.5 flex justify-center gap-2">
+            {weakKeys.map((key) => (
+              <kbd
+                key={key}
+                className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-[var(--color-incorrect)]/25 bg-[var(--color-surface)] font-mono text-base font-semibold text-[var(--color-incorrect)]"
+              >
+                {key === ' ' ? '␣' : key}
+              </kbd>
+            ))}
+          </div>
+          <p className="mt-2 text-center text-[10px] text-[var(--color-text-muted)]">
+            {t.completion.weakKeysHint}
+          </p>
+        </div>
+      ) : null}
+
+      <ResultsFooter
+        showAnalysisToggle={hasGraph}
+        isExpanded={isExpanded}
+        hasNextLesson={hasNextLesson}
+        onToggleAnalysis={handleToggleAnalysis}
+        onRetry={onRetry}
+        onBackToLessons={handleBackToLessons}
+        onNextLesson={handleNextLesson}
+        retryButtonRef={retryButtonRef}
+        labels={footerLabels}
+      />
+    </div>
+  );
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -159,75 +237,13 @@ export default function CompletionPanel({
         <div
           className={[
             'px-5 py-5',
-            showExpandedLayout ? 'grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8' : '',
+            showExpandedLayout ? 'grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8' : '',
           ].join(' ')}
         >
-          <div className={showExpandedLayout ? 'md:col-span-1' : ''}>
-            <div className="flex flex-col items-center py-1">
-              <GradeScoreRing
-                score={score}
-                maxScore={maxScore}
-                finalGrade={grade}
-                scoreLabel={t.completion.gradeEarned}
-                animateKey={`${score}-${grade}`}
-                size="md"
-              />
-            </div>
-
-            <div className="mt-3 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-border)]">
-              <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                  {t.typing.wpm}
-                </p>
-                <p className="mt-1 font-mono text-lg font-bold text-[var(--color-text)] sm:text-xl">{wpm}</p>
-              </div>
-              <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                  {t.typing.accuracy}
-                </p>
-                <p
-                  className={[
-                    'mt-1 font-mono text-lg font-bold sm:text-xl',
-                    accuracy === 100 ? 'text-[var(--color-correct)]' : 'text-[var(--color-text)]',
-                  ].join(' ')}
-                >
-                  {accuracy}%
-                </p>
-              </div>
-              <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                  {t.typing.time}
-                </p>
-                <p className="mt-1 font-mono text-lg font-bold text-[var(--color-text)] sm:text-xl">
-                  {formatTime(elapsedSeconds)}
-                </p>
-              </div>
-            </div>
-
-            {weakKeys.length > 0 && !showExpandedLayout ? (
-              <div className="mt-4 rounded-xl border border-[var(--color-incorrect)]/20 bg-[var(--color-incorrect)]/5 px-4 py-3 text-left">
-                <p className="text-center text-xs font-medium text-[var(--color-text-muted)]">
-                  {t.completion.weakKeys}
-                </p>
-                <div className="mt-2.5 flex justify-center gap-2">
-                  {weakKeys.map((key) => (
-                    <kbd
-                      key={key}
-                      className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-[var(--color-incorrect)]/25 bg-[var(--color-surface)] font-mono text-base font-semibold text-[var(--color-incorrect)]"
-                    >
-                      {key === ' ' ? '␣' : key}
-                    </kbd>
-                  ))}
-                </div>
-                <p className="mt-2 text-center text-[10px] text-[var(--color-text-muted)]">
-                  {t.completion.weakKeysHint}
-                </p>
-              </div>
-            ) : null}
-          </div>
+          {summaryColumn}
 
           {showExpandedLayout ? (
-            <div className="min-w-0 md:col-span-2">
+            <div className="min-w-0 md:col-span-7">
               <SessionAnalyticsPanel
                 wpm={wpm}
                 correctChars={correctChars}
@@ -240,20 +256,6 @@ export default function CompletionPanel({
               />
             </div>
           ) : null}
-        </div>
-
-        <div className="border-t border-[var(--color-border)] px-5 py-4">
-          <ResultsFooter
-            showAnalysisToggle={hasGraph}
-            isExpanded={isExpanded}
-            hasNextLesson={hasNextLesson}
-            onToggleAnalysis={handleToggleAnalysis}
-            onRetry={onRetry}
-            onBackToLessons={handleBackToLessons}
-            onNextLesson={handleNextLesson}
-            retryButtonRef={retryButtonRef}
-            labels={footerLabels}
-          />
         </div>
       </div>
     </div>
