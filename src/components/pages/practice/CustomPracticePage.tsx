@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import {
   CUSTOM_TEXT_MAX_LENGTH,
@@ -22,19 +22,35 @@ const CUSTOM_LESSON: Lesson = {
   texts: [''],
 };
 
+const MIN_CUSTOM_CHARS = 10;
+
 export default function CustomPracticePage() {
   const { t } = useApp();
-  const [text, setText] = useState(() => getCustomText());
-  const [active, setActive] = useState(() => getCustomText().trim().length >= 10);
+  const [text, setText] = useState('');
+  const [active, setActive] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const [uploadError, setUploadError] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // localStorage is client-only — reading it in useState breaks SSR hydration (#418).
+  useEffect(() => {
+    const saved = getCustomText();
+    setText(saved);
+    setActive(saved.trim().length >= MIN_CUSTOM_CHARS);
+    setHydrated(true);
+  }, []);
+
   const handleStart = () => {
     const cleaned = sanitizeCustomText(text).trim();
-    if (cleaned.length < 10) return;
+    if (cleaned.length < MIN_CUSTOM_CHARS) return;
     saveCustomText(cleaned);
     setText(cleaned);
     setActive(true);
+  };
+
+  const handleEditText = () => {
+    setActive(false);
+    setText(getCustomText());
   };
 
   const handleFile = (file: File) => {
@@ -52,6 +68,23 @@ export default function CustomPracticePage() {
     reader.onerror = () => setUploadError(true);
     reader.readAsText(file);
   };
+
+  if (!hydrated) {
+    return (
+      <>
+        <BackLink />
+        <header className="mb-8">
+          <div className="h-9 w-64 animate-pulse rounded-lg bg-[var(--color-surface-elevated)]" />
+          <div className="mt-2 h-5 w-96 max-w-full animate-pulse rounded bg-[var(--color-surface-elevated)]" />
+        </header>
+        <div
+          className="h-48 animate-pulse rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]"
+          role="status"
+          aria-busy="true"
+        />
+      </>
+    );
+  }
 
   if (!active) {
     return (
@@ -90,7 +123,7 @@ export default function CustomPracticePage() {
               <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()} size="md">
                 {t.custom.uploadTxt}
               </Button>
-              <Button type="button" onClick={handleStart} disabled={text.trim().length < 10} size="md">
+              <Button type="button" onClick={handleStart} disabled={text.trim().length < MIN_CUSTOM_CHARS} size="md">
                 {t.custom.start}
               </Button>
             </div>
@@ -109,7 +142,7 @@ export default function CustomPracticePage() {
         <BackLink />
         <button
           type="button"
-          onClick={() => setActive(false)}
+          onClick={handleEditText}
           className="text-sm text-[var(--color-text-muted)] transition hover:text-[var(--color-highlight)]"
         >
           {t.custom.editText}
@@ -121,7 +154,7 @@ export default function CustomPracticePage() {
           key={text.trim()}
           lessonId="custom-practice"
           lesson={CUSTOM_LESSON}
-          customText={getCustomText()}
+          customText={text}
           hideModeToggle
         />
       </AppErrorBoundary>

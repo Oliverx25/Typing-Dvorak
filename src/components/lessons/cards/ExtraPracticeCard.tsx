@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { getCustomText, saveCustomText } from '@/utils/progress/customText';
 import { Button } from '@/components/ui';
@@ -6,7 +6,13 @@ import { formFieldMonoClassName } from '@/components/ui/formFieldClasses';
 
 export default function ExtraPracticeCard() {
   const { t } = useApp();
-  const [text, setText] = useState(() => getCustomText() ?? '');
+  const [text, setText] = useState('');
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setText(getCustomText());
+    setHydrated(true);
+  }, []);
 
   const handlePaste = async () => {
     try {
@@ -35,6 +41,7 @@ export default function ExtraPracticeCard() {
           onChange={(e) => setText(e.target.value)}
           placeholder={t.custom.placeholder}
           rows={3}
+          disabled={!hydrated}
           className={`${formFieldMonoClassName} focus:border-[var(--color-highlight)]/50 focus:ring-[var(--color-highlight)]/15`}
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
