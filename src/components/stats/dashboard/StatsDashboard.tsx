@@ -10,14 +10,28 @@ import type { ChartPoint } from '@/components/stats/charts/ProgressChart';
 const ProgressChart = lazy(() => import('@/components/stats/charts/ProgressChart'));
 const KeyHeatmap = lazy(() => import('@/components/stats/heatmap/KeyHeatmap'));
 
+interface LessonBestRow {
+  id: string;
+  title: string;
+  best: number;
+}
+
 export default function StatsDashboard() {
   const { t } = useApp();
   const [aggregate, setAggregate] = useState({ totalSessions: 0, bestWpm: 0, avgAccuracy: 0, streak: 0 });
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [lessonBests, setLessonBests] = useState<LessonBestRow[]>([]);
 
   const refresh = useCallback(() => {
     setAggregate(getAggregateStats());
     setChartData(buildChartPoints(getSessionHistory(), t, getLessonTitle));
+    setLessonBests(
+      CORE_LESSONS.flatMap((lesson) => {
+        const best = getBestWpmForLesson(lesson.id);
+        if (best === null) return [];
+        return [{ id: lesson.id, title: getLessonTitle(t, lesson.titleKey), best }];
+      }),
+    );
   }, [t]);
 
   useEffect(() => {
@@ -56,16 +70,14 @@ export default function StatsDashboard() {
             </tr>
           </thead>
           <tbody>
-            {CORE_LESSONS.map((lesson) => {
-              const best = getBestWpmForLesson(lesson.id);
-              if (best === null) return null;
-              return (
-                <tr key={lesson.id} className="border-b border-[var(--color-border)] last:border-0">
-                  <td className="px-6 py-3 text-[var(--color-text)]">{getLessonTitle(t, lesson.titleKey)}</td>
-                  <td className="px-6 py-3 text-right font-mono font-semibold text-[var(--color-highlight)]">{best}</td>
-                </tr>
-              );
-            })}
+            {lessonBests.map((lesson) => (
+              <tr key={lesson.id} className="border-b border-[var(--color-border)] last:border-0">
+                <td className="px-6 py-3 text-[var(--color-text)]">{lesson.title}</td>
+                <td className="px-6 py-3 text-right font-mono font-semibold text-[var(--color-highlight)]">
+                  {lesson.best}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </Card>

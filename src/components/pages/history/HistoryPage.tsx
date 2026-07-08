@@ -2,6 +2,7 @@ import BackLink from '@/components/layout/shell/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useAppHydration } from '@/hooks/useAppHydration';
+import { useIsClient } from '@/hooks/useIsClient';
 import HistoryTimeline from '@/components/pages/history/HistoryTimeline';
 
 function HistorySkeleton() {
@@ -39,10 +40,11 @@ function HistoryContent() {
 }
 
 export default function HistoryPage() {
+  const isClient = useIsClient();
   const { isHydrating, authReady } = useAppHydration();
   const { user } = useAuth();
 
-  if (user && (!authReady || isHydrating)) {
+  if (!isClient || (user && (!authReady || isHydrating))) {
     return <HistorySkeleton />;
   }
 

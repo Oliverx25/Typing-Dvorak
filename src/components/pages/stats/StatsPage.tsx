@@ -1,6 +1,7 @@
 import BackLink from '@/components/layout/shell/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import { useAppHydration } from '@/hooks/useAppHydration';
+import { useIsClient } from '@/hooks/useIsClient';
 import StatsDashboard from '@/components/stats/dashboard/StatsDashboard';
 
 function StatsSkeleton() {
@@ -31,9 +32,10 @@ function StatsContent() {
 }
 
 export default function StatsPage() {
+  const isClient = useIsClient();
   const { isHydrating, authReady } = useAppHydration();
 
-  if (!authReady || isHydrating) {
+  if (!isClient || !authReady || isHydrating) {
     return <StatsSkeleton />;
   }
 

@@ -1,7 +1,22 @@
 import BackLink from '@/components/layout/shell/BackLink';
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useAppHydration } from '@/hooks/useAppHydration';
+import { useIsClient } from '@/hooks/useIsClient';
 import AchievementsGrid from '@/components/achievements/AchievementsGrid';
+
+function AchievementsSkeleton() {
+  return (
+    <div className="space-y-4" role="status" aria-busy="true">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div
+          key={index}
+          className="h-20 animate-pulse rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]"
+        />
+      ))}
+    </div>
+  );
+}
 
 function AchievementsContent() {
   const { t } = useApp();
@@ -28,5 +43,12 @@ function AchievementsContent() {
 }
 
 export default function AchievementsPage() {
+  const isClient = useIsClient();
+  const { isHydrating, authReady } = useAppHydration();
+
+  if (!isClient || !authReady || isHydrating) {
+    return <AchievementsSkeleton />;
+  }
+
   return <AchievementsContent />;
 }
