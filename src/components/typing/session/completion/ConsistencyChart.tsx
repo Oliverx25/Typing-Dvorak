@@ -76,8 +76,8 @@ function ConsistencyChart({
       <p className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-400">
         {title}
       </p>
-      <div className="h-44 w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full">
+        <ResponsiveContainer width="100%" height={300}>
           <ScatterChart margin={{ top: 8, right: 12, bottom: 8, left: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(30, 41, 59, 0.5)" vertical={false} />
             <XAxis

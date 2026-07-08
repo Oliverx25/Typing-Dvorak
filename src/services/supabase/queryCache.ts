@@ -16,6 +16,7 @@ export const QUERY_CACHE_KEYS = {
   sessionSummaries: 'session_summaries',
   achievements: 'achievements',
   sessions: (limit: number) => `sessions:${limit}`,
+  sessionsPage: (page: number, pageSize: number) => `sessions:page:${page}:${pageSize}`,
   room: (code: string) => `room:${code}`,
 } as const;
 

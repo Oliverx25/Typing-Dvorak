@@ -1,0 +1,10 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import HistoryAppRoot from '@/components/pages/history/HistoryAppRoot';
+
+export const prerender = true;
+---
+
+<AppLayout title="Typing Dvorak — History">
+  <HistoryAppRoot client:idle />
+</AppLayout>

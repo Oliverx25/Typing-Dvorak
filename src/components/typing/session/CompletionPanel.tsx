@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import { t as translate } from '@/i18n';
 import type { KeystrokeLogEntry } from '@/hooks/useTypingSession';
-import { GradeScoreRing, AppErrorBoundary } from '@/components/ui';
+import { GradeScoreRing } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { getNextRoadmapLessonId } from '@/utils/curriculum/roadmapChapters';
-import AdvancedMetricsRow from '@/components/typing/session/completion/AdvancedMetricsRow';
-import ConsistencyChart from '@/components/typing/session/completion/ConsistencyChart';
+import SessionAnalyticsPanel from '@/components/typing/session/completion/SessionAnalyticsPanel';
 import ResultsFooter from '@/components/typing/session/completion/ResultsFooter';
 
 interface CompletionPanelProps {
@@ -23,6 +22,7 @@ interface CompletionPanelProps {
   wpmDelta?: number;
   weakKeys?: string[];
   keystrokeLog?: KeystrokeLogEntry[];
+  stopOnError?: boolean;
   onRetry: () => void;
   retryButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
@@ -46,6 +46,7 @@ export default function CompletionPanel({
   wpmDelta = 0,
   weakKeys = [],
   keystrokeLog = [],
+  stopOnError = false,
   onRetry,
   retryButtonRef,
 }: CompletionPanelProps) {
@@ -58,6 +59,7 @@ export default function CompletionPanel({
   const hasGraph = keystrokeLog.length > 2;
   const nextLessonId = useMemo(() => getNextRoadmapLessonId(lessonId), [lessonId]);
   const hasNextLesson = nextLessonId != null;
+  const showExpandedLayout = isExpanded && hasGraph;
 
   const footerLabels = useMemo(
     () => ({
@@ -70,12 +72,20 @@ export default function CompletionPanel({
     [t.completion],
   );
 
-  const metricsLabels = useMemo(
+  const analyticsLabels = useMemo(
     () => ({
+      consistencyTitle: t.completion.consistencyTitle,
       rawWpm: t.completion.rawWpm,
       consistency: t.completion.consistency,
       troubleKeys: t.completion.troubleKeys,
-      none: t.completion.noTroubleKeys,
+      noTroubleKeys: t.completion.noTroubleKeys,
+      distribution: {
+        title: t.completion.keystrokeDistribution,
+        correct: t.completion.keystrokesCorrect,
+        corrected: t.completion.keystrokesCorrected,
+        errors: t.completion.keystrokesErrors,
+        notApplicable: t.completion.keystrokesErrorsNa,
+      },
     }),
     [t.completion],
   );
@@ -101,8 +111,6 @@ export default function CompletionPanel({
     };
   }, []);
 
-  const showExpandedLayout = isExpanded && hasGraph;
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -119,7 +127,7 @@ export default function CompletionPanel({
         className={[
           'completion-enter relative flex w-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/95 shadow-2xl shadow-black/30 backdrop-blur-md motion-reduce:animate-none',
           'transition-[max-width] duration-500 ease-in-out',
-          showExpandedLayout ? 'max-w-5xl' : 'max-w-md',
+          showExpandedLayout ? 'max-w-5xl' : 'max-w-sm',
         ].join(' ')}
       >
         <header
@@ -148,9 +156,14 @@ export default function CompletionPanel({
           ) : null}
         </header>
 
-        <div className={['px-5 py-5', showExpandedLayout ? 'grid grid-cols-3 gap-6' : ''].join(' ')}>
-          <div className={showExpandedLayout ? 'col-span-1' : ''}>
-            <div className="flex flex-col items-center py-2">
+        <div
+          className={[
+            'px-5 py-5',
+            showExpandedLayout ? 'grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8' : '',
+          ].join(' ')}
+        >
+          <div className={showExpandedLayout ? 'md:col-span-1' : ''}>
+            <div className="flex flex-col items-center py-1">
               <GradeScoreRing
                 score={score}
                 maxScore={maxScore}
@@ -161,31 +174,31 @@ export default function CompletionPanel({
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-border)]">
-              <div className="bg-[var(--color-surface-elevated)] px-3 py-4 text-center">
+            <div className="mt-3 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-border)]">
+              <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                   {t.typing.wpm}
                 </p>
-                <p className="mt-1 font-mono text-xl font-bold text-[var(--color-text)]">{wpm}</p>
+                <p className="mt-1 font-mono text-lg font-bold text-[var(--color-text)] sm:text-xl">{wpm}</p>
               </div>
-              <div className="bg-[var(--color-surface-elevated)] px-3 py-4 text-center">
+              <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                   {t.typing.accuracy}
                 </p>
                 <p
                   className={[
-                    'mt-1 font-mono text-xl font-bold',
+                    'mt-1 font-mono text-lg font-bold sm:text-xl',
                     accuracy === 100 ? 'text-[var(--color-correct)]' : 'text-[var(--color-text)]',
                   ].join(' ')}
                 >
                   {accuracy}%
                 </p>
               </div>
-              <div className="bg-[var(--color-surface-elevated)] px-3 py-4 text-center">
+              <div className="bg-[var(--color-surface-elevated)] px-2 py-3 text-center sm:px-3 sm:py-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                   {t.typing.time}
                 </p>
-                <p className="mt-1 font-mono text-xl font-bold text-[var(--color-text)]">
+                <p className="mt-1 font-mono text-lg font-bold text-[var(--color-text)] sm:text-xl">
                   {formatTime(elapsedSeconds)}
                 </p>
               </div>
@@ -214,24 +227,22 @@ export default function CompletionPanel({
           </div>
 
           {showExpandedLayout ? (
-            <div className="col-span-2 min-h-[280px]">
-              <AppErrorBoundary section="graph">
-                <ConsistencyChart data={keystrokeLog} title={t.completion.consistencyTitle} />
-                <AdvancedMetricsRow
-                  wpm={wpm}
-                  correctChars={correctChars}
-                  incorrectChars={incorrectChars}
-                  elapsedMs={elapsedMs}
-                  keystrokeLog={keystrokeLog}
-                  weakKeys={weakKeys}
-                  labels={metricsLabels}
-                />
-              </AppErrorBoundary>
+            <div className="min-w-0 md:col-span-2">
+              <SessionAnalyticsPanel
+                wpm={wpm}
+                correctChars={correctChars}
+                incorrectChars={incorrectChars}
+                elapsedMs={elapsedMs}
+                keystrokeLog={keystrokeLog}
+                weakKeys={weakKeys}
+                stopOnError={stopOnError}
+                labels={analyticsLabels}
+              />
             </div>
           ) : null}
         </div>
 
-        <div className="px-5 pb-5">
+        <div className="border-t border-[var(--color-border)] px-5 py-4">
           <ResultsFooter
             showAnalysisToggle={hasGraph}
             isExpanded={isExpanded}

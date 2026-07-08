@@ -90,6 +90,15 @@ export default function UserProfileDropdown() {
               <Icon name="trophy" size={16} />
               {t.auth.viewAchievements}
             </a>
+            <a
+              href="/history"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+            >
+              <Icon name="history" size={16} />
+              {t.auth.viewHistory}
+            </a>
             <button
               type="button"
               role="menuitem"

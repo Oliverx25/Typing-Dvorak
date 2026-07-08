@@ -79,3 +79,39 @@ export function getTroubleKeyBadges(
 
   return badges.slice(0, 3);
 }
+
+export interface KeystrokeDistribution {
+  pureCorrect: number;
+  corrected: number;
+  errors: number;
+}
+
+/** Classify final keystrokes into pure correct, corrected-after-error, and committed errors. */
+export function calculateKeystrokeDistribution(log: KeystrokeLogEntry[]): KeystrokeDistribution {
+  const attemptsByIndex = new Map<number, KeystrokeLogEntry[]>();
+
+  for (const entry of log) {
+    const bucket = attemptsByIndex.get(entry.index) ?? [];
+    bucket.push(entry);
+    attemptsByIndex.set(entry.index, bucket);
+  }
+
+  let pureCorrect = 0;
+  let corrected = 0;
+  let errors = 0;
+
+  for (const entries of attemptsByIndex.values()) {
+    const hadIncorrect = entries.some((entry) => !entry.isCorrect);
+    const final = entries[entries.length - 1];
+
+    if (!hadIncorrect && final.isCorrect) {
+      pureCorrect += 1;
+    } else if (hadIncorrect && final.isCorrect) {
+      corrected += 1;
+    } else {
+      errors += 1;
+    }
+  }
+
+  return { pureCorrect, corrected, errors };
+}

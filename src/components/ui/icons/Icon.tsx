@@ -18,6 +18,7 @@ import {
   LuGauge,
   LuGhost,
   LuGithub,
+  LuHistory,
   LuKeyboard,
   LuLock,
   LuLogIn,
@@ -55,6 +56,7 @@ export type IconName =
   | 'user'
   | 'camera'
   | 'trophy'
+  | 'history'
   | 'settings'
   | 'sun'
   | 'moon'
@@ -98,6 +100,7 @@ const ICONS: Record<IconName, IconType> = {
   user: LuUser,
   camera: LuCamera,
   trophy: LuTrophy,
+  history: LuHistory,
   settings: LuSettings,
   sun: LuSun,
   moon: LuMoon,

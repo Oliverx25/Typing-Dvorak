@@ -46,6 +46,71 @@ export async function fetchUserSessions(limit = 50) {
   return rows;
 }
 
+export interface TypingSessionRow {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  wpm: number;
+  accuracy: number;
+  stars: number;
+  mode: string;
+  created_at: string;
+  grade?: string | null;
+  score?: number | null;
+  max_combo?: number | null;
+  race_source?: string | null;
+  song_title?: string | null;
+  race_modifiers?: string[] | null;
+}
+
+export interface PaginatedSessionsResult {
+  sessions: TypingSessionRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export async function fetchUserSessionsPage(
+  page: number,
+  pageSize = 10,
+): Promise<PaginatedSessionsResult> {
+  const empty = { sessions: [], total: 0, page, pageSize };
+  const userId = await resolveUserId();
+  if (!userId) return empty;
+
+  const cacheKey = QUERY_CACHE_KEYS.sessionsPage(page, pageSize);
+  const cached = getCachedQuery<PaginatedSessionsResult>(cacheKey, userId);
+  if (cached) return cached;
+
+  const supabase = getSupabaseClient();
+  if (!supabase) return empty;
+
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
+    .from('typing_sessions')
+    .select('*', { count: 'exact' })
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.warn('[supabase] fetch sessions page failed:', error.message);
+    return empty;
+  }
+
+  const result: PaginatedSessionsResult = {
+    sessions: (data ?? []) as TypingSessionRow[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  };
+
+  setCachedQuery(cacheKey, userId, result, 60_000);
+  return result;
+}
+
 export async function fetchUserKeyErrors() {
   const userId = await resolveUserId();
   if (!userId) return [];

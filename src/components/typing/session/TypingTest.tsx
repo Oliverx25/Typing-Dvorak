@@ -305,6 +305,7 @@ export default function TypingTest({
           wpmDelta={wpmDelta}
           weakKeys={sessionWeakKeys}
           keystrokeLog={keystrokeLog}
+          stopOnError={settings.stopOnError}
           onRetry={reset}
           retryButtonRef={retryButtonRef}
         />
