@@ -6,6 +6,7 @@ import { useScrollSnapCenter } from '@/hooks/useScrollSnapCenter';
 import type { VictoryCondition } from '@/utils/multiplayer/roomConfig';
 import type { RaceModifier } from '@/utils/multiplayer/roomConfig';
 import type { RaceParticipantProgress } from '@/types/multiplayer';
+import type { TypingDifficulty } from '@/utils/lyrics/types';
 
 interface RaceResultsPanelProps {
   entries: RaceParticipantProgress[];
@@ -24,6 +25,7 @@ interface RaceResultsPanelProps {
   swipeHint: string;
   leaveLabel: string;
   correctLabel: string;
+  correctedLabel: string;
   errorsLabel: string;
   rankLabel: string;
   totalMultiplier?: number;
@@ -31,6 +33,9 @@ interface RaceResultsPanelProps {
   modifiers?: RaceModifier[];
   trackTitle?: string | null;
   trackArtist?: string | null;
+  trackCoverUrl?: string | null;
+  songDifficulty?: TypingDifficulty | null;
+  raceStartedAt?: number | null;
   onReturnToLobby: () => void;
 }
 
@@ -50,6 +55,7 @@ export default function RaceResultsPanel({
   swipeHint,
   leaveLabel,
   correctLabel,
+  correctedLabel,
   errorsLabel,
   rankLabel,
   totalMultiplier = 1,
@@ -57,6 +63,9 @@ export default function RaceResultsPanel({
   modifiers = [],
   trackTitle = null,
   trackArtist = null,
+  trackCoverUrl = null,
+  songDifficulty = null,
+  raceStartedAt = null,
   onReturnToLobby,
 }: RaceResultsPanelProps) {
   const { scrollRef, setItemRef, activeIndex, scrollToIndex, centerItem } = useScrollSnapCenter(
@@ -83,6 +92,7 @@ export default function RaceResultsPanel({
     maxComboLabel,
     finishedLabel,
     correctLabel,
+    correctedLabel,
     errorsLabel,
     rankLabel,
   };
@@ -101,7 +111,7 @@ export default function RaceResultsPanel({
       <div
         ref={scrollRef}
         className={[
-          'flex flex-row items-center gap-4 overflow-x-auto py-6 will-change-transform',
+          'flex flex-row items-center gap-4 overflow-x-auto py-8 pt-10 will-change-transform',
           'snap-x snap-mandatory scroll-smooth',
           'pl-[max(1rem,calc(50%-min(46vw,200px)))] pr-[max(1rem,calc(50%-min(46vw,200px)))]',
           'md:pl-[max(1rem,calc(50%-250px))] md:pr-[max(1rem,calc(50%-250px))]',
@@ -126,6 +136,9 @@ export default function RaceResultsPanel({
               modifiers={modifiers}
               trackTitle={trackTitle}
               trackArtist={trackArtist}
+              trackCoverUrl={trackCoverUrl}
+              songDifficulty={songDifficulty}
+              raceStartedAt={raceStartedAt}
               onFocus={() => scrollToIndex(index)}
             />
           </div>

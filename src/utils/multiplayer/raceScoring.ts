@@ -1,5 +1,10 @@
 import { calculateWpm, calculateAccuracy } from '@/utils/typing/typing';
 import { calculateGrade, gradeRingClass } from '@/utils/grading';
+import {
+  calculateKeystrokeDistribution,
+  type KeystrokeDistribution,
+} from '@/utils/typing/completionMetrics';
+import type { KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
 
 /** Minimum typing window before WPM is reported in races. */
 export const RACE_MIN_ELAPSED_MS = 2_000;
@@ -70,17 +75,46 @@ export function estimateRaceHitBreakdown(
   raceCharCount: number,
   finished: boolean,
 ): { correct: number; errors: number } {
+  const dist = estimateRaceKeystrokeDistribution(accuracy, percentage, raceCharCount, finished);
+  return {
+    correct: dist.pureCorrect,
+    errors: dist.corrected + dist.errors,
+  };
+}
+
+/** Estimates pure / corrected / error keystrokes when telemetry is unavailable. */
+export function estimateRaceKeystrokeDistribution(
+  accuracy: number,
+  percentage: number,
+  raceCharCount: number,
+  finished: boolean,
+): { pureCorrect: number; corrected: number; errors: number } {
   const safeAccuracy = Math.max(0, Math.min(100, accuracy));
-  const progressChars = finished
+  const total = finished
     ? raceCharCount
     : Math.max(0, Math.round((raceCharCount * percentage) / 100));
 
-  if (progressChars <= 0) return { correct: 0, errors: 0 };
-  if (safeAccuracy >= 100) return { correct: progressChars, errors: 0 };
+  if (total <= 0) return { pureCorrect: 0, corrected: 0, errors: 0 };
 
-  const correct = Math.round((progressChars * safeAccuracy) / 100);
-  const errors = Math.max(0, Math.round(correct * ((100 - safeAccuracy) / safeAccuracy)));
-  return { correct, errors };
+  const pureCorrect = Math.round((total * safeAccuracy) / 100);
+  const penalized = Math.max(0, total - pureCorrect);
+
+  // Without a keystroke log we cannot split corrected vs committed errors.
+  return { pureCorrect, corrected: 0, errors: penalized };
+}
+
+/** Prefer real telemetry; fall back to estimation for remote players. */
+export function resolveRaceKeystrokeDistribution(
+  accuracy: number,
+  percentage: number,
+  raceCharCount: number,
+  finished: boolean,
+  keystrokeLog?: KeystrokeLogEntry[] | null,
+): KeystrokeDistribution {
+  if (keystrokeLog?.length) {
+    return calculateKeystrokeDistribution(keystrokeLog);
+  }
+  return estimateRaceKeystrokeDistribution(accuracy, percentage, raceCharCount, finished);
 }
 
 /** Theoretical max race score if every keystroke is perfect with growing combo. */
