@@ -69,6 +69,11 @@ export function buildHeatmapTooltipData(
     return { headerLabels, rows: [], hasData: false };
   }
 
+  // Legacy aggregate stats have no shift breakdown — only show them in base layout.
+  if (mode === 'shift') {
+    return { headerLabels, rows: [], hasData: false };
+  }
+
   const hits = stats.hits[code] ?? 0;
   const misses = stats.misses[code] ?? 0;
   const attempts = getKeyAttemptCount(code, stats);
@@ -82,7 +87,7 @@ export function buildHeatmapTooltipData(
       {
         kind: 'total',
         char: baseCharForLabel(label),
-        displayChar: label,
+        displayChar: displayChar(activeChar),
         stats: {
           hits,
           misses,
@@ -111,6 +116,10 @@ export function getActiveHeatmapStats(
       attempts: charStats.attempts,
       accuracy: charStats.accuracy,
     };
+  }
+
+  if (mode === 'shift') {
+    return { attempts: 0, accuracy: 0 };
   }
 
   return {

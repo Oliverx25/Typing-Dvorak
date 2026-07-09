@@ -45,16 +45,31 @@ describe('buildHeatmapTooltipData', () => {
     expect(tooltip.rows[0]?.stats.hits).toBe(256);
   });
 
-  it('omits shift row when shift has no attempts', () => {
+  it('does not reuse legacy aggregate stats in shift layout', () => {
     const stats: KeyStatsData = {
-      hits: { Comma: 20 },
-      misses: { Comma: 1 },
-      charHits: { ',': 20 },
-      charMisses: { ',': 1 },
+      hits: { Period: 8 },
+      misses: { Period: 0 },
     };
 
-    const tooltip = buildHeatmapTooltipData('Comma', ',', stats);
-    expect(tooltip.rows).toHaveLength(1);
-    expect(tooltip.rows[0]?.displayChar).toBe(',');
+    const tooltip = buildHeatmapTooltipData('Period', '.', stats, 'shift');
+    expect(tooltip.headerLabels).toBe('>');
+    expect(tooltip.hasData).toBe(false);
+    expect(tooltip.rows).toHaveLength(0);
+  });
+
+  it('shows no shift stats when only the base character was practiced', () => {
+    const stats: KeyStatsData = {
+      hits: { Period: 8 },
+      misses: { Period: 0 },
+      charHits: { '.': 8 },
+      charMisses: {},
+    };
+
+    const baseTooltip = buildHeatmapTooltipData('Period', '.', stats, 'base');
+    const shiftTooltip = buildHeatmapTooltipData('Period', '.', stats, 'shift');
+
+    expect(baseTooltip.hasData).toBe(true);
+    expect(baseTooltip.rows[0]?.displayChar).toBe('.');
+    expect(shiftTooltip.hasData).toBe(false);
   });
 });
