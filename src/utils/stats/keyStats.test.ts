@@ -6,6 +6,8 @@ import {
   getKeySampleConfidence,
   getKeyStats,
   recordHeatmapKeystroke,
+  codeToKeyChar,
+  codeToLabel,
 } from '@/utils/stats/keyStats';
 import { writeJson } from '@/utils/progress/localStorage';
 import { STORAGE_KEYS } from '@/utils/progress/keys';
@@ -82,5 +84,12 @@ describe('keyStats', () => {
     expect(stats.hits.KeyA).toBe(1);
     expect(stats.misses.KeyS).toBe(1);
     expect(stats.misses.KeyA).toBe(1);
+  });
+
+  it('maps key codes to single-char storage for cloud sync', () => {
+    expect(codeToKeyChar('Space')).toBe(' ');
+    expect(codeToKeyChar('KeyA')).toBe('a');
+    expect(codeToKeyChar('Digit1')).toBe('1');
+    expect(codeToLabel('Space')).toBe('Space');
   });
 });

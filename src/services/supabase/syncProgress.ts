@@ -8,7 +8,7 @@ import {
 import { calculateStars } from '@/utils/curriculum/stars';
 import { calculateGrade } from '@/utils/grading';
 import { serializeKeystrokeLogForCloud } from '@/utils/history/sessionTelemetry';
-import { getKeyStats, codeToLabel } from '@/utils/stats/keyStats';
+import { getKeyStats, codeToKeyChar } from '@/utils/stats/keyStats';
 import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '@/utils/progress/streak';
 import { fetchUserSessionTimestamps } from '@/services/supabase/queries';
 import { safeAsyncVoid } from '@/utils/network/graceful';
@@ -148,17 +148,15 @@ export async function syncKeyErrorsToCloud(userId: string): Promise<void> {
 
     const rows = [...codes].map((code) => ({
       user_id: userId,
-      key_char: codeToLabel(code),
+      key_char: codeToKeyChar(code),
       hit_count: stats.hits[code] ?? 0,
       error_count: stats.misses[code] ?? 0,
     }));
 
-    for (const row of rows) {
-      const { error } = await supabase.from('key_errors').upsert(row, {
-        onConflict: 'user_id,key_char',
-      });
-      if (error) console.warn('[sync] key_errors upsert failed:', error.message);
-    }
+    const { error } = await supabase.from('key_errors').upsert(rows, {
+      onConflict: 'user_id,key_char',
+    });
+    if (error) console.warn('[sync] key_errors upsert failed:', error.message);
   } catch (error) {
     console.warn('[sync] key_errors upsert failed:', error);
   }

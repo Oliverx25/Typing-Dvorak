@@ -28,6 +28,17 @@ export function codeToLabel(code: string): string {
   return CODE_TO_LABEL[code] ?? code.replace('Key', '').replace('Digit', '');
 }
 
+/** Single-character form for Supabase `key_char varchar(1)`. */
+export function codeToKeyChar(code: string): string {
+  const label = CODE_TO_LABEL[code];
+  if (label === 'Space') return ' ';
+  if (label?.length === 1) return label;
+  if (code === 'Enter') return '\n';
+  if (code === 'Tab') return '\t';
+  const fallback = code.replace('Key', '').replace('Digit', '');
+  return fallback.slice(0, 1);
+}
+
 export function getKeyStats(): KeyStatsData {
   return readJson(STORAGE_KEYS.keyStats, EMPTY_STATS);
 }
