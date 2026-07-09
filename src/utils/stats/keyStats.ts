@@ -6,6 +6,9 @@ import { readJson, writeJson } from '@/utils/progress/localStorage';
 export interface KeyStatsData {
   hits: Record<string, number>;
   misses: Record<string, number>;
+  /** Per-typed-character breakdown for heatmap tooltips. */
+  charHits?: Record<string, number>;
+  charMisses?: Record<string, number>;
 }
 
 export interface WeakKey {
@@ -59,6 +62,12 @@ export function recordKeystroke(char: string, isCorrect: boolean): void {
   const stats = getKeyStats();
   const bucket = isCorrect ? stats.hits : stats.misses;
   bucket[code] = (bucket[code] ?? 0) + 1;
+
+  if (!stats.charHits) stats.charHits = {};
+  if (!stats.charMisses) stats.charMisses = {};
+  const charBucket = isCorrect ? stats.charHits : stats.charMisses;
+  charBucket[char] = (charBucket[char] ?? 0) + 1;
+
   saveKeyStats(stats);
   dispatchKeyStatsUpdated();
 }
@@ -98,6 +107,32 @@ export function getKeyAttemptCount(code: string, stats: KeyStatsData): number {
 /** 0–1 accuracy for heatmap coloring (1 = perfect). */
 export function getKeyAccuracy(code: string, stats: KeyStatsData): number {
   return 1 - getKeyErrorRate(code, stats);
+}
+
+export interface CharKeyStats {
+  hits: number;
+  misses: number;
+  attempts: number;
+  accuracy: number;
+}
+
+export function getCharKeyStats(char: string, stats: KeyStatsData): CharKeyStats {
+  const hits = stats.charHits?.[char] ?? 0;
+  const misses = stats.charMisses?.[char] ?? 0;
+  const attempts = hits + misses;
+  return {
+    hits,
+    misses,
+    attempts,
+    accuracy: attempts === 0 ? 0 : hits / attempts,
+  };
+}
+
+export function hasCharKeyStats(stats: KeyStatsData): boolean {
+  return Boolean(
+    stats.charHits && Object.keys(stats.charHits).length > 0
+      || stats.charMisses && Object.keys(stats.charMisses).length > 0,
+  );
 }
 
 /** Confidence 0–1 based on sample size (ramps up to HEATMAP_MIN_SAMPLES). */

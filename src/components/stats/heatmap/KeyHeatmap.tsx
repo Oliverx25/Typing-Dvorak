@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getKeyStats, hasKeyStats, type KeyStatsData } from '@/utils/stats/keyStats';
 import { KEY_STATS_UPDATED_EVENT, SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 import { useApp } from '@/contexts/AppProvider';
 import { Card } from '@/components/ui';
 import HeatmapGrid, { HeatmapLegend } from '@/components/stats/heatmap/HeatmapGrid';
+import { heatmapTooltipLabelsFromT } from '@/components/stats/heatmap/HeatmapKey';
 
 interface KeyHeatmapProps {
   /** When 'hide', returns null if no stats exist (home page). */
@@ -36,23 +37,7 @@ export default function KeyHeatmap({
 
   const resolvedTitle = title ?? t.stats.heatmapTitle;
   const resolvedDescription = description ?? t.stats.heatmapDesc;
-
-  const formatKeyTooltip = (
-    label: string,
-    hits: number,
-    misses: number,
-    accuracyPct: number,
-    attempts: number,
-  ) => {
-    if (attempts === 0) {
-      return t.stats.heatmapKeyNoData.replace('{label}', label);
-    }
-    return t.stats.heatmapKeyTooltip
-      .replace('{label}', label)
-      .replace('{accuracy}', accuracyPct.toFixed(1))
-      .replace('{hits}', String(hits))
-      .replace('{errors}', String(misses));
-  };
+  const tooltipLabels = useMemo(() => heatmapTooltipLabelsFromT(t), [t]);
 
   if (!hasKeyStats(stats)) {
     if (emptyMode === 'hide') return null;
@@ -65,7 +50,7 @@ export default function KeyHeatmap({
 
   return (
     <Card title={resolvedTitle} description={resolvedDescription} padding="lg" className={className}>
-      <HeatmapGrid stats={stats} formatKeyTooltip={formatKeyTooltip} />
+      <HeatmapGrid stats={stats} tooltipLabels={tooltipLabels} />
       <HeatmapLegend
         noDataLabel={t.home.heatmapNoData}
         goodLabel={t.home.heatmapGood}

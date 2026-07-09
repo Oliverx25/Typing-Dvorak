@@ -5,19 +5,14 @@ import {
   HEATMAP_MIN_SAMPLES,
 } from '@/utils/stats/keyStats';
 import { DVORAK_ROWS } from '@/utils/keyboard/dvorak';
+import HeatmapKey, { type HeatmapKeyTooltipLabels } from '@/components/stats/heatmap/HeatmapKey';
 
 interface HeatmapGridProps {
   stats: KeyStatsData;
-  formatKeyTooltip: (
-    label: string,
-    hits: number,
-    misses: number,
-    accuracyPct: number,
-    attempts: number,
-  ) => string;
+  tooltipLabels: HeatmapKeyTooltipLabels;
 }
 
-/** Accuracy thresholds (0â1) that drive heatmap key color. */
+/** Accuracy thresholds (0-1) that drive heatmap key color. */
 const ACCURACY_MASTERED = 0.95;
 const ACCURACY_NEUTRAL = 0.9;
 
@@ -33,14 +28,13 @@ function heatmapBackground(accuracy: number, attempts: number): string {
     return 'color-mix(in srgb, var(--color-key-target) 45%, var(--color-key))';
   }
 
-  // Scale red intensity by how far below the 90% neutral floor the key sits.
   const severity = (ACCURACY_NEUTRAL - accuracy) / ACCURACY_NEUTRAL;
   const mix = Math.round(35 + severity * 45);
   return `color-mix(in srgb, var(--color-incorrect) ${mix}%, var(--color-key))`;
 }
 
 /** Shared Dvorak keyboard heatmap grid — colors by accuracy (hits / total). */
-export default function HeatmapGrid({ stats, formatKeyTooltip }: HeatmapGridProps) {
+export default function HeatmapGrid({ stats, tooltipLabels }: HeatmapGridProps) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-1">
       {DVORAK_ROWS.map((row, rowIndex) => {
@@ -52,25 +46,20 @@ export default function HeatmapGrid({ stats, formatKeyTooltip }: HeatmapGridProp
             style={{ paddingLeft: `${(row.indent ?? 0) * 3}%` }}
           >
             {row.keys.map((key) => {
-              const hits = stats.hits[key.code] ?? 0;
-              const misses = stats.misses[key.code] ?? 0;
               const attempts = getKeyAttemptCount(key.code, stats);
               const accuracy = getKeyAccuracy(key.code, stats);
-              const accuracyPct = Math.round(accuracy * 1000) / 10;
               const widthPct = ((key.width ?? 1) / totalUnits) * 100;
 
               return (
-                <div
+                <HeatmapKey
                   key={key.code}
-                  title={formatKeyTooltip(key.label, hits, misses, accuracyPct, attempts)}
-                  className="flex h-9 items-center justify-center rounded border border-[var(--color-border)] font-mono text-xs text-[var(--color-text)] sm:h-10 sm:text-sm"
-                  style={{
-                    width: `${widthPct}%`,
-                    background: heatmapBackground(accuracy, attempts),
-                  }}
-                >
-                  {key.label}
-                </div>
+                  code={key.code}
+                  label={key.label}
+                  stats={stats}
+                  widthPct={widthPct}
+                  background={heatmapBackground(accuracy, attempts)}
+                  tooltipLabels={tooltipLabels}
+                />
               );
             })}
           </div>

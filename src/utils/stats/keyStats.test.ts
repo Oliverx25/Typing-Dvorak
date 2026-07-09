@@ -92,4 +92,18 @@ describe('keyStats', () => {
     expect(codeToKeyChar('Digit1')).toBe('1');
     expect(codeToLabel('Space')).toBe('Space');
   });
+
+  it('tracks per-character hits and misses alongside key codes', () => {
+    recordHeatmapKeystroke('i', 'i', true);
+    recordHeatmapKeystroke('I', 'I', true);
+    recordHeatmapKeystroke('i', 'I', false);
+
+    const stats = getKeyStats();
+    expect(stats.hits.KeyI).toBe(2);
+    expect(stats.misses.KeyI).toBe(2);
+    expect(stats.charHits?.i).toBe(1);
+    expect(stats.charHits?.I).toBe(1);
+    expect(stats.charMisses?.i).toBe(1);
+    expect(stats.charMisses?.I).toBe(1);
+  });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { charToKeyCode } from '@/utils/keyboard/dvorak';
+import { charToKeyCode, getShiftLabel } from '@/utils/keyboard/dvorak';
 
 describe('dvorak', () => {
   it('maps characters to key codes', () => {
@@ -15,5 +15,11 @@ describe('dvorak', () => {
 
   it('returns undefined for unmapped chars', () => {
     expect(charToKeyCode('')).toBeUndefined();
+  });
+
+  it('maps key labels to shift characters', () => {
+    expect(getShiftLabel('i')).toBe('I');
+    expect(getShiftLabel(',')).toBe('<');
+    expect(getShiftLabel('Space')).toBeNull();
   });
 });

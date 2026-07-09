@@ -103,6 +103,37 @@ CHAR_TO_CODE[' '] = 'Space';
 CHAR_TO_CODE['\n'] = 'Enter';
 CHAR_TO_CODE['\t'] = 'Tab';
 
+/** US keyboard shift output for each Dvorak key cap label. */
+const LABEL_SHIFT_MAP: Record<string, string> = {
+  '`': '~',
+  '1': '!',
+  '2': '@',
+  '3': '#',
+  '4': '$',
+  '5': '%',
+  '6': '^',
+  '7': '&',
+  '8': '*',
+  '9': '(',
+  '0': ')',
+  '[': '{',
+  ']': '}',
+  "'": '"',
+  ',': '<',
+  '.': '>',
+  '/': '?',
+  '=': '+',
+  ';': ':',
+  '-': '_',
+};
+
+/** Shifted character for a key cap label, if one exists. */
+export function getShiftLabel(label: string): string | null {
+  if (label === 'Space') return null;
+  if (label.length === 1 && label >= 'a' && label <= 'z') return label.toUpperCase();
+  return LABEL_SHIFT_MAP[label] ?? null;
+}
+
 /** Maps a typed character to its physical key code on a Dvorak keyboard. */
 export function charToKeyCode(char: string): string | undefined {
   return CHAR_TO_CODE[char] ?? CHAR_TO_CODE[char.toLowerCase()];
