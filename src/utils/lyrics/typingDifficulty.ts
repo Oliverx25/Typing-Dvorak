@@ -76,8 +76,11 @@ export function computeTrackWpm(wordCount: number, durationMs: number | null): n
 }
 
 export const DIFFICULTY_BADGE_CLASSES: Record<TypingDifficulty['color'], string> = {
-  green: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
-  blue: 'border-sky-500/40 bg-sky-500/15 text-sky-300',
-  orange: 'border-orange-500/40 bg-orange-500/15 text-orange-300',
-  purple: 'border-purple-500/40 bg-purple-500/15 text-purple-300',
+  green:
+    'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30',
+  blue: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30',
+  orange:
+    'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30',
+  purple:
+    'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30',
 };
