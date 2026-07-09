@@ -174,6 +174,8 @@ export default function SongSearchModal({
   const needsScroll =
     isSearching || isPendingSearch || results.length > 6;
 
+  if (!open && !closing) return null;
+
   return (
     <dialog
       ref={dialogRef}

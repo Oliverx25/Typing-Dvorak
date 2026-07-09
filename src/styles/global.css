@@ -192,6 +192,10 @@ dialog.modal-dialog-closing::backdrop {
   animation: modal-backdrop-exit 0.2s ease-in forwards;
 }
 
+dialog:not([open]) {
+  display: none !important;
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-6px); }

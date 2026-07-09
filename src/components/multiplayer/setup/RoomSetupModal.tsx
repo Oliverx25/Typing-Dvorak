@@ -50,14 +50,14 @@ export default function RoomSetupModal({
   const { t } = useApp();
   const [draft, setDraft] = useState<CreateRoomSettingsValue>(() => toSettingsValue(roomState));
 
-  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName } =
+  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName, closing } =
     useAnimatedModalDialog({
       open,
       onClose,
       returnFocusRef,
     });
 
-  useLockBodyScroll(open);
+  useLockBodyScroll(open || closing);
 
   useEffect(() => {
     if (open) {
@@ -89,6 +89,8 @@ export default function RoomSetupModal({
     });
     requestClose();
   };
+
+  if (!open && !closing) return null;
 
   return (
     <dialog

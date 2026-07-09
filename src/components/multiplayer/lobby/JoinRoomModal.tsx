@@ -22,7 +22,7 @@ export default function JoinRoomModal({ open, onClose, onJoin, returnFocusRef }:
   const [joinError, setJoinError] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
 
-  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName } =
+  const { dialogRef, handleDialogClose, handleCancel, requestClose, panelClassName, dialogClassName, closing } =
     useAnimatedModalDialog({
       open,
       onClose,
@@ -69,6 +69,8 @@ export default function JoinRoomModal({ open, onClose, onJoin, returnFocusRef }:
 
     onJoin(normalized);
   };
+
+  if (!open && !closing) return null;
 
   return (
     <dialog

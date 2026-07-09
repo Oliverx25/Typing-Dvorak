@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 
 export function usePathname(): string {
-  const [pathname, setPathname] = useState(
-    typeof window !== 'undefined' ? window.location.pathname : '/',
-  );
+  // Keep the first render identical on server and client; sync from window after mount.
+  const [pathname, setPathname] = useState('/');
 
   useEffect(() => {
     const sync = () => setPathname(window.location.pathname);
