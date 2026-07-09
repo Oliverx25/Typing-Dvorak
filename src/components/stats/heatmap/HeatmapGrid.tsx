@@ -1,15 +1,15 @@
 import type { KeyStatsData } from '@/utils/stats/keyStats';
 import {
-  getKeyAccuracy,
-  getKeyAttemptCount,
   HEATMAP_MIN_SAMPLES,
 } from '@/utils/stats/keyStats';
-import { DVORAK_ROWS } from '@/utils/keyboard/dvorak';
+import { DVORAK_ROWS, getShiftLabel } from '@/utils/keyboard/dvorak';
 import HeatmapKey, { type HeatmapKeyTooltipLabels } from '@/components/stats/heatmap/HeatmapKey';
+import { getActiveHeatmapStats, type HeatmapLayoutMode } from '@/utils/stats/heatmapTooltip';
 
 interface HeatmapGridProps {
   stats: KeyStatsData;
   tooltipLabels: HeatmapKeyTooltipLabels;
+  layoutMode: HeatmapLayoutMode;
 }
 
 /** Accuracy thresholds (0-1) that drive heatmap key color. */
@@ -34,7 +34,7 @@ function heatmapBackground(accuracy: number, attempts: number): string {
 }
 
 /** Shared Dvorak keyboard heatmap grid — colors by accuracy (hits / total). */
-export default function HeatmapGrid({ stats, tooltipLabels }: HeatmapGridProps) {
+export default function HeatmapGrid({ stats, tooltipLabels, layoutMode }: HeatmapGridProps) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-1">
       {DVORAK_ROWS.map((row, rowIndex) => {
@@ -46,18 +46,21 @@ export default function HeatmapGrid({ stats, tooltipLabels }: HeatmapGridProps) 
             style={{ paddingLeft: `${(row.indent ?? 0) * 3}%` }}
           >
             {row.keys.map((key) => {
-              const attempts = getKeyAttemptCount(key.code, stats);
-              const accuracy = getKeyAccuracy(key.code, stats);
+              const activeStats = getActiveHeatmapStats(key.code, key.label, stats, layoutMode);
               const widthPct = ((key.width ?? 1) / totalUnits) * 100;
+              const shiftLabel = getShiftLabel(key.label);
+              const displayLabel = layoutMode === 'shift' && shiftLabel ? shiftLabel : key.label;
 
               return (
                 <HeatmapKey
                   key={key.code}
                   code={key.code}
                   label={key.label}
+                  displayLabel={displayLabel}
+                  mode={layoutMode}
                   stats={stats}
                   widthPct={widthPct}
-                  background={heatmapBackground(accuracy, attempts)}
+                  background={heatmapBackground(activeStats.accuracy, activeStats.attempts)}
                   tooltipLabels={tooltipLabels}
                 />
               );

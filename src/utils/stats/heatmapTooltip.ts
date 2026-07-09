@@ -8,6 +8,8 @@ import {
   type KeyStatsData,
 } from '@/utils/stats/keyStats';
 
+export type HeatmapLayoutMode = 'base' | 'shift';
+
 export interface HeatmapTooltipRow {
   kind: 'base' | 'shift' | 'total';
   char: string;
@@ -19,6 +21,11 @@ export interface HeatmapTooltipData {
   headerLabels: string;
   rows: HeatmapTooltipRow[];
   hasData: boolean;
+}
+
+export interface ActiveHeatmapStats {
+  attempts: number;
+  accuracy: number;
 }
 
 function displayChar(char: string): string {
@@ -48,21 +55,18 @@ export function buildHeatmapTooltipData(
   code: string,
   label: string,
   stats: KeyStatsData,
+  mode: HeatmapLayoutMode = 'base',
 ): HeatmapTooltipData {
   const shiftLabel = getShiftLabel(label);
-  const headerLabels = shiftLabel ? `${label} / ${shiftLabel}` : label;
+  const activeChar = mode === 'shift' && shiftLabel ? shiftLabel : baseCharForLabel(label);
+  const headerLabels = displayChar(activeChar);
 
   if (hasCharKeyStats(stats)) {
-    const baseChar = baseCharForLabel(label);
-    const rows: HeatmapTooltipRow[] = [];
-    const baseRow = toRow('base', baseChar, stats);
-    const shiftRow = shiftLabel ? toRow('shift', shiftLabel, stats) : null;
-    if (baseRow) rows.push(baseRow);
-    if (shiftRow) rows.push(shiftRow);
-
-    if (rows.length > 0) {
-      return { headerLabels, rows, hasData: true };
+    const activeRow = toRow(mode === 'shift' && shiftLabel ? 'shift' : 'base', activeChar, stats);
+    if (activeRow) {
+      return { headerLabels, rows: [activeRow], hasData: true };
     }
+    return { headerLabels, rows: [], hasData: false };
   }
 
   const hits = stats.hits[code] ?? 0;
@@ -88,5 +92,29 @@ export function buildHeatmapTooltipData(
       },
     ],
     hasData: true,
+  };
+}
+
+/** Stats used for coloring the currently visible heatmap layout. */
+export function getActiveHeatmapStats(
+  code: string,
+  label: string,
+  stats: KeyStatsData,
+  mode: HeatmapLayoutMode,
+): ActiveHeatmapStats {
+  const shiftLabel = getShiftLabel(label);
+  const activeChar = mode === 'shift' && shiftLabel ? shiftLabel : baseCharForLabel(label);
+
+  if (hasCharKeyStats(stats)) {
+    const charStats = getCharKeyStats(activeChar, stats);
+    return {
+      attempts: charStats.attempts,
+      accuracy: charStats.accuracy,
+    };
+  }
+
+  return {
+    attempts: getKeyAttemptCount(code, stats),
+    accuracy: getKeyAccuracy(code, stats),
   };
 }

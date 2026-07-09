@@ -310,6 +310,8 @@ export const en = {
     heatmapTooltipHits: '{hits} hits',
     heatmapTooltipErrors: '{errors} errors',
     heatmapTooltipNoData: 'Not practiced',
+    heatmapLayoutBase: 'Base',
+    heatmapLayoutShift: 'Shift',
     heatmapNoData: 'Complete a lesson to generate heatmap data.',
     chartHint: 'WPM from your last completed sessions (max 20).',
     chartSession: 'Session {n}',

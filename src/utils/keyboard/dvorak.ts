@@ -127,6 +127,15 @@ const LABEL_SHIFT_MAP: Record<string, string> = {
   '-': '_',
 };
 
+for (const row of DVORAK_ROWS) {
+  for (const key of row.keys) {
+    const shiftLabel = LABEL_SHIFT_MAP[key.label];
+    if (shiftLabel) {
+      CHAR_TO_CODE[shiftLabel] = key.code;
+    }
+  }
+}
+
 /** Shifted character for a key cap label, if one exists. */
 export function getShiftLabel(label: string): string | null {
   if (label === 'Space') return null;

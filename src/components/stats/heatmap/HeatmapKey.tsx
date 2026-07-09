@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { TranslationKey } from '@/i18n';
 import type { KeyStatsData } from '@/utils/stats/keyStats';
-import { buildHeatmapTooltipData } from '@/utils/stats/heatmapTooltip';
+import { buildHeatmapTooltipData, type HeatmapLayoutMode } from '@/utils/stats/heatmapTooltip';
 
 const HOVER_DELAY_MS = 500;
 
@@ -18,6 +18,8 @@ export interface HeatmapKeyTooltipLabels {
 interface HeatmapKeyProps {
   code: string;
   label: string;
+  displayLabel: string;
+  mode: HeatmapLayoutMode;
   stats: KeyStatsData;
   widthPct: number;
   background: string;
@@ -27,6 +29,8 @@ interface HeatmapKeyProps {
 export default function HeatmapKey({
   code,
   label,
+  displayLabel,
+  mode,
   stats,
   widthPct,
   background,
@@ -34,7 +38,7 @@ export default function HeatmapKey({
 }: HeatmapKeyProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const tooltip = buildHeatmapTooltipData(code, label, stats);
+  const tooltip = buildHeatmapTooltipData(code, label, stats, mode);
 
   useEffect(() => {
     return () => {
@@ -69,7 +73,7 @@ export default function HeatmapKey({
         className="flex h-9 w-full items-center justify-center rounded border border-[var(--color-border)] font-mono text-xs text-[var(--color-text)] sm:h-10 sm:text-sm"
         style={{ background }}
       >
-        {label}
+        {displayLabel}
       </div>
 
       {showTooltip ? (

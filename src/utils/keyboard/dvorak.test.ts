@@ -6,6 +6,8 @@ describe('dvorak', () => {
     expect(charToKeyCode('a')).toBe('KeyA');
     expect(charToKeyCode(' ')).toBe('Space');
     expect(charToKeyCode('U')).toBe('KeyU');
+    expect(charToKeyCode('<')).toBe('Comma');
+    expect(charToKeyCode('?')).toBe('Slash');
   });
 
   it('maps whitespace control characters to key codes', () => {

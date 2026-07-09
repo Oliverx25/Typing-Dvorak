@@ -312,6 +312,8 @@ export const es: TranslationKey = {
     heatmapTooltipHits: '{hits} aciertos',
     heatmapTooltipErrors: '{errors} errores',
     heatmapTooltipNoData: 'Sin practicar',
+    heatmapLayoutBase: 'Base',
+    heatmapLayoutShift: 'Shift',
     heatmapNoData: 'Completa una lección para generar datos del mapa.',
     chartHint: 'PPM de tus últimas sesiones completadas (máx. 20).',
     chartSession: 'Sesión {n}',
