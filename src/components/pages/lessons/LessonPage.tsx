@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { getLessonById } from '@/utils/curriculum/lessons';
 import TypingTest from '@/components/typing/session/TypingTest';
 import LessonGuard from '@/components/lessons/library/LessonGuard';
@@ -11,7 +12,7 @@ interface LessonPageProps {
 }
 
 function LessonContent({ lessonId }: { lessonId: string }) {
-  const { t } = useApp();
+  const { t, settings } = useApp();
   const { highestGrade, highestScore } = useLessonCardState(lessonId);
   const lesson = getLessonById(lessonId);
 
@@ -37,6 +38,10 @@ function LessonContent({ lessonId }: { lessonId: string }) {
   const description = getLessonDescription(t, lesson.descriptionKey);
   const categoryLabel = t.categories[lesson.category] ?? lesson.category;
   const difficultyLabel = t.difficulty[lesson.difficulty];
+  const boundaryResetKeys = useMemo(
+    () => [lessonId, settings.practiceMode],
+    [lessonId, settings.practiceMode],
+  );
 
   return (
     <>
@@ -62,8 +67,8 @@ function LessonContent({ lessonId }: { lessonId: string }) {
       </header>
 
       <LessonGuard lessonId={lessonId}>
-        <AppErrorBoundary section="typing">
-          <TypingTest lessonId={lessonId} lesson={lesson} />
+        <AppErrorBoundary section="typing" resetKeys={boundaryResetKeys}>
+          <TypingTest key={settings.practiceMode} lessonId={lessonId} lesson={lesson} />
         </AppErrorBoundary>
       </LessonGuard>
     </>
