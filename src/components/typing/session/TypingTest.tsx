@@ -108,7 +108,7 @@ export default function TypingTest({
     stats,
     progress,
     timeRemaining,
-    targetKey,
+    targetKeys,
     activeKey,
     isNewRecord,
     wpmDelta,
@@ -330,7 +330,7 @@ export default function TypingTest({
       {showKeyboard && (
         <div className={['transition-all duration-500', finished ? 'pointer-events-none opacity-40 grayscale-[30%]' : 'opacity-100'].join(' ')}>
           <div className="overflow-x-auto">
-            <Keyboard pressedKey={activeKey} targetKey={targetKey} />
+            <Keyboard pressedKey={activeKey} targetKeys={targetKeys} />
           </div>
         </div>
       )}

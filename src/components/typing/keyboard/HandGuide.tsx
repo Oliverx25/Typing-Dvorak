@@ -2,7 +2,7 @@ import { getFingerForKey, FINGER_CSS_VAR, type Finger } from '@/utils/keyboard/f
 import { useApp } from '@/contexts/AppProvider';
 
 interface HandGuideProps {
-  targetKey?: string;
+  targetKeys?: string[];
 }
 
 function FingerSlot({
@@ -60,10 +60,12 @@ function ThumbBar({ active }: { active: boolean }) {
   );
 }
 
-export default function HandGuide({ targetKey }: HandGuideProps) {
+export default function HandGuide({ targetKeys }: HandGuideProps) {
   const { t } = useApp();
-  const isSpace = targetKey === 'Space';
-  const activeFinger = !isSpace && targetKey ? getFingerForKey(targetKey) : undefined;
+  const isSpace = targetKeys?.includes('Space') ?? false;
+  const activeFingers = new Set(
+    (targetKeys ?? []).map((code) => getFingerForKey(code)).filter((finger): finger is Finger => Boolean(finger)),
+  );
 
   const left: { finger: Finger; label: string }[] = [
     { finger: 'lp', label: t.fingers.lp },
@@ -87,7 +89,7 @@ export default function HandGuide({ targetKey }: HandGuideProps) {
         </span>
         <div className="flex items-end gap-1 sm:gap-2">
           {left.map(({ finger, label }) => (
-            <FingerSlot key={finger} finger={finger} label={label} active={activeFinger === finger} />
+            <FingerSlot key={finger} finger={finger} label={label} active={activeFingers.has(finger)} />
           ))}
         </div>
         <ThumbBar active={isSpace} />
@@ -104,7 +106,7 @@ export default function HandGuide({ targetKey }: HandGuideProps) {
         </span>
         <div className="flex items-end gap-1 sm:gap-2">
           {right.map(({ finger, label }) => (
-            <FingerSlot key={finger} finger={finger} label={label} active={activeFinger === finger} />
+            <FingerSlot key={finger} finger={finger} label={label} active={activeFingers.has(finger)} />
           ))}
         </div>
         <ThumbBar active={isSpace} />

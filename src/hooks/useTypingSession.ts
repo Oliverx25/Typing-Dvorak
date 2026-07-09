@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { charToKeyCode } from '@/utils/keyboard/dvorak';
+import {
+  getTargetKeysForChar,
+  IGNORED_TYPING_KEYS,
+  resolvePulseKeyCode,
+} from '@/utils/keyboard/keyboardMappings';
 import {
   buildStats,
   calculateAccuracy,
@@ -197,7 +201,8 @@ export function useTypingSession({
 
   const timeRemaining = Math.max(0, testDurationSeconds - Math.floor(elapsedMs / 1000));
   const nextChar = targetText[input.length];
-  const targetKey = !finished && !paused && nextChar ? charToKeyCode(nextChar) : undefined;
+  const targetKeys =
+    !finished && !paused && nextChar ? getTargetKeysForChar(nextChar) : [];
 
   const pulseActiveKey = useCallback((code: string) => {
     setActiveKey(code);
@@ -537,6 +542,8 @@ export function useTypingSession({
       return;
     }
 
+    if (IGNORED_TYPING_KEYS.has(e.key)) return;
+
     if (e.key === 'Backspace') {
       e.preventDefault();
       if (input.length === 0) return;
@@ -582,7 +589,8 @@ export function useTypingSession({
       recordKeystroke(typedChar, true);
 
       if (sound) playCorrectSound();
-      pulseActiveKey(charToKeyCode(typedChar));
+      const pulseCode = resolvePulseKeyCode(typedChar);
+      if (pulseCode) pulseActiveKey(pulseCode);
       return;
     }
 
@@ -706,8 +714,8 @@ export function useTypingSession({
       else playIncorrectSound();
     }
 
-    const code = charToKeyCode(typedChar);
-    pulseActiveKey(code);
+    const pulseCode = resolvePulseKeyCode(typedChar);
+    if (pulseCode) pulseActiveKey(pulseCode);
 
     if (isTestMode && newInput.length >= targetText.length - 20) {
       const extension = ' ' + generateDrillText(lesson.charSet ?? 'all', 40);
@@ -763,7 +771,7 @@ export function useTypingSession({
     stats,
     progress,
     timeRemaining,
-    targetKey,
+    targetKeys,
     activeKey,
     isNewRecord,
     wpmDelta,
