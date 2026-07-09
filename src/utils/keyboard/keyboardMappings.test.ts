@@ -65,6 +65,23 @@ describe('keyboardMappings', () => {
     expect(eventAdvancesCompositeStep(deadEvent, [ALT_LEFT, 'KeyE'])).toBe(true);
   });
 
+  it('does not advance accent step on Option/Alt alone', () => {
+    const altOnly = { key: 'Alt', code: 'AltLeft', altKey: true } as KeyboardEvent;
+    expect(eventAdvancesCompositeStep(altOnly, [ALT_LEFT, 'KeyE'])).toBe(false);
+  });
+
+  it('advances accent step on Option+e together', () => {
+    const optionE = { key: 'Dead', code: 'KeyE', altKey: true } as KeyboardEvent;
+    const optionEChar = { key: '´', code: 'KeyE', altKey: true } as KeyboardEvent;
+    expect(eventAdvancesCompositeStep(optionE, [ALT_LEFT, 'KeyE'])).toBe(true);
+    expect(eventAdvancesCompositeStep(optionEChar, [ALT_LEFT, 'KeyE'])).toBe(true);
+  });
+
+  it('does not advance ñ step 2 when Option is still held', () => {
+    const optionN = { key: 'n', code: 'KeyN', altKey: true } as KeyboardEvent;
+    expect(eventAdvancesCompositeStep(optionN, ['KeyN'])).toBe(false);
+  });
+
   it('covers every Spanish composite character in the catalog', () => {
     const chars = 'áéíóúÁÉÍÓÚÑñ¿¡';
     for (const char of chars) {

@@ -146,6 +146,11 @@ export function resolvePulseKeyCode(char: string): string | undefined {
   return getBasePhysicalKeyForChar(char) ?? charToKeyCode(char);
 }
 
+/** Physical (non-modifier) keys in a step. */
+function physicalKeysInStep(stepKeys: string[]): string[] {
+  return stepKeys.filter((key) => !isModifierCode(key));
+}
+
 /** Whether a keydown event completes the current visual sequence step. */
 export function eventAdvancesCompositeStep(
   e: KeyboardEvent,
@@ -153,29 +158,38 @@ export function eventAdvancesCompositeStep(
 ): boolean {
   if (stepKeys.length === 0) return false;
 
+  const physicalKeys = physicalKeysInStep(stepKeys);
+  const needsAlt = stepKeys.includes(ALT_LEFT) || stepKeys.includes(ALT_RIGHT);
+  const needsShift = stepKeys.includes(SHIFT_LEFT) || stepKeys.includes(SHIFT_RIGHT);
+
+  // Dead key = accent/tilde prefix resolved (Option+e or Option+n on macOS).
   if (e.key === 'Dead' || e.key === '´' || e.key === '^' || e.key === '¨' || e.key === '~') {
-    if (stepKeys.includes('KeyE') || stepKeys.includes('KeyN')) return true;
+    if (physicalKeys.includes('KeyE') || physicalKeys.includes('KeyN')) return true;
   }
 
-  if (IGNORED_TYPING_KEYS.has(e.key)) {
-    if (stepKeys.includes(ALT_LEFT) || stepKeys.includes(ALT_RIGHT)) return true;
-    if (stepKeys.includes(SHIFT_LEFT) || stepKeys.includes(SHIFT_RIGHT)) return true;
+  const isModifierOnlyEvent =
+    (IGNORED_TYPING_KEYS.has(e.key) && e.key !== 'Dead') ||
+    e.code === SHIFT_LEFT ||
+    e.code === SHIFT_RIGHT ||
+    e.code === ALT_LEFT ||
+    e.code === ALT_RIGHT;
+
+  // Modifier alone never completes a step that also requires a letter/digit key.
+  if (isModifierOnlyEvent && physicalKeys.length > 0) {
+    return false;
   }
 
-  if (e.altKey && (stepKeys.includes(ALT_LEFT) || stepKeys.includes(ALT_RIGHT))) {
-    if (stepKeys.includes(e.code)) return true;
-    if (stepKeys.includes('KeyE') && e.code === 'KeyE') return true;
-    if (stepKeys.includes('KeyN') && e.code === 'KeyN') return true;
+  if (physicalKeys.length === 0) return false;
+
+  if (!physicalKeys.includes(e.code)) return false;
+
+  if (needsAlt && !e.altKey) return false;
+  if (needsShift && !e.shiftKey) return false;
+
+  // Second "n" in ñ is typed without Option held.
+  if (!needsAlt && physicalKeys.length === 1 && physicalKeys[0] === 'KeyN' && e.altKey) {
+    return false;
   }
 
-  if (e.shiftKey && (stepKeys.includes(SHIFT_LEFT) || stepKeys.includes(SHIFT_RIGHT))) {
-    if (stepKeys.includes(e.code)) return true;
-  }
-
-  if (e.code === SHIFT_LEFT && stepKeys.includes(SHIFT_LEFT)) return true;
-  if (e.code === SHIFT_RIGHT && stepKeys.includes(SHIFT_RIGHT)) return true;
-  if (e.code === ALT_LEFT && stepKeys.includes(ALT_LEFT)) return true;
-  if (e.code === ALT_RIGHT && stepKeys.includes(ALT_RIGHT)) return true;
-
-  return stepKeys.includes(e.code);
+  return true;
 }
