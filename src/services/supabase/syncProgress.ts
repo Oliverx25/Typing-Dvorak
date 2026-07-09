@@ -116,6 +116,7 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
       max_combo: record.maxCombo ?? 0,
       race_source: record.multiplayerSource ?? null,
       song_title: record.songTitle ?? null,
+      song_cover_url: record.songCoverUrl ?? null,
       race_modifiers: record.raceModifiers ?? [],
       keystroke_log: record.keystrokeLog?.length
         ? serializeKeystrokeLogForCloud(record.keystrokeLog)
@@ -181,6 +182,7 @@ export async function migrateLocalSessionsToCloud(userId: string, history: Sessi
       max_combo: r.maxCombo ?? 0,
       race_source: r.multiplayerSource ?? null,
       song_title: r.songTitle ?? null,
+      song_cover_url: r.songCoverUrl ?? null,
       race_modifiers: r.raceModifiers ?? [],
       created_at: r.completedAt,
     }));

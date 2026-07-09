@@ -27,6 +27,7 @@ export interface HistorySession {
   maxCombo?: number;
   multiplayerSource?: RaceTextSource;
   songTitle?: string;
+  songCoverUrl?: string;
   raceModifiers?: RaceModifier[];
 }
 
@@ -47,6 +48,7 @@ export function mapCloudSessionRow(row: TypingSessionRow): HistorySession {
     maxCombo: row.max_combo ?? undefined,
     multiplayerSource: (row.race_source as RaceTextSource | null) ?? undefined,
     songTitle: row.song_title ?? undefined,
+    songCoverUrl: row.song_cover_url ?? undefined,
     raceModifiers: parseStoredRaceModifiers(row.race_modifiers),
   };
 }
@@ -66,6 +68,7 @@ export function mapLocalSessionRecord(record: SessionRecord, index: number): His
     maxCombo: record.maxCombo,
     multiplayerSource: record.multiplayerSource,
     songTitle: record.songTitle,
+    songCoverUrl: record.songCoverUrl,
     raceModifiers: record.raceModifiers,
   };
 }

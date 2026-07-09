@@ -35,6 +35,8 @@ export interface SessionRecord {
   multiplayerSource?: RaceTextSource;
   /** Song title when multiplayerSource is 'song'. */
   songTitle?: string;
+  /** Album cover URL when multiplayerSource is 'song'. */
+  songCoverUrl?: string;
   /** Active race modifiers (excludes victory condition). */
   raceModifiers?: RaceModifier[];
   /** Session telemetry for history detail replay. */
@@ -105,6 +107,7 @@ export function saveSession(
     multiplayerSource?: RaceTextSource;
     songId?: number;
     songTitle?: string;
+    songCoverUrl?: string;
     raceModifiers?: RaceModifier[];
     scoreOverride?: number;
     gradeOverride?: string;
@@ -141,6 +144,7 @@ export function saveSession(
     score,
     multiplayerSource: options?.multiplayerSource,
     songTitle: options?.songTitle,
+    songCoverUrl: options?.songCoverUrl,
     raceModifiers: options?.raceModifiers?.length ? options.raceModifiers : undefined,
     keystrokeLog: options?.telemetry?.keystrokeLog,
     consistency: options?.telemetry?.consistency,

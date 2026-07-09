@@ -11,6 +11,8 @@ export interface SessionPersistOptions {
   songId?: number;
   /** Song display title for stats/history when racing a song. */
   songTitle?: string;
+  /** Album cover URL for history glassmorphism / thumbnails. */
+  songCoverUrl?: string;
   /** Active modifiers during the race (excludes victory condition). */
   raceModifiers?: RaceModifier[];
   scoreOverride?: number;

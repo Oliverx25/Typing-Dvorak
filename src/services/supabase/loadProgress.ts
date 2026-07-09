@@ -47,6 +47,7 @@ function mapSessionRow(row: {
   created_at: string;
   race_source?: string | null;
   song_title?: string | null;
+  song_cover_url?: string | null;
   race_modifiers?: string[] | null;
   grade?: string | null;
   score?: number | null;
@@ -68,6 +69,7 @@ function mapSessionRow(row: {
     score: row.score ?? undefined,
     multiplayerSource: raceSource ?? undefined,
     songTitle: row.song_title ?? undefined,
+    songCoverUrl: row.song_cover_url ?? undefined,
     raceModifiers: parseStoredRaceModifiers(row.race_modifiers),
   };
 }

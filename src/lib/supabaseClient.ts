@@ -73,6 +73,8 @@ export type Database = {
           created_at: string;
           max_combo: number;
           race_source?: 'lesson' | 'custom' | 'song' | null;
+          song_title?: string | null;
+          song_cover_url?: string | null;
         };
         Insert: {
           user_id: string;
@@ -86,6 +88,8 @@ export type Database = {
           mode?: string;
           max_combo?: number;
           race_source?: 'lesson' | 'custom' | 'song' | null;
+          song_title?: string | null;
+          song_cover_url?: string | null;
         };
         Update: Partial<Database['public']['Tables']['typing_sessions']['Insert']>;
       };

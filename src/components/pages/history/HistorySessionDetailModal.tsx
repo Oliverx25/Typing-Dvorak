@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LuX } from 'react-icons/lu';
 import { useApp } from '@/contexts/AppProvider';
 import { GradeBadge, ModalOverlay, useModalRequestClose } from '@/components/ui';
+import BlurredImageBackdrop from '@/components/ui/BlurredImageBackdrop';
 import { fetchSessionTelemetry } from '@/services/supabase/queries';
 import SessionAnalyticsPanel from '@/components/typing/session/completion/SessionAnalyticsPanel';
 import {
@@ -41,9 +42,12 @@ export default function HistorySessionDetailModal({ session, onClose }: HistoryS
       onClose={onClose}
       overlayClassName="z-50"
       backdropClassName="bg-slate-900/20 backdrop-blur-sm dark:bg-slate-900/70"
-      panelClassName="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+      panelClassName="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
     >
-      <HistorySessionDetailContent session={session} />
+      <BlurredImageBackdrop src={session.songCoverUrl} />
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+        <HistorySessionDetailContent session={session} />
+      </div>
     </ModalOverlay>
   );
 }

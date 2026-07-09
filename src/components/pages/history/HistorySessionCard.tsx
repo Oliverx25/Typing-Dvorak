@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { LuEye } from 'react-icons/lu';
 import { useApp } from '@/contexts/AppProvider';
 import { GradeBadge } from '@/components/ui';
@@ -18,6 +18,25 @@ interface HistorySessionCardProps {
   spotlightStyle: SpotlightStyle;
   onMouseEnter: () => void;
   onViewDetails: (session: HistorySession) => void;
+}
+
+function SessionCoverThumbnail({ coverUrl }: { coverUrl: string }) {
+  const [imgError, setImgError] = useState(false);
+
+  if (imgError) return null;
+
+  return (
+    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700/50 dark:bg-slate-800">
+      <img
+        src={coverUrl}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        onError={() => setImgError(true)}
+        className="h-full w-full object-cover"
+      />
+    </div>
+  );
 }
 
 function HistorySessionCard({
@@ -48,14 +67,17 @@ function HistorySessionCard({
           : 'z-0 border-slate-200 shadow-sm dark:border-slate-700/50 dark:shadow-lg dark:shadow-black/10',
       ].join(' ')}
     >
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-500">
-          {dateLabel}
-        </p>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{typeLabel}</p>
-        <h3 className="mt-1 truncate text-base font-semibold text-slate-900 dark:text-white" title={title}>
-          {title}
-        </h3>
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        {session.songCoverUrl ? <SessionCoverThumbnail coverUrl={session.songCoverUrl} /> : null}
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-500">
+            {dateLabel}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{typeLabel}</p>
+          <h3 className="mt-1 truncate text-base font-semibold text-slate-900 dark:text-white" title={title}>
+            {title}
+          </h3>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 sm:justify-center">
