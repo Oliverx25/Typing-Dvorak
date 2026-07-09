@@ -1,3 +1,4 @@
+import { ALT_LEFT, ALT_RIGHT, isThumbKey } from '@/utils/keyboard/keyboardMappings';
 import { getFingerForKey, FINGER_CSS_VAR, type Finger } from '@/utils/keyboard/fingers';
 import { useApp } from '@/contexts/AppProvider';
 
@@ -62,9 +63,17 @@ function ThumbBar({ active }: { active: boolean }) {
 
 export default function HandGuide({ targetKeys }: HandGuideProps) {
   const { t } = useApp();
-  const isSpace = targetKeys?.includes('Space') ?? false;
+  const keys = targetKeys ?? [];
+
+  const leftThumbActive = keys.includes('Space') || keys.includes(ALT_LEFT);
+  const rightThumbActive = keys.includes('Space') || keys.includes(ALT_RIGHT);
+  const thumbLabelVisible = leftThumbActive || rightThumbActive;
+
   const activeFingers = new Set(
-    (targetKeys ?? []).map((code) => getFingerForKey(code)).filter((finger): finger is Finger => Boolean(finger)),
+    keys
+      .filter((code) => !isThumbKey(code))
+      .map((code) => getFingerForKey(code))
+      .filter((finger): finger is Finger => Boolean(finger)),
   );
 
   const left: { finger: Finger; label: string }[] = [
@@ -92,8 +101,8 @@ export default function HandGuide({ targetKeys }: HandGuideProps) {
             <FingerSlot key={finger} finger={finger} label={label} active={activeFingers.has(finger)} />
           ))}
         </div>
-        <ThumbBar active={isSpace} />
-        {isSpace && (
+        <ThumbBar active={leftThumbActive} />
+        {thumbLabelVisible && leftThumbActive && (
           <span className="text-[9px] font-semibold text-[var(--color-key-target)] sm:text-[10px]">
             {t.typing.thumb}
           </span>
@@ -109,7 +118,12 @@ export default function HandGuide({ targetKeys }: HandGuideProps) {
             <FingerSlot key={finger} finger={finger} label={label} active={activeFingers.has(finger)} />
           ))}
         </div>
-        <ThumbBar active={isSpace} />
+        <ThumbBar active={rightThumbActive} />
+        {thumbLabelVisible && rightThumbActive && !leftThumbActive && (
+          <span className="text-[9px] font-semibold text-[var(--color-key-target)] sm:text-[10px]">
+            {t.typing.thumb}
+          </span>
+        )}
       </div>
     </div>
   );

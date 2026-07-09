@@ -18,15 +18,15 @@ describe('COMPARATOR_LAYOUTS', () => {
     expect(rowLabels(QWERTY_ROWS, 0)).toBe('`1234567890-=');
     expect(rowLabels(QWERTY_ROWS, 1)).toBe('qwertyuiop[]');
     expect(rowLabels(QWERTY_ROWS, 2)).toBe("asdfghjkl;'");
-    expect(rowLabels(QWERTY_ROWS, 3)).toBe('zxcvbnm,./');
-    expect(QWERTY_ROWS[4].keys[0].label).toBe('Space');
+    expect(rowLabels(QWERTY_ROWS, 3)).toBe('⇧zxcvbnm,./⇧');
+    expect(QWERTY_ROWS[4].keys.map((k) => k.label).join('')).toBe('⌥Space⌥');
   });
 
   it('keeps Dvorak symbols on the number row', () => {
     expect(rowLabels(DVORAK_ROWS, 0)).toBe('`1234567890[]');
     expect(rowLabels(DVORAK_ROWS, 1)).toBe("',.pyfgcrl/=");
     expect(rowLabels(DVORAK_ROWS, 2)).toBe('aoeuidhtns-');
-    expect(rowLabels(DVORAK_ROWS, 3)).toBe(';qjkxbmwvz');
+    expect(rowLabels(DVORAK_ROWS, 3)).toBe('⇧;qjkxbmwvz⇧');
   });
 
   it('exposes both layouts for the comparator', () => {

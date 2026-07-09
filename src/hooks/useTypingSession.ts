@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
-  getTargetKeysForChar,
   IGNORED_TYPING_KEYS,
   resolvePulseKeyCode,
 } from '@/utils/keyboard/keyboardMappings';
@@ -200,9 +199,7 @@ export function useTypingSession({
       : 0;
 
   const timeRemaining = Math.max(0, testDurationSeconds - Math.floor(elapsedMs / 1000));
-  const nextChar = targetText[input.length];
-  const targetKeys =
-    !finished && !paused && nextChar ? getTargetKeysForChar(nextChar) : [];
+  const nextChar = !finished && !paused ? targetText[input.length] : undefined;
 
   const pulseActiveKey = useCallback((code: string) => {
     setActiveKey(code);
@@ -771,7 +768,7 @@ export function useTypingSession({
     stats,
     progress,
     timeRemaining,
-    targetKeys,
+    nextChar,
     activeKey,
     isNewRecord,
     wpmDelta,

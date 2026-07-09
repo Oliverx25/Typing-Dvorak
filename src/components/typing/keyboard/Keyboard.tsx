@@ -1,13 +1,19 @@
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { DVORAK_ROWS, type KeyDef } from '@/utils/keyboard/dvorak';
-import { MODIFIER_ROW } from '@/utils/keyboard/keyboardMappings';
+import {
+  eventAdvancesCompositeStep,
+  getActiveStepKeys,
+  getSequenceStepsForChar,
+  isMultiStepChar,
+  isThumbKey,
+} from '@/utils/keyboard/keyboardMappings';
 import { FINGER_CSS_VAR, getFingerForKey, type Finger } from '@/utils/keyboard/fingers';
 import { useApp } from '@/contexts/AppProvider';
 import HandGuide from '@/components/typing/keyboard/HandGuide';
 
 interface KeyboardProps {
   pressedKey?: string;
-  targetKeys?: string[];
+  expectedChar?: string;
 }
 
 function KeyLegend() {
@@ -62,7 +68,8 @@ interface KeyboardKeyProps {
 function KeyboardKey({ keyDef, widthPct, pressedKey, targetKeySet, showFingers }: KeyboardKeyProps) {
   const isPressed = pressedKey === keyDef.code;
   const isTarget = !isPressed && targetKeySet.has(keyDef.code);
-  const finger = showFingers ? getFingerForKey(keyDef.code) : undefined;
+  const finger = showFingers && !isThumbKey(keyDef.code) ? getFingerForKey(keyDef.code) : undefined;
+  const thumbTint = showFingers && isThumbKey(keyDef.code);
 
   return (
     <div
@@ -70,6 +77,9 @@ function KeyboardKey({ keyDef, widthPct, pressedKey, targetKeySet, showFingers }
         width: `${widthPct}%`,
         ...(finger && !isPressed && !isTarget
           ? { background: `color-mix(in srgb, var(${FINGER_CSS_VAR[finger]}) 25%, var(--color-key))` }
+          : {}),
+        ...(thumbTint && !isPressed && !isTarget
+          ? { background: 'color-mix(in srgb, var(--color-key-mark) 35%, var(--color-key))' }
           : {}),
       }}
       className={[
@@ -135,17 +145,39 @@ function KeyboardRow({
 
 export default memo(Keyboard);
 
-function Keyboard({ pressedKey, targetKeys }: KeyboardProps) {
+function Keyboard({ pressedKey, expectedChar }: KeyboardProps) {
   const { t, settings } = useApp();
   const showFingers = settings.fingerColors;
-  const targetKeySet = new Set(targetKeys ?? []);
+  const [sequenceStep, setSequenceStep] = useState(0);
 
-  const allFingers = [
-    ...DVORAK_ROWS.flatMap((row) =>
-      row.keys.map((key) => getFingerForKey(key.code)).filter(Boolean),
-    ),
-    ...MODIFIER_ROW.map((key) => getFingerForKey(key.code)).filter(Boolean),
-  ] as Finger[];
+  const activeStepKeys = expectedChar ? getActiveStepKeys(expectedChar, sequenceStep) : [];
+  const targetKeySet = new Set(activeStepKeys);
+  const multiStep = expectedChar ? isMultiStepChar(expectedChar) : false;
+
+  useEffect(() => {
+    setSequenceStep(0);
+  }, [expectedChar]);
+
+  useEffect(() => {
+    if (!expectedChar || !multiStep) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const currentStepKeys = getActiveStepKeys(expectedChar, sequenceStep);
+      if (!eventAdvancesCompositeStep(e, currentStepKeys)) return;
+
+      setSequenceStep((prev) => {
+        const maxStep = getSequenceStepsForChar(expectedChar).length - 1;
+        return Math.min(prev + 1, maxStep);
+      });
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expectedChar, multiStep, sequenceStep]);
+
+  const allFingers = DVORAK_ROWS.flatMap((row) =>
+    row.keys.map((key) => getFingerForKey(key.code)).filter(Boolean),
+  ) as Finger[];
 
   return (
     <section className="hidden w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 p-4 shadow-sm sm:block sm:p-6">
@@ -159,7 +191,7 @@ function Keyboard({ pressedKey, targetKeys }: KeyboardProps) {
       {showFingers && <FingerColorBar fingers={allFingers} />}
 
       <div className="mx-auto w-full max-w-3xl select-none motion-reduce:transition-none" aria-hidden="true">
-        {DVORAK_ROWS.slice(0, -1).map((row, rowIndex) => (
+        {DVORAK_ROWS.map((row, rowIndex) => (
           <KeyboardRow
             key={rowIndex}
             keys={row.keys}
@@ -169,28 +201,9 @@ function Keyboard({ pressedKey, targetKeys }: KeyboardProps) {
             showFingers={showFingers}
           />
         ))}
-
-        <KeyboardRow
-          keys={MODIFIER_ROW}
-          indent={3}
-          pressedKey={pressedKey}
-          targetKeySet={targetKeySet}
-          showFingers={showFingers}
-        />
-
-        {DVORAK_ROWS.slice(-1).map((row, rowIndex) => (
-          <KeyboardRow
-            key={`space-${rowIndex}`}
-            keys={row.keys}
-            indent={row.indent}
-            pressedKey={pressedKey}
-            targetKeySet={targetKeySet}
-            showFingers={showFingers}
-          />
-        ))}
       </div>
 
-      <HandGuide targetKeys={targetKeys} />
+      <HandGuide targetKeys={activeStepKeys} />
     </section>
   );
 }

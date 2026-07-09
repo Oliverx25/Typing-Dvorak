@@ -72,6 +72,7 @@ export const QWERTY_ROWS: KeyboardRow[] = [
   {
     indent: 3,
     keys: [
+      { label: '⇧', code: 'ShiftLeft', width: 1.75 },
       { label: 'z', code: 'Semicolon' },
       { label: 'x', code: 'KeyQ' },
       { label: 'c', code: 'KeyJ' },
@@ -82,11 +83,16 @@ export const QWERTY_ROWS: KeyboardRow[] = [
       { label: ',', code: 'KeyW' },
       { label: '.', code: 'KeyV' },
       { label: '/', code: 'KeyZ' },
+      { label: '⇧', code: 'ShiftRight', width: 2.25 },
     ],
   },
   {
     indent: 3.5,
-    keys: [{ label: 'Space', code: 'Space', width: 5.5 }],
+    keys: [
+      { label: '⌥', code: 'AltLeft', width: 1.25 },
+      { label: 'Space', code: 'Space', width: 5.5 },
+      { label: '⌥', code: 'AltRight', width: 1.25 },
+    ],
   },
 ];
 

@@ -66,6 +66,7 @@ export const DVORAK_ROWS: KeyboardRow[] = [
   {
     indent: 3,
     keys: [
+      { label: '⇧', code: 'ShiftLeft', width: 1.75 },
       { label: ';', code: 'Semicolon' },
       { label: 'q', code: 'KeyQ' },
       { label: 'j', code: 'KeyJ' },
@@ -76,11 +77,16 @@ export const DVORAK_ROWS: KeyboardRow[] = [
       { label: 'w', code: 'KeyW' },
       { label: 'v', code: 'KeyV' },
       { label: 'z', code: 'KeyZ' },
+      { label: '⇧', code: 'ShiftRight', width: 2.25 },
     ],
   },
   {
     indent: 3.5,
-    keys: [{ label: 'Space', code: 'Space', width: 5.5 }],
+    keys: [
+      { label: '⌥', code: 'AltLeft', width: 1.25 },
+      { label: 'Space', code: 'Space', width: 5.5 },
+      { label: '⌥', code: 'AltRight', width: 1.25 },
+    ],
   },
 ];
 
@@ -90,9 +96,11 @@ export const BOTTOM_ROW = ';qjkxbmwvz';
 
 const CHAR_TO_CODE: Record<string, string> = {};
 
+const NON_TYPING_CODES = new Set(['ShiftLeft', 'ShiftRight', 'AltLeft', 'AltRight']);
+
 for (const row of DVORAK_ROWS) {
   for (const key of row.keys) {
-    if (key.code !== 'Space') {
+    if (key.code !== 'Space' && !NON_TYPING_CODES.has(key.code)) {
       CHAR_TO_CODE[key.label.toLowerCase()] = key.code;
       CHAR_TO_CODE[key.label] = key.code;
     }

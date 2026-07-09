@@ -86,8 +86,8 @@ export const KEY_FINGERS: Record<string, Finger> = {
   Slash: 'rp',
   Minus: 'rp',
   Equal: 'rp',
-  'Modifier:Shift': 'lp',
-  'Modifier:Alt': 'lp',
+  ShiftLeft: 'lp',
+  ShiftRight: 'rp',
 };
 
 export function getFingerForKey(code: string): Finger | undefined {
