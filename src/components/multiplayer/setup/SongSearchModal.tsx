@@ -193,7 +193,7 @@ export default function SongSearchModal({
         role="document"
         className={[
           panelClassName,
-          'flex w-[min(100%,56rem)] flex-col rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl',
+          'flex w-[min(100%,56rem)] flex-col rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100',
           needsScroll ? 'max-h-[min(90vh,52rem)] overflow-hidden' : '',
         ].join(' ')}
         onClick={(event) => event.stopPropagation()}
@@ -202,7 +202,7 @@ export default function SongSearchModal({
         <div
           className={[
             'shrink-0 px-4',
-            showResultsArea ? 'border-b border-slate-800 py-4' : 'py-3',
+            showResultsArea ? 'border-b border-slate-200 py-4 dark:border-slate-800' : 'py-3',
           ].join(' ')}
         >
           <label id="song-search-title" htmlFor="song-search-input" className="sr-only">
@@ -224,7 +224,7 @@ export default function SongSearchModal({
                 listNavEnabled && activeIndex >= 0 ? `song-result-${activeIndex}` : undefined
               }
               className={[
-                'w-full rounded-xl bg-slate-800 py-4 text-lg text-slate-50 placeholder:text-slate-500 sm:text-xl',
+                'w-full rounded-xl border border-slate-200 bg-white py-4 text-lg text-slate-900 placeholder:text-slate-400 sm:text-xl dark:border-transparent dark:bg-slate-800 dark:text-slate-50 dark:placeholder:text-slate-500',
                 focusRingClassName,
                 hasQuery ? 'pl-5 pr-24' : 'px-5 pr-14',
               ].join(' ')}
@@ -239,7 +239,7 @@ export default function SongSearchModal({
                   onClick={() => setQuery('')}
                   aria-label={t.multiplayer.lyricsClearSearch}
                   className={[
-                    'rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-slate-100',
+                    'rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100',
                     focusRingInsetClassName,
                   ].join(' ')}
                 >
@@ -271,7 +271,7 @@ export default function SongSearchModal({
             role="listbox"
             aria-label={t.multiplayer.lyricsSearchResults}
             className={[
-              'rounded-b-2xl bg-slate-900/80',
+              'rounded-b-2xl bg-slate-50 dark:bg-slate-900/80',
               needsScroll ? 'max-h-[min(calc(90vh-5rem),46rem)] overflow-y-auto' : '',
             ].join(' ')}
           >

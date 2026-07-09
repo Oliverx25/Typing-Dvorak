@@ -21,7 +21,7 @@ interface ModBadgeProps {
 
 function activeClasses(tone: ModBadgeTone | undefined, isActive: boolean): string {
   if (!isActive) {
-    return 'border-slate-700 bg-transparent text-slate-400';
+    return 'border-slate-200 bg-transparent text-slate-500 dark:border-slate-700 dark:text-slate-400';
   }
   if (tone && tone !== 'victory' && MODIFIER_ACTIVE_CLASSES[tone]) {
     return MODIFIER_ACTIVE_CLASSES[tone];
@@ -31,12 +31,12 @@ function activeClasses(tone: ModBadgeTone | undefined, isActive: boolean): strin
 
 function inactiveHover(variant: ModBadgeVariant, tone: ModBadgeTone | undefined): string {
   if (variant === 'tile' || variant === 'chip') {
-    return 'hover:border-slate-600 hover:bg-slate-800 hover:text-slate-300';
+    return 'hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300';
   }
   if (tone === 'victory') {
-    return 'hover:border-slate-500 hover:text-slate-300';
+    return 'hover:border-slate-300 hover:text-slate-700 dark:hover:border-slate-500 dark:hover:text-slate-300';
   }
-  return 'hover:border-slate-600 hover:bg-slate-800 hover:text-slate-300';
+  return 'hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300';
 }
 
 function resolveVariant(compact: boolean, variant?: ModBadgeVariant): ModBadgeVariant {
@@ -142,7 +142,7 @@ export default function ModBadge({
       <div
         className={[
           'flex min-w-0 flex-1 flex-col justify-center py-2.5 pr-3 pl-3',
-          isActive ? colorClasses : 'bg-slate-900/20 text-slate-500',
+          isActive ? colorClasses : 'bg-slate-50 text-slate-500 dark:bg-slate-900/20',
         ].join(' ')}
       >
         <span

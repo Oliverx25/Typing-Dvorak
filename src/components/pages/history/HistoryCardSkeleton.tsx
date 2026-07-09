@@ -14,7 +14,7 @@ function HistoryCardSkeleton({ spotlightStyle, onMouseEnter }: HistoryCardSkelet
     <div
       onMouseEnter={onMouseEnter}
       style={spotlightInlineStyle(spotlightStyle)}
-      className="h-28 w-full animate-pulse rounded-xl border border-slate-800 bg-slate-900/40 transition-all duration-300 ease-out will-change-transform motion-reduce:transition-none"
+      className="h-28 w-full animate-pulse rounded-xl border border-slate-200 bg-slate-100 transition-all duration-300 ease-out will-change-transform motion-reduce:transition-none dark:border-slate-800 dark:bg-slate-900/40"
       role="status"
       aria-hidden="true"
     />

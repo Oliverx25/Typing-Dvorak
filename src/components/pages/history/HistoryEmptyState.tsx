@@ -5,12 +5,12 @@ export default function HistoryEmptyState() {
   const { t } = useApp();
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/30 px-8 py-16 text-center">
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700 bg-slate-800/60 text-slate-300">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white px-8 py-16 text-center dark:border-slate-700 dark:bg-slate-900/30">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
         <LuKeyboard size={28} aria-hidden />
       </div>
-      <h2 className="text-xl font-semibold text-slate-100">{t.history.emptyTitle}</h2>
-      <p className="mt-2 max-w-sm text-sm text-slate-400">{t.history.emptyDesc}</p>
+      <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t.history.emptyTitle}</h2>
+      <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">{t.history.emptyDesc}</p>
       <a
         href="/lessons"
         className="mt-8 inline-flex items-center justify-center rounded-xl bg-[var(--color-highlight)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[var(--color-highlight)]/20 transition hover:bg-[var(--color-highlight-hover)]"

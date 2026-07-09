@@ -157,15 +157,15 @@ export default function CompletionPanel({
       </div>
 
       {weakKeys.length > 0 && !showExpandedLayout ? (
-        <div className="mt-4 rounded-xl border border-[var(--color-incorrect)]/20 bg-[var(--color-incorrect)]/5 px-4 py-3 text-left">
-          <p className="text-center text-xs font-medium text-[var(--color-text-muted)]">
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left dark:border-[var(--color-incorrect)]/20 dark:bg-[var(--color-incorrect)]/5">
+          <p className="text-center text-xs font-medium text-slate-600 dark:text-[var(--color-text-muted)]">
             {t.completion.weakKeys}
           </p>
           <div className="mt-2.5 flex justify-center gap-2">
             {weakKeys.map((key) => (
               <kbd
                 key={key}
-                className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-[var(--color-incorrect)]/25 bg-[var(--color-surface)] font-mono text-base font-semibold text-[var(--color-incorrect)]"
+                className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-red-200 bg-white font-mono text-base font-semibold text-red-600 dark:border-[var(--color-incorrect)]/25 dark:bg-[var(--color-surface)] dark:text-[var(--color-incorrect)]"
               >
                 {key === ' ' ? '␣' : key}
               </kbd>

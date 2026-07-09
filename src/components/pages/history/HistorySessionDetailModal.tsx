@@ -22,12 +22,12 @@ interface HistorySessionDetailModalProps {
 function AnalyticsSkeleton() {
   return (
     <div className="space-y-4" role="status" aria-busy="true">
-      <div className="h-[300px] animate-pulse rounded-xl border border-slate-800 bg-slate-900/40" />
+      <div className="h-[300px] animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900/40" />
       <div className="grid grid-cols-3 gap-3">
         {Array.from({ length: 3 }, (_, index) => (
           <div
             key={index}
-            className="h-16 animate-pulse rounded-lg border border-slate-800 bg-slate-900/30"
+            className="h-16 animate-pulse rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900/30"
           />
         ))}
       </div>
@@ -40,8 +40,8 @@ export default function HistorySessionDetailModal({ session, onClose }: HistoryS
     <ModalOverlay
       onClose={onClose}
       overlayClassName="z-50"
-      backdropClassName="bg-[var(--color-surface)]/70"
-      panelClassName="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl"
+      backdropClassName="bg-slate-900/20 backdrop-blur-sm dark:bg-slate-900/70"
+      panelClassName="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
     >
       <HistorySessionDetailContent session={session} />
     </ModalOverlay>
@@ -106,16 +106,16 @@ function HistorySessionDetailContent({ session }: { session: HistorySession }) {
 
   return (
     <>
-        <header className="flex items-start justify-between gap-4 border-b border-slate-800 px-5 py-4">
+        <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{dateLabel}</p>
-            <p className="mt-1 text-xs text-slate-400">{typeLabel}</p>
-            <h2 className="mt-1 truncate text-lg font-bold text-slate-100">{title}</h2>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{typeLabel}</p>
+            <h2 className="mt-1 truncate text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
           </div>
           <button
             type="button"
             onClick={requestClose}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
             aria-label={t.history.closeDetails}
           >
             <LuX size={18} />
@@ -129,20 +129,20 @@ function HistorySessionDetailContent({ session }: { session: HistorySession }) {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                 {t.typing.wpm}
               </p>
-              <p className="font-mono text-2xl font-bold text-slate-100">{session.wpm}</p>
+              <p className="font-mono text-2xl font-bold text-slate-900 dark:text-white">{session.wpm}</p>
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                 {t.typing.accuracy}
               </p>
-              <p className="font-mono text-2xl font-bold text-emerald-400">{session.accuracy}%</p>
+              <p className="font-mono text-2xl font-bold text-emerald-600 dark:text-emerald-400">{session.accuracy}%</p>
             </div>
             {session.score != null ? (
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                   {t.history.score}
                 </p>
-                <p className="font-mono text-2xl font-bold text-slate-100">{session.score}</p>
+                <p className="font-mono text-2xl font-bold text-slate-900 dark:text-white">{session.score}</p>
               </div>
             ) : null}
             {session.maxCombo != null && session.maxCombo > 0 ? (
@@ -150,7 +150,7 @@ function HistorySessionDetailContent({ session }: { session: HistorySession }) {
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                   {t.history.maxCombo}
                 </p>
-                <p className="font-mono text-2xl font-bold text-slate-100">{session.maxCombo}</p>
+                <p className="font-mono text-2xl font-bold text-slate-900 dark:text-white">{session.maxCombo}</p>
               </div>
             ) : null}
           </div>

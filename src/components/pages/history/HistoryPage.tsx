@@ -11,7 +11,7 @@ function HistorySkeleton() {
       {Array.from({ length: 4 }, (_, index) => (
         <div
           key={index}
-          className="h-24 animate-pulse rounded-xl border border-slate-800 bg-slate-900/40"
+          className="h-24 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900/40"
         />
       ))}
     </div>

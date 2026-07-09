@@ -65,7 +65,7 @@ export default function RoomConfigPanel({
 
   if (!isOwner) {
     return (
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-[var(--color-border)] dark:bg-[var(--color-surface)]">
         <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
           {t.multiplayer.raceSettings}
         </p>
@@ -75,7 +75,7 @@ export default function RoomConfigPanel({
   }
 
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-[var(--color-border)] dark:bg-[var(--color-surface)]">
       <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
         {t.multiplayer.raceSettingsOwner}
       </p>

@@ -39,7 +39,7 @@ export default function ModifierIcon({
   const stateClass = isActive
     ? MODIFIER_ACTIVE_CLASSES[modifier]
     : [
-        'border-slate-700 bg-transparent text-slate-500',
+        'border-slate-200 bg-transparent text-slate-500 dark:border-slate-700',
         !readOnly && !disabled ? MODIFIER_HOVER_CLASSES[modifier] : '',
       ].join(' ');
 

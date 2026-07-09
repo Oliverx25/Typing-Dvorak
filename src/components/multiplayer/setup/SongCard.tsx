@@ -24,7 +24,7 @@ function BlurredBackdrop({ src }: { src: string | null }) {
     return (
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-br from-slate-700/60 to-slate-900 opacity-80"
+        className="absolute inset-0 bg-gradient-to-br from-slate-200/80 to-slate-300/60 opacity-80 dark:from-slate-700/60 dark:to-slate-900"
       />
     );
   }
@@ -41,11 +41,11 @@ function BlurredBackdrop({ src }: { src: string | null }) {
 
 function Thumbnail({ src, title }: { src: string | null; title: string }) {
   return (
-    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-slate-900 shadow-lg">
+    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-slate-100 shadow-md dark:bg-slate-900 dark:shadow-lg">
       {src ? (
         <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
       ) : (
-        <div className="flex h-full w-full items-center justify-center text-slate-600">
+        <div className="flex h-full w-full items-center justify-center text-slate-400 dark:text-slate-600">
           <Icon name="music-note" size={28} />
         </div>
       )}
@@ -84,13 +84,13 @@ export default function SongCard({
       aria-selected={isSelected || isKeyboardActive}
       onClick={() => onSelect(song)}
       className={[
-        'group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border bg-slate-800 transition-all duration-200 hover:scale-[1.02]',
+        'group relative flex h-24 w-full cursor-pointer overflow-hidden rounded-xl border bg-white transition-all duration-200 hover:scale-[1.02] dark:bg-slate-800',
         focusRingCardClassName,
         isSelected
           ? 'border-[var(--color-highlight)] ring-2 ring-[var(--color-highlight)]/30'
           : isKeyboardActive
             ? 'border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/40'
-            : 'border-slate-700/50 hover:border-[var(--color-highlight)]',
+            : 'border-slate-200 hover:border-[var(--color-highlight)] dark:border-slate-700/50',
       ].join(' ')}
     >
       {song.coverArt && !coverFailed ? (
@@ -115,10 +115,10 @@ export default function SongCard({
         <Thumbnail src={coverSrc} title={song.title} />
 
         <div className="flex min-w-0 flex-grow flex-col">
-          <p className="truncate text-base font-bold text-slate-100 group-hover:text-white">
+          <p className="truncate text-base font-bold text-slate-900 group-hover:text-slate-950 dark:text-slate-100 dark:group-hover:text-white">
             {song.title}
           </p>
-          <p className="truncate text-sm text-slate-400">{song.artist}</p>
+          <p className="truncate text-sm text-slate-500 dark:text-slate-400">{song.artist}</p>
         </div>
 
         <div className="flex shrink-0 flex-col items-end justify-center gap-1">
@@ -146,18 +146,18 @@ export default function SongCard({
 export function SongCardSkeleton() {
   return (
     <div
-      className="relative flex h-24 animate-pulse overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800"
+      className="relative flex h-24 animate-pulse overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700/50 dark:bg-slate-800"
       aria-hidden="true"
     >
       <div className="relative z-10 flex h-full w-full items-center gap-4 p-3">
-        <div className="h-16 w-16 shrink-0 rounded-md bg-slate-700/80" />
+        <div className="h-16 w-16 shrink-0 rounded-md bg-slate-200 dark:bg-slate-700/80" />
         <div className="min-w-0 flex-grow space-y-2">
-          <div className="h-4 w-4/5 rounded bg-slate-700/80" />
-          <div className="h-3 w-3/5 rounded bg-slate-700/60" />
+          <div className="h-4 w-4/5 rounded bg-slate-200 dark:bg-slate-700/80" />
+          <div className="h-3 w-3/5 rounded bg-slate-200 dark:bg-slate-700/60" />
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <div className="h-5 w-16 rounded-full bg-slate-700/70" />
-          <div className="h-3 w-12 rounded bg-slate-700/50" />
+          <div className="h-5 w-16 rounded-full bg-slate-200 dark:bg-slate-700/70" />
+          <div className="h-3 w-12 rounded bg-slate-200 dark:bg-slate-700/50" />
         </div>
       </div>
     </div>

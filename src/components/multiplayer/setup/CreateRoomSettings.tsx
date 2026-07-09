@@ -162,7 +162,7 @@ export default function CreateRoomSettings({
                 disabled={disabled}
                 onClick={() => openSongSearch(songSearchTriggerRef.current)}
                 className={[
-                  'group flex h-32 w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-700 bg-slate-800/40 text-slate-300 transition hover:border-[var(--color-highlight)] hover:bg-slate-700/50 hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50',
+                  'group flex h-32 w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-slate-600 transition hover:border-[var(--color-highlight)] hover:bg-red-50 hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300 dark:hover:bg-slate-700/50',
                   focusRingCardClassName,
                 ].join(' ')}
               >

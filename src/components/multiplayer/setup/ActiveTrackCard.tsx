@@ -38,7 +38,7 @@ export default function ActiveTrackCard({
   const duration = formatDurationMs(song.durationMs);
 
   return (
-    <div className="relative flex h-32 items-center gap-4 overflow-hidden rounded-xl border border-slate-700 bg-slate-800 p-4">
+    <div className="relative flex h-32 items-center gap-4 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
       {song.coverArt && !coverFailed ? (
         <img
           src={song.coverArt}
@@ -59,15 +59,15 @@ export default function ActiveTrackCard({
       ) : (
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-br from-slate-700/60 to-slate-900 opacity-80"
+          className="absolute inset-0 bg-gradient-to-br from-slate-200/80 to-slate-300/60 opacity-80 dark:from-slate-700/60 dark:to-slate-900"
         />
       )}
 
-      <div className="relative z-10 h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-900 shadow-lg">
+      <div className="relative z-10 h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-100 shadow-md dark:bg-slate-900 dark:shadow-lg">
         {coverSrc ? (
           <img src={coverSrc} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-slate-600">
+          <div className="flex h-full w-full items-center justify-center text-slate-400 dark:text-slate-600">
             <Icon name="music-note" size={40} />
           </div>
         )}
@@ -75,14 +75,14 @@ export default function ActiveTrackCard({
 
       <div className="relative z-10 flex min-w-0 flex-grow flex-col gap-1.5">
         <div className="flex min-w-0 items-center gap-2">
-          <p className="truncate text-lg font-bold text-slate-100">{song.title}</p>
+          <p className="truncate text-lg font-bold text-slate-900 dark:text-slate-100">{song.title}</p>
           <BestScoreLabel
             highestGrade={displayGrade}
             highestScore={displayScore}
             scoreUnit={t.multiplayer.raceScore}
           />
         </div>
-        <p className="truncate text-sm text-slate-400">{song.artist}</p>
+        <p className="truncate text-sm text-slate-500 dark:text-slate-400">{song.artist}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <span
             className={[
@@ -112,7 +112,7 @@ export default function ActiveTrackCard({
           aria-label={t.multiplayer.lyricsChangeTrack}
           title={t.multiplayer.lyricsChangeTrack}
           className={[
-            'relative z-10 shrink-0 self-start rounded-lg border border-slate-700 bg-slate-900/70 p-2 text-slate-300 transition hover:border-[var(--color-highlight)] hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50',
+            'relative z-10 shrink-0 self-start rounded-lg border border-slate-200 bg-white/90 p-2 text-slate-600 transition hover:border-[var(--color-highlight)] hover:text-[var(--color-highlight)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300',
             focusRingInsetClassName,
           ].join(' ')}
         >

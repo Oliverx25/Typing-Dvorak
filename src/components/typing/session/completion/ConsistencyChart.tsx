@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useSyncExternalStore } from 'react';
 import {
   CartesianGrid,
   ReferenceLine,
@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { downsampleKeystrokes, type KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
 import { averageKeystrokeDelta } from '@/utils/typing/completionMetrics';
+import { readChartThemeColors } from '@/utils/charts/chartTheme';
 
 /** Cap visual scatter points to protect the DOM from massive SVG node counts. */
 const MAX_SCATTER_POINTS = 150;
@@ -33,15 +34,21 @@ interface ChartTooltipProps {
   payload?: Array<{ payload: PlotPoint }>;
 }
 
+function subscribeToTheme(onStoreChange: () => void): () => void {
+  const observer = new MutationObserver(onStoreChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  return () => observer.disconnect();
+}
+
 const ConsistencyTooltip = memo(function ConsistencyTooltip({ active, payload }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-lg border border-slate-700/80 bg-slate-900/95 px-3 py-2 text-xs shadow-xl shadow-black/40">
-      <p className="font-mono text-slate-100">
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-xl dark:shadow-black/40">
+      <p className="font-mono text-slate-900 dark:text-slate-100">
         #{point.index} · {point.ms}ms
       </p>
-      <p className={point.isCorrect ? 'text-emerald-400' : 'text-red-400'}>
+      <p className={point.isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
         {point.isCorrect ? 'Correct' : 'Error'}
       </p>
     </div>
@@ -54,6 +61,14 @@ function ConsistencyChart({
   xLabel = 'Keystroke',
   yLabel = 'ms between keys',
 }: ConsistencyChartProps) {
+  const themeClass = useSyncExternalStore(
+    subscribeToTheme,
+    () => document.documentElement.className,
+    () => '',
+  );
+
+  const colors = useMemo(() => readChartThemeColors(), [themeClass]);
+
   const { points, maxMs, averageDelta } = useMemo(() => {
     const sampled = downsampleKeystrokes(data, MAX_SCATTER_POINTS);
     const plotPoints: PlotPoint[] = sampled
@@ -69,7 +84,6 @@ function ConsistencyChart({
     return {
       points: plotPoints,
       maxMs: Math.min(2000, peakMs),
-      // AVG line uses the full log so the statistical baseline stays accurate.
       averageDelta: averageKeystrokeDelta(data),
     };
   }, [data]);
@@ -78,19 +92,19 @@ function ConsistencyChart({
 
   return (
     <div className="w-full">
-      <p className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-400">
+      <p className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
         {title}
       </p>
       <div className="w-full">
         <ResponsiveContainer width="100%" height={300}>
           <ScatterChart margin={{ top: 8, right: 12, bottom: 8, left: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(30, 41, 59, 0.5)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
             <XAxis
               type="number"
               dataKey="index"
               name={xLabel}
-              tick={{ fontSize: 10, fill: '#94a3b8' }}
-              axisLine={{ stroke: 'rgba(51, 65, 85, 0.5)' }}
+              tick={{ fontSize: 10, fill: colors.muted }}
+              axisLine={{ stroke: colors.axis }}
               tickLine={false}
             />
             <YAxis
@@ -98,20 +112,20 @@ function ConsistencyChart({
               dataKey="ms"
               name={yLabel}
               domain={[0, maxMs]}
-              tick={{ fontSize: 10, fill: '#94a3b8' }}
-              axisLine={{ stroke: 'rgba(51, 65, 85, 0.5)' }}
+              tick={{ fontSize: 10, fill: colors.muted }}
+              axisLine={{ stroke: colors.axis }}
               tickLine={false}
               width={40}
             />
             {averageDelta > 0 ? (
               <ReferenceLine
                 y={averageDelta}
-                stroke="rgba(148, 163, 184, 0.5)"
+                stroke={colors.reference}
                 strokeDasharray="3 3"
                 label={{
                   position: 'insideTopLeft',
                   value: 'AVG',
-                  fill: '#64748b',
+                  fill: colors.muted,
                   fontSize: 10,
                 }}
               />

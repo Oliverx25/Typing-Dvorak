@@ -117,7 +117,7 @@ function MultiplayerIndexContent({ kicked = false, roomClosed = false }: Multipl
           </section>
 
           <aside className="lg:col-span-1">
-            <Card padding="lg" variant="elevated" clipContent={false} className="lg:sticky lg:top-8">
+            <Card padding="lg" variant="elevated" clipContent={false} className="border-slate-200 bg-slate-50 lg:sticky lg:top-8 dark:border-[var(--color-border)] dark:bg-[var(--color-surface-elevated)]">
               <div className="space-y-6">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">

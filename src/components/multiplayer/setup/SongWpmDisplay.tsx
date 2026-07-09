@@ -23,17 +23,17 @@ export default function SongWpmDisplay({
     >
       {avgWpm !== null ? (
         <>
-          <span className="text-slate-400">AVG</span>
-          <span className="text-slate-200">{avgWpm}</span>
+          <span className="text-slate-500 dark:text-slate-400">AVG</span>
+          <span className="text-slate-700 dark:text-slate-200">{avgWpm}</span>
         </>
       ) : null}
       {avgWpm !== null && maxWpm !== null ? (
-        <span className="text-slate-600">|</span>
+        <span className="text-slate-300 dark:text-slate-600">|</span>
       ) : null}
       {maxWpm !== null ? (
         <>
-          <span className="text-slate-400">MAX</span>
-          <span className="text-amber-400">{maxWpm}</span>
+          <span className="text-slate-500 dark:text-slate-400">MAX</span>
+          <span className="text-amber-600 dark:text-amber-400">{maxWpm}</span>
         </>
       ) : null}
       <span className="text-slate-500">{wpmUnit}</span>

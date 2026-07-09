@@ -148,11 +148,11 @@ export default function MatchRulesPanel({
             </p>
           )}
 
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-400/15 bg-emerald-400/5 px-3 py-2">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 dark:border-emerald-400/15 dark:bg-emerald-400/5">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
               {t.multiplayer.totalMultiplier}
             </span>
-            <span className="rounded bg-emerald-400/10 px-2 py-0.5 font-mono text-xs text-emerald-400">
+            <span className="rounded bg-emerald-100 px-2 py-0.5 font-mono text-xs text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-400">
               x{totalMultiplier.toFixed(2)}
             </span>
           </div>

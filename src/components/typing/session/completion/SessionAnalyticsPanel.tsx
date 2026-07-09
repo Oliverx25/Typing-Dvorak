@@ -45,7 +45,7 @@ function SessionAnalyticsPanel({
       {hasGraph ? (
         <ConsistencyChart data={keystrokeLog} title={labels.consistencyTitle} />
       ) : labels.chartUnavailable ? (
-        <p className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-8 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/40">
           {labels.chartUnavailable}
         </p>
       ) : null}
@@ -73,17 +73,17 @@ function SessionAnalyticsPanel({
           />
         </>
       ) : (
-        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-800/50 pt-4 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-200 pt-4 sm:grid-cols-3 dark:border-slate-800/50">
           <div>
-            <p className="text-xs text-slate-400">{labels.rawWpm}</p>
-            <p className="mt-1 font-mono text-lg font-semibold text-slate-100">{wpm}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{labels.rawWpm}</p>
+            <p className="mt-1 font-mono text-lg font-semibold text-slate-900 dark:text-slate-100">{wpm}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">{labels.consistency}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{labels.consistency}</p>
             <p className="mt-1 font-mono text-lg font-semibold text-slate-500">—</p>
           </div>
           <div className="col-span-2 sm:col-span-1">
-            <p className="text-xs text-slate-400">{labels.troubleKeys}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{labels.troubleKeys}</p>
             <p className="mt-1 text-xs text-slate-500">{labels.noTroubleKeys}</p>
           </div>
         </div>

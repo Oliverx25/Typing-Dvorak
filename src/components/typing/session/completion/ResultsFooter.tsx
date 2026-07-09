@@ -35,7 +35,7 @@ function ResultsFooter({
 }: ResultsFooterProps) {
   return (
     <nav
-      className="mt-6 flex w-full flex-col gap-3 border-t border-slate-800/50 pt-6"
+      className="mt-6 flex w-full flex-col gap-3 border-t border-slate-200 pt-6 dark:border-slate-800/50"
       aria-label={labels.tryAgain}
     >
       {hasNextLesson ? (
@@ -56,7 +56,7 @@ function ResultsFooter({
         className={[
           'flex w-full items-center justify-center gap-2 rounded-lg py-3 font-medium transition-colors',
           hasNextLesson
-            ? 'border border-slate-700 bg-slate-800 text-white hover:bg-slate-700'
+            ? 'border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700'
             : 'bg-[var(--color-highlight)] text-white shadow-lg shadow-[var(--color-highlight)]/20 hover:bg-[var(--color-highlight-hover)]',
         ].join(' ')}
       >
@@ -72,7 +72,7 @@ function ResultsFooter({
         <button
           type="button"
           onClick={onToggleAnalysis}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-transparent py-3 text-slate-400 transition-colors hover:text-white"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-transparent py-3 text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
         >
           <Icon name="chart" size={16} />
           {isExpanded ? labels.hideConsistency : labels.showConsistency}
@@ -82,7 +82,7 @@ function ResultsFooter({
       <button
         type="button"
         onClick={onBackToLessons}
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-transparent py-3 text-slate-500 transition-colors hover:text-slate-300"
+        className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-transparent py-3 text-slate-500 transition-colors hover:text-slate-700 dark:hover:text-slate-300"
       >
         <LuArrowLeft size={16} aria-hidden />
         {labels.backToLessons}

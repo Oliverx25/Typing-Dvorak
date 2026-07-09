@@ -79,9 +79,9 @@ export default function HeatmapKey({
       {showTooltip ? (
         <div
           role="tooltip"
-          className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-xs -translate-x-1/2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-xs text-slate-200 shadow-xl transition-opacity duration-200"
+          className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-xs -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 shadow-lg transition-opacity duration-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:shadow-xl"
         >
-          <p className="text-center text-sm font-semibold text-slate-100">
+          <p className="text-center text-sm font-semibold text-slate-900 dark:text-slate-100">
             {tooltipLabels.keyHeader.replace('{labels}', tooltip.headerLabels)}
           </p>
 
@@ -89,11 +89,11 @@ export default function HeatmapKey({
             <div className="mt-2 space-y-1.5">
               {tooltip.rows.map((row) => (
                 <div key={`${row.kind}-${row.char}`} className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
-                  <span className="font-medium text-slate-300">{rowLabel(row.kind, row.displayChar)}</span>
-                  <span className="text-right font-mono text-slate-100">
+                  <span className="font-medium text-slate-600 dark:text-slate-300">{rowLabel(row.kind, row.displayChar)}</span>
+                  <span className="text-right font-mono text-slate-900 dark:text-slate-100">
                     {(row.stats.accuracy * 100).toFixed(1)}%
                   </span>
-                  <span className="col-span-2 flex justify-between gap-3 text-[11px] text-slate-400">
+                  <span className="col-span-2 flex justify-between gap-3 text-[11px] text-slate-500 dark:text-slate-400">
                     <span className="text-[var(--color-correct)]">
                       {tooltipLabels.hits.replace('{hits}', String(row.stats.hits))}
                     </span>
@@ -105,11 +105,11 @@ export default function HeatmapKey({
               ))}
             </div>
           ) : (
-            <p className="mt-1.5 text-center text-[11px] text-slate-400">{tooltipLabels.noData}</p>
+            <p className="mt-1.5 text-center text-[11px] text-slate-500 dark:text-slate-400">{tooltipLabels.noData}</p>
           )}
 
-          <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
-          <div className="absolute left-1/2 top-full -mt-px -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+          <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-200 dark:border-t-slate-700" />
+          <div className="absolute left-1/2 top-full -mt-px -translate-x-1/2 border-4 border-transparent border-t-white dark:border-t-slate-900" />
         </div>
       ) : null}
     </div>

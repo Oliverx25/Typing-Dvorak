@@ -58,12 +58,12 @@ function ChartTooltip({
   if (!point) return null;
 
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 shadow-lg">
-      <p className="text-[11px] text-slate-400">
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+      <p className="text-[11px] text-slate-500 dark:text-slate-400">
         {sessionLabel(point.session)} · {point.date} {point.time}
       </p>
       {point.lessonTitle ? (
-        <p className="mt-0.5 max-w-[14rem] truncate text-[11px] font-medium text-slate-300">
+        <p className="mt-0.5 max-w-[14rem] truncate text-[11px] font-medium text-slate-700 dark:text-slate-300">
           {point.lessonTitle}
         </p>
       ) : null}
@@ -72,7 +72,7 @@ function ChartTooltip({
           {point.modifierLabels.join(' · ')}
         </p>
       ) : null}
-      <p className="mt-1 font-mono text-sm font-semibold text-slate-50">
+      <p className="mt-1 font-mono text-sm font-semibold text-slate-900 dark:text-slate-50">
         {point.wpm} {wpmLabel}
       </p>
     </div>

@@ -25,8 +25,8 @@ interface AdvancedMetricsRowProps {
 function TroubleKeyBadgeView({ badge }: { badge: TroubleKeyBadge }) {
   const toneClass =
     badge.tone === 'error'
-      ? 'bg-red-500/20 text-red-400'
-      : 'bg-amber-500/20 text-amber-400';
+      ? 'border border-red-200 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/20 dark:text-red-400'
+      : 'border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400';
 
   return (
     <kbd className={['rounded px-2 py-0.5 font-mono text-xs font-semibold', toneClass].join(' ')}>
@@ -57,17 +57,17 @@ function AdvancedMetricsRow({
   );
 
   return (
-    <div className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-800/50 pt-4">
+    <div className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-200 pt-4 dark:border-slate-800/50">
       <div>
-        <p className="text-xs text-slate-400">{labels.rawWpm}</p>
-        <p className="mt-1 font-mono text-lg font-semibold text-slate-100">{rawWpm}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{labels.rawWpm}</p>
+        <p className="mt-1 font-mono text-lg font-semibold text-slate-900 dark:text-slate-100">{rawWpm}</p>
       </div>
       <div>
-        <p className="text-xs text-slate-400">{labels.consistency}</p>
-        <p className="mt-1 font-mono text-lg font-semibold text-slate-100">{consistency}%</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{labels.consistency}</p>
+        <p className="mt-1 font-mono text-lg font-semibold text-slate-900 dark:text-slate-100">{consistency}%</p>
       </div>
       <div>
-        <p className="text-xs text-slate-400">{labels.troubleKeys}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{labels.troubleKeys}</p>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {troubleKeys.length > 0 ? (
             troubleKeys.map((badge) => <TroubleKeyBadgeView key={badge.key} badge={badge} />)
