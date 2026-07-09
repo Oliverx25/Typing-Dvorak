@@ -49,7 +49,7 @@ export default function KeyHeatmap({
     }
     return t.stats.heatmapKeyTooltip
       .replace('{label}', label)
-      .replace('{accuracy}', String(accuracyPct))
+      .replace('{accuracy}', accuracyPct.toFixed(1))
       .replace('{hits}', String(hits))
       .replace('{errors}', String(misses));
   };

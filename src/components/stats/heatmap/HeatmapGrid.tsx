@@ -2,8 +2,7 @@ import type { KeyStatsData } from '@/utils/stats/keyStats';
 import {
   getKeyAccuracy,
   getKeyAttemptCount,
-  getKeyErrorRate,
-  getKeySampleConfidence,
+  HEATMAP_MIN_SAMPLES,
 } from '@/utils/stats/keyStats';
 import { DVORAK_ROWS } from '@/utils/keyboard/dvorak';
 
@@ -18,26 +17,26 @@ interface HeatmapGridProps {
   ) => string;
 }
 
-function heatmapBackground(
-  errorRate: number,
-  attempts: number,
-  confidence: number,
-): string {
-  if (attempts === 0) return 'var(--color-key)';
+/** Accuracy thresholds (0â1) that drive heatmap key color. */
+const ACCURACY_MASTERED = 0.95;
+const ACCURACY_NEUTRAL = 0.9;
 
-  if (confidence < 1) {
-    if (errorRate === 0) {
-      return `color-mix(in srgb, var(--color-correct) ${Math.round(confidence * 25 + 5)}%, var(--color-key))`;
-    }
-    const tint = errorRate * confidence;
-    return `color-mix(in srgb, var(--color-incorrect) ${Math.round(tint * 25 + 5)}%, var(--color-key))`;
+/** Colors a key strictly by accuracy ratio; low-sample keys stay neutral. */
+function heatmapBackground(accuracy: number, attempts: number): string {
+  if (attempts < HEATMAP_MIN_SAMPLES) return 'var(--color-key)';
+
+  if (accuracy >= ACCURACY_MASTERED) {
+    return 'color-mix(in srgb, var(--color-correct) 40%, var(--color-key))';
   }
 
-  if (errorRate === 0) {
-    return 'color-mix(in srgb, var(--color-correct) 35%, var(--color-key))';
+  if (accuracy >= ACCURACY_NEUTRAL) {
+    return 'color-mix(in srgb, var(--color-key-target) 45%, var(--color-key))';
   }
 
-  return `color-mix(in srgb, var(--color-incorrect) ${Math.round(errorRate * 70 + 10)}%, var(--color-key))`;
+  // Scale red intensity by how far below the 90% neutral floor the key sits.
+  const severity = (ACCURACY_NEUTRAL - accuracy) / ACCURACY_NEUTRAL;
+  const mix = Math.round(35 + severity * 45);
+  return `color-mix(in srgb, var(--color-incorrect) ${mix}%, var(--color-key))`;
 }
 
 /** Shared Dvorak keyboard heatmap grid — colors by accuracy (hits / total). */
@@ -56,9 +55,8 @@ export default function HeatmapGrid({ stats, formatKeyTooltip }: HeatmapGridProp
               const hits = stats.hits[key.code] ?? 0;
               const misses = stats.misses[key.code] ?? 0;
               const attempts = getKeyAttemptCount(key.code, stats);
-              const errorRate = getKeyErrorRate(key.code, stats);
-              const accuracyPct = Math.round(getKeyAccuracy(key.code, stats) * 100);
-              const confidence = getKeySampleConfidence(key.code, stats);
+              const accuracy = getKeyAccuracy(key.code, stats);
+              const accuracyPct = Math.round(accuracy * 1000) / 10;
               const widthPct = ((key.width ?? 1) / totalUnits) * 100;
 
               return (
@@ -68,7 +66,7 @@ export default function HeatmapGrid({ stats, formatKeyTooltip }: HeatmapGridProp
                   className="flex h-9 items-center justify-center rounded border border-[var(--color-border)] font-mono text-xs text-[var(--color-text)] sm:h-10 sm:text-sm"
                   style={{
                     width: `${widthPct}%`,
-                    background: heatmapBackground(errorRate, attempts, confidence),
+                    background: heatmapBackground(accuracy, attempts),
                   }}
                 >
                   {key.label}
