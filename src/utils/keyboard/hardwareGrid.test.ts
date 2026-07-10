@@ -1,25 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { buildHardwareGrid, GRID_COLUMNS } from '@/utils/keyboard/hardwareGrid';
-
-function maxColumnEnd(keys: ReturnType<typeof buildHardwareGrid>): number {
-  return keys.reduce((max, key) => Math.max(max, key.colStart + key.colSpan - 1), 0);
-}
+import { DVORAK_ANSI, DVORAK_MAC_ISO } from '@/utils/keyboard/keyboardLayouts';
+import { buildHardwareGrid, GRID_COLUMNS, rowSpanTotal } from '@/utils/keyboard/hardwareGrid';
 
 describe('buildHardwareGrid', () => {
-  it('fits ANSI rows within the 60-column grid', () => {
+  it('sums every ANSI row to exactly 60 columns', () => {
+    for (const row of DVORAK_ANSI) {
+      expect(rowSpanTotal(row, 'ANSI')).toBe(GRID_COLUMNS);
+    }
+
     const keys = buildHardwareGrid('ANSI');
-    expect(maxColumnEnd(keys)).toBeLessThanOrEqual(GRID_COLUMNS);
     expect(keys.some((key) => key.token === '[enter]')).toBe(true);
-    expect(keys.some((key) => key.token === '\\')).toBe(true);
+    expect(keys.find((key) => key.token === '[backspace]')?.colSpan).toBe(8);
+    expect(keys.find((key) => key.token === '[rshift]')?.colSpan).toBe(11);
   });
 
-  it('fits Mac ISO rows and renders the tall Enter key', () => {
+  it('sums every Mac ISO row to exactly 60 columns', () => {
+    for (const row of DVORAK_MAC_ISO) {
+      expect(rowSpanTotal(row, 'MAC_ISO')).toBe(GRID_COLUMNS);
+    }
+
     const keys = buildHardwareGrid('MAC_ISO');
-    expect(maxColumnEnd(keys)).toBeLessThanOrEqual(GRID_COLUMNS);
-    const isoEnter = keys.find((key) => key.token === '[enter-iso]');
-    expect(isoEnter?.rowSpan).toBe(2);
+    const isoEnter = keys.find((key) => key.token === '[enter-iso-top]');
+    expect(isoEnter?.colSpan).toBe(6);
+    expect(isoEnter?.variant).toBe('iso-enter');
+    expect(keys.some((key) => key.token === '[iso-enter-slot]')).toBe(true);
     expect(keys.some((key) => key.label === '§')).toBe(true);
-    expect(keys.some((key) => key.token === '[lshift-iso]')).toBe(true);
-    expect(keys.filter((key) => key.token === '\\' || key.label === '\\')).toHaveLength(1);
   });
 });

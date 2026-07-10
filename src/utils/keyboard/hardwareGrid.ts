@@ -1,7 +1,7 @@
 import type { HardwareLayout } from '@/utils/keyboard/keyboardLayouts';
 import { getLayoutRows } from '@/utils/keyboard/keyboardLayouts';
 
-export type GridKeyVariant = 'typing' | 'modifier' | 'blind' | 'iso-enter';
+export type GridKeyVariant = 'typing' | 'modifier' | 'blind' | 'iso-enter' | 'gap';
 
 export interface GridKeyDef {
   id: string;
@@ -14,26 +14,31 @@ export interface GridKeyDef {
   rowSpan: number;
   variant: GridKeyVariant;
   homeRowMark?: boolean;
+  isoBootCols?: number;
 }
 
 export const GRID_COLUMNS = 60;
-const DEFAULT_SPAN = 4;
+const NORMAL_SPAN = 4;
 
-const TOKEN_COL_SPAN: Record<string, number> = {
-  '[backspace]': 6,
+/** Every row must sum to exactly 60 column units. */
+export const TOKEN_COL_SPAN: Record<string, number> = {
+  '[backspace]': 8,
   '[tab]': 6,
   '[caps]': 7,
   '[lshift]': 9,
   '[lshift-iso]': 5,
-  '[rshift]': 10,
+  '[rshift]': 11,
   '[enter]': 9,
-  '[enter-iso]': 5,
+  '[enter-iso-top]': 6,
+  '\\': 6,
+  '[iso-backslash]': 4,
+  '[iso-enter-slot]': 5,
   '[space]': 24,
   '[fn]': 4,
   '[ctrl]': 4,
   '[opt]': 4,
-  '[cmd]': 5,
-  '[arrows]': 11,
+  '[cmd]': 4,
+  '[arrows]': 12,
 };
 
 const BLIND_TOKENS = new Set([
@@ -55,7 +60,7 @@ const MODIFIER_LABELS: Record<string, string> = {
   '[lshift-iso]': '⇧',
   '[rshift]': '⇧',
   '[enter]': '↵',
-  '[enter-iso]': '↵',
+  '[enter-iso-top]': '↵',
   '[fn]': 'fn',
   '[ctrl]': 'Ctrl',
   '[opt]': '⌥',
@@ -117,13 +122,25 @@ const LABEL_TO_CODE: Record<string, string> = {
 
 const HOME_ROW_CODES = new Set(['KeyU', 'KeyH']);
 
-function colSpanForToken(token: string): number {
-  return TOKEN_COL_SPAN[token] ?? DEFAULT_SPAN;
+function colSpanForToken(token: string, layout: HardwareLayout): number {
+  if (token === '\\' && layout === 'MAC_ISO') {
+    return TOKEN_COL_SPAN['[iso-backslash]'];
+  }
+  return TOKEN_COL_SPAN[token] ?? NORMAL_SPAN;
 }
 
-function resolveTokenMeta(token: string): Pick<GridKeyDef, 'label' | 'code' | 'variant'> {
-  if (token === '[enter-iso]') {
-    return { label: MODIFIER_LABELS[token], code: 'Enter', variant: 'iso-enter' };
+function resolveTokenMeta(token: string): Pick<GridKeyDef, 'label' | 'code' | 'variant' | 'isoBootCols'> {
+  if (token === '[enter-iso-top]') {
+    return {
+      label: MODIFIER_LABELS[token],
+      code: 'Enter',
+      variant: 'iso-enter',
+      isoBootCols: 5,
+    };
+  }
+
+  if (token === '[iso-enter-slot]') {
+    return { label: '', code: null, variant: 'gap' };
   }
 
   if (token === '[space]') {
@@ -155,23 +172,13 @@ function resolveTokenMeta(token: string): Pick<GridKeyDef, 'label' | 'code' | 'v
   return { label: token, code, variant: 'typing' };
 }
 
-function buildRow(
-  rowIndex: number,
-  tokens: readonly string[],
-  layout: HardwareLayout,
-  reservedTail = 0,
-): GridKeyDef[] {
+function buildRow(rowIndex: number, tokens: readonly string[], layout: HardwareLayout): GridKeyDef[] {
   const row = rowIndex + 1;
   const keys: GridKeyDef[] = [];
   let col = 1;
-  const maxCol = GRID_COLUMNS - reservedTail + 1;
 
   for (const token of tokens) {
-    if (token === '[enter-iso]') continue;
-
-    const colSpan = colSpanForToken(token);
-    if (col + colSpan > maxCol) break;
-
+    const colSpan = colSpanForToken(token, layout);
     const meta = resolveTokenMeta(token);
     const code = meta.code ?? undefined;
 
@@ -186,49 +193,28 @@ function buildRow(
       rowSpan: 1,
       variant: meta.variant,
       homeRowMark: code ? HOME_ROW_CODES.has(code) : false,
+      isoBootCols: meta.isoBootCols,
     });
 
     col += colSpan;
   }
 
-  return keys;
-}
+  if (col !== GRID_COLUMNS + 1) {
+    throw new Error(
+      `${layout} row ${row} spans ${col - 1} columns (expected ${GRID_COLUMNS}): ${tokens.join(', ')}`,
+    );
+  }
 
-function appendIsoEnter(keys: GridKeyDef[], layout: HardwareLayout): void {
-  const colStart = GRID_COLUMNS - TOKEN_COL_SPAN['[enter-iso]'] + 1;
-  keys.push({
-    id: `${layout}-enter-iso`,
-    token: '[enter-iso]',
-    label: MODIFIER_LABELS['[enter-iso]'],
-    code: 'Enter',
-    row: 2,
-    colStart,
-    colSpan: TOKEN_COL_SPAN['[enter-iso]'],
-    rowSpan: 2,
-    variant: 'iso-enter',
-  });
+  return keys;
 }
 
 /** Builds a 60-column CSS grid key map for the requested hardware layout. */
 export function buildHardwareGrid(layout: HardwareLayout): GridKeyDef[] {
   const rows = getLayoutRows(layout);
-  const keys: GridKeyDef[] = [];
+  return rows.flatMap((tokens, rowIndex) => buildRow(rowIndex, tokens, layout));
+}
 
-  rows.forEach((tokens, rowIndex) => {
-    if (layout === 'MAC_ISO' && rowIndex === 1) {
-      keys.push(...buildRow(rowIndex, tokens, layout, TOKEN_COL_SPAN['[enter-iso]']));
-      return;
-    }
-
-    if (layout === 'MAC_ISO' && rowIndex === 2) {
-      const rowKeys = buildRow(rowIndex, tokens, layout, TOKEN_COL_SPAN['[enter-iso]']);
-      keys.push(...rowKeys);
-      appendIsoEnter(keys, layout);
-      return;
-    }
-
-    keys.push(...buildRow(rowIndex, tokens, layout));
-  });
-
-  return keys;
+/** Row span totals — exported for tests. */
+export function rowSpanTotal(tokens: readonly string[], layout: HardwareLayout): number {
+  return tokens.reduce((sum, token) => sum + colSpanForToken(token, layout), 0);
 }

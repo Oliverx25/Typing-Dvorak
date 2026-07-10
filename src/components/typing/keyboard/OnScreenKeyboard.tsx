@@ -1,8 +1,7 @@
 import { memo, type CSSProperties, type ReactNode } from 'react';
-import type { HardwareLayout } from '@/utils/keyboard/keyboardLayouts';
+import type { HardwareLayout, OsPreference } from '@/utils/keyboard/keyboardLayouts';
 import {
   buildHardwareGrid,
-  GRID_COLUMNS,
   type GridKeyDef,
   type GridKeyVariant,
 } from '@/utils/keyboard/hardwareGrid';
@@ -18,6 +17,7 @@ export interface GridKeyVisualState {
 
 interface OnScreenKeyboardProps {
   hardwareLayout: HardwareLayout;
+  osPreference?: OsPreference;
   className?: string;
   pressedKey?: string;
   targetKeySet?: Set<string>;
@@ -25,19 +25,53 @@ interface OnScreenKeyboardProps {
   renderKey?: (state: GridKeyVisualState) => ReactNode;
 }
 
+function resolveDisplayLabel(token: string, label: string, osPreference: OsPreference): string {
+  if (token === '[cmd]') return osPreference === 'Mac' ? '⌘' : 'Win';
+  if (token === '[opt]') return osPreference === 'Mac' ? '⌥' : 'Alt';
+  if (label === 'Space') return '';
+  return label;
+}
+
 function gridPlacementStyle(key: GridKeyDef): CSSProperties {
   return {
     gridColumn: `${key.colStart} / span ${key.colSpan}`,
-    gridRow: key.rowSpan > 1 ? `${key.row} / span ${key.rowSpan}` : undefined,
+    gridRow: key.row,
   };
 }
 
-function baseKeyClassName(variant: GridKeyVariant, isPressed: boolean, isTarget: boolean): string {
+function modifierSurfaceClass(isPressed: boolean, isTarget: boolean, isBlind: boolean): string {
+  if (isBlind) {
+    return 'border-[var(--color-border)]/40 bg-slate-700/20 text-slate-500/70 dark:bg-slate-800/30 dark:text-slate-500/60';
+  }
+  if (isPressed) {
+    return 'border-[var(--color-key-pressed)] bg-[var(--color-key-pressed)] text-white';
+  }
+  if (isTarget) {
+    return 'border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)] text-[var(--color-key-target)]';
+  }
+  return 'border-[var(--color-border)] bg-[var(--color-key)]/80 text-[var(--color-text-muted)]';
+}
+
+function baseKeyClassName(
+  variant: GridKeyVariant,
+  isPressed: boolean,
+  isTarget: boolean,
+): string {
+  if (variant === 'gap') {
+    return 'pointer-events-none border-0 bg-transparent opacity-0';
+  }
+
   if (variant === 'blind') {
     return [
-      'relative flex items-center justify-center rounded-lg border border-[var(--color-border)]/40',
-      'bg-slate-700/20 text-[10px] font-medium uppercase tracking-wide text-slate-500/70',
-      'dark:bg-slate-800/30 dark:text-slate-500/60',
+      'relative flex items-center justify-center rounded-lg border text-[10px] font-medium uppercase tracking-wide',
+      modifierSurfaceClass(isPressed, isTarget, true),
+    ].join(' ');
+  }
+
+  if (variant === 'iso-enter') {
+    return [
+      'relative z-10 flex items-start justify-center rounded-t-lg border font-mono text-sm font-medium sm:text-base',
+      modifierSurfaceClass(isPressed, isTarget, false),
     ].join(' ');
   }
 
@@ -72,14 +106,49 @@ function fingerStyle(
   };
 }
 
+function IsoEnterKey({
+  className,
+  style,
+  finger,
+  isTarget,
+  bootCols = 5,
+  topCols = 6,
+}: {
+  className: string;
+  style: CSSProperties;
+  finger?: CSSProperties;
+  isTarget: boolean;
+  bootCols?: number;
+  topCols?: number;
+}) {
+  return (
+    <div className={className} style={{ ...style, ...finger }}>
+      <span className="mt-2">↵</span>
+      <div
+        className={[
+          'absolute top-[calc(100%+0.25rem)] right-0 flex h-10 items-center justify-center rounded-b-lg border border-t-0 sm:h-11',
+          'border-[var(--color-border)] bg-[var(--color-key)]/80',
+          isTarget
+            ? 'border-[var(--color-key-target)] bg-[var(--color-key-target-bg)] text-[var(--color-key-target)]'
+            : 'text-[var(--color-text-muted)]',
+        ].join(' ')}
+        style={{ width: `calc(${(bootCols / topCols) * 100}% + ${bootCols - 1}px)` }}
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
+
 function DefaultGridKey({
   keyDef,
+  osPreference,
   pressedKey,
   targetKeySet,
   showFingers,
   renderKey,
 }: {
   keyDef: GridKeyDef;
+  osPreference: OsPreference;
   pressedKey?: string;
   targetKeySet: Set<string>;
   showFingers: boolean;
@@ -92,7 +161,6 @@ function DefaultGridKey({
 
   const className = [
     baseKeyClassName(keyDef.variant, isPressed, isTarget),
-    keyDef.variant === 'iso-enter' ? 'iso-enter-key' : '',
     keyDef.token === '[space]' ? 'text-xs' : '',
     'h-10 sm:h-11',
   ].join(' ');
@@ -102,26 +170,35 @@ function DefaultGridKey({
     ...finger,
   };
 
-  const displayLabel = keyDef.label === 'Space' ? '' : keyDef.label;
+  const displayLabel = resolveDisplayLabel(keyDef.token, keyDef.label, osPreference);
 
   if (renderKey) {
+    if (keyDef.variant === 'gap') {
+      return <div key={keyDef.id} className={className} style={style} aria-hidden="true" />;
+    }
     return <>{renderKey({ key: keyDef, className, style, displayLabel })}</>;
+  }
+
+  if (keyDef.variant === 'gap') {
+    return <div className={className} style={style} aria-hidden="true" />;
+  }
+
+  if (keyDef.variant === 'iso-enter') {
+    return (
+      <IsoEnterKey
+        className={className}
+        style={style}
+        finger={finger}
+        isTarget={isTarget}
+        bootCols={keyDef.isoBootCols}
+        topCols={keyDef.colSpan}
+      />
+    );
   }
 
   return (
     <div className={className} style={style}>
-      {keyDef.variant === 'iso-enter' ? (
-        <>
-          <span className="absolute inset-x-0 top-0 flex h-[calc(50%-2px)] items-center justify-center rounded-t-lg border border-b-0 border-[var(--color-border)] bg-[var(--color-key)]/80 text-[var(--color-text-muted)]">
-            ↵
-          </span>
-          <span className="absolute inset-x-0 bottom-0 top-[calc(50%-2px)] flex items-center justify-center rounded-b-lg border border-[var(--color-border)] bg-[var(--color-key)]/80 text-[var(--color-text-muted)]">
-            ↵
-          </span>
-        </>
-      ) : (
-        displayLabel
-      )}
+      {displayLabel}
 
       {keyDef.homeRowMark && !isPressed ? (
         <span
@@ -141,6 +218,7 @@ function DefaultGridKey({
 
 function OnScreenKeyboard({
   hardwareLayout,
+  osPreference = 'Mac',
   className = '',
   pressedKey,
   targetKeySet = new Set(),
@@ -151,20 +229,17 @@ function OnScreenKeyboard({
 
   return (
     <div
-      className={[
-        'grid w-full gap-1',
-        className,
-      ].join(' ')}
-      style={{
-        gridTemplateColumns: `repeat(${GRID_COLUMNS}, minmax(0, 1fr))`,
-        gridTemplateRows: 'repeat(5, minmax(2.5rem, auto))',
-      }}
+      className={['grid w-full grid-cols-[repeat(60,_minmax(0,_1fr))] gap-1 rounded-lg bg-slate-800/40 p-2', className].join(
+        ' ',
+      )}
+      style={{ gridTemplateRows: 'repeat(5, minmax(2.5rem, auto))' }}
       aria-hidden={renderKey ? undefined : true}
     >
       {keys.map((keyDef) => (
         <DefaultGridKey
           key={keyDef.id}
           keyDef={keyDef}
+          osPreference={osPreference}
           pressedKey={pressedKey}
           targetKeySet={targetKeySet}
           showFingers={showFingers}
