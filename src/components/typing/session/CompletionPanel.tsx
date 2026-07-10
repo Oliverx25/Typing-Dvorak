@@ -4,7 +4,7 @@ import { t as translate } from '@/i18n';
 import type { KeystrokeLogEntry } from '@/hooks/useTypingSession';
 import { useModalTransition } from '@/hooks/useModalTransition';
 import { GradeScoreRing } from '@/components/ui';
-import { calculateGrade } from '@/utils/grading';
+import { calculateGrade, boostFreePracticeGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { getNextRoadmapLessonId } from '@/utils/curriculum/roadmapChapters';
 import SessionAnalyticsPanel from '@/components/typing/session/completion/SessionAnalyticsPanel';
@@ -57,7 +57,9 @@ export default function CompletionPanel({
   const { requestClose, backdropClassName, panelClassName } = useModalTransition(onRetry);
   const [isExpanded, setIsExpanded] = useState(false);
   const isPerfect = accuracy === 100;
-  const grade = calculateGrade(accuracy);
+  const grade = isFreePractice
+    ? boostFreePracticeGrade(calculateGrade(accuracy))
+    : calculateGrade(accuracy);
   const score = calculateMaxScore(wpm, accuracy, maxCombo);
   const maxScore = Math.max(calculateMaxScore(wpm, 100, maxCombo), score, 1);
   const hasGraph = keystrokeLog.length > 2;

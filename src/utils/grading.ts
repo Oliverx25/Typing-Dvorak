@@ -30,6 +30,13 @@ export function calculateGrade(
   return base;
 }
 
+/** Practice mode promotes S→S+ and SS→SS+ for the completion card and saved sessions. */
+export function boostFreePracticeGrade(grade: string): Grade {
+  if (grade === 'S') return 'S+';
+  if (grade === 'SS') return 'SS+';
+  return grade as Grade;
+}
+
 export function gradeRank(grade: string | null | undefined): number {
   switch (grade) {
     case 'SS+':

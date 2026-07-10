@@ -9,7 +9,7 @@ import { isRoadmapSession, resolveSessionType } from '@/utils/stats/sessionClass
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { STORAGE_KEYS } from '@/utils/progress/keys';
 import { readJson, writeJson, readString, writeString } from '@/utils/progress/localStorage';
-import { calculateGrade, bestGrade } from '@/utils/grading';
+import { calculateGrade, bestGrade, boostFreePracticeGrade } from '@/utils/grading';
 import { calculateMaxScore } from '@/utils/multiplayer/raceScoring';
 import { saveSongProgress } from '@/utils/progress/songProgress';
 import { masteryXpForSession, isMicroLessonForMastery } from '@/utils/curriculum/mastery';
@@ -130,13 +130,14 @@ export function saveSession(
   },
 ): { isNewRecord: boolean; previousBest: number; record: SessionRecord } {
   const gradeMultiplier = options?.blindMode ? 1.2 : (options?.totalMultiplier ?? 1);
+  const normalizedLessonId = resolveLessonId(lessonId);
+  const sessionType = resolveSessionType(normalizedLessonId, options?.sessionType);
+  const rawGrade = options?.gradeOverride ?? calculateGrade(stats.accuracy, gradeMultiplier);
   const grade =
-    options?.gradeOverride ?? calculateGrade(stats.accuracy, gradeMultiplier);
+    sessionType === 'practice' ? boostFreePracticeGrade(rawGrade) : rawGrade;
   const score =
     options?.scoreOverride ??
     Math.round(stats.wpm * 10 * (stats.accuracy / 100) + maxCombo * 5);
-  const normalizedLessonId = resolveLessonId(lessonId);
-  const sessionType = resolveSessionType(normalizedLessonId, options?.sessionType);
   const record: SessionRecord = {
     lessonId: normalizedLessonId,
     lessonTitle,

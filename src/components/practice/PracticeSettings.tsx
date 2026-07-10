@@ -78,13 +78,6 @@ export default function PracticeSettings({ config, onChange }: PracticeSettingsP
         onChange={(content) => onChange({ content })}
       />
 
-      <SegmentedControl
-        ariaLabel={t.sandbox.contentLabel}
-        options={contentOptions}
-        value={config.content}
-        onChange={(content) => onChange({ content })}
-      />
-
       {!isLyricsMode ? (
         <>
           <SegmentedControl

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppProvider';
 import TypingTest from '@/components/typing/session/TypingTest';
 import { AppErrorBoundary } from '@/components/ui';
@@ -201,73 +202,86 @@ export default function PracticePage() {
   const showZenIdle = phase === 'idle' && !showLyricsSearch;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-100px)] w-full max-w-7xl flex-col items-center justify-center px-4">
+    <div className="relative mx-auto flex min-h-[calc(100vh-100px)] w-full flex-col items-center justify-start px-4 pt-8">
       <h1 className="sr-only">{t.practice.title}</h1>
 
       <div
         className={[
-          'mb-12 w-full transition-opacity duration-500',
+          'w-full shrink-0 transition-opacity duration-500',
           isTyping ? 'pointer-events-none opacity-10' : 'opacity-100',
         ].join(' ')}
       >
         <PracticeSettings config={config} onChange={handleConfigChange} />
       </div>
 
-      {showLyricsSearch ? (
-        <LyricsSearch onSelect={handleSongSelect} inputId="practice-lyrics-search" />
-      ) : null}
-
-      {showZenIdle ? (
-        <PracticeTeleprompterShell variant="idle">
-          {isLyricsMode && practiceSong ? (
-            <div className="mb-4 flex w-full max-w-3xl items-center justify-between gap-3 px-2">
-              <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-                {formatPracticeSongTitle(practiceSong)}
-              </p>
-              <button
-                type="button"
-                onClick={clearLyricsSelection}
-                className="shrink-0 text-xs text-[var(--color-highlight)] transition hover:underline"
-              >
-                {t.practice.lyricsChangeSong}
-              </button>
-            </div>
+      <div className="flex w-full flex-1 flex-col items-center">
+        <AnimatePresence mode="wait">
+          {showLyricsSearch ? (
+            <motion.div
+              key="practice-lyrics-search"
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="mt-12 flex w-full max-w-4xl flex-col items-center"
+            >
+              <LyricsSearch onSelect={handleSongSelect} inputId="practice-lyrics-search" />
+            </motion.div>
           ) : null}
-          <ZenTeleprompter
-            isDirty={isSettingsDirty}
-            isLoading={isLoading}
-            dirtyHint={dirtyHint}
-            loadingHint={loadingHint}
-            onStart={() => void handleStartPractice()}
-          />
-        </PracticeTeleprompterShell>
-      ) : null}
+        </AnimatePresence>
 
-      {phase === 'typing' ? (
-        <PracticeTeleprompterShell variant="active">
-          <AppErrorBoundary
-            section="typing"
-            resetKeys={[practiceText, sessionKey, config.mode, config.timeSeconds, config.wordCount, practiceSong?.id]}
-          >
-            <TypingTest
-              key={`${sessionKey}-${practiceText.slice(0, 32)}`}
-              lessonId={FREE_PRACTICE_LESSON_ID}
-              lesson={FREE_PRACTICE_LESSON}
-              customText={practiceText}
-              practiceMode={practiceMode}
-              testDurationSeconds={testDurationSeconds}
-              hideModeToggle
-              hideKeyboard
-              isFreePractice
-              zenStatsBar
-              onTypingStateChange={setIsTyping}
-              onFreePracticeRetry={handleReturnToZen}
-              sessionPersist={sessionPersist}
-              ariaLabel={t.practice.title}
+        {showZenIdle ? (
+          <PracticeTeleprompterShell variant="idle">
+            {isLyricsMode && practiceSong ? (
+              <div className="mb-4 flex w-full items-center justify-between gap-3">
+                <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                  {formatPracticeSongTitle(practiceSong)}
+                </p>
+                <button
+                  type="button"
+                  onClick={clearLyricsSelection}
+                  className="shrink-0 text-xs text-[var(--color-highlight)] transition hover:underline"
+                >
+                  {t.practice.lyricsChangeSong}
+                </button>
+              </div>
+            ) : null}
+            <ZenTeleprompter
+              isDirty={isSettingsDirty}
+              isLoading={isLoading}
+              dirtyHint={dirtyHint}
+              loadingHint={loadingHint}
+              onStart={() => void handleStartPractice()}
             />
-          </AppErrorBoundary>
-        </PracticeTeleprompterShell>
-      ) : null}
+          </PracticeTeleprompterShell>
+        ) : null}
+
+        {phase === 'typing' ? (
+          <PracticeTeleprompterShell variant="active">
+            <AppErrorBoundary
+              section="typing"
+              resetKeys={[practiceText, sessionKey, config.mode, config.timeSeconds, config.wordCount, practiceSong?.id]}
+            >
+              <TypingTest
+                key={`${sessionKey}-${practiceText.slice(0, 32)}`}
+                lessonId={FREE_PRACTICE_LESSON_ID}
+                lesson={FREE_PRACTICE_LESSON}
+                customText={practiceText}
+                practiceMode={practiceMode}
+                testDurationSeconds={testDurationSeconds}
+                hideModeToggle
+                hideKeyboard
+                isFreePractice
+                zenStatsBar
+                onTypingStateChange={setIsTyping}
+                onFreePracticeRetry={handleReturnToZen}
+                sessionPersist={sessionPersist}
+                ariaLabel={t.practice.title}
+              />
+            </AppErrorBoundary>
+          </PracticeTeleprompterShell>
+        ) : null}
+      </div>
     </div>
   );
 }

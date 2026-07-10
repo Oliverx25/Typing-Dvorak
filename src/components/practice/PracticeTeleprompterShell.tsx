@@ -2,9 +2,12 @@ import type { ReactNode } from 'react';
 
 const FEATHERED_MASK_STYLE = {
   WebkitMaskImage:
-    'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
-  maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+    'linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%)',
+  maskImage: 'linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%)',
 } as const;
+
+const SHELL_LAYOUT = 'mx-auto mt-12 w-[95vw] max-w-7xl';
+const INNER_PAD = 'px-8 sm:px-16';
 
 interface PracticeTeleprompterShellProps {
   children: ReactNode;
@@ -26,17 +29,19 @@ export default function PracticeTeleprompterShell({
     return (
       <div
         className={[
-          'mx-auto w-full max-w-7xl',
+          SHELL_LAYOUT,
           '[&_[role=textbox]]:border-transparent',
           '[&_[role=textbox]]:bg-transparent',
           '[&_[role=textbox]]:shadow-none',
           '[&_[role=textbox]]:ring-0',
           '[&_[role=textbox]]:p-0',
+          '[&_[role=textbox]]:px-8',
+          '[&_[role=textbox]]:sm:px-16',
           '[&_[role=textbox]:focus]:border-transparent',
           '[&_[role=textbox]:focus]:ring-0',
           '[&_[role=textbox]>div:first-child]:hidden',
-          '[&_[role=textbox]]:[mask-image:linear-gradient(to_right,transparent_0%,black_10%,black_90%,transparent_100%)]',
-          '[&_[role=textbox]]:[-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_10%,black_90%,transparent_100%)]',
+          '[&_[role=textbox]]:[mask-image:linear-gradient(to_right,transparent_0%,black_2%,black_98%,transparent_100%)]',
+          '[&_[role=textbox]]:[-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_2%,black_98%,transparent_100%)]',
           className,
         ].join(' ')}
       >
@@ -46,11 +51,8 @@ export default function PracticeTeleprompterShell({
   }
 
   return (
-    <div
-      className={['mx-auto w-full max-w-7xl', className].join(' ')}
-      style={FEATHERED_MASK_STYLE}
-    >
-      {children}
+    <div className={[SHELL_LAYOUT, className].join(' ')} style={FEATHERED_MASK_STYLE}>
+      <div className={INNER_PAD}>{children}</div>
     </div>
   );
 }

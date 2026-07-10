@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppProvider';
 import { useLyricsSearch } from '@/hooks/useLyricsSearch';
 import { useListKeyboardNav } from '@/hooks/useListKeyboardNav';
@@ -85,11 +86,13 @@ export default function LyricsSearchPanel({
   const needsScroll = isSearching || isPendingSearch || results.length > 6;
 
   return (
-    <div
+    <motion.div
+      layout
+      transition={{ layout: { duration: 0.3, ease: 'easeOut' } }}
       className={[
         isModal
           ? 'flex w-[min(100%,56rem)] flex-col rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
-          : 'mx-auto w-full max-w-3xl',
+          : 'mx-auto w-full max-w-4xl',
         needsScroll && isModal ? 'max-h-[min(90vh,52rem)] overflow-hidden' : '',
         className,
       ].join(' ')}
@@ -168,7 +171,9 @@ export default function LyricsSearchPanel({
       </div>
 
       {showResultsArea ? (
-        <div
+        <motion.div
+          layout
+          transition={{ layout: { duration: 0.3, ease: 'easeOut' } }}
           id={`${searchInputId}-results`}
           ref={listRef}
           role="listbox"
@@ -227,8 +232,8 @@ export default function LyricsSearchPanel({
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
       ) : null}
-    </div>
+    </motion.div>
   );
 }

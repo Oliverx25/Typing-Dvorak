@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateGrade, isGradeAtLeast } from '@/utils/grading';
+import { calculateGrade, isGradeAtLeast, boostFreePracticeGrade } from '@/utils/grading';
 
 describe('calculateGrade', () => {
   it('maps accuracy to global letter grades', () => {
@@ -23,5 +23,13 @@ describe('isGradeAtLeast', () => {
   it('orders special and normal grades', () => {
     expect(isGradeAtLeast('SS+', 'SS')).toBe(true);
     expect(isGradeAtLeast('A', 'S')).toBe(false);
+  });
+});
+
+describe('boostFreePracticeGrade', () => {
+  it('promotes S and SS in free practice', () => {
+    expect(boostFreePracticeGrade('S')).toBe('S+');
+    expect(boostFreePracticeGrade('SS')).toBe('SS+');
+    expect(boostFreePracticeGrade('A')).toBe('A');
   });
 });
