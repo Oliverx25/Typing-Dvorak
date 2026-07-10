@@ -50,6 +50,11 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+/** Removes combining marks (á→a, é→e, ñ→n, etc.) for practice without punctuation. */
+export function stripDiacritics(text: string): string {
+  return text.normalize('NFD').replace(/\p{M}/gu, '');
+}
+
 /** Truncates text to an exact word count (words mode). */
 export function truncateToWordCount(text: string, wordCount: number): string {
   const words = text.trim().split(/\s+/).filter(Boolean);
@@ -222,6 +227,7 @@ function formatProseText(
 
   if (!modifiers.includePunctuation) {
     text = text.replace(/[.,!?;:'"—–()[\]{}/\\@#$%^&*+=<>~`|]/g, '');
+    text = stripDiacritics(text);
     text = text.replace(/\s+/g, ' ').trim();
   }
 
@@ -248,7 +254,10 @@ function formatCodeText(
   }
 
   if (!modifiers.includePunctuation) {
-    lines = lines.map((line) => line.replace(/[.,!?;:'"—–]/g, ''));
+    lines = lines.map((line) => {
+      const stripped = line.replace(/[.,!?;:'"—–]/g, '');
+      return stripDiacritics(stripped);
+    });
   }
 
   if (!modifiers.includeCaps) {

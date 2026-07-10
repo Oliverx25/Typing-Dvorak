@@ -25,6 +25,24 @@ describe('formatPracticeText', () => {
     expect(result).toBe('Hello world');
   });
 
+  it('strips accents when punctuation modifier is off', () => {
+    const result = formatPracticeText('el éxito es la suma día tras día', {
+      includeCaps: false,
+      includeNumbers: true,
+      includePunctuation: false,
+    });
+    expect(result).toBe('el exito es la suma dia tras dia');
+  });
+
+  it('preserves accents when punctuation modifier is on', () => {
+    const result = formatPracticeText('el éxito', {
+      includeCaps: false,
+      includeNumbers: true,
+      includePunctuation: true,
+    });
+    expect(result).toBe('el éxito');
+  });
+
   it('preserves code line breaks', () => {
     const result = formatPracticeText('const x = 1;\nreturn x;', {
       includeCaps: true,

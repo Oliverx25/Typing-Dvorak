@@ -9,11 +9,11 @@ describe('formatPracticeSongTitle', () => {
 
 describe('formatPracticeLyrics', () => {
   it('preserves line breaks and applies modifiers', () => {
-    const result = formatPracticeLyrics('Hello WORLD\nSecond LINE!', {
+    const result = formatPracticeLyrics('Hello WORLD\nSegundo DÍA!', {
       includeCaps: false,
       includeNumbers: true,
       includePunctuation: false,
     });
-    expect(result).toBe('hello world\nsecond line');
+    expect(result).toBe('hello world\nsegundo dia');
   });
 });
