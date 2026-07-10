@@ -3,6 +3,7 @@ import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import { getChapterForLesson, getRoadmapChapters } from '@/utils/curriculum/roadmapChapters';
 import { getChapterShortTitleByKey } from '@/i18n/lessons';
 import LessonCard from '@/components/multiplayer/setup/LessonCard';
+import { useHorizontalDragScroll } from '@/hooks/useHorizontalDragScroll';
 import type { Lesson } from '@/utils/curriculum/lessons';
 import type { RoadmapChapter } from '@/utils/curriculum/catalogTypes';
 
@@ -51,13 +52,21 @@ export default function MultiplayerChapterLessonPicker({
   }, [selectedId]);
 
   const activeChapter = chaptersWithLessons.find((entry) => entry.chapter.id === activeChapterId);
+  const { ref: chapterTabsRef, isGrabbing, shouldSuppressClick, handlers: dragHandlers } =
+    useHorizontalDragScroll<HTMLDivElement>();
 
   return (
     <div className="flex flex-col">
       <div
+        ref={chapterTabsRef}
         role="tablist"
         aria-label={t.multiplayer.systemLesson}
-        className="mb-4 flex gap-2 overflow-x-auto border-b border-slate-200/80 pb-2 dark:border-slate-800/50 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        {...dragHandlers}
+        className={[
+          'mb-4 flex gap-2 overflow-x-auto border-b border-slate-200/80 pb-2 dark:border-slate-800/50',
+          'cursor-grab touch-pan-x select-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+          isGrabbing ? 'cursor-grabbing' : '',
+        ].join(' ')}
       >
         {chaptersWithLessons.map(({ chapter, chapterNumber }) => {
           const isActive = chapter.id === activeChapterId;
@@ -70,7 +79,10 @@ export default function MultiplayerChapterLessonPicker({
               role="tab"
               aria-selected={isActive}
               disabled={disabled}
-              onClick={() => setActiveChapterId(chapter.id)}
+              onClick={() => {
+                if (shouldSuppressClick()) return;
+                setActiveChapterId(chapter.id);
+              }}
               className={[
                 'shrink-0 rounded-full px-4 py-2 text-sm whitespace-nowrap transition-colors',
                 isActive
