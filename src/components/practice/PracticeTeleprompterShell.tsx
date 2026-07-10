@@ -26,7 +26,7 @@ export default function PracticeTeleprompterShell({
     return (
       <div
         className={[
-          'mx-auto w-full max-w-4xl',
+          'mx-auto w-full max-w-7xl',
           '[&_[role=textbox]]:border-transparent',
           '[&_[role=textbox]]:bg-transparent',
           '[&_[role=textbox]]:shadow-none',
@@ -47,7 +47,7 @@ export default function PracticeTeleprompterShell({
 
   return (
     <div
-      className={['mx-auto w-full max-w-4xl', className].join(' ')}
+      className={['mx-auto w-full max-w-7xl', className].join(' ')}
       style={FEATHERED_MASK_STYLE}
     >
       {children}

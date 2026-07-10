@@ -21,6 +21,7 @@ export default function PracticeSettings({ config, onChange }: PracticeSettingsP
     { value: 'en', label: t.practice.toolbar.english },
     { value: 'es', label: t.practice.toolbar.spanish },
     { value: 'code', label: t.practice.toolbar.code },
+    { value: 'prose', label: t.practice.toolbar.prose },
   ];
 
   const modeOptions: { value: SandboxMode; label: string }[] = [
@@ -38,12 +39,12 @@ export default function PracticeSettings({ config, onChange }: PracticeSettingsP
   return (
     <nav
       aria-label={t.practice.toolbar.label}
-      className="mb-8 flex w-full max-w-3xl flex-row flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-medium text-slate-500"
+      className="flex w-full max-w-7xl flex-nowrap items-center justify-center gap-x-4 overflow-x-auto text-sm font-medium text-slate-500 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <div
         role="group"
         aria-label={t.sandbox.modifiersLabel}
-        className="flex items-center rounded-lg bg-slate-200/60 p-1 dark:bg-slate-800/40"
+        className="flex shrink-0 items-center rounded-lg bg-slate-200/60 p-1 dark:bg-slate-800/40"
       >
         <ModifierToggle
           active={config.includePunctuation}

@@ -41,7 +41,7 @@ export default function SegmentedControl<T extends string | number>({
       ref={containerRef}
       role="group"
       aria-label={ariaLabel}
-      className="relative flex items-center rounded-lg bg-slate-200/60 p-1 dark:bg-slate-800/40"
+      className="relative flex shrink-0 items-center rounded-lg bg-slate-200/60 p-1 dark:bg-slate-800/40"
     >
       <span
         aria-hidden="true"
@@ -58,7 +58,7 @@ export default function SegmentedControl<T extends string | number>({
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={[
-              'relative z-10 rounded-md px-3 py-1 text-xs font-medium lowercase tracking-wide transition-colors duration-200',
+              'relative z-10 rounded-md px-2.5 py-1 text-xs font-medium lowercase tracking-wide transition-colors duration-200 sm:px-3',
               active
                 ? 'text-slate-900 dark:text-white'
                 : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300',

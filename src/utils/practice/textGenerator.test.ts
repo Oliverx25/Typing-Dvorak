@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { formatPracticeText, resolvePracticeLoadingSource } from '@/utils/practice/textGenerator';
+import {
+  formatPracticeText,
+  resolvePracticeLoadingSource,
+  truncateToWordCount,
+} from '@/utils/practice/textGenerator';
 import { resolveSessionType, isRoadmapSession } from '@/utils/stats/sessionClassification';
 
 describe('formatPracticeText', () => {
@@ -31,11 +35,19 @@ describe('formatPracticeText', () => {
   });
 });
 
+describe('truncateToWordCount', () => {
+  it('truncates to an exact word count', () => {
+    expect(truncateToWordCount('one two three four five six', 3)).toBe('one two three');
+    expect(truncateToWordCount('  alpha   beta  gamma delta  ', 2)).toBe('alpha beta');
+  });
+});
+
 describe('resolvePracticeLoadingSource', () => {
   it('maps content types to loading sources', () => {
     expect(resolvePracticeLoadingSource('code')).toBe('github');
     expect(resolvePracticeLoadingSource('es')).toBe('translate');
     expect(resolvePracticeLoadingSource('en')).toBe('generic');
+    expect(resolvePracticeLoadingSource('prose')).toBe('generic');
   });
 });
 

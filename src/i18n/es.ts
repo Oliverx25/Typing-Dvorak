@@ -161,6 +161,7 @@ export const es: TranslationKey = {
       english: 'inglés',
       spanish: 'español',
       code: 'código',
+      prose: 'libros',
       time: 'tiempo',
       words: 'palabras',
     },

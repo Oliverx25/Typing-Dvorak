@@ -159,6 +159,7 @@ export const en = {
       english: 'english',
       spanish: 'spanish',
       code: 'code',
+      prose: 'books',
       time: 'time',
       words: 'words',
     },

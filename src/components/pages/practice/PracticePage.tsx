@@ -35,6 +35,7 @@ export default function PracticePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [practiceText, setPracticeText] = useState('');
   const [sessionKey, setSessionKey] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const handleConfigChange = useCallback(
@@ -58,6 +59,7 @@ export default function PracticePage() {
     abortRef.current?.abort();
     setPhase('idle');
     setIsSettingsDirty(true);
+    setIsTyping(false);
     setPracticeText('');
     setSessionKey((value) => value + 1);
   }, []);
@@ -77,9 +79,8 @@ export default function PracticePage() {
       setIsSettingsDirty(false);
       setSessionKey((value) => value + 1);
       setPhase('typing');
-    } catch (error) {
+    } catch {
       if (controller.signal.aborted) return;
-      console.warn('[practice] text generation failed:', error);
       setIsSettingsDirty(true);
     } finally {
       if (!controller.signal.aborted) {
@@ -123,10 +124,17 @@ export default function PracticePage() {
   }, [config.content, t.practice]);
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-100px)] w-full max-w-4xl flex-col items-center justify-center px-4">
+    <div className="mx-auto flex min-h-[calc(100vh-100px)] w-full max-w-7xl flex-col items-center justify-center px-4">
       <h1 className="sr-only">{t.practice.title}</h1>
 
-      <PracticeSettings config={config} onChange={handleConfigChange} />
+      <div
+        className={[
+          'mb-12 w-full transition-opacity duration-500',
+          isTyping ? 'pointer-events-none opacity-10' : 'opacity-100',
+        ].join(' ')}
+      >
+        <PracticeSettings config={config} onChange={handleConfigChange} />
+      </div>
 
       {phase === 'idle' ? (
         <PracticeTeleprompterShell variant="idle">
@@ -154,6 +162,8 @@ export default function PracticePage() {
               hideModeToggle
               hideKeyboard
               isFreePractice
+              zenStatsBar
+              onTypingStateChange={setIsTyping}
               onFreePracticeRetry={handleReturnToZen}
               sessionPersist={{ sessionType: 'practice' }}
               ariaLabel={t.practice.title}

@@ -8,6 +8,7 @@ import CompletionPanel from '@/components/typing/session/CompletionPanel';
 import ModeToggle, { ModeDescription } from '@/components/typing/session/ModeToggle';
 import PauseOverlay from '@/components/typing/session/PauseOverlay';
 import ComboCounter from '@/components/typing/session/ComboCounter';
+import MiniStatusBar from '@/components/practice/MiniStatusBar';
 import TypingTextPrompter from '@/components/typing/session/TypingTextPrompter';
 import VampireHealthBar from '@/components/typing/session/VampireHealthBar';
 
@@ -38,6 +39,9 @@ interface TypingTestProps {
   hideKeyboard?: boolean;
   isFreePractice?: boolean;
   onFreePracticeRetry?: () => void;
+  /** Minimal inline stats for Zen practice mode. */
+  zenStatsBar?: boolean;
+  onTypingStateChange?: (isTyping: boolean) => void;
   ariaLabel?: string;
   raceMode?: boolean;
   /** Musical pacer WPM fallback when no LRC timeline is stored. */
@@ -65,6 +69,8 @@ export default function TypingTest({
   hideKeyboard = false,
   isFreePractice = false,
   onFreePracticeRetry,
+  zenStatsBar = false,
+  onTypingStateChange,
   ariaLabel,
   raceMode = false,
   musicPacerWpm = null,
@@ -159,6 +165,10 @@ export default function TypingTest({
   });
 
   useEffect(() => {
+    onTypingStateChange?.(started && !finished);
+  }, [started, finished, onTypingStateChange]);
+
+  useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
     setKeyboardOpen(!mq.matches);
     const handler = (e: MediaQueryListEvent) => setKeyboardOpen(!e.matches);
@@ -216,7 +226,7 @@ export default function TypingTest({
   const showModeToggle = !hideModeToggle && !isCustomPractice;
 
   return (
-    <div className="space-y-6">
+    <div className={zenStatsBar ? 'space-y-4' : 'space-y-6'}>
       {showModeToggle ? (
         <>
           <ModeToggle />
@@ -224,17 +234,33 @@ export default function TypingTest({
         </>
       ) : null}
 
-      <StatsBar
-        wpm={stats.wpm}
-        accuracy={stats.accuracy}
-        elapsedSeconds={stats.elapsedSeconds}
-        progress={progress}
-        finished={finished}
-        started={started}
-        isTestMode={isTestMode}
-        timeRemaining={timeRemaining}
-        errors={raceMode ? errorKeystrokes : undefined}
-      />
+      {zenStatsBar ? (
+        <MiniStatusBar
+          wpm={stats.wpm}
+          accuracy={stats.accuracy}
+          elapsedSeconds={stats.elapsedSeconds}
+          progress={progress}
+          started={started}
+          finished={finished}
+          isTestMode={isTestMode}
+          timeRemaining={timeRemaining}
+          combo={combo}
+          comboBroke={comboBroke}
+          onComboBrokeHandled={clearComboBroke}
+        />
+      ) : (
+        <StatsBar
+          wpm={stats.wpm}
+          accuracy={stats.accuracy}
+          elapsedSeconds={stats.elapsedSeconds}
+          progress={progress}
+          finished={finished}
+          started={started}
+          isTestMode={isTestMode}
+          timeRemaining={timeRemaining}
+          errors={raceMode ? errorKeystrokes : undefined}
+        />
+      )}
 
       {vampireMode && !finished ? (
         <VampireHealthBar hp={vampireHp} damaged={vampireDamaged} />
@@ -263,7 +289,7 @@ export default function TypingTest({
           aria-hidden="true"
         />
 
-        {(started || combo > 0) && !finished && (
+        {(started || combo > 0) && !finished && !zenStatsBar && (
           <div className="absolute top-3 right-3 z-10">
             <ComboCounter
               combo={combo}

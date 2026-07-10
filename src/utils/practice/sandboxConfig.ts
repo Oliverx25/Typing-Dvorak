@@ -1,7 +1,7 @@
 import { readJson, writeJson } from '@/utils/progress/localStorage';
 
 export type SandboxMode = 'time' | 'words';
-export type SandboxContent = 'es' | 'en' | 'code';
+export type SandboxContent = 'es' | 'en' | 'code' | 'prose';
 export type SandboxTimeLength = 15 | 30 | 60;
 export type SandboxWordLength = 10 | 25 | 50 | 100;
 
