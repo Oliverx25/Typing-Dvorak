@@ -46,6 +46,10 @@ import {
   type KeystrokeLogEntry,
 } from '@/utils/typing/keystrokeTelemetry';
 import { wordHasUncorrectedErrors } from '@/utils/typing/wordErrors';
+import { countRemainingWords } from '@/utils/typing/textBuffer';
+
+/** Words left before fetching another practice chunk in timed mode. */
+const TEXT_BUFFER_WORD_THRESHOLD = 15;
 
 /** Live WPM / elapsed refresh — 10 fps keeps stats smooth without excess renders. */
 const STATS_TICK_MS = 100;
@@ -75,6 +79,8 @@ interface UseTypingSessionOptions {
   stopOnWord?: boolean;
   blindMode?: boolean;
   testDurationSeconds?: number;
+  /** Fetches the next text chunk for timed free-practice sessions. */
+  fetchMoreText?: () => Promise<string | undefined>;
 }
 
 function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string): string {
@@ -86,6 +92,19 @@ function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string)
       lesson.generated ? generateDrillText(charSet, 48) : pickRandomText(lesson.texts),
     locale,
   );
+}
+
+function resolveSessionText(
+  lesson: Lesson,
+  locale: Locale,
+  isTestMode: boolean,
+  zenMode: boolean,
+  customText?: string,
+): string {
+  if (zenMode) return '';
+  if (customText?.trim()) return sanitizeCustomText(customText).trim();
+  if (isTestMode) return getLessonTestStream(lesson, locale);
+  return resolveInitialText(lesson, locale, customText);
 }
 
 export function useTypingSession({
@@ -107,6 +126,7 @@ export function useTypingSession({
   stopOnWord = false,
   blindMode = false,
   testDurationSeconds = TEST_DURATION_SECONDS,
+  fetchMoreText,
 }: UseTypingSessionOptions) {
   const effectiveStopOnError = raceMode ? false : stopOnError;
   const effectiveStopOnWord = raceMode ? false : stopOnWord;
@@ -116,11 +136,7 @@ export function useTypingSession({
 
   const initialRef = useRef<{ text: string; statuses: CharStatus[] } | null>(null);
   if (!initialRef.current) {
-    const text = zenMode
-      ? ''
-      : isTestMode
-        ? getLessonTestStream(lesson, locale)
-        : resolveInitialText(lesson, locale, customText);
+    const text = resolveSessionText(lesson, locale, isTestMode, zenMode, customText);
     initialRef.current = { text, statuses: text.split('').map(() => 'pending' as CharStatus) };
   }
 
@@ -166,6 +182,13 @@ export function useTypingSession({
   const rhythmLockBrokenRef = useRef(false);
   const vampireHpRef = useRef(VAMPIRE_MAX_HP);
   vampireHpRef.current = vampireHp;
+  const isFetchingMoreRef = useRef(false);
+  const fetchMoreTextRef = useRef(fetchMoreText);
+  fetchMoreTextRef.current = fetchMoreText;
+  const targetTextRef = useRef(targetText);
+  targetTextRef.current = targetText;
+  const inputLengthRef = useRef(input.length);
+  inputLengthRef.current = input.length;
 
   const correctChars = correctCharsCountRef.current;
   const liveStats = zenMode
@@ -211,6 +234,29 @@ export function useTypingSession({
       activeKeyTimerRef.current = null;
     }, 150);
   }, []);
+
+  const maybeFetchMoreText = useCallback((typedLength: number) => {
+    const fetchFn = fetchMoreTextRef.current;
+    if (!fetchFn || !isTestMode || finished || !started || paused) return;
+    if (isFetchingMoreRef.current) return;
+
+    const timeLeft = testDurationSeconds - Math.floor(elapsedMs / 1000);
+    if (timeLeft <= 0) return;
+    if (countRemainingWords(targetTextRef.current, typedLength) >= TEXT_BUFFER_WORD_THRESHOLD) return;
+
+    isFetchingMoreRef.current = true;
+    void fetchFn()
+      .then((chunk) => {
+        isFetchingMoreRef.current = false;
+        if (!chunk?.trim()) return;
+        const extension = ` ${chunk.trim()}`;
+        setTargetText((prev) => prev + extension);
+        dispatch({ type: 'EXTEND_TEXT', extension });
+      })
+      .catch(() => {
+        isFetchingMoreRef.current = false;
+      });
+  }, [elapsedMs, finished, isTestMode, paused, started, testDurationSeconds]);
 
   const maxComboRef = useRef(0);
   maxComboRef.current = maxCombo;
@@ -368,9 +414,7 @@ export function useTypingSession({
     totalPausedMsRef.current = 0;
     pausedAtRef.current = null;
     startTimeRef.current = null;
-    const text = isTestMode
-      ? generateTestStream(lesson.charSet ?? 'all')
-      : resolveInitialText(lesson, locale, customText);
+    const text = resolveSessionText(lesson, locale, isTestMode, zenMode, customText);
     setTargetText(text);
     dispatch({ type: 'RESET', text });
     setStarted(false);
@@ -406,7 +450,7 @@ export function useTypingSession({
       activeKeyTimerRef.current = null;
     }
     requestAnimationFrame(() => containerRef.current?.focus());
-  }, [isTestMode, lesson, locale, customText]);
+  }, [isTestMode, lesson, locale, customText, zenMode]);
 
   useEffect(() => {
     if (!started || finished || paused) return;
@@ -431,9 +475,12 @@ export function useTypingSession({
           buildStats(correctCharsRef.current, errorKeystrokesRef.current, elapsed, true),
         );
       }
+      if (isTestMode && fetchMoreTextRef.current) {
+        maybeFetchMoreText(inputLengthRef.current);
+      }
     }, STATS_TICK_MS);
     return () => clearInterval(interval);
-  }, [started, finished, paused, isTestMode, finishSession, raceMode]);
+  }, [started, finished, paused, isTestMode, finishSession, raceMode, durationMs, maybeFetchMoreText]);
 
   useEffect(
     () => () => {
@@ -717,9 +764,13 @@ export function useTypingSession({
     if (pulseCode) pulseActiveKey(pulseCode);
 
     if (isTestMode && newInput.length >= targetText.length - 20) {
-      const extension = ' ' + generateDrillText(lesson.charSet ?? 'all', 40);
-      setTargetText((prev) => prev + extension);
-      dispatch({ type: 'EXTEND_TEXT', extension });
+      if (fetchMoreTextRef.current) {
+        maybeFetchMoreText(newInput.length);
+      } else {
+        const extension = ` ${generateDrillText(lesson.charSet ?? 'all', 40)}`;
+        setTargetText((prev) => prev + extension);
+        dispatch({ type: 'EXTEND_TEXT', extension });
+      }
     }
 
     if (!isTestMode && newInput.length === targetText.length) {
@@ -755,6 +806,7 @@ export function useTypingSession({
     musicPacerEnabled,
     forceFinishEarly,
     lesson,
+    maybeFetchMoreText,
     pulseActiveKey,
   ]);
 

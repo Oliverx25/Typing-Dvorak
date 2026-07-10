@@ -56,6 +56,8 @@ interface TypingTestProps {
   sessionPersist?: SessionPersistOptions;
   onProgressChange?: (update: TypingProgressUpdate, force?: boolean) => void;
   testDurationSeconds?: number;
+  /** Background text chunks for timed free practice. */
+  fetchMoreText?: () => Promise<string | undefined>;
 }
 
 export default function TypingTest({
@@ -82,6 +84,7 @@ export default function TypingTest({
   sessionPersist,
   onProgressChange,
   testDurationSeconds,
+  fetchMoreText,
 }: TypingTestProps) {
   const { t, settings } = useApp();
   const lessonTitle = ariaLabel ?? getLessonTitle(t, lesson.titleKey);
@@ -108,6 +111,7 @@ export default function TypingTest({
     stopOnWord: raceMode ? false : settings.stopOnWord,
     blindMode: effectiveBlindMode,
     testDurationSeconds,
+    fetchMoreText,
   });
 
   const {
@@ -313,7 +317,7 @@ export default function TypingTest({
           caretAnimation={settings.caretAnimation}
         />
 
-        {!started && !finished && (
+        {!started && !finished && !zenStatsBar && (
           <p className="relative mt-6 flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
             <span className="inline-flex h-2 w-2 rounded-full bg-[var(--color-highlight)] animate-pulse motion-reduce:animate-none" />
             {zenEnabled ? t.lesson.zenStartHint : t.lesson.startTyping}
@@ -368,7 +372,7 @@ export default function TypingTest({
         </div>
       )}
 
-      {effectiveBlindMode && !finished && (
+      {effectiveBlindMode && !finished && !zenStatsBar && (
         <p className="flex items-center justify-center gap-1.5 text-center text-xs text-[var(--color-text-muted)]">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
@@ -380,7 +384,7 @@ export default function TypingTest({
         </p>
       )}
 
-      {isTestMode && started && !finished && (
+      {isTestMode && started && !finished && !zenStatsBar && (
         <p className="text-center text-xs text-[var(--color-text-muted)]">{t.lesson.pauseHint}</p>
       )}
     </div>

@@ -281,6 +281,12 @@ body.zen-active [data-zen-fade] {
   pointer-events: none;
 }
 
+/* Practice route: hide chrome immediately for full immersion. */
+body.zen-mode-active header,
+body.zen-mode-active footer {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-zen-fade] {
     transition: none;

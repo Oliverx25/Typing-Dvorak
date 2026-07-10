@@ -6,7 +6,7 @@ const FEATHERED_MASK_STYLE = {
   maskImage: 'linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%)',
 } as const;
 
-const SHELL_LAYOUT = 'mx-auto mt-12 w-[95vw] max-w-7xl';
+const SHELL_LAYOUT = 'mx-auto w-[95vw] max-w-7xl';
 const INNER_PAD = 'px-8 sm:px-16';
 
 interface PracticeTeleprompterShellProps {

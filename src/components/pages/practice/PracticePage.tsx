@@ -43,6 +43,9 @@ export default function PracticePage() {
   const [sessionKey, setSessionKey] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const bufferAbortRef = useRef<AbortController | null>(null);
+
+  const BUFFER_WORD_COUNT: SandboxConfig['wordCount'] = 50;
 
   const isLyricsMode = config.content === 'lyrics';
 
@@ -134,8 +137,33 @@ export default function PracticePage() {
     }
   }, [config, isLoading, isLyricsMode, practiceSong, practiceText]);
 
+  const fetchMorePracticeText = useCallback(async () => {
+    if (config.mode !== 'time' || isLyricsMode) return undefined;
+
+    bufferAbortRef.current?.abort();
+    const controller = new AbortController();
+    bufferAbortRef.current = controller;
+
+    try {
+      const bufferConfig: SandboxConfig = {
+        ...config,
+        mode: 'words',
+        wordCount: BUFFER_WORD_COUNT,
+      };
+      return await generatePracticeText(bufferConfig, controller.signal);
+    } catch {
+      if (controller.signal.aborted) return undefined;
+      return undefined;
+    }
+  }, [config, isLyricsMode]);
+
   useEffect(() => {
     setConfig(getSandboxConfig());
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.add('zen-mode-active');
+    return () => document.body.classList.remove('zen-mode-active');
   }, []);
 
   useEffect(() => {
@@ -168,7 +196,10 @@ export default function PracticePage() {
   }, [phase, isSettingsDirty, isLoading, handleStartPractice, isLyricsMode, practiceSong]);
 
   useEffect(() => {
-    return () => abortRef.current?.abort();
+    return () => {
+      abortRef.current?.abort();
+      bufferAbortRef.current?.abort();
+    };
   }, []);
 
   const practiceMode = isLyricsMode ? 'practice' : config.mode === 'time' ? 'test' : 'practice';
@@ -202,19 +233,19 @@ export default function PracticePage() {
   const showZenIdle = phase === 'idle' && !showLyricsSearch;
 
   return (
-    <div className="relative mx-auto flex min-h-[calc(100vh-100px)] w-full flex-col items-center justify-start px-4 pt-8">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center px-4">
       <h1 className="sr-only">{t.practice.title}</h1>
 
       <div
         className={[
-          'w-full shrink-0 transition-opacity duration-500',
+          'mb-6 w-full max-w-7xl shrink-0 transition-opacity duration-500',
           isTyping ? 'pointer-events-none opacity-10' : 'opacity-100',
         ].join(' ')}
       >
         <PracticeSettings config={config} onChange={handleConfigChange} />
       </div>
 
-      <div className="flex w-full flex-1 flex-col items-center">
+      <div className="flex w-full max-w-7xl flex-1 flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {showLyricsSearch ? (
             <motion.div
@@ -223,7 +254,7 @@ export default function PracticePage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="mt-12 flex w-full max-w-4xl flex-col items-center"
+              className="flex w-full flex-col items-center"
             >
               <LyricsSearch onSelect={handleSongSelect} inputId="practice-lyrics-search" />
             </motion.div>
@@ -276,6 +307,7 @@ export default function PracticePage() {
                 onTypingStateChange={setIsTyping}
                 onFreePracticeRetry={handleReturnToZen}
                 sessionPersist={sessionPersist}
+                fetchMoreText={config.mode === 'time' && !isLyricsMode ? fetchMorePracticeText : undefined}
                 ariaLabel={t.practice.title}
               />
             </AppErrorBoundary>
