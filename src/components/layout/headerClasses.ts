@@ -11,6 +11,12 @@ export const headerLinkClassName = [
   focusRingInsetClassName,
 ].join(' ');
 
+/** Compact text-only nav links for the app header. */
+export const headerNavLinkClassName = [
+  'inline-flex h-9 shrink-0 items-center px-2 text-sm font-medium leading-none text-[var(--color-text-muted)] no-underline transition-colors duration-200 hover:text-[var(--color-highlight)]',
+  focusRingInsetClassName,
+].join(' ');
+
 export const headerDividerClassName = 'mx-0.5 h-6 w-px shrink-0 bg-[var(--color-border)]';
 
 export const headerAvatarButtonClassName = [

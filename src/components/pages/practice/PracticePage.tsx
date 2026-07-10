@@ -3,6 +3,7 @@ import { useApp } from '@/contexts/AppProvider';
 import TypingTest from '@/components/typing/session/TypingTest';
 import { AppErrorBoundary } from '@/components/ui';
 import PracticeSettings from '@/components/practice/PracticeSettings';
+import PracticeTeleprompterShell from '@/components/practice/PracticeTeleprompterShell';
 import ZenTeleprompter from '@/components/practice/ZenTeleprompter';
 import type { Lesson } from '@/utils/curriculum/lessons';
 import {
@@ -117,42 +118,43 @@ export default function PracticePage() {
   }, [config.content, t.practice]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-[var(--color-text)]">{t.practice.title}</h1>
-        <p className="mt-2 text-[var(--color-text-muted)]">{t.practice.desc}</p>
-      </header>
+    <div className="mx-auto flex min-h-[calc(100vh-100px)] w-full max-w-4xl flex-col items-center justify-center px-4">
+      <h1 className="sr-only">{t.practice.title}</h1>
 
       <PracticeSettings config={config} onChange={handleConfigChange} />
 
       {phase === 'idle' ? (
-        <ZenTeleprompter
-          isDirty={isSettingsDirty}
-          isLoading={isLoading}
-          dirtyHint={t.practice.dirtyHint}
-          loadingHint={loadingHint}
-          onStart={() => void handleStartPractice()}
-        />
-      ) : (
-        <AppErrorBoundary
-          section="typing"
-          resetKeys={[practiceText, sessionKey, config.mode, config.timeSeconds, config.wordCount]}
-        >
-          <TypingTest
-            key={`${sessionKey}-${practiceText.slice(0, 32)}`}
-            lessonId={FREE_PRACTICE_LESSON_ID}
-            lesson={FREE_PRACTICE_LESSON}
-            customText={practiceText}
-            practiceMode={practiceMode}
-            testDurationSeconds={testDurationSeconds}
-            hideModeToggle
-            hideKeyboard
-            isFreePractice
-            onFreePracticeRetry={handleReturnToZen}
-            sessionPersist={{ sessionType: 'practice' }}
-            ariaLabel={t.practice.title}
+        <PracticeTeleprompterShell variant="idle">
+          <ZenTeleprompter
+            isDirty={isSettingsDirty}
+            isLoading={isLoading}
+            dirtyHint={t.practice.dirtyHint}
+            loadingHint={loadingHint}
+            onStart={() => void handleStartPractice()}
           />
-        </AppErrorBoundary>
+        </PracticeTeleprompterShell>
+      ) : (
+        <PracticeTeleprompterShell variant="active">
+          <AppErrorBoundary
+            section="typing"
+            resetKeys={[practiceText, sessionKey, config.mode, config.timeSeconds, config.wordCount]}
+          >
+            <TypingTest
+              key={`${sessionKey}-${practiceText.slice(0, 32)}`}
+              lessonId={FREE_PRACTICE_LESSON_ID}
+              lesson={FREE_PRACTICE_LESSON}
+              customText={practiceText}
+              practiceMode={practiceMode}
+              testDurationSeconds={testDurationSeconds}
+              hideModeToggle
+              hideKeyboard
+              isFreePractice
+              onFreePracticeRetry={handleReturnToZen}
+              sessionPersist={{ sessionType: 'practice' }}
+              ariaLabel={t.practice.title}
+            />
+          </AppErrorBoundary>
+        </PracticeTeleprompterShell>
       )}
     </div>
   );

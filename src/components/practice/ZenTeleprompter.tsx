@@ -19,43 +19,32 @@ export default function ZenTeleprompter({
       onClick={onStart}
       disabled={isLoading}
       className={[
-        'group relative mx-auto w-full max-w-3xl cursor-pointer overflow-hidden rounded-2xl border-2 border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-8 text-left outline-none transition-all duration-300',
-        'hover:border-[var(--color-highlight)]/50 focus-visible:border-[var(--color-highlight)]/50 focus-visible:ring-4 focus-visible:ring-[var(--color-highlight)]/10',
+        'group relative mx-auto w-full max-w-3xl cursor-pointer bg-transparent p-4 text-left outline-none',
+        'focus-visible:ring-2 focus-visible:ring-[var(--color-highlight)]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]',
         isLoading ? 'cursor-wait' : '',
       ].join(' ')}
       aria-label={isLoading ? loadingHint : dirtyHint}
     >
       <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          backgroundImage:
-            'linear-gradient(var(--color-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-border) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-          maskImage: 'linear-gradient(to bottom, black, transparent)',
-        }}
-        aria-hidden="true"
-      />
-
-      <div
         className={[
-          'relative min-h-[12rem] transition-all duration-300',
-          isDirty ? 'blur-md grayscale opacity-50' : '',
+          'relative min-h-[10rem] transition-all duration-300',
+          isDirty || isLoading ? 'blur-sm opacity-50' : '',
         ].join(' ')}
       >
-        <p className="font-mono text-lg leading-relaxed text-[var(--color-text-muted)]">
+        <p className="font-mono text-xl leading-relaxed text-slate-400 dark:text-slate-600">
           ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ··· ···
         </p>
       </div>
 
       {(isDirty || isLoading) && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 p-6">
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 p-6">
           {isLoading ? (
             <span
-              className="size-6 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]"
+              className="size-5 animate-spin rounded-full border-2 border-slate-300 border-t-[var(--color-highlight)] dark:border-slate-700"
               aria-hidden="true"
             />
           ) : null}
-          <p className="max-w-sm text-center text-sm font-medium text-[var(--color-text)]">
+          <p className="max-w-md text-center text-sm text-slate-500 dark:text-slate-400">
             {isLoading ? loadingHint : dirtyHint}
           </p>
         </div>

@@ -3,7 +3,7 @@ export const en = {
   footer: 'Built with Astro · Practice the Dvorak layout daily',
   nav: {
     lessons: 'Lessons',
-    practice: 'Free training',
+    practice: 'Practice',
     stats: 'Stats',
     multiplayer: 'Multiplayer',
     settings: 'Settings',
@@ -147,10 +147,21 @@ export const en = {
   practice: {
     title: 'Free training',
     desc: 'Configure your session, then click the teleprompter or press Enter to generate fresh text.',
-    dirtyHint: 'Click or press Enter to start with these settings',
+    dirtyHint: 'Click or press Enter to restart with new settings',
     loadingHint: 'Generating text…',
     loadingGitHub: 'Fetching code from GitHub…',
     loadingTranslate: 'Translating practice text…',
+    toolbar: {
+      label: 'Practice settings',
+      punctuation: '@ punctuation',
+      numbers: '# numbers',
+      caps: '^ caps',
+      english: 'english',
+      spanish: 'spanish',
+      code: 'code',
+      time: 'time',
+      words: 'words',
+    },
   },
   mastery: {
     bronze: 'Bronze',

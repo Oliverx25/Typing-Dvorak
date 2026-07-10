@@ -1,12 +1,12 @@
 import { useApp } from '@/contexts/AppProvider';
 import { useAuth } from '@/contexts/AuthProvider';
 import { usePathname } from '@/hooks/usePathname';
-import { getHeaderNavItems, resolveNavSection } from '@/utils/navigation/headerNav';
+import { getHeaderNavItems } from '@/utils/navigation/headerNav';
 import ThemeToggle from '@/components/layout/header/ThemeToggle';
 import SettingsPanel from '@/components/layout/settings/SettingsPanel';
 import AuthControls from '@/components/auth/shell/AuthControls';
 import UserProfileDropdown from '@/components/auth/profile/UserProfileDropdown';
-import { headerDividerClassName, headerLinkClassName } from '@/components/layout/headerClasses';
+import { headerDividerClassName, headerNavLinkClassName } from '@/components/layout/headerClasses';
 import { RoomAwareLink } from '@/components/multiplayer/lobby/RoomAwareLink';
 
 interface HeaderActionsProps {
@@ -16,8 +16,7 @@ interface HeaderActionsProps {
 function NavLinks({ showMultiplayer }: { showMultiplayer: boolean }) {
   const { t } = useApp();
   const pathname = usePathname();
-  const section = resolveNavSection(pathname);
-  const items = getHeaderNavItems(section, showMultiplayer);
+  const items = getHeaderNavItems(pathname, showMultiplayer);
 
   const labels = {
     lessons: t.nav.lessons,
@@ -29,7 +28,7 @@ function NavLinks({ showMultiplayer }: { showMultiplayer: boolean }) {
   return (
     <>
       {items.map((item) => (
-        <RoomAwareLink key={item.href} href={item.href} className={headerLinkClassName}>
+        <RoomAwareLink key={item.href} href={item.href} className={headerNavLinkClassName}>
           {labels[item.labelKey]}
         </RoomAwareLink>
       ))}

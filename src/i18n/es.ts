@@ -5,7 +5,7 @@ export const es: TranslationKey = {
   footer: 'Hecho con Astro · Practica el layout Dvorak cada día',
   nav: {
     lessons: 'Lecciones',
-    practice: 'Práctica libre',
+    practice: 'Práctica',
     stats: 'Estadísticas',
     multiplayer: 'Multijugador',
     settings: 'Ajustes',
@@ -149,10 +149,21 @@ export const es: TranslationKey = {
   practice: {
     title: 'Práctica libre',
     desc: 'Configura tu sesión y haz clic en el teleprompter o presiona Enter para generar texto nuevo.',
-    dirtyHint: 'Haz clic o presiona Enter para iniciar con estos ajustes',
+    dirtyHint: 'Haz clic o presiona Enter para reiniciar con los nuevos ajustes',
     loadingHint: 'Generando texto…',
     loadingGitHub: 'Extrayendo código desde GitHub…',
     loadingTranslate: 'Traduciendo texto de práctica…',
+    toolbar: {
+      label: 'Ajustes de práctica',
+      punctuation: '@ puntuación',
+      numbers: '# números',
+      caps: '^ mayúsculas',
+      english: 'inglés',
+      spanish: 'español',
+      code: 'código',
+      time: 'tiempo',
+      words: 'palabras',
+    },
   },
   mastery: {
     bronze: 'Bronce',

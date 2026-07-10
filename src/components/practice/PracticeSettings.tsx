@@ -1,5 +1,6 @@
 import { useApp } from '@/contexts/AppProvider';
-import SettingsToggle from '@/components/practice/SettingsToggle';
+import SegmentedControl from '@/components/practice/SegmentedControl';
+import ModifierToggle from '@/components/practice/ModifierToggle';
 import {
   SANDBOX_TIME_OPTIONS,
   SANDBOX_WORD_OPTIONS,
@@ -16,101 +17,83 @@ interface PracticeSettingsProps {
 export default function PracticeSettings({ config, onChange }: PracticeSettingsProps) {
   const { t } = useApp();
 
-  const contentOptions: { id: SandboxContent; label: string }[] = [
-    { id: 'es', label: t.sandbox.contentEs },
-    { id: 'en', label: t.sandbox.contentEn },
-    { id: 'code', label: t.sandbox.contentCode },
+  const contentOptions: { value: SandboxContent; label: string }[] = [
+    { value: 'en', label: t.practice.toolbar.english },
+    { value: 'es', label: t.practice.toolbar.spanish },
+    { value: 'code', label: t.practice.toolbar.code },
   ];
 
-  const modeOptions: { id: SandboxMode; label: string }[] = [
-    { id: 'time', label: t.sandbox.modeTime },
-    { id: 'words', label: t.sandbox.modeWords },
+  const modeOptions: { value: SandboxMode; label: string }[] = [
+    { value: 'time', label: t.practice.toolbar.time },
+    { value: 'words', label: t.practice.toolbar.words },
   ];
+
+  const lengthOptions =
+    config.mode === 'time'
+      ? SANDBOX_TIME_OPTIONS.map((value) => ({ value, label: String(value) }))
+      : SANDBOX_WORD_OPTIONS.map((value) => ({ value, label: String(value) }));
+
+  const lengthValue = config.mode === 'time' ? config.timeSeconds : config.wordCount;
 
   return (
-    <section className="mb-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-5 shadow-sm">
-      <div className="space-y-5">
-        <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-            {t.sandbox.modeLabel}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {modeOptions.map((opt) => (
-              <SettingsToggle
-                key={opt.id}
-                active={config.mode === opt.id}
-                label={opt.label}
-                onClick={() => onChange({ mode: opt.id })}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-            {config.mode === 'time' ? t.sandbox.durationLabel : t.sandbox.wordCountLabel}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {(config.mode === 'time' ? SANDBOX_TIME_OPTIONS : SANDBOX_WORD_OPTIONS).map((value) => (
-              <SettingsToggle
-                key={value}
-                active={config.mode === 'time' ? config.timeSeconds === value : config.wordCount === value}
-                label={
-                  config.mode === 'time'
-                    ? t.sandbox.secondsOption.replace('{n}', String(value))
-                    : String(value)
-                }
-                onClick={() =>
-                  onChange(
-                    config.mode === 'time'
-                      ? { timeSeconds: value as SandboxConfig['timeSeconds'] }
-                      : { wordCount: value as SandboxConfig['wordCount'] },
-                  )
-                }
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-            {t.sandbox.contentLabel}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {contentOptions.map((opt) => (
-              <SettingsToggle
-                key={opt.id}
-                active={config.content === opt.id}
-                label={opt.label}
-                onClick={() => onChange({ content: opt.id })}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-            {t.sandbox.modifiersLabel}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <SettingsToggle
-              active={config.includeCaps}
-              label={t.sandbox.modCaps}
-              onClick={() => onChange({ includeCaps: !config.includeCaps })}
-            />
-            <SettingsToggle
-              active={config.includeNumbers}
-              label={t.sandbox.modNumbers}
-              onClick={() => onChange({ includeNumbers: !config.includeNumbers })}
-            />
-            <SettingsToggle
-              active={config.includePunctuation}
-              label={t.sandbox.modPunctuation}
-              onClick={() => onChange({ includePunctuation: !config.includePunctuation })}
-            />
-          </div>
-        </div>
+    <nav
+      aria-label={t.practice.toolbar.label}
+      className="mb-8 flex w-full max-w-3xl flex-row flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-medium text-slate-500"
+    >
+      <div
+        role="group"
+        aria-label={t.sandbox.modifiersLabel}
+        className="flex items-center rounded-lg bg-slate-200/60 p-1 dark:bg-slate-800/40"
+      >
+        <ModifierToggle
+          active={config.includePunctuation}
+          label={t.practice.toolbar.punctuation}
+          onClick={() => onChange({ includePunctuation: !config.includePunctuation })}
+        />
+        <span className="text-slate-400/60" aria-hidden="true">
+          |
+        </span>
+        <ModifierToggle
+          active={config.includeNumbers}
+          label={t.practice.toolbar.numbers}
+          onClick={() => onChange({ includeNumbers: !config.includeNumbers })}
+        />
+        <span className="text-slate-400/60" aria-hidden="true">
+          |
+        </span>
+        <ModifierToggle
+          active={config.includeCaps}
+          label={t.practice.toolbar.caps}
+          onClick={() => onChange({ includeCaps: !config.includeCaps })}
+        />
       </div>
-    </section>
+
+      <SegmentedControl
+        ariaLabel={t.sandbox.contentLabel}
+        options={contentOptions}
+        value={config.content}
+        onChange={(content) => onChange({ content })}
+      />
+
+      <SegmentedControl
+        ariaLabel={t.sandbox.modeLabel}
+        options={modeOptions}
+        value={config.mode}
+        onChange={(mode) => onChange({ mode })}
+      />
+
+      <SegmentedControl
+        ariaLabel={config.mode === 'time' ? t.sandbox.durationLabel : t.sandbox.wordCountLabel}
+        options={lengthOptions}
+        value={lengthValue}
+        onChange={(value) =>
+          onChange(
+            config.mode === 'time'
+              ? { timeSeconds: value as SandboxConfig['timeSeconds'] }
+              : { wordCount: value as SandboxConfig['wordCount'] },
+          )
+        }
+      />
+    </nav>
   );
 }
