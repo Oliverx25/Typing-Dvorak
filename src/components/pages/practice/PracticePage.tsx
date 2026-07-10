@@ -7,6 +7,7 @@ import PracticeTeleprompterShell from '@/components/practice/PracticeTeleprompte
 import ZenTeleprompter from '@/components/practice/ZenTeleprompter';
 import type { Lesson } from '@/utils/curriculum/lessons';
 import {
+  DEFAULT_SANDBOX_CONFIG,
   getSandboxConfig,
   saveSandboxConfig,
   type SandboxConfig,
@@ -28,7 +29,7 @@ type PracticePhase = 'idle' | 'typing';
 
 export default function PracticePage() {
   const { t } = useApp();
-  const [config, setConfig] = useState<SandboxConfig>(() => getSandboxConfig());
+  const [config, setConfig] = useState<SandboxConfig>(DEFAULT_SANDBOX_CONFIG);
   const [phase, setPhase] = useState<PracticePhase>('idle');
   const [isSettingsDirty, setIsSettingsDirty] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +87,10 @@ export default function PracticePage() {
       }
     }
   }, [config, isLoading]);
+
+  useEffect(() => {
+    setConfig(getSandboxConfig());
+  }, []);
 
   useEffect(() => {
     if (phase !== 'idle' || !isSettingsDirty || isLoading) return;

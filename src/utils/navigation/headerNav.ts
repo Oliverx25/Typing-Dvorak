@@ -21,10 +21,6 @@ function normalizePathname(pathname: string): string {
 export function isNavItemHidden(pathname: string, href: string): boolean {
   const path = normalizePathname(pathname);
 
-  if (path.startsWith('/history')) {
-    return href === '/stats' || href === '/multiplayer';
-  }
-
   if (href === '/lessons') {
     return path.startsWith('/lessons') || path.startsWith('/lesson/');
   }
@@ -40,7 +36,7 @@ export function resolveNavSection(pathname: string): AppNavSection {
   return 'lessons';
 }
 
-/** Nav links for the header — hides the active route (history keeps lessons + practice). */
+/** Nav links for the header — hides the active route only. */
 export function getHeaderNavItems(pathname: string, showMultiplayer: boolean): HeaderNavItem[] {
   return NAV_ITEMS.filter((item) => {
     if (isNavItemHidden(pathname, item.href)) return false;

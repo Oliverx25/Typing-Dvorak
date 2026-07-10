@@ -42,14 +42,25 @@ describe('headerNav', () => {
     ]);
   });
 
-  it('keeps lessons and practice visible on history', () => {
-    expect(getHeaderNavItems('/history', true).map((i) => i.labelKey)).toEqual(['lessons', 'practice']);
+  it('shows all main nav links on history and achievements', () => {
+    expect(getHeaderNavItems('/history', true).map((i) => i.labelKey)).toEqual([
+      'lessons',
+      'practice',
+      'stats',
+      'multiplayer',
+    ]);
+    expect(getHeaderNavItems('/achievements', true).map((i) => i.labelKey)).toEqual([
+      'lessons',
+      'practice',
+      'stats',
+      'multiplayer',
+    ]);
   });
 
   it('evaluates hide rules per route', () => {
     expect(isNavItemHidden('/practice', '/practice')).toBe(true);
     expect(isNavItemHidden('/history', '/lessons')).toBe(false);
-    expect(isNavItemHidden('/history', '/stats')).toBe(true);
+    expect(isNavItemHidden('/history', '/stats')).toBe(false);
     expect(isNavItemHidden('/lesson/foo', '/lessons')).toBe(true);
   });
 
