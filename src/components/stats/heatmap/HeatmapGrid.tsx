@@ -41,25 +41,24 @@ export default function HeatmapGrid({ stats, tooltipLabels, layoutMode }: Heatma
     <div className="mx-auto w-full max-w-4xl">
       <OnScreenKeyboard
         hardwareLayout={settings.hardwareLayout}
-        osPreference={settings.osPreference}
         renderKey={({ key, className, style, displayLabel }) => {
           if (key.variant === 'gap') {
-            return <div key={key.id} className={className} style={style} aria-hidden="true" />;
+            return <div key={key.id} style={style} aria-hidden="true" />;
           }
 
           if (key.variant === 'iso-enter' && key.code) {
             const activeStats = getActiveHeatmapStats(key.code, key.label, stats, layoutMode);
             const background = heatmapBackground(activeStats.accuracy, activeStats.attempts);
             return (
-              <div key={key.id} className={`relative ${className}`} style={style}>
+              <div key={key.id} className="relative z-10" style={style}>
                 <div
-                  className="flex h-full w-full items-start justify-center rounded-t-lg border border-[var(--color-border)] font-mono text-xs sm:text-sm"
+                  className="flex h-10 w-full items-start justify-center rounded-t-lg rounded-br-none border border-b-0 border-[var(--color-border)] pb-[1px] font-mono text-xs sm:h-11 sm:text-sm"
                   style={{ background }}
                 >
                   ↵
                 </div>
                 <div
-                  className="absolute top-[calc(100%+0.25rem)] right-0 flex h-10 items-center justify-center rounded-b-lg border border-t-0 border-[var(--color-border)] sm:h-11"
+                  className="absolute top-[calc(100%+0.25rem)] right-0 -mt-[1px] flex h-10 items-center justify-center rounded-b-lg rounded-t-none border border-t-0 border-[var(--color-border)] sm:h-11"
                   style={{
                     width: `calc(${(5 / 6) * 100}% + 4px)`,
                     background,

@@ -1,10 +1,7 @@
 /** Physical keyboard hardware — logical Dvorak mapping stays in `dvorak.ts`. */
 export type HardwareLayout = 'ANSI' | 'MAC_ISO';
 
-export type OsPreference = 'Mac' | 'Windows';
-
 export const HARDWARE_LAYOUTS: HardwareLayout[] = ['ANSI', 'MAC_ISO'];
-export const OS_PREFERENCES: OsPreference[] = ['Mac', 'Windows'];
 
 /** Exact Dvorak labels per physical row (ANSI US). */
 export const DVORAK_ANSI = [

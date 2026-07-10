@@ -107,7 +107,6 @@ function Keyboard({ pressedKey, expectedChar }: KeyboardProps) {
       <div className="mx-auto w-full max-w-4xl select-none motion-reduce:transition-none">
         <OnScreenKeyboard
           hardwareLayout={settings.hardwareLayout}
-          osPreference={settings.osPreference}
           pressedKey={pressedKey}
           targetKeySet={targetKeySet}
           showFingers={showFingers}

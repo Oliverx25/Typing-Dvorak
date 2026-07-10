@@ -13,7 +13,7 @@ import {
   PACER_MIN_WPM,
   type AppSettings,
 } from '@/utils/app/settings';
-import { HARDWARE_LAYOUTS, OS_PREFERENCES } from '@/utils/keyboard/keyboardLayouts';
+import { HARDWARE_LAYOUTS } from '@/utils/keyboard/keyboardLayouts';
 import { SettingsToggle, Button } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 
@@ -29,7 +29,6 @@ type SettingsDraft = Pick<
   | 'blindMode'
   | 'fingerColors'
   | 'hardwareLayout'
-  | 'osPreference'
   | 'highlightTheme'
   | 'zenMode'
   | 'ghostMode'
@@ -48,7 +47,6 @@ function pickDraft(settings: AppSettings): SettingsDraft {
     blindMode: settings.blindMode,
     fingerColors: settings.fingerColors,
     hardwareLayout: settings.hardwareLayout,
-    osPreference: settings.osPreference,
     highlightTheme: settings.highlightTheme,
     zenMode: settings.zenMode,
     ghostMode: settings.ghostMode,
@@ -195,24 +193,6 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
                       ))}
                     </div>
                     <p className="text-[11px] text-[var(--color-text-muted)]">{t.settings.hardwareLayoutDesc}</p>
-                  </div>
-                </SettingRow>
-                <SettingRow label={t.settings.osPreference}>
-                  <div className="flex flex-col gap-1 sm:items-end">
-                    <div className="flex flex-wrap gap-1">
-                      {OS_PREFERENCES.map((os) => (
-                        <button
-                          key={os}
-                          type="button"
-                          onClick={() => patchDraft({ osPreference: os })}
-                          aria-pressed={draft.osPreference === os}
-                          className={optionButtonClassName(draft.osPreference === os)}
-                        >
-                          {os === 'Mac' ? t.settings.osPreferenceMac : t.settings.osPreferenceWindows}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-[11px] text-[var(--color-text-muted)]">{t.settings.osPreferenceDesc}</p>
                   </div>
                 </SettingRow>
               </div>

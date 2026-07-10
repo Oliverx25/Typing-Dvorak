@@ -46,7 +46,6 @@ const BLIND_TOKENS = new Set([
   '[ctrl]',
   '[opt]',
   '[cmd]',
-  '[arrows]',
   '[tab]',
   '[caps]',
   '[backspace]',
@@ -139,7 +138,7 @@ function resolveTokenMeta(token: string): Pick<GridKeyDef, 'label' | 'code' | 'v
     };
   }
 
-  if (token === '[iso-enter-slot]') {
+  if (token === '[iso-enter-slot]' || token === '[arrows]') {
     return { label: '', code: null, variant: 'gap' };
   }
 
