@@ -119,6 +119,7 @@ export default function TypingTest({
     blindMode: effectiveBlindMode,
     testDurationSeconds,
     fetchMoreText,
+    autoFocusRetryButton: !isFreePractice,
   });
 
   const {

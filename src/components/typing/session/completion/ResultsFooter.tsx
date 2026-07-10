@@ -53,6 +53,11 @@ function ResultsFooter({
         ref={retryButtonRef}
         type="button"
         onClick={onRetry}
+        onKeyDown={(event) => {
+          if (event.key === ' ') {
+            event.preventDefault();
+          }
+        }}
         className={[
           'flex w-full items-center justify-center gap-2 rounded-lg py-3 font-medium transition-colors',
           hasNextLesson

@@ -81,6 +81,8 @@ interface UseTypingSessionOptions {
   testDurationSeconds?: number;
   /** Fetches the next text chunk for timed free-practice sessions. */
   fetchMoreText?: () => Promise<string | undefined>;
+  /** Focus the retry button when the session ends (disable for zen practice). */
+  autoFocusRetryButton?: boolean;
 }
 
 function resolveInitialText(lesson: Lesson, locale: Locale, customText?: string): string {
@@ -127,6 +129,7 @@ export function useTypingSession({
   blindMode = false,
   testDurationSeconds = TEST_DURATION_SECONDS,
   fetchMoreText,
+  autoFocusRetryButton = true,
 }: UseTypingSessionOptions) {
   const effectiveStopOnError = raceMode ? false : stopOnError;
   const effectiveStopOnWord = raceMode ? false : stopOnWord;
@@ -538,8 +541,12 @@ export function useTypingSession({
   ]);
 
   useEffect(() => {
-    if (!finished) return;
+    if (!finished || !autoFocusRetryButton) return;
     retryButtonRef.current?.focus();
+  }, [autoFocusRetryButton, finished]);
+
+  useEffect(() => {
+    if (!finished) return;
     const handleRetryKey = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
         e.preventDefault();
