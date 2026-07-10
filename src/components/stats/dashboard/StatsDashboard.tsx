@@ -1,43 +1,51 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
-import { getAggregateStats, getSessionHistory, getBestWpmForLesson } from '@/utils/progress/storage';
-import { CORE_LESSONS } from '@/utils/curriculum/lessons';
-import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
+import { getAggregateStats, getSessionHistory } from '@/utils/progress/storage';
+import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/app/events';
 import { buildChartPoints } from '@/utils/stats/sessionDisplay';
+import { computeStatsInsights } from '@/utils/stats/statsInsights';
 import { Card, StreakIcon } from '@/components/ui';
+import ActionableInsights from '@/components/stats/dashboard/ActionableInsights';
+import LessonStatRow from '@/components/stats/dashboard/LessonStatRow';
 import type { ChartPoint } from '@/components/stats/charts/ProgressChart';
 
 const ProgressChart = lazy(() => import('@/components/stats/charts/ProgressChart'));
 const KeyHeatmap = lazy(() => import('@/components/stats/heatmap/KeyHeatmap'));
 
-interface LessonBestRow {
-  id: string;
-  title: string;
-  best: number;
-}
-
 export default function StatsDashboard() {
   const { t } = useApp();
   const [aggregate, setAggregate] = useState({ totalSessions: 0, bestWpm: 0, avgAccuracy: 0, streak: 0 });
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
-  const [lessonBests, setLessonBests] = useState<LessonBestRow[]>([]);
+  const [insightsVersion, setInsightsVersion] = useState(0);
 
   const refresh = useCallback(() => {
     setAggregate(getAggregateStats());
     setChartData(buildChartPoints(getSessionHistory(), t, getLessonTitle));
-    setLessonBests(
-      CORE_LESSONS.flatMap((lesson) => {
-        const best = getBestWpmForLesson(lesson.id);
-        if (best === null) return [];
-        return [{ id: lesson.id, title: getLessonTitle(t, lesson.titleKey), best }];
-      }),
-    );
+    setInsightsVersion((value) => value + 1);
   }, [t]);
+
+  const insights = useMemo(() => computeStatsInsights(), [insightsVersion]);
+
+  const lessonRows = useMemo(
+    () =>
+      insights.lessonRows.map((lesson) => ({
+        id: lesson.id,
+        title: getLessonTitle(t, lesson.titleKey),
+        wpm: lesson.wpm,
+        accuracy: lesson.accuracy,
+        grade: lesson.grade,
+      })),
+    [insights.lessonRows, t],
+  );
 
   useEffect(() => {
     refresh();
     window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
-    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
+    window.addEventListener(KEY_STATS_UPDATED_EVENT, refresh);
+    return () => {
+      window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
+      window.removeEventListener(KEY_STATS_UPDATED_EVENT, refresh);
+    };
   }, [refresh]);
 
   return (
@@ -61,25 +69,24 @@ export default function StatsDashboard() {
         <KeyHeatmap />
       </Suspense>
 
+      {lessonRows.length > 0 ? <ActionableInsights insights={insights} /> : null}
+
       <Card title={t.stats.byLesson} padding="lg" bleed>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-y border-[var(--color-border)]">
-              <th className="px-6 py-3 text-left font-medium text-[var(--color-text-muted)]">{t.stats.lesson}</th>
-              <th className="px-6 py-3 text-right font-medium text-[var(--color-text-muted)]">{t.stats.wpm}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lessonBests.map((lesson) => (
-              <tr key={lesson.id} className="border-b border-[var(--color-border)] last:border-0">
-                <td className="px-6 py-3 text-[var(--color-text)]">{lesson.title}</td>
-                <td className="px-6 py-3 text-right font-mono font-semibold text-[var(--color-highlight)]">
-                  {lesson.best}
-                </td>
-              </tr>
+        {lessonRows.length === 0 ? (
+          <p className="px-6 py-8 text-center text-sm text-[var(--color-text-muted)]">{t.stats.noData}</p>
+        ) : (
+          <div>
+            {lessonRows.map((lesson) => (
+              <LessonStatRow
+                key={lesson.id}
+                lesson={lesson}
+                maxWpm={insights.maxWpmOverall}
+                practiceLabel={t.stats.insights.practice}
+                accuracyLabel={t.stats.accuracy}
+              />
             ))}
-          </tbody>
-        </table>
+          </div>
+        )}
       </Card>
     </div>
   );
