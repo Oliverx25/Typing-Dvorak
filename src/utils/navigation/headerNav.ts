@@ -1,4 +1,4 @@
-export type AppNavSection = 'lessons' | 'stats' | 'multiplayer';
+export type AppNavSection = 'lessons' | 'practice' | 'stats' | 'multiplayer';
 
 export interface HeaderNavItem {
   href: string;
@@ -8,6 +8,7 @@ export interface HeaderNavItem {
 export function resolveNavSection(pathname: string): AppNavSection {
   if (/^\/stats\/?$/.test(pathname)) return 'stats';
   if (/^\/multiplayer(\/|$)/.test(pathname)) return 'multiplayer';
+  if (/^\/practice(\/|$)/.test(pathname)) return 'practice';
   return 'lessons';
 }
 
@@ -18,6 +19,7 @@ export function getHeaderNavItems(
 ): HeaderNavItem[] {
   const items: HeaderNavItem[] = [
     { href: '/lessons', labelKey: 'lessons' },
+    { href: '/practice', labelKey: 'practice' },
     { href: '/stats', labelKey: 'stats' },
     { href: '/multiplayer', labelKey: 'multiplayer' },
   ];

@@ -12,6 +12,7 @@ import { getKeyStats, codeToKeyChar } from '@/utils/stats/keyStats';
 import { collectPracticeDates, computeStreakFromPracticeDates, type StreakResult } from '@/utils/progress/streak';
 import { fetchUserSessionTimestamps } from '@/services/supabase/queries';
 import { safeAsyncVoid } from '@/utils/network/graceful';
+import { isRoadmapSession, resolveSessionType } from '@/utils/stats/sessionClassification';
 
 /** Writes computed streak fields to user_stats (cache for quick reads). */
 export async function updateProfileStreak(
@@ -123,6 +124,7 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
         : null,
       consistency: record.consistency ?? null,
       trouble_keys: record.troubleKeys?.length ? record.troubleKeys : null,
+      session_type: resolveSessionType(record.lessonId, record.sessionType),
     });
 
     if (error) {
@@ -131,7 +133,9 @@ export async function syncSessionToCloud(userId: string, record: SessionRecord):
     }
 
     await syncStreakToProfile(userId);
-    await syncLessonMasteryToCloud(userId, record.lessonId);
+    if (isRoadmapSession(resolveSessionType(record.lessonId, record.sessionType))) {
+      await syncLessonMasteryToCloud(userId, record.lessonId);
+    }
   } catch (error) {
     console.warn('[sync] session insert failed:', error);
   }
@@ -184,6 +188,7 @@ export async function migrateLocalSessionsToCloud(userId: string, history: Sessi
       song_title: r.songTitle ?? null,
       song_cover_url: r.songCoverUrl ?? null,
       race_modifiers: r.raceModifiers ?? [],
+      session_type: resolveSessionType(r.lessonId, r.sessionType),
       created_at: r.completedAt,
     }));
 

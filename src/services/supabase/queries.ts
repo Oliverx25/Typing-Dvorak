@@ -21,7 +21,7 @@ import type { KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
 
 /** Columns for list/history views — excludes heavy telemetry JSONB. */
 const SESSION_LIST_SELECT =
-  'id,user_id,lesson_id,wpm,accuracy,stars,mode,created_at,grade,score,max_combo,race_source,song_title,song_cover_url,race_modifiers';
+  'id,user_id,lesson_id,wpm,accuracy,stars,mode,created_at,grade,score,max_combo,race_source,song_title,song_cover_url,race_modifiers,session_type';
 
 async function resolveUserId(): Promise<string | null> {
   return getAuthSessionUserSync()?.id ?? (await getAuthUser())?.id ?? null;
@@ -71,6 +71,7 @@ export interface TypingSessionRow {
   song_title?: string | null;
   song_cover_url?: string | null;
   race_modifiers?: string[] | null;
+  session_type?: string | null;
 }
 
 export interface PaginatedSessionsResult {

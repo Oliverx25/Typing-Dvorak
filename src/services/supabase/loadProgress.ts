@@ -23,6 +23,7 @@ import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 import type { PracticeMode } from '@/utils/app/settings';
 import { calculateGrade } from '@/utils/grading';
 import { parseStoredRaceModifiers } from '@/utils/stats/sessionDisplay';
+import { resolveSessionType } from '@/utils/stats/sessionClassification';
 import { getSettings, saveSettings } from '@/utils/app/settings';
 import { appPreferencesFromUserSettings } from '@/utils/app/settingsSync';
 import { dispatchSessionComplete, dispatchKeyStatsUpdated, dispatchProfilePreferencesSynced } from '@/utils/app/events';
@@ -49,6 +50,7 @@ function mapSessionRow(row: {
   song_title?: string | null;
   song_cover_url?: string | null;
   race_modifiers?: string[] | null;
+  session_type?: string | null;
   grade?: string | null;
   score?: number | null;
   max_combo?: number | null;
@@ -71,6 +73,7 @@ function mapSessionRow(row: {
     songTitle: row.song_title ?? undefined,
     songCoverUrl: row.song_cover_url ?? undefined,
     raceModifiers: parseStoredRaceModifiers(row.race_modifiers),
+    sessionType: (row.session_type as SessionRecord['sessionType']) ?? resolveSessionType(row.lesson_id),
   };
 }
 

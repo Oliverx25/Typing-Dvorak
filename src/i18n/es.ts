@@ -5,6 +5,7 @@ export const es: TranslationKey = {
   footer: 'Hecho con Astro · Practica el layout Dvorak cada día',
   nav: {
     lessons: 'Lecciones',
+    practice: 'Práctica libre',
     stats: 'Estadísticas',
     multiplayer: 'Multijugador',
     settings: 'Ajustes',
@@ -144,6 +145,12 @@ export const es: TranslationKey = {
     modNumbers: 'Números',
     modPunctuation: 'Puntuación',
     start: 'Iniciar sesión',
+  },
+  practice: {
+    title: 'Práctica libre',
+    desc: 'Configura tu sesión y haz clic en el teleprompter o presiona Enter para generar texto nuevo.',
+    dirtyHint: 'Haz clic o presiona Enter para iniciar con estos ajustes',
+    loadingHint: 'Generando texto…',
   },
   mastery: {
     bronze: 'Bronce',
@@ -420,6 +427,7 @@ export const es: TranslationKey = {
     showConsistency: 'Ver análisis de consistencia',
     hideConsistency: 'Ocultar análisis',
     backToLessons: 'Regresar a lecciones',
+    backToPractice: 'Volver a práctica libre',
     nextLesson: 'Siguiente lección',
     rawWpm: 'PPM bruto',
     consistency: 'Consistencia',
@@ -447,6 +455,7 @@ export const es: TranslationKey = {
     today: 'Hoy',
     yesterday: 'Ayer',
     typeLesson: 'Lección del sistema',
+    typePractice: 'Práctica libre',
     typeMultiplayer: 'Multijugador',
     typeTest: 'Prueba cronometrada',
     chartUnavailable: 'El análisis detallado de pulsaciones solo está disponible en sesiones completadas después de activar la telemetría.',

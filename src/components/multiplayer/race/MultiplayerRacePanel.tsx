@@ -110,6 +110,7 @@ export default function MultiplayerRacePanel({
         raceTextSource === 'song' ? roomState.songMeta?.coverArt ?? undefined : undefined,
       raceModifiers: roomState.modifiers.length > 0 ? roomState.modifiers : undefined,
       totalMultiplier,
+      sessionType: 'multiplayer',
     }),
     [raceTextSource, roomState.songMeta?.id, roomState.songMeta?.title, roomState.songMeta?.coverArt, roomState.modifiers, totalMultiplier],
   );

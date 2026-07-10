@@ -75,6 +75,7 @@ export type Database = {
           race_source?: 'lesson' | 'custom' | 'song' | null;
           song_title?: string | null;
           song_cover_url?: string | null;
+          session_type?: string | null;
         };
         Insert: {
           user_id: string;
@@ -90,6 +91,7 @@ export type Database = {
           race_source?: 'lesson' | 'custom' | 'song' | null;
           song_title?: string | null;
           song_cover_url?: string | null;
+          session_type?: string | null;
         };
         Update: Partial<Database['public']['Tables']['typing_sessions']['Insert']>;
       };

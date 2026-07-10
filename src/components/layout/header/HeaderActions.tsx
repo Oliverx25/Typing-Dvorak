@@ -21,6 +21,7 @@ function NavLinks({ showMultiplayer }: { showMultiplayer: boolean }) {
 
   const labels = {
     lessons: t.nav.lessons,
+    practice: t.nav.practice,
     stats: t.nav.stats,
     multiplayer: t.nav.multiplayer,
   } as const;

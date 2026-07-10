@@ -35,6 +35,9 @@ interface TypingTestProps {
   blindModeOverride?: boolean;
   hideModeToggle?: boolean;
   hideCompletionPanel?: boolean;
+  hideKeyboard?: boolean;
+  isFreePractice?: boolean;
+  onFreePracticeRetry?: () => void;
   ariaLabel?: string;
   raceMode?: boolean;
   /** Musical pacer WPM fallback when no LRC timeline is stored. */
@@ -59,6 +62,9 @@ export default function TypingTest({
   blindModeOverride,
   hideModeToggle = false,
   hideCompletionPanel = false,
+  hideKeyboard = false,
+  isFreePractice = false,
+  onFreePracticeRetry,
   ariaLabel,
   raceMode = false,
   musicPacerWpm = null,
@@ -205,7 +211,7 @@ export default function TypingTest({
     return () => window.clearInterval(interval);
   }, [onProgressChange, started, paused, finished, raceMode]);
 
-  const showKeyboard = !effectiveBlindMode && keyboardOpen;
+  const showKeyboard = !hideKeyboard && !effectiveBlindMode && keyboardOpen;
   const isCustomPractice = lessonId === 'custom-practice';
   const showModeToggle = !hideModeToggle && !isCustomPractice;
 
@@ -306,12 +312,13 @@ export default function TypingTest({
           weakKeys={sessionWeakKeys}
           keystrokeLog={keystrokeLog}
           stopOnError={settings.stopOnError}
-          onRetry={reset}
+          isFreePractice={isFreePractice}
+          onRetry={isFreePractice && onFreePracticeRetry ? onFreePracticeRetry : reset}
           retryButtonRef={retryButtonRef}
         />
       )}
 
-      {!effectiveBlindMode && (
+      {!hideKeyboard && !effectiveBlindMode && (
         <div className="flex items-center justify-center sm:hidden">
           <button
             type="button"

@@ -259,6 +259,7 @@ export function useTypingSession({
           songTitle: sessionPersist?.songTitle,
           songCoverUrl: sessionPersist?.songCoverUrl,
           raceModifiers: sessionPersist?.raceModifiers,
+          sessionType: sessionPersist?.sessionType,
           scoreOverride: raceMode ? raceScoreRef.current : sessionPersist?.scoreOverride,
           gradeOverride: sessionPersist?.gradeOverride,
           totalMultiplier: sessionPersist?.totalMultiplier ?? (raceMode ? scoreMultiplier : undefined),

@@ -1,4 +1,5 @@
 import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
+import type { SessionType } from '@/utils/stats/sessionClassification';
 
 /** Origin of text used in a multiplayer race. */
 export type RaceTextSource = 'lesson' | 'custom' | 'song';
@@ -18,4 +19,6 @@ export interface SessionPersistOptions {
   scoreOverride?: number;
   gradeOverride?: string;
   totalMultiplier?: number;
+  /** Overrides automatic session classification. */
+  sessionType?: SessionType;
 }

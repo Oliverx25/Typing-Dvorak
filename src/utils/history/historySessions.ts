@@ -11,6 +11,7 @@ import { MULTIPLAYER_LESSON_ID, parseStoredRaceModifiers } from '@/utils/stats/s
 import { getSessionHistory } from '@/utils/progress/storage';
 import type { SessionTelemetryData } from '@/services/supabase/queries';
 import type { KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
+import { resolveSessionType, FREE_PRACTICE_LESSON_ID } from '@/utils/stats/sessionClassification';
 import { isCloudSessionId } from '@/utils/history/sessionTelemetry';
 
 export interface HistorySession {
@@ -29,6 +30,7 @@ export interface HistorySession {
   songTitle?: string;
   songCoverUrl?: string;
   raceModifiers?: RaceModifier[];
+  sessionType?: 'lesson' | 'practice' | 'multiplayer';
 }
 
 export function mapCloudSessionRow(row: TypingSessionRow): HistorySession {
@@ -50,6 +52,7 @@ export function mapCloudSessionRow(row: TypingSessionRow): HistorySession {
     songTitle: row.song_title ?? undefined,
     songCoverUrl: row.song_cover_url ?? undefined,
     raceModifiers: parseStoredRaceModifiers(row.race_modifiers),
+    sessionType: (row.session_type as HistorySession['sessionType']) ?? resolveSessionType(row.lesson_id),
   };
 }
 
@@ -70,11 +73,16 @@ export function mapLocalSessionRecord(record: SessionRecord, index: number): His
     songTitle: record.songTitle,
     songCoverUrl: record.songCoverUrl,
     raceModifiers: record.raceModifiers,
+    sessionType: record.sessionType ?? resolveSessionType(record.lessonId),
   };
 }
 
 export function formatHistorySessionLabel(session: HistorySession, locale: Locale): string {
   const t = getTranslations(locale);
+
+  if (session.lessonId === FREE_PRACTICE_LESSON_ID || session.sessionType === 'practice') {
+    return t.practice.title;
+  }
 
   if (session.lessonId === MULTIPLAYER_LESSON_ID) {
     const source = session.multiplayerSource ?? 'lesson';
@@ -92,6 +100,7 @@ export function formatHistorySessionLabel(session: HistorySession, locale: Local
 
 export function formatHistorySessionType(session: HistorySession, locale: Locale): string {
   const t = getTranslations(locale);
+  if (session.sessionType === 'practice') return t.history.typePractice;
   if (session.lessonId === MULTIPLAYER_LESSON_ID) return t.history.typeMultiplayer;
   if (session.mode === 'test') return t.history.typeTest;
   return t.history.typeLesson;

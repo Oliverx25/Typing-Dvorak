@@ -3,13 +3,10 @@ import { useAppHydration } from '@/hooks/useAppHydration';
 import { useApp } from '@/contexts/AppProvider';
 import { useCatalog } from '@/contexts/CatalogProvider';
 import { FocusedChapterProvider } from '@/contexts/FocusedChapterProvider';
-import { RoadmapProvider, useRoadmap } from '@/contexts/RoadmapProvider';
+import { RoadmapProvider } from '@/contexts/RoadmapProvider';
 import PrimaryActionCard from '@/components/lessons/cards/PrimaryActionCard';
-import SandboxConfigurator from '@/components/lessons/sandbox/SandboxConfigurator';
-import AdaptiveDrillCard from '@/components/lessons/cards/AdaptiveDrillCard';
 
 const LessonLibraryGrid = lazy(() => import('@/components/lessons/library/LessonLibraryGrid'));
-const ExtraPracticeCard = lazy(() => import('@/components/lessons/cards/ExtraPracticeCard'));
 const LearnMoreSection = lazy(() => import('@/components/lessons/library/LearnMoreSection'));
 
 function SectionSkeleton({ rows = 3 }: { rows?: number }) {
@@ -52,17 +49,11 @@ function LessonsProgressSkeleton() {
 }
 
 function LessonsMain() {
-  const { isRoadmapComplete } = useRoadmap();
-
   return (
-  <>
-      {isRoadmapComplete ? <SandboxConfigurator /> : <PrimaryActionCard />}
-      <AdaptiveDrillCard />
+    <>
+      <PrimaryActionCard />
       <Suspense fallback={<SectionSkeleton rows={4} />}>
         <LessonLibraryGrid />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton rows={1} />}>
-        <ExtraPracticeCard />
       </Suspense>
       <Suspense fallback={<SectionSkeleton rows={1} />}>
         <LearnMoreSection />

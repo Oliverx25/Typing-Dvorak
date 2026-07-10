@@ -24,6 +24,7 @@ interface CompletionPanelProps {
   weakKeys?: string[];
   keystrokeLog?: KeystrokeLogEntry[];
   stopOnError?: boolean;
+  isFreePractice?: boolean;
   onRetry: () => void;
   retryButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
@@ -48,6 +49,7 @@ export default function CompletionPanel({
   weakKeys = [],
   keystrokeLog = [],
   stopOnError = false,
+  isFreePractice = false,
   onRetry,
   retryButtonRef,
 }: CompletionPanelProps) {
@@ -59,19 +61,19 @@ export default function CompletionPanel({
   const score = calculateMaxScore(wpm, accuracy, maxCombo);
   const maxScore = Math.max(calculateMaxScore(wpm, 100, maxCombo), score, 1);
   const hasGraph = keystrokeLog.length > 2;
-  const nextLessonId = useMemo(() => getNextRoadmapLessonId(lessonId), [lessonId]);
+  const nextLessonId = useMemo(() => (isFreePractice ? null : getNextRoadmapLessonId(lessonId)), [isFreePractice, lessonId]);
   const hasNextLesson = nextLessonId != null;
   const showExpandedLayout = isExpanded && hasGraph;
 
   const footerLabels = useMemo(
     () => ({
-      backToLessons: t.completion.backToLessons,
+      backToLessons: isFreePractice ? t.completion.backToPractice : t.completion.backToLessons,
       showConsistency: t.completion.showConsistency,
       hideConsistency: t.completion.hideConsistency,
       tryAgain: t.completion.tryAgain,
       nextLesson: t.completion.nextLesson,
     }),
-    [t.completion],
+    [t.completion, isFreePractice],
   );
 
   const analyticsLabels = useMemo(
@@ -97,8 +99,8 @@ export default function CompletionPanel({
   }, []);
 
   const handleBackToLessons = useCallback(() => {
-    window.location.href = '/lessons';
-  }, []);
+    window.location.href = isFreePractice ? '/practice' : '/lessons';
+  }, [isFreePractice]);
 
   const handleNextLesson = useCallback(() => {
     if (!nextLessonId) return;

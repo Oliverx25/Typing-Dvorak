@@ -1,0 +1,152 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useApp } from '@/contexts/AppProvider';
+import TypingTest from '@/components/typing/session/TypingTest';
+import { AppErrorBoundary } from '@/components/ui';
+import PracticeSettings from '@/components/practice/PracticeSettings';
+import ZenTeleprompter from '@/components/practice/ZenTeleprompter';
+import type { Lesson } from '@/utils/curriculum/lessons';
+import {
+  getSandboxConfig,
+  saveSandboxConfig,
+  type SandboxConfig,
+} from '@/utils/practice/sandboxConfig';
+import { generatePracticeText } from '@/utils/practice/textGenerator';
+import { FREE_PRACTICE_LESSON_ID } from '@/utils/stats/sessionClassification';
+
+const FREE_PRACTICE_LESSON: Lesson = {
+  id: FREE_PRACTICE_LESSON_ID,
+  titleKey: 'freePractice',
+  descriptionKey: 'freePractice',
+  category: 'words',
+  difficulty: 1,
+  optional: true,
+  texts: [''],
+};
+
+type PracticePhase = 'idle' | 'typing';
+
+export default function PracticePage() {
+  const { t } = useApp();
+  const [config, setConfig] = useState<SandboxConfig>(() => getSandboxConfig());
+  const [phase, setPhase] = useState<PracticePhase>('idle');
+  const [isSettingsDirty, setIsSettingsDirty] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [practiceText, setPracticeText] = useState('');
+  const [sessionKey, setSessionKey] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const handleConfigChange = useCallback(
+    (partial: Partial<SandboxConfig>) => {
+      setConfig((prev) => {
+        const next = { ...prev, ...partial };
+        saveSandboxConfig(next);
+        return next;
+      });
+      setIsSettingsDirty(true);
+      if (phase === 'typing') {
+        abortRef.current?.abort();
+        setPhase('idle');
+        setPracticeText('');
+      }
+    },
+    [phase],
+  );
+
+  const handleReturnToZen = useCallback(() => {
+    abortRef.current?.abort();
+    setPhase('idle');
+    setIsSettingsDirty(true);
+    setPracticeText('');
+    setSessionKey((value) => value + 1);
+  }, []);
+
+  const handleStartPractice = useCallback(async () => {
+    if (isLoading) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setIsLoading(true);
+    try {
+      const text = await generatePracticeText(config, controller.signal);
+      if (controller.signal.aborted) return;
+      setPracticeText(text);
+      setIsSettingsDirty(false);
+      setSessionKey((value) => value + 1);
+      setPhase('typing');
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      console.warn('[practice] text generation failed:', error);
+      setIsSettingsDirty(true);
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
+    }
+  }, [config, isLoading]);
+
+  useEffect(() => {
+    if (phase !== 'idle' || !isSettingsDirty || isLoading) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter' || event.repeat) return;
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      event.preventDefault();
+      void handleStartPractice();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [phase, isSettingsDirty, isLoading, handleStartPractice]);
+
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
+
+  const practiceMode = config.mode === 'time' ? 'test' : 'practice';
+  const testDurationSeconds = config.mode === 'time' ? config.timeSeconds : undefined;
+
+  return (
+    <div className="mx-auto w-full max-w-4xl">
+      <header className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-[var(--color-text)]">{t.practice.title}</h1>
+        <p className="mt-2 text-[var(--color-text-muted)]">{t.practice.desc}</p>
+      </header>
+
+      <PracticeSettings config={config} onChange={handleConfigChange} />
+
+      {phase === 'idle' ? (
+        <ZenTeleprompter
+          isDirty={isSettingsDirty}
+          isLoading={isLoading}
+          dirtyHint={t.practice.dirtyHint}
+          loadingHint={t.practice.loadingHint}
+          onStart={() => void handleStartPractice()}
+        />
+      ) : (
+        <AppErrorBoundary
+          section="typing"
+          resetKeys={[practiceText, sessionKey, config.mode, config.timeSeconds, config.wordCount]}
+        >
+          <TypingTest
+            key={`${sessionKey}-${practiceText.slice(0, 32)}`}
+            lessonId={FREE_PRACTICE_LESSON_ID}
+            lesson={FREE_PRACTICE_LESSON}
+            customText={practiceText}
+            practiceMode={practiceMode}
+            testDurationSeconds={testDurationSeconds}
+            hideModeToggle
+            hideKeyboard
+            isFreePractice
+            onFreePracticeRetry={handleReturnToZen}
+            sessionPersist={{ sessionType: 'practice' }}
+            ariaLabel={t.practice.title}
+          />
+        </AppErrorBoundary>
+      )}
+    </div>
+  );
+}

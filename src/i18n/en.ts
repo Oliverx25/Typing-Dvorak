@@ -3,6 +3,7 @@ export const en = {
   footer: 'Built with Astro · Practice the Dvorak layout daily',
   nav: {
     lessons: 'Lessons',
+    practice: 'Free training',
     stats: 'Stats',
     multiplayer: 'Multiplayer',
     settings: 'Settings',
@@ -142,6 +143,12 @@ export const en = {
     modNumbers: 'Numbers',
     modPunctuation: 'Punctuation',
     start: 'Start session',
+  },
+  practice: {
+    title: 'Free training',
+    desc: 'Configure your session, then click the teleprompter or press Enter to generate fresh text.',
+    dirtyHint: 'Click or press Enter to start with these settings',
+    loadingHint: 'Generating text…',
   },
   mastery: {
     bronze: 'Bronze',
@@ -418,6 +425,7 @@ export const en = {
     showConsistency: 'View consistency analysis',
     hideConsistency: 'Hide analysis',
     backToLessons: 'Back to lessons',
+    backToPractice: 'Back to free training',
     nextLesson: 'Next lesson',
     rawWpm: 'Raw WPM',
     consistency: 'Consistency',
@@ -445,6 +453,7 @@ export const en = {
     today: 'Today',
     yesterday: 'Yesterday',
     typeLesson: 'System lesson',
+    typePractice: 'Free training',
     typeMultiplayer: 'Multiplayer',
     typeTest: 'Timed test',
     chartUnavailable: 'Detailed keystroke analytics are only available for sessions completed after telemetry was enabled.',

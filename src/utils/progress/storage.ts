@@ -2,8 +2,10 @@ import type { TypingStats } from '@/utils/typing/typing';
 import type { PracticeMode } from '@/utils/app/settings';
 import type { RaceTextSource } from '@/utils/stats/sessionTypes';
 import type { RaceModifier } from '@/utils/multiplayer/roomConfig.types';
+import type { SessionType } from '@/utils/stats/sessionClassification';
 import type { KeystrokeLogEntry } from '@/utils/typing/keystrokeTelemetry';
 import { MULTIPLAYER_LESSON_ID } from '@/utils/stats/sessionDisplay';
+import { isRoadmapSession, resolveSessionType } from '@/utils/stats/sessionClassification';
 import { collectPracticeDates, computeStreakFromPracticeDates } from '@/utils/progress/streak';
 import { STORAGE_KEYS } from '@/utils/progress/keys';
 import { readJson, writeJson, readString, writeString } from '@/utils/progress/localStorage';
@@ -39,6 +41,8 @@ export interface SessionRecord {
   songCoverUrl?: string;
   /** Active race modifiers (excludes victory condition). */
   raceModifiers?: RaceModifier[];
+  /** Session classification for analytics isolation. */
+  sessionType?: SessionType;
   /** Session telemetry for history detail replay. */
   keystrokeLog?: KeystrokeLogEntry[];
   consistency?: number;
@@ -109,6 +113,7 @@ export function saveSession(
     songTitle?: string;
     songCoverUrl?: string;
     raceModifiers?: RaceModifier[];
+    sessionType?: SessionType;
     scoreOverride?: number;
     gradeOverride?: string;
     totalMultiplier?: number;
@@ -131,6 +136,7 @@ export function saveSession(
     options?.scoreOverride ??
     Math.round(stats.wpm * 10 * (stats.accuracy / 100) + maxCombo * 5);
   const normalizedLessonId = resolveLessonId(lessonId);
+  const sessionType = resolveSessionType(normalizedLessonId, options?.sessionType);
   const record: SessionRecord = {
     lessonId: normalizedLessonId,
     lessonTitle,
@@ -146,6 +152,7 @@ export function saveSession(
     songTitle: options?.songTitle,
     songCoverUrl: options?.songCoverUrl,
     raceModifiers: options?.raceModifiers?.length ? options.raceModifiers : undefined,
+    sessionType,
     keystrokeLog: options?.telemetry?.keystrokeLog,
     consistency: options?.telemetry?.consistency,
     troubleKeys: options?.telemetry?.troubleKeys,
@@ -160,9 +167,9 @@ export function saveSession(
 
   const progress = updateStreak(getProgress());
   const previousBest = progress.lessons[normalizedLessonId]?.bestWpm ?? 0;
-  const isNewRecord = normalizedLessonId !== MULTIPLAYER_LESSON_ID && stats.wpm > previousBest;
+  const isNewRecord = isRoadmapSession(sessionType) && stats.wpm > previousBest;
 
-  if (normalizedLessonId !== MULTIPLAYER_LESSON_ID) {
+  if (isRoadmapSession(sessionType)) {
     const existing = progress.lessons[normalizedLessonId];
     const merged = mergeSessionIntoLessonProgress(existing, record);
     const sessionXp = masteryXpForSession({
