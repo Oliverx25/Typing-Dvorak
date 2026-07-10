@@ -67,7 +67,7 @@ export default function SongSearchModal({
       </span>
       <div
         role="document"
-        className={panelClassName}
+        className={[panelClassName, 'w-[90vw] max-w-4xl'].join(' ')}
         onClick={(event) => event.stopPropagation()}
       >
         <LyricsSearchPanel

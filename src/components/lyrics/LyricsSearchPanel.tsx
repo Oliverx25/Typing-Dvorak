@@ -91,7 +91,7 @@ export default function LyricsSearchPanel({
       transition={{ layout: { duration: 0.3, ease: 'easeOut' } }}
       className={[
         isModal
-          ? 'flex w-[min(100%,56rem)] flex-col rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
+          ? 'flex w-[90vw] max-w-4xl flex-col rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
           : 'mx-auto w-full max-w-4xl',
         needsScroll && isModal ? 'max-h-[min(90vh,52rem)] overflow-hidden' : '',
         className,

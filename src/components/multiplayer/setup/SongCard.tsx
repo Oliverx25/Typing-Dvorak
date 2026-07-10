@@ -103,34 +103,40 @@ export default function SongCard({
         />
       ) : null}
       <BlurredBackdrop src={coverSrc} />
-      <div className="absolute right-2 top-2 z-20">
-        <BestScoreLabel
-          highestGrade={displayGrade}
-          highestScore={displayScore}
-          scoreUnit={t.multiplayer.raceScore}
-        />
-      </div>
 
       <div className="relative z-10 flex h-full w-full items-center gap-4 p-3">
         <Thumbnail src={coverSrc} title={song.title} />
 
-        <div className="flex min-w-0 flex-grow flex-col">
+        <div className="flex min-w-0 flex-1 flex-col justify-center">
           <p className="truncate text-base font-bold text-slate-900 group-hover:text-slate-950 dark:text-slate-100 dark:group-hover:text-white">
             {song.title}
           </p>
           <p className="truncate text-sm text-slate-500 dark:text-slate-400">{song.artist}</p>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end justify-center gap-1">
-          <span
-            className={[
-              'inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-              badgeClass,
-            ].join(' ')}
-          >
-            {tierLabel}
-          </span>
-          <span className="font-mono text-xs text-slate-500">{wordLabel}</span>
+        <div className="flex shrink-0 flex-col items-end justify-center gap-1.5">
+          {displayGrade || (displayScore != null && displayScore > 0) ? (
+            <div className="flex flex-row items-center justify-end gap-2">
+              <BestScoreLabel
+                highestGrade={displayGrade}
+                highestScore={displayScore}
+                scoreUnit={t.multiplayer.raceScore}
+              />
+            </div>
+          ) : null}
+
+          <div className="flex flex-row items-center justify-end gap-2">
+            <span
+              className={[
+                'inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+                badgeClass,
+              ].join(' ')}
+            >
+              {tierLabel}
+            </span>
+            <span className="font-mono text-xs text-slate-500 dark:text-slate-400">{wordLabel}</span>
+          </div>
+
           <SongWpmDisplay
             avgWpm={song.avgWpm ?? song.trackWpm}
             maxWpm={song.maxWpm}
@@ -155,9 +161,13 @@ export function SongCardSkeleton() {
           <div className="h-4 w-4/5 rounded bg-slate-200 dark:bg-slate-700/80" />
           <div className="h-3 w-3/5 rounded bg-slate-200 dark:bg-slate-700/60" />
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <div className="h-5 w-16 rounded-full bg-slate-200 dark:bg-slate-700/70" />
-          <div className="h-3 w-12 rounded bg-slate-200 dark:bg-slate-700/50" />
+        <div className="flex shrink-0 flex-col items-end justify-center gap-1.5">
+          <div className="h-6 w-20 rounded bg-slate-200 dark:bg-slate-700/70" />
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-16 rounded-full bg-slate-200 dark:bg-slate-700/70" />
+            <div className="h-3 w-12 rounded bg-slate-200 dark:bg-slate-700/50" />
+          </div>
+          <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700/50" />
         </div>
       </div>
     </div>
