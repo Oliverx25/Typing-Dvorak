@@ -1,8 +1,8 @@
+import { useApp } from '@/contexts/AppProvider';
 import type { KeyStatsData } from '@/utils/stats/keyStats';
-import {
-  HEATMAP_MIN_SAMPLES,
-} from '@/utils/stats/keyStats';
-import { DVORAK_ROWS, getShiftLabel } from '@/utils/keyboard/dvorak';
+import { HEATMAP_MIN_SAMPLES } from '@/utils/stats/keyStats';
+import { getShiftLabel } from '@/utils/keyboard/dvorak';
+import OnScreenKeyboard from '@/components/typing/keyboard/OnScreenKeyboard';
 import HeatmapKey, { type HeatmapKeyTooltipLabels } from '@/components/stats/heatmap/HeatmapKey';
 import { getActiveHeatmapStats, type HeatmapLayoutMode } from '@/utils/stats/heatmapTooltip';
 
@@ -35,39 +35,45 @@ function heatmapBackground(accuracy: number, attempts: number): string {
 
 /** Shared Dvorak keyboard heatmap grid — colors by accuracy (hits / total). */
 export default function HeatmapGrid({ stats, tooltipLabels, layoutMode }: HeatmapGridProps) {
-  return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-1">
-      {DVORAK_ROWS.map((row, rowIndex) => {
-        const totalUnits = row.keys.reduce((s, k) => s + (k.width ?? 1), 0);
-        return (
-          <div
-            key={rowIndex}
-            className="flex w-full justify-center gap-0.5"
-            style={{ paddingLeft: `${(row.indent ?? 0) * 3}%` }}
-          >
-            {row.keys.map((key) => {
-              const activeStats = getActiveHeatmapStats(key.code, key.label, stats, layoutMode);
-              const widthPct = ((key.width ?? 1) / totalUnits) * 100;
-              const shiftLabel = getShiftLabel(key.label);
-              const displayLabel = layoutMode === 'shift' && shiftLabel ? shiftLabel : key.label;
+  const { settings } = useApp();
 
-              return (
-                <HeatmapKey
-                  key={key.code}
-                  code={key.code}
-                  label={key.label}
-                  displayLabel={displayLabel}
-                  mode={layoutMode}
-                  stats={stats}
-                  widthPct={widthPct}
-                  background={heatmapBackground(activeStats.accuracy, activeStats.attempts)}
-                  tooltipLabels={tooltipLabels}
-                />
-              );
-            })}
-          </div>
-        );
-      })}
+  return (
+    <div className="mx-auto w-full max-w-4xl">
+      <OnScreenKeyboard
+        hardwareLayout={settings.hardwareLayout}
+        renderKey={({ key, className, style, displayLabel }) => {
+          if (!key.code || key.variant === 'blind') {
+            return (
+              <div
+                key={key.id}
+                className={className}
+                style={style}
+                aria-hidden={key.variant === 'blind'}
+              >
+                {key.variant === 'iso-enter' ? null : displayLabel}
+              </div>
+            );
+          }
+
+          const activeStats = getActiveHeatmapStats(key.code, key.label, stats, layoutMode);
+          const shiftLabel = getShiftLabel(key.label);
+
+          return (
+            <HeatmapKey
+              key={key.id}
+              code={key.code}
+              label={key.label}
+              displayLabel={layoutMode === 'shift' && shiftLabel ? shiftLabel : displayLabel}
+              mode={layoutMode}
+              stats={stats}
+              containerStyle={style}
+              className={className}
+              background={heatmapBackground(activeStats.accuracy, activeStats.attempts)}
+              tooltipLabels={tooltipLabels}
+            />
+          );
+        }}
+      />
     </div>
   );
 }

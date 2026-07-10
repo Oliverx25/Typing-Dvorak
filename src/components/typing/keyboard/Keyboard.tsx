@@ -1,14 +1,14 @@
 import { memo, useEffect, useState } from 'react';
-import { DVORAK_ROWS, type KeyDef } from '@/utils/keyboard/dvorak';
+import { useApp } from '@/contexts/AppProvider';
+import OnScreenKeyboard from '@/components/typing/keyboard/OnScreenKeyboard';
 import {
   eventAdvancesCompositeStep,
   getActiveStepKeys,
   getSequenceStepsForChar,
   isMultiStepChar,
-  isThumbKey,
 } from '@/utils/keyboard/keyboardMappings';
 import { FINGER_CSS_VAR, getFingerForKey, type Finger } from '@/utils/keyboard/fingers';
-import { useApp } from '@/contexts/AppProvider';
+import { buildHardwareGrid } from '@/utils/keyboard/hardwareGrid';
 import HandGuide from '@/components/typing/keyboard/HandGuide';
 
 interface KeyboardProps {
@@ -57,92 +57,6 @@ function FingerColorBar({ fingers }: { fingers: Finger[] }) {
   );
 }
 
-interface KeyboardKeyProps {
-  keyDef: KeyDef;
-  widthPct: number;
-  pressedKey?: string;
-  targetKeySet: Set<string>;
-  showFingers: boolean;
-}
-
-function KeyboardKey({ keyDef, widthPct, pressedKey, targetKeySet, showFingers }: KeyboardKeyProps) {
-  const isPressed = pressedKey === keyDef.code;
-  const isTarget = !isPressed && targetKeySet.has(keyDef.code);
-  const finger = showFingers && !isThumbKey(keyDef.code) ? getFingerForKey(keyDef.code) : undefined;
-  const thumbTint = showFingers && isThumbKey(keyDef.code);
-
-  return (
-    <div
-      style={{
-        width: `${widthPct}%`,
-        ...(finger && !isPressed && !isTarget
-          ? { background: `color-mix(in srgb, var(${FINGER_CSS_VAR[finger]}) 25%, var(--color-key))` }
-          : {}),
-        ...(thumbTint && !isPressed && !isTarget
-          ? { background: 'color-mix(in srgb, var(--color-key-mark) 35%, var(--color-key))' }
-          : {}),
-      }}
-      className={[
-        'relative flex h-10 items-center justify-center rounded-lg border font-mono text-sm font-medium transition-all duration-75 motion-reduce:animate-none sm:h-11 sm:text-base',
-        isPressed
-          ? 'z-10 scale-95 border-[var(--color-key-pressed)] bg-[var(--color-key-pressed)] text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.25)]'
-          : isTarget
-            ? 'z-10 border-2 border-[var(--color-key-target)] bg-[var(--color-key-target-bg)] text-[var(--color-key-target)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-key-target)_25%,transparent)] animate-pulse motion-reduce:animate-none'
-            : 'border-[var(--color-border)] bg-[var(--color-key)] text-[var(--color-text)]',
-      ].join(' ')}
-    >
-      {keyDef.label}
-      {keyDef.homeRowMark && !isPressed && (
-        <span
-          className={[
-            'absolute bottom-1 left-1/2 h-1 w-3 -translate-x-1/2 rounded-full sm:w-4',
-            isTarget ? 'bg-[var(--color-key-target)]' : 'bg-[var(--color-key-mark)]',
-          ].join(' ')}
-        />
-      )}
-      {isTarget && (
-        <span className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-4 border-x-transparent border-b-[var(--color-key-target)]" />
-      )}
-    </div>
-  );
-}
-
-function KeyboardRow({
-  keys,
-  indent,
-  pressedKey,
-  targetKeySet,
-  showFingers,
-}: {
-  keys: KeyDef[];
-  indent?: number;
-  pressedKey?: string;
-  targetKeySet: Set<string>;
-  showFingers: boolean;
-}) {
-  const totalUnits = keys.reduce((sum, key) => sum + (key.width ?? 1), 0);
-
-  return (
-    <div
-      className="mb-1 flex w-full justify-center"
-      style={{ paddingLeft: `${(indent ?? 0) * 2.5}%` }}
-    >
-      <div className="flex w-full gap-0.5">
-        {keys.map((key) => (
-          <KeyboardKey
-            key={key.code}
-            keyDef={key}
-            widthPct={((key.width ?? 1) / totalUnits) * 100}
-            pressedKey={pressedKey}
-            targetKeySet={targetKeySet}
-            showFingers={showFingers}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default memo(Keyboard);
 
 function Keyboard({ pressedKey, expectedChar }: KeyboardProps) {
@@ -175,9 +89,9 @@ function Keyboard({ pressedKey, expectedChar }: KeyboardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [expectedChar, multiStep, sequenceStep]);
 
-  const allFingers = DVORAK_ROWS.flatMap((row) =>
-    row.keys.map((key) => getFingerForKey(key.code)).filter(Boolean),
-  ) as Finger[];
+  const allFingers = buildHardwareGrid(settings.hardwareLayout)
+    .map((key) => (key.code ? getFingerForKey(key.code) : undefined))
+    .filter(Boolean) as Finger[];
 
   return (
     <section className="hidden w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 p-4 shadow-sm sm:block sm:p-6">
@@ -190,17 +104,13 @@ function Keyboard({ pressedKey, expectedChar }: KeyboardProps) {
 
       {showFingers && <FingerColorBar fingers={allFingers} />}
 
-      <div className="mx-auto w-full max-w-3xl select-none motion-reduce:transition-none" aria-hidden="true">
-        {DVORAK_ROWS.map((row, rowIndex) => (
-          <KeyboardRow
-            key={rowIndex}
-            keys={row.keys}
-            indent={row.indent}
-            pressedKey={pressedKey}
-            targetKeySet={targetKeySet}
-            showFingers={showFingers}
-          />
-        ))}
+      <div className="mx-auto w-full max-w-4xl select-none motion-reduce:transition-none">
+        <OnScreenKeyboard
+          hardwareLayout={settings.hardwareLayout}
+          pressedKey={pressedKey}
+          targetKeySet={targetKeySet}
+          showFingers={showFingers}
+        />
       </div>
 
       <HandGuide targetKeys={activeStepKeys} />

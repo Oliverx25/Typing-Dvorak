@@ -1,6 +1,7 @@
 import type { Locale } from '@/i18n';
 import type { HighlightThemeId } from '@/utils/app/highlightTheme';
 import { applyHighlightTheme, DEFAULT_HIGHLIGHT_THEME, isHighlightThemeId } from '@/utils/app/highlightTheme';
+import type { HardwareLayout } from '@/utils/keyboard/keyboardLayouts';
 import { getStoredTheme } from '@/utils/progress/storage';
 import { STORAGE_KEYS } from '@/utils/progress/keys';
 import { readJson, writeJson } from '@/utils/progress/localStorage';
@@ -14,11 +15,14 @@ export const PACER_DEFAULT_WPM = 60;
 export type CaretStyle = 'line' | 'block' | 'underline';
 export type CaretAnimation = 'smooth' | 'blink' | 'off';
 
+export type { HardwareLayout };
+
 export interface AppSettings {
   locale: Locale;
   sound: boolean;
   blindMode: boolean;
   fingerColors: boolean;
+  hardwareLayout: HardwareLayout;
   practiceMode: PracticeMode;
   highlightTheme: HighlightThemeId;
   zenMode: boolean;
@@ -36,6 +40,7 @@ const DEFAULTS: AppSettings = {
   sound: false,
   blindMode: false,
   fingerColors: true,
+  hardwareLayout: 'ANSI',
   practiceMode: 'practice',
   highlightTheme: DEFAULT_HIGHLIGHT_THEME,
   zenMode: false,
@@ -60,6 +65,7 @@ export function getSettings(): AppSettings {
   }
   const merged = { ...DEFAULTS, ...parsed };
   merged.pacerTargetWpm = clampPacerWpm(merged.pacerTargetWpm);
+  if (!['ANSI', 'MAC_ISO'].includes(merged.hardwareLayout)) merged.hardwareLayout = 'ANSI';
   if (!['line', 'block', 'underline'].includes(merged.caretStyle)) merged.caretStyle = 'line';
   if (!['smooth', 'blink', 'off'].includes(merged.caretAnimation)) merged.caretAnimation = 'blink';
   return merged;

@@ -21,7 +21,9 @@ interface HeatmapKeyProps {
   displayLabel: string;
   mode: HeatmapLayoutMode;
   stats: KeyStatsData;
-  widthPct: number;
+  widthPct?: number;
+  containerStyle?: React.CSSProperties;
+  className?: string;
   background: string;
   tooltipLabels: HeatmapKeyTooltipLabels;
 }
@@ -33,6 +35,8 @@ export default function HeatmapKey({
   mode,
   stats,
   widthPct,
+  containerStyle,
+  className = '',
   background,
   tooltipLabels,
 }: HeatmapKeyProps) {
@@ -64,13 +68,13 @@ export default function HeatmapKey({
 
   return (
     <div
-      className="relative"
-      style={{ width: `${widthPct}%` }}
+      className={`relative ${className}`}
+      style={containerStyle ?? (widthPct != null ? { width: `${widthPct}%` } : undefined)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <div
-        className="flex h-9 w-full items-center justify-center rounded border border-[var(--color-border)] font-mono text-xs text-[var(--color-text)] sm:h-10 sm:text-sm"
+        className="flex h-full min-h-9 w-full items-center justify-center rounded border border-[var(--color-border)] font-mono text-xs text-[var(--color-text)] sm:min-h-10 sm:text-sm"
         style={{ background }}
       >
         {displayLabel}

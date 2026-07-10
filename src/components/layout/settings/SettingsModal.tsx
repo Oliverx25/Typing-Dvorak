@@ -13,6 +13,7 @@ import {
   PACER_MIN_WPM,
   type AppSettings,
 } from '@/utils/app/settings';
+import { HARDWARE_LAYOUTS } from '@/utils/keyboard/keyboardLayouts';
 import { SettingsToggle, Button } from '@/components/ui';
 import { formFieldClassName } from '@/components/ui/formFieldClasses';
 
@@ -27,6 +28,7 @@ type SettingsDraft = Pick<
   | 'sound'
   | 'blindMode'
   | 'fingerColors'
+  | 'hardwareLayout'
   | 'highlightTheme'
   | 'zenMode'
   | 'ghostMode'
@@ -44,6 +46,7 @@ function pickDraft(settings: AppSettings): SettingsDraft {
     sound: settings.sound,
     blindMode: settings.blindMode,
     fingerColors: settings.fingerColors,
+    hardwareLayout: settings.hardwareLayout,
     highlightTheme: settings.highlightTheme,
     zenMode: settings.zenMode,
     ghostMode: settings.ghostMode,
@@ -172,6 +175,26 @@ export default function SettingsModal({ onClose, returnFocusRef }: SettingsModal
                   checked={draft.fingerColors}
                   onChange={(v) => patchDraft({ fingerColors: v })}
                 />
+                <SettingRow label={t.settings.hardwareLayout}>
+                  <div className="flex flex-col gap-1 sm:items-end">
+                    <div className="flex flex-wrap gap-1">
+                      {HARDWARE_LAYOUTS.map((layout) => (
+                        <button
+                          key={layout}
+                          type="button"
+                          onClick={() => patchDraft({ hardwareLayout: layout })}
+                          aria-pressed={draft.hardwareLayout === layout}
+                          className={optionButtonClassName(draft.hardwareLayout === layout)}
+                        >
+                          {layout === 'ANSI'
+                            ? t.settings.hardwareLayoutAnsi
+                            : t.settings.hardwareLayoutMacIso}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-[var(--color-text-muted)]">{t.settings.hardwareLayoutDesc}</p>
+                  </div>
+                </SettingRow>
               </div>
 
               <div className="mt-5 border-t border-[var(--color-border)] pt-5">
