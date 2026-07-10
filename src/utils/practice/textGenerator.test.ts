@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatPracticeText } from '@/utils/practice/textGenerator';
+import { formatPracticeText, resolvePracticeLoadingSource } from '@/utils/practice/textGenerator';
 import { resolveSessionType, isRoadmapSession } from '@/utils/stats/sessionClassification';
 
 describe('formatPracticeText', () => {
@@ -19,6 +19,23 @@ describe('formatPracticeText', () => {
       includePunctuation: false,
     });
     expect(result).toBe('Hello world');
+  });
+
+  it('preserves code line breaks', () => {
+    const result = formatPracticeText('const x = 1;\nreturn x;', {
+      includeCaps: true,
+      includeNumbers: true,
+      includePunctuation: true,
+    }, 'code');
+    expect(result).toBe('const x = 1;\nreturn x;');
+  });
+});
+
+describe('resolvePracticeLoadingSource', () => {
+  it('maps content types to loading sources', () => {
+    expect(resolvePracticeLoadingSource('code')).toBe('github');
+    expect(resolvePracticeLoadingSource('es')).toBe('translate');
+    expect(resolvePracticeLoadingSource('en')).toBe('generic');
   });
 });
 

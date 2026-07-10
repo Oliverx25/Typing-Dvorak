@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import TypingTest from '@/components/typing/session/TypingTest';
 import { AppErrorBoundary } from '@/components/ui';
@@ -10,7 +10,7 @@ import {
   saveSandboxConfig,
   type SandboxConfig,
 } from '@/utils/practice/sandboxConfig';
-import { generatePracticeText } from '@/utils/practice/textGenerator';
+import { generatePracticeText, resolvePracticeLoadingSource } from '@/utils/practice/textGenerator';
 import { FREE_PRACTICE_LESSON_ID } from '@/utils/stats/sessionClassification';
 
 const FREE_PRACTICE_LESSON: Lesson = {
@@ -109,6 +109,13 @@ export default function PracticePage() {
   const practiceMode = config.mode === 'time' ? 'test' : 'practice';
   const testDurationSeconds = config.mode === 'time' ? config.timeSeconds : undefined;
 
+  const loadingHint = useMemo(() => {
+    const source = resolvePracticeLoadingSource(config.content);
+    if (source === 'github') return t.practice.loadingGitHub;
+    if (source === 'translate') return t.practice.loadingTranslate;
+    return t.practice.loadingHint;
+  }, [config.content, t.practice]);
+
   return (
     <div className="mx-auto w-full max-w-4xl">
       <header className="mb-8 text-center">
@@ -123,7 +130,7 @@ export default function PracticePage() {
           isDirty={isSettingsDirty}
           isLoading={isLoading}
           dirtyHint={t.practice.dirtyHint}
-          loadingHint={t.practice.loadingHint}
+          loadingHint={loadingHint}
           onStart={() => void handleStartPractice()}
         />
       ) : (

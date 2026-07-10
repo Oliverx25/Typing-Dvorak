@@ -1,5 +1,9 @@
-import type { SandboxConfig } from '@/utils/practice/sandboxConfig';
+import type { SandboxConfig, SandboxContent } from '@/utils/practice/sandboxConfig';
 import { generateSandboxStream, generateSandboxWords } from '@/utils/practice/sandboxText';
+import { fetchGitHubCodeSnippet } from '@/utils/practice/githubCodeFetcher';
+import { translateToSpanish } from '@/utils/practice/libreTranslate';
+
+export type PracticeLoadingSource = 'generic' | 'github' | 'translate';
 
 const SPANISH_QUOTES = [
   'La vida es lo que pasa mientras estás ocupado haciendo otros planes.',
@@ -25,6 +29,12 @@ const CODE_SNIPPETS = [
   'className={cn("rounded-xl border", isActive && "border-blue-500")}',
 ];
 
+export function resolvePracticeLoadingSource(content: SandboxContent): PracticeLoadingSource {
+  if (content === 'code') return 'github';
+  if (content === 'es') return 'translate';
+  return 'generic';
+}
+
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
@@ -33,7 +43,7 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function buildSpanishText(minWords: number): string {
+function buildSpanishFallback(minWords: number): string {
   const parts: string[] = [];
   let words = 0;
   while (words < minWords) {
@@ -44,7 +54,7 @@ function buildSpanishText(minWords: number): string {
   return parts.join(' ');
 }
 
-function buildCodeText(minWords: number): string {
+function buildStaticCodeFallback(minWords: number): string {
   const parts: string[] = [];
   let words = 0;
   while (words < minWords) {
@@ -52,10 +62,20 @@ function buildCodeText(minWords: number): string {
     parts.push(snippet);
     words += countWords(snippet);
   }
-  return parts.join(' ');
+  return parts.join('\n');
 }
 
 async function fetchEnglishQuote(signal?: AbortSignal): Promise<string> {
+  try {
+    const quotable = await fetch('https://api.quotable.io/random?maxLength=240', { signal });
+    if (quotable.ok) {
+      const data = (await quotable.json()) as { content?: string };
+      if (data.content?.trim()) return data.content.trim();
+    }
+  } catch (error) {
+    if (signal?.aborted) throw error;
+  }
+
   const response = await fetch('https://dummyjson.com/quotes/random', { signal });
   if (!response.ok) throw new Error('Quote fetch failed');
   const data = (await response.json()) as { quote?: string };
@@ -81,14 +101,65 @@ async function fetchEnglishText(minWords: number, signal?: AbortSignal): Promise
   if (words >= minWords) return parts.join(' ');
 
   const fallback = generateSandboxStream(
-    { mode: 'time', timeSeconds: 60, wordCount: 25, content: 'en', includeCaps: true, includeNumbers: false, includePunctuation: true },
+    {
+      mode: 'time',
+      timeSeconds: 60,
+      wordCount: 25,
+      content: 'en',
+      includeCaps: true,
+      includeNumbers: false,
+      includePunctuation: true,
+    },
     minWords,
   );
   return parts.length > 0 ? `${parts.join(' ')} ${fallback}` : fallback;
 }
 
-/** Applies modifier toggles to raw generated text. */
-export function formatPracticeText(
+async function fetchSpanishText(minWords: number, signal?: AbortSignal): Promise<string> {
+  try {
+    const english = await fetchEnglishQuote(signal);
+    const translated = await translateToSpanish(english, signal);
+    if (countWords(translated) >= Math.min(minWords, 10)) {
+      return padSpanishText(translated, minWords);
+    }
+  } catch (error) {
+    if (signal?.aborted) throw error;
+  }
+
+  return buildSpanishFallback(minWords);
+}
+
+function padSpanishText(seed: string, minWords: number): string {
+  const parts = [seed];
+  let words = countWords(seed);
+  while (words < minWords) {
+    parts.push(pick(SPANISH_QUOTES));
+    words += countWords(parts[parts.length - 1]);
+  }
+  return parts.join(' ');
+}
+
+async function fetchCodeText(minWords: number, signal?: AbortSignal): Promise<string> {
+  const blocks: string[] = [];
+  let words = 0;
+
+  for (let attempt = 0; attempt < 4 && words < minWords; attempt++) {
+    try {
+      const snippet = await fetchGitHubCodeSnippet(signal);
+      if (!snippet) continue;
+      blocks.push(snippet);
+      words += countWords(snippet.replace(/\n/g, ' '));
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      break;
+    }
+  }
+
+  if (blocks.length > 0) return blocks.join('\n\n');
+  return buildStaticCodeFallback(minWords);
+}
+
+function formatProseText(
   rawText: string,
   modifiers: Pick<SandboxConfig, 'includeCaps' | 'includeNumbers' | 'includePunctuation'>,
 ): string {
@@ -111,6 +182,36 @@ export function formatPracticeText(
   return text;
 }
 
+function formatCodeText(
+  rawText: string,
+  modifiers: Pick<SandboxConfig, 'includeCaps' | 'includeNumbers' | 'includePunctuation'>,
+): string {
+  let lines = rawText.replace(/\r\n/g, '\n').split('\n').map((line) => line.trimEnd());
+
+  if (!modifiers.includeNumbers) {
+    lines = lines.map((line) => line.replace(/\d/g, ''));
+  }
+
+  if (!modifiers.includePunctuation) {
+    lines = lines.map((line) => line.replace(/[.,!?;:'"—–]/g, ''));
+  }
+
+  if (!modifiers.includeCaps) {
+    lines = lines.map((line) => line.toLowerCase());
+  }
+
+  return lines.join('\n').trim();
+}
+
+/** Applies modifier toggles to raw generated text. */
+export function formatPracticeText(
+  rawText: string,
+  modifiers: Pick<SandboxConfig, 'includeCaps' | 'includeNumbers' | 'includePunctuation'>,
+  content: SandboxContent = 'en',
+): string {
+  return content === 'code' ? formatCodeText(rawText, modifiers) : formatProseText(rawText, modifiers);
+}
+
 /** Generates practice text from config. Supports AbortSignal for in-flight cancellation. */
 export async function generatePracticeText(config: SandboxConfig, signal?: AbortSignal): Promise<string> {
   const minWords = config.mode === 'words' ? config.wordCount : 120;
@@ -118,23 +219,24 @@ export async function generatePracticeText(config: SandboxConfig, signal?: Abort
   let raw: string;
   switch (config.content) {
     case 'en':
-      raw = config.mode === 'words'
-        ? await fetchEnglishText(Math.max(minWords, 15), signal)
-        : await fetchEnglishText(minWords, signal);
+      raw =
+        config.mode === 'words'
+          ? await fetchEnglishText(Math.max(minWords, 15), signal)
+          : await fetchEnglishText(minWords, signal);
       break;
     case 'es':
-      raw = buildSpanishText(minWords);
+      raw = await fetchSpanishText(minWords, signal);
       break;
     case 'code':
-      raw = buildCodeText(minWords);
+      raw = await fetchCodeText(minWords, signal);
       break;
     default:
       raw = generateSandboxWords(config);
   }
 
-  const formatted = formatPracticeText(raw, config);
+  const formatted = formatPracticeText(raw, config, config.content);
   if (formatted.length >= 10) return formatted;
 
   const padded = config.mode === 'words' ? generateSandboxWords(config) : generateSandboxStream(config, minWords);
-  return formatPracticeText(padded, config);
+  return formatPracticeText(padded, config, config.content);
 }

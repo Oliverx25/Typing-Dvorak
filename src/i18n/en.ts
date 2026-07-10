@@ -149,6 +149,8 @@ export const en = {
     desc: 'Configure your session, then click the teleprompter or press Enter to generate fresh text.',
     dirtyHint: 'Click or press Enter to start with these settings',
     loadingHint: 'Generating text…',
+    loadingGitHub: 'Fetching code from GitHub…',
+    loadingTranslate: 'Translating practice text…',
   },
   mastery: {
     bronze: 'Bronze',

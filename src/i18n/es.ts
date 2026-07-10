@@ -151,6 +151,8 @@ export const es: TranslationKey = {
     desc: 'Configura tu sesión y haz clic en el teleprompter o presiona Enter para generar texto nuevo.',
     dirtyHint: 'Haz clic o presiona Enter para iniciar con estos ajustes',
     loadingHint: 'Generando texto…',
+    loadingGitHub: 'Extrayendo código desde GitHub…',
+    loadingTranslate: 'Traduciendo texto de práctica…',
   },
   mastery: {
     bronze: 'Bronce',

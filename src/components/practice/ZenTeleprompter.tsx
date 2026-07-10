@@ -48,7 +48,13 @@ export default function ZenTeleprompter({
       </div>
 
       {(isDirty || isLoading) && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center p-6">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 p-6">
+          {isLoading ? (
+            <span
+              className="size-6 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-highlight)]"
+              aria-hidden="true"
+            />
+          ) : null}
           <p className="max-w-sm text-center text-sm font-medium text-[var(--color-text)]">
             {isLoading ? loadingHint : dirtyHint}
           </p>
