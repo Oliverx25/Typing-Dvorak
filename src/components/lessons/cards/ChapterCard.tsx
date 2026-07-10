@@ -63,6 +63,9 @@ export default function ChapterCard({ chapter, stats, onSelect }: ChapterCardPro
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             {stats.completedLessons}/{stats.totalLessons} {t.home.chapterLessonsDone}
           </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {stats.averageMasteryXp} {t.home.chapterAvgMastery}
+          </p>
         </div>
         {stats.averageGrade ? (
           <GradeBadge grade={stats.averageGrade} className="!h-7 !w-auto !px-2 !text-xs" />
@@ -73,14 +76,7 @@ export default function ChapterCard({ chapter, stats, onSelect }: ChapterCardPro
         )}
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-end">
-          <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
-            {stats.averageMasteryXp} XP
-          </span>
-        </div>
-        <ChapterProgressBar value={stats.masteryProgressPct} />
-      </div>
+      <ChapterProgressBar value={stats.masteryProgressPct} />
     </button>
   );
 }
