@@ -162,9 +162,13 @@ export default function PracticePage() {
   }, []);
 
   useEffect(() => {
-    document.body.classList.add('zen-mode-active');
+    if (isTyping) {
+      document.body.classList.add('zen-mode-active');
+    } else {
+      document.body.classList.remove('zen-mode-active');
+    }
     return () => document.body.classList.remove('zen-mode-active');
-  }, []);
+  }, [isTyping]);
 
   useEffect(() => {
     if (!isLyricsMode || !practiceSong) return;
@@ -233,19 +237,19 @@ export default function PracticePage() {
   const showZenIdle = phase === 'idle' && !showLyricsSearch;
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center px-4">
+    <div className="relative flex min-h-[calc(100vh-120px)] w-full flex-col items-center justify-center px-4">
       <h1 className="sr-only">{t.practice.title}</h1>
 
       <div
         className={[
-          'mb-6 w-full max-w-7xl shrink-0 transition-opacity duration-500',
-          isTyping ? 'pointer-events-none opacity-10' : 'opacity-100',
+          'absolute top-8 left-1/2 z-20 flex w-full max-w-4xl -translate-x-1/2 flex-col items-center justify-start transition-opacity duration-500',
+          isTyping ? 'pointer-events-none opacity-0' : 'opacity-100',
         ].join(' ')}
       >
         <PracticeSettings config={config} onChange={handleConfigChange} />
       </div>
 
-      <div className="flex w-full max-w-7xl flex-1 flex-col items-center justify-center">
+      <div className="flex w-full max-w-7xl flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {showLyricsSearch ? (
             <motion.div

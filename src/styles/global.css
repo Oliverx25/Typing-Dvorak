@@ -281,7 +281,7 @@ body.zen-active [data-zen-fade] {
   pointer-events: none;
 }
 
-/* Practice route: hide chrome immediately for full immersion. */
+/* Practice route: hide chrome while actively typing. */
 body.zen-mode-active header,
 body.zen-mode-active footer {
   display: none !important;
