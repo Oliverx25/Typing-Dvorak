@@ -1,6 +1,10 @@
 import { GradeBadge } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
-import { getGradeColorClasses } from '@/utils/grading/gradeColors';
+import {
+  getGradeColorClasses,
+  getWpmBarWidthStyle,
+  WPM_BAR_MUTED_BG,
+} from '@/utils/grading/gradeColors';
 
 export interface LessonStatRowData {
   id: string;
@@ -26,7 +30,6 @@ export default function LessonStatRow({
   practiceLabel,
   accuracyLabel,
 }: LessonStatRowProps) {
-  const barWidth = Math.max(4, Math.min(100, (lesson.wpm / maxWpm) * 100));
   const displayGrade = lesson.grade ?? calculateGrade(lesson.accuracy);
   const colors = getGradeColorClasses(displayGrade);
 
@@ -35,10 +38,10 @@ export default function LessonStatRow({
       <div
         className={[
           'absolute top-0 bottom-0 left-0 z-0 border-r-2 transition-all duration-500',
-          colors.bg,
+          WPM_BAR_MUTED_BG,
           colors.border,
         ].join(' ')}
-        style={{ width: `${barWidth}%` }}
+        style={{ width: getWpmBarWidthStyle(lesson.wpm, maxWpm) }}
         aria-hidden="true"
       />
 

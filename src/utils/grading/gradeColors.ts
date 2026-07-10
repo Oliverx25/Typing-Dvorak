@@ -1,77 +1,80 @@
 export interface GradeColorClasses {
-  /** Low-opacity fill for WPM bars. */
-  bg: string;
-  /** Right edge marker on the WPM bar. */
-  border: string;
   /** Accent text (e.g. WPM value). */
   text: string;
+  /** Right-edge glow on the muted WPM bar. */
+  border: string;
 }
 
-const DEFAULT_BAR_COLORS: GradeColorClasses = {
-  bg: 'bg-slate-500/10',
-  border: 'border-r-slate-500/50',
+const DEFAULT_GRADE_COLORS: GradeColorClasses = {
   text: 'text-slate-400',
+  border: 'border-r-slate-500 shadow-[2px_0_8px_rgba(100,116,139,0.35)]',
 };
 
-const GRADE_BAR_COLORS: Record<string, GradeColorClasses> = {
+const GRADE_COLORS: Record<string, GradeColorClasses> = {
   'SS+': {
-    bg: 'bg-fuchsia-500/10',
-    border: 'border-r-fuchsia-500/50',
     text: 'text-fuchsia-400',
+    border: 'border-r-fuchsia-400 shadow-[2px_0_8px_rgba(232,121,249,0.4)]',
   },
   SS: {
-    bg: 'bg-fuchsia-500/10',
-    border: 'border-r-fuchsia-400/40',
-    text: 'text-fuchsia-300',
+    text: 'text-slate-200',
+    border: 'border-r-slate-300 shadow-[2px_0_8px_rgba(203,213,225,0.4)]',
   },
   'S+': {
-    bg: 'bg-amber-500/10',
-    border: 'border-r-amber-500/50',
     text: 'text-amber-400',
+    border: 'border-r-amber-400 shadow-[2px_0_8px_rgba(251,191,36,0.4)]',
   },
   S: {
-    bg: 'bg-amber-500/10',
-    border: 'border-r-amber-400/50',
     text: 'text-amber-400',
+    border: 'border-r-amber-400 shadow-[2px_0_8px_rgba(251,191,36,0.4)]',
   },
   A: {
-    bg: 'bg-emerald-500/10',
-    border: 'border-r-emerald-500/50',
     text: 'text-emerald-400',
+    border: 'border-r-emerald-400 shadow-[2px_0_8px_rgba(52,211,153,0.4)]',
   },
   B: {
-    bg: 'bg-blue-500/10',
-    border: 'border-r-blue-500/50',
     text: 'text-blue-400',
+    border: 'border-r-blue-400 shadow-[2px_0_8px_rgba(96,165,250,0.35)]',
   },
   C: {
-    bg: 'bg-purple-500/10',
-    border: 'border-r-purple-500/50',
     text: 'text-purple-400',
+    border: 'border-r-purple-400 shadow-[2px_0_8px_rgba(192,132,252,0.35)]',
   },
-  D: DEFAULT_BAR_COLORS,
-  F: DEFAULT_BAR_COLORS,
+  D: DEFAULT_GRADE_COLORS,
+  F: DEFAULT_GRADE_COLORS,
 };
 
-/** Tailwind classes for grade-tinted WPM bars and stat accents. */
+/** Muted WPM bar track — grade color appears only on the right edge. */
+export const WPM_BAR_MUTED_BG = 'bg-slate-700/20 dark:bg-slate-800/30';
+
+/** Reserved width (px) for accuracy, WPM, and practice columns. */
+export const WPM_BAR_METRICS_RESERVE_PX = 150;
+
+/** Grade-tinted text and bar-edge glow — shared with GradeBadge palette. */
 export function getGradeColorClasses(grade: string | null | undefined): GradeColorClasses {
-  if (!grade) return DEFAULT_BAR_COLORS;
-  return GRADE_BAR_COLORS[grade] ?? DEFAULT_BAR_COLORS;
+  if (!grade) return DEFAULT_GRADE_COLORS;
+  return GRADE_COLORS[grade] ?? DEFAULT_GRADE_COLORS;
+}
+
+/** Width style keeping the bar out of the right-hand metrics zone. */
+export function getWpmBarWidthStyle(wpm: number, maxWpm: number): string {
+  if (wpm <= 0 || maxWpm <= 0) return '0';
+  const ratio = Math.min(1, wpm / maxWpm);
+  return `max(2px, calc((100% - ${WPM_BAR_METRICS_RESERVE_PX}px) * ${ratio}))`;
 }
 
 /** Solid badge surface classes — shared with GradeBadge. */
 export function getGradeBadgeClassName(grade: string): string {
   switch (grade) {
     case 'SS+':
-      return 'w-auto gap-1 bg-gradient-to-br from-fuchsia-300 via-purple-300 to-pink-300 px-2 font-black text-slate-900 shadow-[0_0_15px_rgba(217,70,239,0.45)]';
+      return 'w-auto gap-1 bg-gradient-to-br from-fuchsia-400 via-fuchsia-500 to-pink-500 px-2 font-black text-white shadow-[0_0_12px_rgba(217,70,239,0.55)]';
     case 'S+':
       return 'w-auto gap-1 bg-gradient-to-br from-yellow-300 to-amber-500 px-2 font-bold text-amber-950 shadow-[0_0_12px_rgba(251,191,36,0.6)]';
     case 'SS':
-      return 'bg-slate-200 font-black text-slate-900 shadow-[0_0_8px_rgba(226,232,240,0.6)] dark:bg-slate-300';
+      return 'bg-gradient-to-br from-slate-200 to-slate-300 font-black text-slate-900 shadow-[0_0_8px_rgba(203,213,225,0.55)] dark:from-slate-300 dark:to-slate-400';
     case 'S':
-      return 'bg-yellow-400 font-bold text-yellow-950';
+      return 'bg-amber-400 font-bold text-amber-950 shadow-[0_0_6px_rgba(251,191,36,0.45)]';
     case 'A':
-      return 'bg-emerald-500 font-bold text-white';
+      return 'bg-emerald-500 font-bold text-white shadow-[0_0_6px_rgba(52,211,153,0.35)]';
     case 'B':
       return 'bg-blue-500 font-bold text-white';
     case 'C':
