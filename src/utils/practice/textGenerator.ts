@@ -264,7 +264,10 @@ export function formatPracticeText(
   modifiers: Pick<SandboxConfig, 'includeCaps' | 'includeNumbers' | 'includePunctuation'>,
   content: SandboxContent = 'en',
 ): string {
-  return content === 'code' ? formatCodeText(rawText, modifiers) : formatProseText(rawText, modifiers);
+  if (content === 'code' || content === 'lyrics') {
+    return formatCodeText(rawText, modifiers);
+  }
+  return formatProseText(rawText, modifiers);
 }
 
 function finalizePracticeText(raw: string, config: SandboxConfig): string {

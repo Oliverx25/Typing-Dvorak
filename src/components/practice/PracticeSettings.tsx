@@ -22,6 +22,7 @@ export default function PracticeSettings({ config, onChange }: PracticeSettingsP
     { value: 'es', label: t.practice.toolbar.spanish },
     { value: 'code', label: t.practice.toolbar.code },
     { value: 'prose', label: t.practice.toolbar.prose },
+    { value: 'lyrics', label: t.practice.toolbar.lyrics },
   ];
 
   const modeOptions: { value: SandboxMode; label: string }[] = [
@@ -35,6 +36,7 @@ export default function PracticeSettings({ config, onChange }: PracticeSettingsP
       : SANDBOX_WORD_OPTIONS.map((value) => ({ value, label: String(value) }));
 
   const lengthValue = config.mode === 'time' ? config.timeSeconds : config.wordCount;
+  const isLyricsMode = config.content === 'lyrics';
 
   return (
     <nav
@@ -77,24 +79,35 @@ export default function PracticeSettings({ config, onChange }: PracticeSettingsP
       />
 
       <SegmentedControl
-        ariaLabel={t.sandbox.modeLabel}
-        options={modeOptions}
-        value={config.mode}
-        onChange={(mode) => onChange({ mode })}
+        ariaLabel={t.sandbox.contentLabel}
+        options={contentOptions}
+        value={config.content}
+        onChange={(content) => onChange({ content })}
       />
 
-      <SegmentedControl
-        ariaLabel={config.mode === 'time' ? t.sandbox.durationLabel : t.sandbox.wordCountLabel}
-        options={lengthOptions}
-        value={lengthValue}
-        onChange={(value) =>
-          onChange(
-            config.mode === 'time'
-              ? { timeSeconds: value as SandboxConfig['timeSeconds'] }
-              : { wordCount: value as SandboxConfig['wordCount'] },
-          )
-        }
-      />
+      {!isLyricsMode ? (
+        <>
+          <SegmentedControl
+            ariaLabel={t.sandbox.modeLabel}
+            options={modeOptions}
+            value={config.mode}
+            onChange={(mode) => onChange({ mode })}
+          />
+
+          <SegmentedControl
+            ariaLabel={config.mode === 'time' ? t.sandbox.durationLabel : t.sandbox.wordCountLabel}
+            options={lengthOptions}
+            value={lengthValue}
+            onChange={(value) =>
+              onChange(
+                config.mode === 'time'
+                  ? { timeSeconds: value as SandboxConfig['timeSeconds'] }
+                  : { wordCount: value as SandboxConfig['wordCount'] },
+              )
+            }
+          />
+        </>
+      ) : null}
     </nav>
   );
 }

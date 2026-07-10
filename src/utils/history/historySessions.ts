@@ -81,6 +81,7 @@ export function formatHistorySessionLabel(session: HistorySession, locale: Local
   const t = getTranslations(locale);
 
   if (session.lessonId === FREE_PRACTICE_LESSON_ID || session.sessionType === 'practice') {
+    if (session.songTitle?.trim()) return session.songTitle.trim();
     return t.practice.title;
   }
 

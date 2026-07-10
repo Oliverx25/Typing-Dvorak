@@ -33,6 +33,15 @@ describe('formatPracticeText', () => {
     }, 'code');
     expect(result).toBe('const x = 1;\nreturn x;');
   });
+
+  it('preserves lyrics line breaks', () => {
+    const result = formatPracticeText('Verse ONE\nVerse TWO', {
+      includeCaps: false,
+      includeNumbers: true,
+      includePunctuation: true,
+    }, 'lyrics');
+    expect(result).toBe('verse one\nverse two');
+  });
 });
 
 describe('truncateToWordCount', () => {

@@ -5,7 +5,9 @@ import { AppErrorBoundary } from '@/components/ui';
 import PracticeSettings from '@/components/practice/PracticeSettings';
 import PracticeTeleprompterShell from '@/components/practice/PracticeTeleprompterShell';
 import ZenTeleprompter from '@/components/practice/ZenTeleprompter';
+import LyricsSearch from '@/components/lyrics/LyricsSearch';
 import type { Lesson } from '@/utils/curriculum/lessons';
+import type { LyricSongResult } from '@/utils/lyrics/types';
 import {
   DEFAULT_SANDBOX_CONFIG,
   getSandboxConfig,
@@ -13,7 +15,9 @@ import {
   type SandboxConfig,
 } from '@/utils/practice/sandboxConfig';
 import { generatePracticeText, resolvePracticeLoadingSource } from '@/utils/practice/textGenerator';
+import { formatPracticeLyrics, formatPracticeSongTitle } from '@/utils/practice/practiceLyrics';
 import { FREE_PRACTICE_LESSON_ID } from '@/utils/stats/sessionClassification';
+import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
 
 const FREE_PRACTICE_LESSON: Lesson = {
   id: FREE_PRACTICE_LESSON_ID,
@@ -34,9 +38,17 @@ export default function PracticePage() {
   const [isSettingsDirty, setIsSettingsDirty] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [practiceText, setPracticeText] = useState('');
+  const [practiceSong, setPracticeSong] = useState<LyricSongResult | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  const isLyricsMode = config.content === 'lyrics';
+
+  const clearLyricsSelection = useCallback(() => {
+    setPracticeSong(null);
+    setPracticeText('');
+  }, []);
 
   const handleConfigChange = useCallback(
     (partial: Partial<SandboxConfig>) => {
@@ -46,13 +58,33 @@ export default function PracticePage() {
         return next;
       });
       setIsSettingsDirty(true);
+
+      if (partial.content !== undefined && partial.content !== 'lyrics') {
+        clearLyricsSelection();
+      }
+      if (partial.content === 'lyrics') {
+        clearLyricsSelection();
+      }
+
       if (phase === 'typing') {
         abortRef.current?.abort();
         setPhase('idle');
         setPracticeText('');
       }
     },
-    [phase],
+    [phase, clearLyricsSelection],
+  );
+
+  const handleSongSelect = useCallback(
+    (song: LyricSongResult) => {
+      const formatted = formatPracticeLyrics(song.plainLyrics, config);
+      setPracticeSong(song);
+      setPracticeText(formatted);
+      setIsSettingsDirty(true);
+      setPhase('idle');
+      setIsTyping(false);
+    },
+    [config],
   );
 
   const handleReturnToZen = useCallback(() => {
@@ -60,12 +92,24 @@ export default function PracticePage() {
     setPhase('idle');
     setIsSettingsDirty(true);
     setIsTyping(false);
-    setPracticeText('');
+    if (isLyricsMode) {
+      clearLyricsSelection();
+    } else {
+      setPracticeText('');
+    }
     setSessionKey((value) => value + 1);
-  }, []);
+  }, [isLyricsMode, clearLyricsSelection]);
 
   const handleStartPractice = useCallback(async () => {
     if (isLoading) return;
+
+    if (isLyricsMode) {
+      if (!practiceSong || !practiceText.trim()) return;
+      setIsSettingsDirty(false);
+      setSessionKey((value) => value + 1);
+      setPhase('typing');
+      return;
+    }
 
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -87,14 +131,27 @@ export default function PracticePage() {
         setIsLoading(false);
       }
     }
-  }, [config, isLoading]);
+  }, [config, isLoading, isLyricsMode, practiceSong, practiceText]);
 
   useEffect(() => {
     setConfig(getSandboxConfig());
   }, []);
 
   useEffect(() => {
+    if (!isLyricsMode || !practiceSong) return;
+    setPracticeText(formatPracticeLyrics(practiceSong.plainLyrics, config));
+    setIsSettingsDirty(true);
+  }, [
+    config.includeCaps,
+    config.includeNumbers,
+    config.includePunctuation,
+    isLyricsMode,
+    practiceSong,
+  ]);
+
+  useEffect(() => {
     if (phase !== 'idle' || !isSettingsDirty || isLoading) return;
+    if (isLyricsMode && !practiceSong) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Enter' || event.repeat) return;
@@ -107,14 +164,15 @@ export default function PracticePage() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [phase, isSettingsDirty, isLoading, handleStartPractice]);
+  }, [phase, isSettingsDirty, isLoading, handleStartPractice, isLyricsMode, practiceSong]);
 
   useEffect(() => {
     return () => abortRef.current?.abort();
   }, []);
 
-  const practiceMode = config.mode === 'time' ? 'test' : 'practice';
-  const testDurationSeconds = config.mode === 'time' ? config.timeSeconds : undefined;
+  const practiceMode = isLyricsMode ? 'practice' : config.mode === 'time' ? 'test' : 'practice';
+  const testDurationSeconds =
+    !isLyricsMode && config.mode === 'time' ? config.timeSeconds : undefined;
 
   const loadingHint = useMemo(() => {
     const source = resolvePracticeLoadingSource(config.content);
@@ -122,6 +180,25 @@ export default function PracticePage() {
     if (source === 'translate') return t.practice.loadingTranslate;
     return t.practice.loadingHint;
   }, [config.content, t.practice]);
+
+  const sessionPersist = useMemo((): SessionPersistOptions => {
+    if (!practiceSong) {
+      return { sessionType: 'practice' };
+    }
+    return {
+      sessionType: 'practice',
+      multiplayerSource: 'song',
+      songId: practiceSong.id,
+      songTitle: formatPracticeSongTitle(practiceSong),
+      songCoverUrl: practiceSong.coverArt ?? undefined,
+    };
+  }, [practiceSong]);
+
+  const dirtyHint =
+    isLyricsMode && practiceSong ? t.practice.lyricsDirtyHint : t.practice.dirtyHint;
+
+  const showLyricsSearch = isLyricsMode && phase === 'idle' && !practiceSong;
+  const showZenIdle = phase === 'idle' && !showLyricsSearch;
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-100px)] w-full max-w-7xl flex-col items-center justify-center px-4">
@@ -136,21 +213,41 @@ export default function PracticePage() {
         <PracticeSettings config={config} onChange={handleConfigChange} />
       </div>
 
-      {phase === 'idle' ? (
+      {showLyricsSearch ? (
+        <LyricsSearch onSelect={handleSongSelect} inputId="practice-lyrics-search" />
+      ) : null}
+
+      {showZenIdle ? (
         <PracticeTeleprompterShell variant="idle">
+          {isLyricsMode && practiceSong ? (
+            <div className="mb-4 flex w-full max-w-3xl items-center justify-between gap-3 px-2">
+              <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                {formatPracticeSongTitle(practiceSong)}
+              </p>
+              <button
+                type="button"
+                onClick={clearLyricsSelection}
+                className="shrink-0 text-xs text-[var(--color-highlight)] transition hover:underline"
+              >
+                {t.practice.lyricsChangeSong}
+              </button>
+            </div>
+          ) : null}
           <ZenTeleprompter
             isDirty={isSettingsDirty}
             isLoading={isLoading}
-            dirtyHint={t.practice.dirtyHint}
+            dirtyHint={dirtyHint}
             loadingHint={loadingHint}
             onStart={() => void handleStartPractice()}
           />
         </PracticeTeleprompterShell>
-      ) : (
+      ) : null}
+
+      {phase === 'typing' ? (
         <PracticeTeleprompterShell variant="active">
           <AppErrorBoundary
             section="typing"
-            resetKeys={[practiceText, sessionKey, config.mode, config.timeSeconds, config.wordCount]}
+            resetKeys={[practiceText, sessionKey, config.mode, config.timeSeconds, config.wordCount, practiceSong?.id]}
           >
             <TypingTest
               key={`${sessionKey}-${practiceText.slice(0, 32)}`}
@@ -165,12 +262,12 @@ export default function PracticePage() {
               zenStatsBar
               onTypingStateChange={setIsTyping}
               onFreePracticeRetry={handleReturnToZen}
-              sessionPersist={{ sessionType: 'practice' }}
+              sessionPersist={sessionPersist}
               ariaLabel={t.practice.title}
             />
           </AppErrorBoundary>
         </PracticeTeleprompterShell>
-      )}
+      ) : null}
     </div>
   );
 }
