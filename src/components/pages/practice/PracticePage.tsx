@@ -6,6 +6,7 @@ import { AppErrorBoundary } from '@/components/ui';
 import PracticeSettings from '@/components/practice/PracticeSettings';
 import PracticeTeleprompterShell from '@/components/practice/PracticeTeleprompterShell';
 import ZenTeleprompter from '@/components/practice/ZenTeleprompter';
+import PracticePauseOverlay from '@/components/practice/PracticePauseOverlay';
 import LyricsSearch from '@/components/lyrics/LyricsSearch';
 import type { Lesson } from '@/utils/curriculum/lessons';
 import type { LyricSongResult } from '@/utils/lyrics/types';
@@ -15,7 +16,7 @@ import {
   saveSandboxConfig,
   type SandboxConfig,
 } from '@/utils/practice/sandboxConfig';
-import { generatePracticeText, resolvePracticeLoadingSource } from '@/utils/practice/textGenerator';
+import { generatePracticeText, resolvePracticeLoadingSource, resolveTimeModeChunkWords } from '@/utils/practice/textGenerator';
 import { formatPracticeLyrics, formatPracticeSongTitle } from '@/utils/practice/practiceLyrics';
 import { FREE_PRACTICE_LESSON_ID } from '@/utils/stats/sessionClassification';
 import type { SessionPersistOptions } from '@/utils/stats/sessionTypes';
@@ -42,10 +43,10 @@ export default function PracticePage() {
   const [practiceSong, setPracticeSong] = useState<LyricSongResult | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const pauseResumeRef = useRef<(() => void) | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const bufferAbortRef = useRef<AbortController | null>(null);
-
-  const BUFFER_WORD_COUNT: SandboxConfig['wordCount'] = 50;
 
   const isLyricsMode = config.content === 'lyrics';
 
@@ -74,6 +75,8 @@ export default function PracticePage() {
         abortRef.current?.abort();
         setPhase('idle');
         setPracticeText('');
+        setIsTyping(false);
+        setIsPaused(false);
       }
     },
     [phase, clearLyricsSelection],
@@ -87,6 +90,7 @@ export default function PracticePage() {
       setIsSettingsDirty(true);
       setPhase('idle');
       setIsTyping(false);
+      setIsPaused(false);
     },
     [config],
   );
@@ -96,6 +100,7 @@ export default function PracticePage() {
     setPhase('idle');
     setIsSettingsDirty(true);
     setIsTyping(false);
+    setIsPaused(false);
     if (isLyricsMode) {
       clearLyricsSelection();
     } else {
@@ -145,12 +150,9 @@ export default function PracticePage() {
     bufferAbortRef.current = controller;
 
     try {
-      const bufferConfig: SandboxConfig = {
-        ...config,
-        mode: 'words',
-        wordCount: BUFFER_WORD_COUNT,
-      };
-      return await generatePracticeText(bufferConfig, controller.signal);
+      return await generatePracticeText(config, controller.signal, {
+        minWords: resolveTimeModeChunkWords(config.timeSeconds),
+      });
     } catch {
       if (controller.signal.aborted) return undefined;
       return undefined;
@@ -162,13 +164,13 @@ export default function PracticePage() {
   }, []);
 
   useEffect(() => {
-    if (isTyping) {
+    if (isTyping && !isPaused) {
       document.body.classList.add('zen-mode-active');
     } else {
       document.body.classList.remove('zen-mode-active');
     }
     return () => document.body.classList.remove('zen-mode-active');
-  }, [isTyping]);
+  }, [isTyping, isPaused]);
 
   useEffect(() => {
     if (!isLyricsMode || !practiceSong) return;
@@ -237,19 +239,21 @@ export default function PracticePage() {
   const showZenIdle = phase === 'idle' && !showLyricsSearch;
 
   return (
-    <div className="relative flex min-h-[calc(100vh-120px)] w-full flex-col items-center justify-center px-4">
-      <h1 className="sr-only">{t.practice.title}</h1>
+    <>
+      <div className="relative left-1/2 w-screen -translate-x-1/2">
+        <div className="relative flex min-h-[calc(100vh-120px)] w-full flex-col items-center justify-center">
+          <h1 className="sr-only">{t.practice.title}</h1>
 
-      <div
-        className={[
-          'absolute top-8 left-1/2 z-20 flex w-full max-w-4xl -translate-x-1/2 flex-col items-center justify-start transition-opacity duration-500',
-          isTyping ? 'pointer-events-none opacity-0' : 'opacity-100',
-        ].join(' ')}
-      >
-        <PracticeSettings config={config} onChange={handleConfigChange} />
-      </div>
+          <div
+            className={[
+              'absolute top-8 left-1/2 z-20 flex w-full max-w-4xl -translate-x-1/2 flex-col items-center justify-start transition-opacity duration-500',
+              isTyping && !isPaused ? 'pointer-events-none opacity-0' : 'opacity-100',
+            ].join(' ')}
+          >
+            <PracticeSettings config={config} onChange={handleConfigChange} />
+          </div>
 
-      <div className="flex w-full max-w-7xl flex-col items-center justify-center">
+          <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center px-4 sm:px-8">
         <AnimatePresence mode="wait">
           {showLyricsSearch ? (
             <motion.div
@@ -308,7 +312,10 @@ export default function PracticePage() {
                 hideKeyboard
                 isFreePractice
                 zenStatsBar
+                hidePauseOverlay
                 onTypingStateChange={setIsTyping}
+                onPauseStateChange={setIsPaused}
+                pauseResumeRef={pauseResumeRef}
                 onFreePracticeRetry={handleReturnToZen}
                 sessionPersist={sessionPersist}
                 fetchMoreText={config.mode === 'time' && !isLyricsMode ? fetchMorePracticeText : undefined}
@@ -317,7 +324,11 @@ export default function PracticePage() {
             </AppErrorBoundary>
           </PracticeTeleprompterShell>
         ) : null}
+          </div>
+        </div>
       </div>
-    </div>
+
+      {isPaused ? <PracticePauseOverlay onResume={() => pauseResumeRef.current?.()} /> : null}
+    </>
   );
 }

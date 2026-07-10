@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { useApp, getLessonTitle } from '@/contexts/AppProvider';
 import type { Lesson } from '@/utils/curriculum/lessons';
 import { useTypingSession } from '@/hooks/useTypingSession';
@@ -41,7 +41,11 @@ interface TypingTestProps {
   onFreePracticeRetry?: () => void;
   /** Minimal inline stats for Zen practice mode. */
   zenStatsBar?: boolean;
+  /** Practice route renders pause UI at page level. */
+  hidePauseOverlay?: boolean;
   onTypingStateChange?: (isTyping: boolean) => void;
+  onPauseStateChange?: (paused: boolean) => void;
+  pauseResumeRef?: MutableRefObject<(() => void) | null>;
   ariaLabel?: string;
   raceMode?: boolean;
   /** Musical pacer WPM fallback when no LRC timeline is stored. */
@@ -72,7 +76,10 @@ export default function TypingTest({
   isFreePractice = false,
   onFreePracticeRetry,
   zenStatsBar = false,
+  hidePauseOverlay = false,
   onTypingStateChange,
+  onPauseStateChange,
+  pauseResumeRef,
   ariaLabel,
   raceMode = false,
   musicPacerWpm = null,
@@ -171,6 +178,18 @@ export default function TypingTest({
   useEffect(() => {
     onTypingStateChange?.(started && !finished);
   }, [started, finished, onTypingStateChange]);
+
+  useEffect(() => {
+    onPauseStateChange?.(paused);
+  }, [paused, onPauseStateChange]);
+
+  useEffect(() => {
+    if (!pauseResumeRef) return;
+    pauseResumeRef.current = togglePause;
+    return () => {
+      pauseResumeRef.current = null;
+    };
+  }, [pauseResumeRef, togglePause]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
@@ -324,7 +343,7 @@ export default function TypingTest({
           </p>
         )}
 
-        {paused && !finished && <PauseOverlay onResume={togglePause} />}
+        {paused && !finished && !hidePauseOverlay ? <PauseOverlay onResume={togglePause} /> : null}
       </div>
 
       {finished && !hideCompletionPanel && (

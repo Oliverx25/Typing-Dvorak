@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   formatPracticeText,
   resolvePracticeLoadingSource,
+  resolveTimeModeChunkWords,
+  resolveTimeModeMinWords,
   truncateToWordCount,
 } from '@/utils/practice/textGenerator';
 import { resolveSessionType, isRoadmapSession } from '@/utils/stats/sessionClassification';
@@ -66,6 +68,22 @@ describe('truncateToWordCount', () => {
   it('truncates to an exact word count', () => {
     expect(truncateToWordCount('one two three four five six', 3)).toBe('one two three');
     expect(truncateToWordCount('  alpha   beta  gamma delta  ', 2)).toBe('alpha beta');
+  });
+});
+
+describe('resolveTimeModeMinWords', () => {
+  it('scales initial text length with session duration', () => {
+    expect(resolveTimeModeMinWords(15)).toBe(80);
+    expect(resolveTimeModeMinWords(30)).toBe(105);
+    expect(resolveTimeModeMinWords(60)).toBe(210);
+  });
+});
+
+describe('resolveTimeModeChunkWords', () => {
+  it('scales buffer chunks with session duration', () => {
+    expect(resolveTimeModeChunkWords(15)).toBe(50);
+    expect(resolveTimeModeChunkWords(30)).toBe(50);
+    expect(resolveTimeModeChunkWords(60)).toBe(75);
   });
 });
 

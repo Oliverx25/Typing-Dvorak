@@ -1,4 +1,4 @@
-import type { SandboxConfig, SandboxContent } from '@/utils/practice/sandboxConfig';
+import type { SandboxConfig, SandboxContent, SandboxTimeLength } from '@/utils/practice/sandboxConfig';
 import { generateSandboxStream, generateSandboxWords } from '@/utils/practice/sandboxText';
 import { fetchGitHubCodeSnippet } from '@/utils/practice/githubCodeFetcher';
 import { translateToSpanish } from '@/utils/practice/libreTranslate';
@@ -14,6 +14,12 @@ const SPANISH_QUOTES = [
   'Solo sé que no sé nada, y eso me hace más sabio que creer que lo sé todo.',
   'El éxito es la suma de pequeños esfuerzos repetidos día tras día.',
   'Caminante, no hay camino, se hace camino al andar.',
+];
+
+const SPANISH_PROSE_PARAGRAPHS = [
+  'En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivi un hidalgo de los de lanza en astillero, adarga antigua, rocin flaco y galgo corredor. Una olla de algo mas vaca que carnero, salpicon las mas noches, duelos y quebrantos los sabados, lentejas los viernes, algun palomino de anadidura los domingos, consumian las tres partes de su hacienda.',
+  'Muchos anos despues, frente al peloton de fusilamiento, el coronel Aureliano Buendia habia de recordar aquella tarde remota en que su padre lo llevo a conocer el hielo. Macondo era entonces una aldea de veinte casas de barro y cana brava construidas a la orilla de un rio de aguas diáfanas que se precipitaban por un lecho de piedras pulidas, blancas y enormes como huevos prehistoricos.',
+  'El dia en que lo iban a matar, el coronel Aureliano Buendia se despertó a las cuatro de la mañana, a una cuadra de la mar, encadenado al mismo roble y con la garganta reseca por la lluvia de la noche anterior. Asi lo habia soñado su madre la noche anterior, en el ultimo momento de su vida, y el mismo presentimiento se lo habia repetido a el sin darse cuenta en el fragor de la guerra.',
 ];
 
 const PROSE_PARAGRAPHS = [
@@ -42,8 +48,36 @@ export function resolvePracticeLoadingSource(content: SandboxContent): PracticeL
   return 'generic';
 }
 
-function pick<T>(items: T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
+/** Word target for timed practice — sized for fast typists so text does not loop mid-session. */
+export function resolveTimeModeMinWords(timeSeconds: SandboxTimeLength | number): number {
+  return Math.max(80, Math.ceil(timeSeconds * 3.5));
+}
+
+/** Chunk size when appending more text during a timed session. */
+export function resolveTimeModeChunkWords(timeSeconds: SandboxTimeLength | number): number {
+  return Math.max(50, Math.ceil(timeSeconds * 1.25));
+}
+
+function requiredFetchAttempts(minWords: number, wordsPerFetch: number): number {
+  return Math.min(12, Math.max(4, Math.ceil(minWords / wordsPerFetch)));
+}
+
+function appendUniqueParts(parts: string[], next: string): number {
+  const trimmed = next.trim();
+  if (!trimmed || parts.includes(trimmed)) return 0;
+  parts.push(trimmed);
+  return countWords(trimmed);
+}
+
+function buildFromPool(minWords: number, pool: string[]): string {
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const parts: string[] = [];
+  let words = 0;
+  for (let i = 0; words < minWords; i += 1) {
+    const chunk = shuffled[i % shuffled.length];
+    words += appendUniqueParts(parts, chunk);
+  }
+  return parts.join(' ');
 }
 
 function countWords(text: string): number {
@@ -62,41 +96,20 @@ export function truncateToWordCount(text: string, wordCount: number): string {
 }
 
 function buildSpanishFallback(minWords: number): string {
-  const parts: string[] = [];
-  let words = 0;
-  while (words < minWords) {
-    const quote = pick(SPANISH_QUOTES);
-    parts.push(quote);
-    words += countWords(quote);
-  }
-  return parts.join(' ');
+  return buildFromPool(minWords, [...SPANISH_QUOTES, ...SPANISH_PROSE_PARAGRAPHS]);
 }
 
 function buildProseFallback(minWords: number): string {
-  const parts: string[] = [];
-  let words = 0;
-  while (words < minWords) {
-    const paragraph = pick(PROSE_PARAGRAPHS);
-    parts.push(paragraph);
-    words += countWords(paragraph);
-  }
-  return parts.join(' ');
+  return buildFromPool(minWords, PROSE_PARAGRAPHS);
 }
 
 function buildStaticCodeFallback(minWords: number): string {
-  const parts: string[] = [];
-  let words = 0;
-  while (words < minWords) {
-    const snippet = pick(CODE_SNIPPETS);
-    parts.push(snippet);
-    words += countWords(snippet);
-  }
-  return parts.join('\n');
+  return buildFromPool(minWords, CODE_SNIPPETS);
 }
 
-async function fetchEnglishQuote(signal?: AbortSignal): Promise<string | null> {
+async function fetchEnglishQuote(signal?: AbortSignal, maxLength = 500): Promise<string | null> {
   try {
-    const quotable = await fetch('https://api.quotable.io/random?maxLength=240', { signal });
+    const quotable = await fetch(`https://api.quotable.io/random?maxLength=${maxLength}`, { signal });
     if (quotable.ok) {
       const data = (await quotable.json()) as { content?: string };
       if (data.content?.trim()) return data.content.trim();
@@ -131,12 +144,13 @@ async function fetchProseText(signal?: AbortSignal): Promise<string | null> {
 async function fetchEnglishText(minWords: number, signal?: AbortSignal): Promise<string> {
   const parts: string[] = [];
   let words = 0;
+  const attempts = requiredFetchAttempts(minWords, 45);
 
-  for (let attempt = 0; attempt < 6 && words < minWords; attempt++) {
-    const quote = await fetchEnglishQuote(signal);
-    if (!quote) break;
-    parts.push(quote);
-    words += countWords(quote);
+  for (let attempt = 0; attempt < attempts && words < minWords; attempt += 1) {
+    const preferProse = minWords >= 100 && attempt % 2 === 0;
+    const chunk = preferProse ? await fetchProseText(signal) : await fetchEnglishQuote(signal, 500);
+    if (!chunk) continue;
+    words += appendUniqueParts(parts, chunk);
   }
 
   if (words >= minWords) return parts.join(' ');
@@ -145,7 +159,7 @@ async function fetchEnglishText(minWords: number, signal?: AbortSignal): Promise
     {
       mode: 'time',
       timeSeconds: 60,
-      wordCount: 25,
+      wordCount: 100,
       content: 'en',
       includeCaps: true,
       includeNumbers: false,
@@ -157,17 +171,23 @@ async function fetchEnglishText(minWords: number, signal?: AbortSignal): Promise
 }
 
 async function fetchSpanishText(minWords: number, signal?: AbortSignal): Promise<string> {
-  try {
-    const english = await fetchEnglishQuote(signal);
-    if (english) {
+  const parts: string[] = [];
+  let words = 0;
+  const attempts = requiredFetchAttempts(minWords, 35);
+
+  for (let attempt = 0; attempt < attempts && words < minWords; attempt += 1) {
+    try {
+      const preferProse = minWords >= 100 && attempt % 3 === 0;
+      const english = preferProse ? await fetchProseText(signal) : await fetchEnglishQuote(signal, 500);
+      if (!english) continue;
       const translated = await translateToSpanish(english, signal);
-      if (countWords(translated) >= Math.min(minWords, 10)) {
-        return padSpanishText(translated, minWords);
-      }
+      words += appendUniqueParts(parts, translated);
+    } catch (error) {
+      if (signal?.aborted) throw error;
     }
-  } catch (error) {
-    if (signal?.aborted) throw error;
   }
+
+  if (words >= minWords) return parts.join(' ');
 
   return buildSpanishFallback(minWords);
 }
@@ -175,12 +195,12 @@ async function fetchSpanishText(minWords: number, signal?: AbortSignal): Promise
 async function fetchBooksText(minWords: number, signal?: AbortSignal): Promise<string> {
   const parts: string[] = [];
   let words = 0;
+  const attempts = requiredFetchAttempts(minWords, 90);
 
-  for (let attempt = 0; attempt < 4 && words < minWords; attempt++) {
+  for (let attempt = 0; attempt < attempts && words < minWords; attempt += 1) {
     const body = await fetchProseText(signal);
-    if (!body) break;
-    parts.push(body);
-    words += countWords(body);
+    if (!body) continue;
+    words += appendUniqueParts(parts, body);
   }
 
   if (words >= minWords) return parts.join(' ');
@@ -189,26 +209,19 @@ async function fetchBooksText(minWords: number, signal?: AbortSignal): Promise<s
   return parts.length > 0 ? `${parts.join(' ')} ${fallback}` : fallback;
 }
 
-function padSpanishText(seed: string, minWords: number): string {
-  const parts = [seed];
-  let words = countWords(seed);
-  while (words < minWords) {
-    parts.push(pick(SPANISH_QUOTES));
-    words += countWords(parts[parts.length - 1]);
-  }
-  return parts.join(' ');
-}
-
 async function fetchCodeText(minWords: number, signal?: AbortSignal): Promise<string> {
   const blocks: string[] = [];
   let words = 0;
+  const attempts = requiredFetchAttempts(minWords, 50);
 
-  for (let attempt = 0; attempt < 4 && words < minWords; attempt++) {
+  for (let attempt = 0; attempt < attempts && words < minWords; attempt += 1) {
     try {
       const snippet = await fetchGitHubCodeSnippet(signal);
       if (!snippet) continue;
-      blocks.push(snippet);
-      words += countWords(snippet.replace(/\n/g, ' '));
+      const added = appendUniqueParts(blocks, snippet);
+      if (added > 0) {
+        words += countWords(snippet.replace(/\n/g, ' '));
+      }
     } catch (error) {
       if (signal?.aborted) throw error;
       break;
@@ -288,8 +301,14 @@ function finalizePracticeText(raw: string, config: SandboxConfig): string {
 }
 
 /** Generates practice text from config. Supports AbortSignal for in-flight cancellation. */
-export async function generatePracticeText(config: SandboxConfig, signal?: AbortSignal): Promise<string> {
-  const minWords = config.mode === 'words' ? config.wordCount : 120;
+export async function generatePracticeText(
+  config: SandboxConfig,
+  signal?: AbortSignal,
+  options?: { minWords?: number },
+): Promise<string> {
+  const minWords =
+    options?.minWords ??
+    (config.mode === 'words' ? config.wordCount : resolveTimeModeMinWords(config.timeSeconds));
 
   let raw: string;
   switch (config.content) {
@@ -306,12 +325,16 @@ export async function generatePracticeText(config: SandboxConfig, signal?: Abort
       raw = await fetchCodeText(minWords, signal);
       break;
     default:
-      raw = generateSandboxWords(config);
+      raw =
+        config.mode === 'time'
+          ? generateSandboxStream(config, minWords)
+          : generateSandboxWords(config);
   }
 
   const result = finalizePracticeText(raw, config);
   if (result.length >= 10) return result;
 
-  const padded = config.mode === 'words' ? generateSandboxWords(config) : generateSandboxStream(config, minWords);
+  const padded =
+    config.mode === 'words' ? generateSandboxWords(config) : generateSandboxStream(config, minWords);
   return finalizePracticeText(padded, config);
 }
