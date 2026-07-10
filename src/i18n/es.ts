@@ -354,6 +354,7 @@ export const es: TranslationKey = {
       startDrill: 'Iniciar ejercicio',
       retryLesson: 'Ir a la lección',
       practice: 'Practicar',
+      goToLesson: 'Ir a la lección',
       noData: 'Sin datos de lecciones',
       noTroubleKeys: 'Sin teclas débiles detectadas',
     },

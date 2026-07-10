@@ -352,6 +352,7 @@ export const en = {
       startDrill: 'Start drill',
       retryLesson: 'Go to lesson',
       practice: 'Practice',
+      goToLesson: 'Go to lesson',
       noData: 'No lesson data yet',
       noTroubleKeys: 'No weak keys detected',
     },

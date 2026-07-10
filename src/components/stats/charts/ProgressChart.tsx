@@ -81,7 +81,7 @@ function ChartTooltip({
 
 /** WPM history area chart — premium trend view powered by Recharts. */
 export default function ProgressChart({ data, emptyLabel }: ProgressChartProps) {
-  const { t } = useApp();
+  const { t, settings, theme } = useApp();
   const gradientId = useId().replace(/:/g, '');
   const [colors, setColors] = useState<ChartColors>({
     highlight: '#818cf8',
@@ -91,7 +91,7 @@ export default function ProgressChart({ data, emptyLabel }: ProgressChartProps) 
 
   useEffect(() => {
     setColors(readChartColors());
-  }, []);
+  }, [settings.highlightTheme, theme]);
 
   const stats = useMemo(() => {
     if (data.length === 0) return null;
