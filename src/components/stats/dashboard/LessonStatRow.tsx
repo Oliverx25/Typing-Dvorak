@@ -1,5 +1,6 @@
 import { GradeBadge } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
+import { getGradeColorClasses } from '@/utils/grading/gradeColors';
 
 export interface LessonStatRowData {
   id: string;
@@ -27,11 +28,16 @@ export default function LessonStatRow({
 }: LessonStatRowProps) {
   const barWidth = Math.max(4, Math.min(100, (lesson.wpm / maxWpm) * 100));
   const displayGrade = lesson.grade ?? calculateGrade(lesson.accuracy);
+  const colors = getGradeColorClasses(displayGrade);
 
   return (
     <div className="relative overflow-hidden border-b border-[var(--color-border)] transition-colors last:border-0 hover:bg-[var(--color-highlight)]/5">
       <div
-        className="absolute top-0 bottom-0 left-0 z-0 bg-[var(--color-highlight)]/10 transition-all duration-500"
+        className={[
+          'absolute top-0 bottom-0 left-0 z-0 border-r-2 transition-all duration-500',
+          colors.bg,
+          colors.border,
+        ].join(' ')}
         style={{ width: `${barWidth}%` }}
         aria-hidden="true"
       />
@@ -49,7 +55,7 @@ export default function LessonStatRow({
           {accuracyLabel}: {lesson.accuracy}%
         </span>
 
-        <span className="w-12 shrink-0 text-right font-mono text-sm font-bold text-[var(--color-highlight)]">
+        <span className={['w-12 shrink-0 text-right font-mono text-sm font-bold', colors.text].join(' ')}>
           {lesson.wpm}
         </span>
 
