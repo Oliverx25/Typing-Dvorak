@@ -4,7 +4,7 @@ import { getAggregateStats, getSessionHistory } from '@/utils/progress/storage';
 import { SESSION_COMPLETE_EVENT, KEY_STATS_UPDATED_EVENT } from '@/utils/app/events';
 import { buildChartPoints } from '@/utils/stats/sessionDisplay';
 import { computeStatsInsights } from '@/utils/stats/statsInsights';
-import { Card, StreakIcon } from '@/components/ui';
+import { Card, CustomDropdown, StreakIcon } from '@/components/ui';
 import ActionableInsights from '@/components/stats/dashboard/ActionableInsights';
 import LessonStatRow from '@/components/stats/dashboard/LessonStatRow';
 import type { ChartPoint } from '@/components/stats/charts/ProgressChart';
@@ -99,10 +99,11 @@ export default function StatsDashboard() {
                 accAsc: t.stats.sortAccAsc,
               }}
             />
-            {sortedLessonRows.map((lesson) => (
+            {sortedLessonRows.map((lesson, index) => (
               <LessonStatRow
                 key={lesson.id}
                 lesson={lesson}
+                rowIndex={index}
                 maxWpm={insights.maxWpmOverall}
                 practiceLabel={t.stats.insights.practice}
               />
@@ -131,21 +132,24 @@ function StatsToolbar({
     accAsc: string;
   };
 }) {
+  const sortOptions = [
+    { value: 'wpm-asc' as const, label: options.wpmAsc },
+    { value: 'wpm-desc' as const, label: options.wpmDesc },
+    { value: 'acc-asc' as const, label: options.accAsc },
+  ];
+
   return (
     <div className="mb-4 flex items-center justify-between px-6 text-sm">
       <h3 className="font-medium text-slate-900 dark:text-slate-100">{title}</h3>
-      <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
         <span>{sortLabel}</span>
-        <select
+        <CustomDropdown
           value={sortBy}
-          onChange={(event) => onSortChange(event.target.value as LessonSortOption)}
-          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-slate-500"
-        >
-          <option value="wpm-asc">{options.wpmAsc}</option>
-          <option value="wpm-desc">{options.wpmDesc}</option>
-          <option value="acc-asc">{options.accAsc}</option>
-        </select>
-      </label>
+          onChange={onSortChange}
+          options={sortOptions}
+          aria-label={sortLabel}
+        />
+      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ export interface LessonStatRowData {
 
 interface LessonStatRowProps {
   lesson: LessonStatRowData;
+  rowIndex: number;
   maxWpm: number;
   practiceLabel: string;
 }
@@ -20,6 +21,7 @@ const BADGE_SLOT_WIDTH = 'w-14';
 
 export default function LessonStatRow({
   lesson,
+  rowIndex,
   maxWpm,
   practiceLabel,
 }: LessonStatRowProps) {
@@ -28,7 +30,13 @@ export default function LessonStatRow({
   const microBarWidth = maxWpm > 0 ? Math.min(100, (lesson.wpm / maxWpm) * 100) : 0;
 
   return (
-    <div className="group grid grid-cols-[1fr_auto_auto_80px] items-center gap-6 border-b border-slate-200 p-3 transition-colors last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/30">
+    <div
+      className={[
+        'group grid grid-cols-[1fr_auto_auto_80px] items-center gap-6 border-b border-slate-200 p-3 transition-colors last:border-b-0 dark:border-slate-700/50',
+        rowIndex % 2 === 1 ? 'bg-slate-50/80 dark:bg-slate-800/20' : 'bg-transparent',
+        'hover:bg-slate-100 dark:hover:bg-slate-800/40',
+      ].join(' ')}
+    >
       <div className="flex min-w-0 items-center gap-3">
         <div className={`flex ${BADGE_SLOT_WIDTH} shrink-0 items-center justify-start`}>
           <GradeBadge grade={displayGrade} className="h-7 w-7 text-xs" />
@@ -61,7 +69,7 @@ export default function LessonStatRow({
 
       <a
         href={`/lesson/${lesson.id}`}
-        className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 opacity-0 transition hover:border-slate-300 hover:text-slate-950 group-hover:opacity-100 focus-visible:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white"
+        className="inline-flex items-center justify-center rounded border border-slate-300 px-3 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900 group-hover:border-slate-400 group-hover:text-slate-700 dark:border-slate-600 dark:text-slate-400 dark:hover:border-slate-400 dark:hover:bg-slate-700 dark:hover:text-white dark:group-hover:text-slate-200"
         aria-label={`${practiceLabel}: ${lesson.title}`}
       >
         {practiceLabel}
