@@ -1,10 +1,6 @@
 import { GradeBadge } from '@/components/ui';
 import { calculateGrade } from '@/utils/grading';
-import {
-  getGradeColorClasses,
-  getWpmBarWidthStyle,
-  WPM_BAR_MUTED_BG,
-} from '@/utils/grading/gradeColors';
+import { getGradeColorClasses, getGradeMicroBarClassName } from '@/utils/grading/gradeColors';
 
 export interface LessonStatRowData {
   id: string;
@@ -18,60 +14,58 @@ interface LessonStatRowProps {
   lesson: LessonStatRowData;
   maxWpm: number;
   practiceLabel: string;
-  accuracyLabel: string;
 }
 
 const BADGE_SLOT_WIDTH = 'w-14';
-const PRACTICE_SLOT_WIDTH = 'w-[5.5rem]';
 
 export default function LessonStatRow({
   lesson,
   maxWpm,
   practiceLabel,
-  accuracyLabel,
 }: LessonStatRowProps) {
   const displayGrade = lesson.grade ?? calculateGrade(lesson.accuracy);
   const colors = getGradeColorClasses(displayGrade);
+  const microBarWidth = maxWpm > 0 ? Math.min(100, (lesson.wpm / maxWpm) * 100) : 0;
 
   return (
-    <div className="relative overflow-hidden border-b border-[var(--color-border)] transition-colors last:border-0 hover:bg-[var(--color-highlight)]/5">
-      <div
-        className={[
-          'absolute top-0 bottom-0 left-0 z-0 border-r-2 transition-all duration-500',
-          WPM_BAR_MUTED_BG,
-          colors.border,
-        ].join(' ')}
-        style={{ width: getWpmBarWidthStyle(lesson.wpm, maxWpm) }}
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 flex items-center gap-3 px-4 py-3">
-        <div className={`flex ${BADGE_SLOT_WIDTH} shrink-0 items-center justify-center`}>
+    <div className="group grid grid-cols-[1fr_auto_auto_80px] items-center gap-6 border-b border-slate-200 p-3 transition-colors last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/30">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className={`flex ${BADGE_SLOT_WIDTH} shrink-0 items-center justify-start`}>
           <GradeBadge grade={displayGrade} className="h-7 w-7 text-xs" />
         </div>
 
-        <span className="min-w-0 flex-1 truncate text-sm text-[var(--color-text)]">
+        <span className="min-w-0 truncate text-sm text-slate-900 dark:text-slate-100">
           {lesson.title}
         </span>
+      </div>
 
-        <span className="hidden w-28 shrink-0 text-right text-xs text-[var(--color-text-muted)] sm:inline">
-          {accuracyLabel}: {lesson.accuracy}%
-        </span>
+      <div className="flex flex-col items-end justify-center text-sm">
+        <span className="text-[10px] uppercase tracking-wider text-slate-400">ACC</span>
+        <span className="text-slate-900 dark:text-slate-100">{lesson.accuracy}%</span>
+      </div>
 
-        <span className={['w-12 shrink-0 text-right font-mono text-sm font-bold', colors.text].join(' ')}>
+      <div className="flex w-20 flex-col items-end justify-center">
+        <span className={['font-mono text-lg font-bold', colors.text].join(' ')}>
           {lesson.wpm}
         </span>
-
-        <div className={`flex ${PRACTICE_SLOT_WIDTH} shrink-0 justify-end`}>
-          <a
-            href={`/lesson/${lesson.id}`}
-            className="inline-flex items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-2.5 py-1 text-xs font-medium text-[var(--color-text)] transition hover:border-[var(--color-highlight)]/40 hover:text-[var(--color-highlight)]"
-            aria-label={`${practiceLabel}: ${lesson.title}`}
-          >
-            {practiceLabel}
-          </a>
+        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+          <div
+            className={['h-full rounded-full transition-all duration-500', getGradeMicroBarClassName(displayGrade)].join(
+              ' ',
+            )}
+            style={{ width: `${microBarWidth}%` }}
+            aria-hidden="true"
+          />
         </div>
       </div>
+
+      <a
+        href={`/lesson/${lesson.id}`}
+        className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 opacity-0 transition hover:border-slate-300 hover:text-slate-950 group-hover:opacity-100 focus-visible:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white"
+        aria-label={`${practiceLabel}: ${lesson.title}`}
+      >
+        {practiceLabel}
+      </a>
     </div>
   );
 }

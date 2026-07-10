@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getGradeColorClasses,
   getGradeBadgeClassName,
-  getWpmBarWidthStyle,
-  WPM_BAR_METRICS_RESERVE_PX,
+  getGradeMicroBarClassName,
 } from '@/utils/grading/gradeColors';
 
 describe('getGradeColorClasses', () => {
@@ -18,12 +17,11 @@ describe('getGradeColorClasses', () => {
   });
 });
 
-describe('getWpmBarWidthStyle', () => {
-  it('reserves space for right-hand metrics', () => {
-    expect(getWpmBarWidthStyle(50, 100)).toBe(
-      `max(2px, calc((100% - ${WPM_BAR_METRICS_RESERVE_PX}px) * 0.5))`,
-    );
-    expect(getWpmBarWidthStyle(0, 100)).toBe('0');
+describe('getGradeMicroBarClassName', () => {
+  it('returns compact fill classes aligned to grade palette', () => {
+    expect(getGradeMicroBarClassName('SS+')).toBe('bg-fuchsia-400');
+    expect(getGradeMicroBarClassName('SS')).toBe('bg-slate-300');
+    expect(getGradeMicroBarClassName('A')).toBe('bg-emerald-400');
   });
 });
 

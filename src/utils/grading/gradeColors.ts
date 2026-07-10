@@ -43,23 +43,31 @@ const GRADE_COLORS: Record<string, GradeColorClasses> = {
   F: DEFAULT_GRADE_COLORS,
 };
 
-/** Muted WPM bar track — grade color appears only on the right edge. */
-export const WPM_BAR_MUTED_BG = 'bg-slate-700/20 dark:bg-slate-800/30';
-
-/** Reserved width (px) for accuracy, WPM, and practice columns. */
-export const WPM_BAR_METRICS_RESERVE_PX = 150;
-
 /** Grade-tinted text and bar-edge glow — shared with GradeBadge palette. */
 export function getGradeColorClasses(grade: string | null | undefined): GradeColorClasses {
   if (!grade) return DEFAULT_GRADE_COLORS;
   return GRADE_COLORS[grade] ?? DEFAULT_GRADE_COLORS;
 }
 
-/** Width style keeping the bar out of the right-hand metrics zone. */
-export function getWpmBarWidthStyle(wpm: number, maxWpm: number): string {
-  if (wpm <= 0 || maxWpm <= 0) return '0';
-  const ratio = Math.min(1, wpm / maxWpm);
-  return `max(2px, calc((100% - ${WPM_BAR_METRICS_RESERVE_PX}px) * ${ratio}))`;
+/** Small inline WPM bar fill — safe to use inside the metric column only. */
+export function getGradeMicroBarClassName(grade: string | null | undefined): string {
+  switch (grade) {
+    case 'SS+':
+      return 'bg-fuchsia-400';
+    case 'SS':
+      return 'bg-slate-300';
+    case 'S+':
+    case 'S':
+      return 'bg-amber-400';
+    case 'A':
+      return 'bg-emerald-400';
+    case 'B':
+      return 'bg-blue-400';
+    case 'C':
+      return 'bg-purple-400';
+    default:
+      return 'bg-slate-400';
+  }
 }
 
 /** Solid badge surface classes — shared with GradeBadge. */

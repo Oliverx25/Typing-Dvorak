@@ -12,11 +12,14 @@ import type { ChartPoint } from '@/components/stats/charts/ProgressChart';
 const ProgressChart = lazy(() => import('@/components/stats/charts/ProgressChart'));
 const KeyHeatmap = lazy(() => import('@/components/stats/heatmap/KeyHeatmap'));
 
+type LessonSortOption = 'wpm-asc' | 'wpm-desc' | 'acc-asc';
+
 export default function StatsDashboard() {
   const { t } = useApp();
   const [aggregate, setAggregate] = useState({ totalSessions: 0, bestWpm: 0, avgAccuracy: 0, streak: 0 });
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [insightsVersion, setInsightsVersion] = useState(0);
+  const [sortBy, setSortBy] = useState<LessonSortOption>('wpm-asc');
 
   const refresh = useCallback(() => {
     setAggregate(getAggregateStats());
@@ -37,6 +40,15 @@ export default function StatsDashboard() {
       })),
     [insights.lessonRows, t],
   );
+
+  const sortedLessonRows = useMemo(() => {
+    const rows = [...lessonRows];
+    return rows.sort((a, b) => {
+      if (sortBy === 'wpm-desc') return b.wpm - a.wpm;
+      if (sortBy === 'acc-asc') return a.accuracy - b.accuracy || a.wpm - b.wpm;
+      return a.wpm - b.wpm;
+    });
+  }, [lessonRows, sortBy]);
 
   useEffect(() => {
     refresh();
@@ -76,18 +88,64 @@ export default function StatsDashboard() {
           <p className="px-6 py-8 text-center text-sm text-[var(--color-text-muted)]">{t.stats.noData}</p>
         ) : (
           <div>
-            {lessonRows.map((lesson) => (
+            <StatsToolbar
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              title={t.stats.detailedBreakdown}
+              sortLabel={t.stats.sortLabel}
+              options={{
+                wpmAsc: t.stats.sortWpmAsc,
+                wpmDesc: t.stats.sortWpmDesc,
+                accAsc: t.stats.sortAccAsc,
+              }}
+            />
+            {sortedLessonRows.map((lesson) => (
               <LessonStatRow
                 key={lesson.id}
                 lesson={lesson}
                 maxWpm={insights.maxWpmOverall}
                 practiceLabel={t.stats.insights.practice}
-                accuracyLabel={t.stats.accuracy}
               />
             ))}
           </div>
         )}
       </Card>
+    </div>
+  );
+}
+
+function StatsToolbar({
+  sortBy,
+  onSortChange,
+  title,
+  sortLabel,
+  options,
+}: {
+  sortBy: LessonSortOption;
+  onSortChange: (value: LessonSortOption) => void;
+  title: string;
+  sortLabel: string;
+  options: {
+    wpmAsc: string;
+    wpmDesc: string;
+    accAsc: string;
+  };
+}) {
+  return (
+    <div className="mb-4 flex items-center justify-between px-6 text-sm">
+      <h3 className="font-medium text-slate-900 dark:text-slate-100">{title}</h3>
+      <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <span>{sortLabel}</span>
+        <select
+          value={sortBy}
+          onChange={(event) => onSortChange(event.target.value as LessonSortOption)}
+          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-slate-500"
+        >
+          <option value="wpm-asc">{options.wpmAsc}</option>
+          <option value="wpm-desc">{options.wpmDesc}</option>
+          <option value="acc-asc">{options.accAsc}</option>
+        </select>
+      </label>
     </div>
   );
 }
