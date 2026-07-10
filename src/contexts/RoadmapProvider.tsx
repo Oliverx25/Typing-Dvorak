@@ -1,6 +1,5 @@
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -14,11 +13,7 @@ import {
 } from '@/utils/curriculum/roadmapProgress';
 import { SESSION_COMPLETE_EVENT } from '@/utils/app/events';
 
-interface RoadmapContextValue extends RoadmapProgressSnapshot {
-  archiveOpen: boolean;
-  setArchiveOpen: (open: boolean) => void;
-  toggleArchive: () => void;
-}
+type RoadmapContextValue = RoadmapProgressSnapshot;
 
 const SSR_ROADMAP: RoadmapProgressSnapshot = {
   globalProgress: 0,
@@ -38,7 +33,6 @@ function readRoadmapClient(): RoadmapProgressSnapshot {
 export function RoadmapProvider({ children }: { children: ReactNode }) {
   const { progressReady } = useAuth();
   const [snapshot, setSnapshot] = useState(readRoadmapClient);
-  const [archiveOpen, setArchiveOpen] = useState(false);
 
   useEffect(() => {
     const refresh = () => setSnapshot(computeRoadmapProgress());
@@ -47,17 +41,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
   }, [progressReady]);
 
-  const toggleArchive = useCallback(() => setArchiveOpen((open) => !open), []);
-
-  const value = useMemo<RoadmapContextValue>(
-    () => ({
-      ...snapshot,
-      archiveOpen,
-      setArchiveOpen,
-      toggleArchive,
-    }),
-    [snapshot, archiveOpen, toggleArchive],
-  );
+  const value = useMemo<RoadmapContextValue>(() => snapshot, [snapshot]);
 
   return <RoadmapContext.Provider value={value}>{children}</RoadmapContext.Provider>;
 }
