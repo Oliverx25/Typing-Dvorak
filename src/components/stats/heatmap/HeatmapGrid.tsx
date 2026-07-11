@@ -46,43 +46,6 @@ export default function HeatmapGrid({ stats, tooltipLabels, layoutMode }: Heatma
             return <div key={key.id} style={style} aria-hidden="true" />;
           }
 
-          if (key.variant === 'iso-enter' && key.code) {
-            const activeStats = getActiveHeatmapStats(key.code, key.label, stats, layoutMode);
-            const background = heatmapBackground(activeStats.accuracy, activeStats.attempts);
-            const bootWidth = `calc(${(5 / 6) * 100}% + 2px)`;
-            const patchWidth = `${(5 / 6) * 100}%`;
-
-            return (
-              <div key={key.id} className="relative z-20" style={style}>
-                <div
-                  className="relative z-20 flex h-10 w-full items-start justify-center rounded-lg border border-[var(--color-border)] font-mono text-xs sm:h-11 sm:text-sm"
-                  style={{ background }}
-                >
-                  ↵
-                </div>
-                <div
-                  className="absolute right-[-1px] z-30 border-0"
-                  style={{
-                    top: 'calc(100% - 2px)',
-                    width: patchWidth,
-                    height: 4,
-                    background,
-                  }}
-                  aria-hidden="true"
-                />
-                <div
-                  className="absolute top-full right-[-1px] flex items-center justify-center rounded-b-md rounded-t-none border border-t-0 border-[var(--color-border)]"
-                  style={{
-                    width: bootWidth,
-                    height: 'calc(100% + 4px)',
-                    background,
-                  }}
-                  aria-hidden="true"
-                />
-              </div>
-            );
-          }
-
           if (!key.code || key.variant === 'blind') {
             return (
               <div
@@ -91,7 +54,7 @@ export default function HeatmapGrid({ stats, tooltipLabels, layoutMode }: Heatma
                 style={style}
                 aria-hidden={key.variant === 'blind'}
               >
-                {key.variant === 'iso-enter' ? null : displayLabel}
+                {displayLabel}
               </div>
             );
           }

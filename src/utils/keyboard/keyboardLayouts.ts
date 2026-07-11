@@ -16,7 +16,7 @@ export const DVORAK_ANSI = [
 export const DVORAK_MAC_ISO = [
   ['§', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '[', ']', '[backspace]'],
   ['[tab]', "'", ',', '.', 'p', 'y', 'f', 'g', 'c', 'r', 'l', '/', '=', '[enter-iso-top]'],
-  ['[caps]', 'a', 'o', 'e', 'u', 'i', 'd', 'h', 't', 'n', 's', '-', '\\', '[iso-enter-slot]'],
+  ['[caps]', 'a', 'o', 'e', 'u', 'i', 'd', 'h', 't', 'n', 's', '-', '\\', '[enter-iso-bottom]'],
   ['[lshift-iso]', '`', ';', 'q', 'j', 'k', 'x', 'b', 'm', 'w', 'v', 'z', '[rshift]'],
   ['[fn]', '[ctrl]', '[opt]', '[cmd]', '[space]', '[cmd]', '[opt]', '[arrows]'],
 ] as const;

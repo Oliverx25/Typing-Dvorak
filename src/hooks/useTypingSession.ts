@@ -57,6 +57,11 @@ const TEXT_BUFFER_WORD_THRESHOLD = 15;
 /** Live WPM / elapsed refresh — 10 fps keeps stats smooth without excess renders. */
 const STATS_TICK_MS = 100;
 
+/** Offload heatmap/localStorage writes so keystroke validation stays on the hot path. */
+function deferTelemetry(work: () => void): void {
+  queueMicrotask(work);
+}
+
 export type { CharStatus };
 
 
@@ -596,7 +601,7 @@ export function useTypingSession({
         keystrokeLogRef.current.push(entry);
         correctCharsCountRef.current += 1;
 
-        recordKeystroke(typedChar, true);
+        deferTelemetry(() => recordKeystroke(typedChar, true));
 
         if (sound) playCorrectSound();
         const pulseCode = resolvePulseKeyCode(typedChar);
@@ -645,7 +650,7 @@ export function useTypingSession({
         errorIndexHistoryRef.current.add(input.length);
         sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
         if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
-        recordHeatmapKeystroke(expected, typedChar, false);
+        deferTelemetry(() => recordHeatmapKeystroke(expected, typedChar, false));
         if (sound) playIncorrectSound();
         if (suddenDeathMode) {
           requestAnimationFrame(() => forceFinishEarly());
@@ -706,7 +711,7 @@ export function useTypingSession({
         if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
       }
 
-      recordHeatmapKeystroke(expected, typedChar, isCorrect);
+      deferTelemetry(() => recordHeatmapKeystroke(expected, typedChar, isCorrect));
 
       if (sound) {
         if (isCorrect) playCorrectSound();
@@ -776,13 +781,20 @@ export function useTypingSession({
     }
   }, [input, statuses, zenMode]);
 
+  const clearHiddenInputBuffer = useCallback((el?: HTMLInputElement | null) => {
+    if (isComposingRef.current || deadKeyActiveRef.current) return;
+    const target = el ?? hiddenInputRef.current;
+    if (target) target.value = '';
+  }, []);
+
   const commitInputText = useCallback(
-    (text: string) => {
+    (text: string, inputEl?: HTMLInputElement) => {
       for (const char of segmentInputGraphemes(text)) {
         submitTypedCharacter(char);
       }
+      clearHiddenInputBuffer(inputEl);
     },
-    [submitTypedCharacter],
+    [submitTypedCharacter, clearHiddenInputBuffer],
   );
 
   const handleCompositionStart = useCallback(() => {
@@ -796,18 +808,19 @@ export function useTypingSession({
       deadKeyActiveRef.current = false;
 
       if (finished || paused) {
-        e.currentTarget.value = '';
+        clearHiddenInputBuffer(e.currentTarget);
         return;
       }
 
       if (e.data) {
-        commitInputText(e.data);
+        commitInputText(e.data, e.currentTarget);
+      } else {
+        clearHiddenInputBuffer(e.currentTarget);
       }
 
-      e.currentTarget.value = '';
       ignoreNextInputRef.current = true;
     },
-    [finished, paused, commitInputText],
+    [finished, paused, commitInputText, clearHiddenInputBuffer],
   );
 
   const handleInput = useCallback(
@@ -816,7 +829,7 @@ export function useTypingSession({
       const value = inputEl.value;
 
       if (ignoreNextInputRef.current) {
-        inputEl.value = '';
+        clearHiddenInputBuffer(inputEl);
         ignoreNextInputRef.current = false;
         return;
       }
@@ -826,7 +839,7 @@ export function useTypingSession({
       }
 
       if (finished || paused) {
-        inputEl.value = '';
+        clearHiddenInputBuffer(inputEl);
         return;
       }
 
@@ -840,8 +853,7 @@ export function useTypingSession({
         if (stillHasPrefix && graphemes.length > 1) return;
 
         deadKeyActiveRef.current = false;
-        commitInputText(value);
-        inputEl.value = '';
+        commitInputText(value, inputEl);
         return;
       }
 
@@ -850,10 +862,9 @@ export function useTypingSession({
         return;
       }
 
-      commitInputText(value);
-      inputEl.value = '';
+      commitInputText(value, inputEl);
     },
-    [finished, paused, commitInputText],
+    [finished, paused, commitInputText, clearHiddenInputBuffer],
   );
 
   const handleInputKeyDown = useCallback(
@@ -900,7 +911,7 @@ export function useTypingSession({
         isComposingRef.current = false;
         deadKeyActiveRef.current = false;
         ignoreNextInputRef.current = false;
-        e.currentTarget.value = '';
+        clearHiddenInputBuffer(e.currentTarget);
         handleBackspace();
         return;
       }
@@ -910,7 +921,7 @@ export function useTypingSession({
         const expected = targetText[input.length];
         if (expected === '\t') {
           submitTypedCharacter('\t');
-          e.currentTarget.value = '';
+          clearHiddenInputBuffer(e.currentTarget);
         }
         return;
       }
@@ -920,7 +931,7 @@ export function useTypingSession({
         const expected = targetText[input.length];
         if (expected === '\n') {
           submitTypedCharacter('\n');
-          e.currentTarget.value = '';
+          clearHiddenInputBuffer(e.currentTarget);
         }
       }
     },
@@ -939,6 +950,7 @@ export function useTypingSession({
       submitTypedCharacter,
       handleBackspace,
       startTime,
+      clearHiddenInputBuffer,
     ],
   );
 

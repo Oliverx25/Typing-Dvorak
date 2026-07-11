@@ -1,7 +1,7 @@
 import type { HardwareLayout } from '@/utils/keyboard/keyboardLayouts';
 import { getLayoutRows } from '@/utils/keyboard/keyboardLayouts';
 
-export type GridKeyVariant = 'typing' | 'modifier' | 'blind' | 'iso-enter' | 'gap';
+export type GridKeyVariant = 'typing' | 'modifier' | 'blind' | 'gap';
 
 export interface GridKeyDef {
   id: string;
@@ -14,7 +14,6 @@ export interface GridKeyDef {
   rowSpan: number;
   variant: GridKeyVariant;
   homeRowMark?: boolean;
-  isoBootCols?: number;
 }
 
 export const GRID_COLUMNS = 60;
@@ -30,9 +29,9 @@ export const TOKEN_COL_SPAN: Record<string, number> = {
   '[rshift]': 11,
   '[enter]': 9,
   '[enter-iso-top]': 6,
+  '[enter-iso-bottom]': 5,
   '\\': 6,
   '[iso-backslash]': 4,
-  '[iso-enter-slot]': 5,
   '[space]': 24,
   '[fn]': 4,
   '[ctrl]': 4,
@@ -49,6 +48,7 @@ const BLIND_TOKENS = new Set([
   '[tab]',
   '[caps]',
   '[backspace]',
+  '[enter-iso-bottom]',
 ]);
 
 const MODIFIER_LABELS: Record<string, string> = {
@@ -128,17 +128,16 @@ function colSpanForToken(token: string, layout: HardwareLayout): number {
   return TOKEN_COL_SPAN[token] ?? NORMAL_SPAN;
 }
 
-function resolveTokenMeta(token: string): Pick<GridKeyDef, 'label' | 'code' | 'variant' | 'isoBootCols'> {
+function resolveTokenMeta(token: string): Pick<GridKeyDef, 'label' | 'code' | 'variant'> {
   if (token === '[enter-iso-top]') {
     return {
       label: MODIFIER_LABELS[token],
       code: 'Enter',
-      variant: 'iso-enter',
-      isoBootCols: 5,
+      variant: 'modifier',
     };
   }
 
-  if (token === '[iso-enter-slot]' || token === '[arrows]') {
+  if (token === '[arrows]') {
     return { label: '', code: null, variant: 'gap' };
   }
 
@@ -192,7 +191,6 @@ function buildRow(rowIndex: number, tokens: readonly string[], layout: HardwareL
       rowSpan: 1,
       variant: meta.variant,
       homeRowMark: code ? HOME_ROW_CODES.has(code) : false,
-      isoBootCols: meta.isoBootCols,
     });
 
     col += colSpan;

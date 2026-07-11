@@ -22,8 +22,8 @@ describe('buildHardwareGrid', () => {
     const keys = buildHardwareGrid('MAC_ISO');
     const isoEnter = keys.find((key) => key.token === '[enter-iso-top]');
     expect(isoEnter?.colSpan).toBe(6);
-    expect(isoEnter?.variant).toBe('iso-enter');
-    expect(keys.some((key) => key.token === '[iso-enter-slot]')).toBe(true);
+    expect(isoEnter?.variant).toBe('modifier');
+    expect(keys.some((key) => key.token === '[enter-iso-bottom]')).toBe(true);
     expect(keys.some((key) => key.label === '§')).toBe(true);
   });
 });
