@@ -211,7 +211,11 @@ export function useTypingSession({
   inputRef.current = input;
   const statusesRef = useRef(statuses);
   statusesRef.current = statuses;
-  const backspaceHandledRef = useRef(false);
+  const lastBackspaceAtRef = useRef(0);
+  const finishedRef = useRef(finished);
+  finishedRef.current = finished;
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
   const isComposingRef = useRef(false);
   const deadKeyActiveRef = useRef(false);
   const deadKeyActivationRef = useRef(false);
@@ -803,11 +807,9 @@ export function useTypingSession({
 
   const executeBackspace = useCallback(
     (inputEl: HTMLInputElement, mode: 'character' | 'word') => {
-      if (backspaceHandledRef.current) return;
-      backspaceHandledRef.current = true;
-      queueMicrotask(() => {
-        backspaceHandledRef.current = false;
-      });
+      const now = performance.now();
+      if (now - lastBackspaceAtRef.current < 50) return;
+      lastBackspaceAtRef.current = now;
 
       const pendingAccent = hasPendingAccentInHiddenInput(inputEl);
       resetHiddenInputImeState(inputEl);
@@ -912,6 +914,11 @@ export function useTypingSession({
   const handleInput = useCallback(
     (e: React.FormEvent<HTMLInputElement>) => {
       const inputEl = e.currentTarget;
+      const inputType = (e.nativeEvent as InputEvent).inputType;
+      if (inputType?.startsWith('delete')) {
+        return;
+      }
+
       const value = inputEl.value;
 
       if (ignoreNextInputRef.current) {
@@ -986,30 +993,30 @@ export function useTypingSession({
   executeBackspaceRef.current = executeBackspace;
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
     const onBeforeInput = (event: Event) => {
-      if (finished || paused) return;
+      const input = hiddenInputRef.current;
+      if (!input || event.target !== input) return;
+      if (finishedRef.current || pausedRef.current) return;
+
       const inputEvent = event as InputEvent;
-      const target = inputEvent.target;
-      if (!(target instanceof HTMLInputElement) || target !== hiddenInputRef.current) return;
 
       if (inputEvent.inputType === 'deleteWordBackward') {
         event.preventDefault();
-        executeBackspaceRef.current(target, 'word');
+        executeBackspaceRef.current(input, 'word');
         return;
       }
 
       if (inputEvent.inputType === 'deleteContentBackward') {
         event.preventDefault();
-        executeBackspaceRef.current(target, 'character');
+        executeBackspaceRef.current(input, 'character');
       }
     };
 
-    container.addEventListener('beforeinput', onBeforeInput, true);
-    return () => container.removeEventListener('beforeinput', onBeforeInput, true);
-  }, [finished, paused]);
+    document.addEventListener('beforeinput', onBeforeInput, true);
+    return () => {
+      document.removeEventListener('beforeinput', onBeforeInput, true);
+    };
+  }, []);
 
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -1052,8 +1059,12 @@ export function useTypingSession({
 
       if (e.key === 'Backspace') {
         e.preventDefault();
+        const inputEl = e.currentTarget;
         const mode = isWordBackspaceKey(e.nativeEvent) ? 'word' : 'character';
-        executeBackspace(e.currentTarget, mode);
+        requestAnimationFrame(() => {
+          if (performance.now() - lastBackspaceAtRef.current < 50) return;
+          executeBackspace(inputEl, mode);
+        });
         return;
       }
 

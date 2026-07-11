@@ -71,10 +71,12 @@ export function getWordBackspaceCount(text: string): number {
 
 /** Whether a keydown is Option/Ctrl + Backspace (word delete backward). */
 export function isWordBackspaceKey(
-  e: Pick<KeyboardEvent, 'key' | 'altKey' | 'ctrlKey' | 'metaKey'>,
+  e: Pick<KeyboardEvent, 'key' | 'altKey' | 'ctrlKey' | 'metaKey'> & {
+    getModifierState?: (key: string) => boolean;
+  },
 ): boolean {
   if (e.key !== 'Backspace') return false;
-  if (e.altKey) return true;
+  if (e.altKey || e.getModifierState?.('Alt')) return true;
   return e.ctrlKey && !e.metaKey;
 }
 
