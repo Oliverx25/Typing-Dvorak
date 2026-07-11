@@ -1,4 +1,4 @@
-import { memo, type CSSProperties, type ReactNode } from 'react';
+import { memo, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type { HardwareLayout } from '@/utils/keyboard/keyboardLayouts';
 import {
   buildHardwareGrid,
@@ -193,21 +193,19 @@ function IsoEnterKey({
   );
 }
 
-function DefaultGridKey({
+const GridKeyCell = memo(function GridKeyCell({
   keyDef,
-  pressedKey,
-  targetKeySet,
+  isPressed,
+  isTarget,
   showFingers,
   renderKey,
 }: {
   keyDef: GridKeyDef;
-  pressedKey?: string;
-  targetKeySet: Set<string>;
+  isPressed: boolean;
+  isTarget: boolean;
   showFingers: boolean;
   renderKey?: (state: GridKeyVisualState) => ReactNode;
 }) {
-  const isPressed = keyDef.code != null && pressedKey === keyDef.code;
-  const isTarget = keyDef.code != null && !isPressed && targetKeySet.has(keyDef.code);
   const placement = gridPlacementStyle(keyDef);
   const finger = fingerStyle(keyDef, showFingers, isPressed, isTarget);
 
@@ -269,7 +267,7 @@ function DefaultGridKey({
       ) : null}
     </div>
   );
-}
+});
 
 function OnScreenKeyboard({
   hardwareLayout,
@@ -279,7 +277,7 @@ function OnScreenKeyboard({
   showFingers = false,
   renderKey,
 }: OnScreenKeyboardProps) {
-  const keys = buildHardwareGrid(hardwareLayout);
+  const keys = useMemo(() => buildHardwareGrid(hardwareLayout), [hardwareLayout]);
 
   return (
     <div
@@ -289,16 +287,20 @@ function OnScreenKeyboard({
       style={{ gridTemplateRows: 'repeat(5, minmax(2.5rem, auto))' }}
       aria-hidden={renderKey ? undefined : true}
     >
-      {keys.map((keyDef) => (
-        <DefaultGridKey
-          key={keyDef.id}
-          keyDef={keyDef}
-          pressedKey={pressedKey}
-          targetKeySet={targetKeySet}
-          showFingers={showFingers}
-          renderKey={renderKey}
-        />
-      ))}
+      {keys.map((keyDef) => {
+        const isPressed = keyDef.code != null && pressedKey === keyDef.code;
+        const isTarget = keyDef.code != null && !isPressed && targetKeySet.has(keyDef.code);
+        return (
+          <GridKeyCell
+            key={keyDef.id}
+            keyDef={keyDef}
+            isPressed={isPressed}
+            isTarget={isTarget}
+            showFingers={showFingers}
+            renderKey={renderKey}
+          />
+        );
+      })}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/contexts/AppProvider';
 import OnScreenKeyboard from '@/components/typing/keyboard/OnScreenKeyboard';
 import {
@@ -91,9 +91,13 @@ function Keyboard({ pressedKey, expectedChar }: KeyboardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [expectedChar, multiStep, sequenceStep]);
 
-  const allFingers = buildHardwareGrid(settings.hardwareLayout)
-    .map((key) => (key.code ? getFingerForKey(key.code) : undefined))
-    .filter(Boolean) as Finger[];
+  const allFingers = useMemo(
+    () =>
+      buildHardwareGrid(settings.hardwareLayout)
+        .map((key) => (key.code ? getFingerForKey(key.code) : undefined))
+        .filter(Boolean) as Finger[],
+    [settings.hardwareLayout],
+  );
 
   return (
     <section className="hidden w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 p-4 shadow-sm sm:block sm:p-6">
