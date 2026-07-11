@@ -47,9 +47,11 @@ import {
 import { wordHasUncorrectedErrors } from '@/utils/typing/wordErrors';
 import { countRemainingWords } from '@/utils/typing/textBuffer';
 import {
+  isDeadKeyActivationKey,
   isDeadKeyPrefix,
   isDuplicateCompositionEcho,
   segmentInputGraphemes,
+  stripCommittedPrefix,
 } from '@/utils/typing/hiddenInputComposition';
 
 /** Words left before fetching another practice chunk in timed mode. */
@@ -204,6 +206,8 @@ export function useTypingSession({
   inputLengthRef.current = input.length;
   const isComposingRef = useRef(false);
   const deadKeyActiveRef = useRef(false);
+  const deadKeyActivationRef = useRef(false);
+  const ignoreNextInputRef = useRef(false);
   const lastCompositionCommitRef = useRef<string | null>(null);
 
   const focusHiddenInput = useCallback(() => {
@@ -464,6 +468,8 @@ export function useTypingSession({
     rhythmLockBrokenRef.current = false;
     isComposingRef.current = false;
     deadKeyActiveRef.current = false;
+    deadKeyActivationRef.current = false;
+    ignoreNextInputRef.current = false;
     lastCompositionCommitRef.current = null;
     if (vampireDamageTimerRef.current !== null) {
       window.clearTimeout(vampireDamageTimerRef.current);
@@ -798,9 +804,24 @@ export function useTypingSession({
     [submitTypedCharacter, clearHiddenInputBuffer],
   );
 
+  const finalizeDeadKeyCommit = useCallback(
+    (text: string, inputEl: HTMLInputElement) => {
+      for (const char of segmentInputGraphemes(text)) {
+        submitTypedCharacter(char);
+      }
+      lastCompositionCommitRef.current = text;
+      ignoreNextInputRef.current = true;
+      deadKeyActivationRef.current = false;
+      inputEl.value = '';
+    },
+    [submitTypedCharacter],
+  );
+
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;
-    deadKeyActiveRef.current = false;
+    if (deadKeyActivationRef.current) {
+      deadKeyActiveRef.current = false;
+    }
   }, []);
 
   const handleCompositionEnd = useCallback(
@@ -811,7 +832,14 @@ export function useTypingSession({
       const inputEl = e.currentTarget;
       if (finished || paused) {
         inputEl.value = '';
+        deadKeyActivationRef.current = false;
         lastCompositionCommitRef.current = null;
+        ignoreNextInputRef.current = false;
+        return;
+      }
+
+      if (e.data && deadKeyActivationRef.current) {
+        finalizeDeadKeyCommit(e.data, inputEl);
         return;
       }
 
@@ -819,14 +847,12 @@ export function useTypingSession({
         for (const char of segmentInputGraphemes(e.data)) {
           submitTypedCharacter(char);
         }
-        lastCompositionCommitRef.current = e.data;
-      } else {
-        lastCompositionCommitRef.current = null;
       }
 
+      deadKeyActivationRef.current = false;
       inputEl.value = '';
     },
-    [finished, paused, submitTypedCharacter],
+    [finished, paused, submitTypedCharacter, finalizeDeadKeyCommit],
   );
 
   const handleInput = useCallback(
@@ -834,22 +860,38 @@ export function useTypingSession({
       const inputEl = e.currentTarget;
       const value = inputEl.value;
 
-      if (lastCompositionCommitRef.current !== null) {
-        if (!value || isDuplicateCompositionEcho(value, lastCompositionCommitRef.current)) {
-          lastCompositionCommitRef.current = null;
+      if (ignoreNextInputRef.current) {
+        ignoreNextInputRef.current = false;
+        const committed = lastCompositionCommitRef.current;
+        lastCompositionCommitRef.current = null;
+
+        if (!value) {
           inputEl.value = '';
           return;
         }
-        lastCompositionCommitRef.current = null;
+
+        if (committed) {
+          if (isDuplicateCompositionEcho(value, committed)) {
+            inputEl.value = '';
+            return;
+          }
+
+          const remainder = stripCommittedPrefix(value, committed);
+          if (remainder === null) {
+            inputEl.value = '';
+            return;
+          }
+          if (remainder !== value) {
+            commitInputText(remainder, inputEl);
+            return;
+          }
+        }
+
+        // Fresh next keystroke — fall through to normal processing.
       }
 
       if (isComposingRef.current) {
-        if (value && !isDeadKeyPrefix(value)) {
-          isComposingRef.current = false;
-          deadKeyActiveRef.current = false;
-        } else {
-          return;
-        }
+        return;
       }
 
       if (finished || paused) {
@@ -867,22 +909,31 @@ export function useTypingSession({
         if (stillHasPrefix && graphemes.length > 1) return;
 
         deadKeyActiveRef.current = false;
+        if (deadKeyActivationRef.current) {
+          finalizeDeadKeyCommit(value, inputEl);
+          return;
+        }
         commitInputText(value, inputEl);
         return;
       }
 
       if (isDeadKeyPrefix(value)) {
         deadKeyActiveRef.current = true;
+        deadKeyActivationRef.current = true;
         return;
       }
 
       commitInputText(value, inputEl);
     },
-    [finished, paused, commitInputText, clearHiddenInputBuffer],
+    [finished, paused, commitInputText, clearHiddenInputBuffer, finalizeDeadKeyCommit],
   );
 
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (isDeadKeyActivationKey(e.nativeEvent)) {
+        deadKeyActivationRef.current = true;
+      }
+
       if (finished) {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -924,6 +975,8 @@ export function useTypingSession({
         e.preventDefault();
         isComposingRef.current = false;
         deadKeyActiveRef.current = false;
+        deadKeyActivationRef.current = false;
+        ignoreNextInputRef.current = false;
         lastCompositionCommitRef.current = null;
         clearHiddenInputBuffer(e.currentTarget);
         handleBackspace();

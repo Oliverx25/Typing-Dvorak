@@ -28,3 +28,24 @@ export function isDuplicateCompositionEcho(value: string, committed: string): bo
   const normalizedCommitted = committed.normalize('NFC');
   return normalizedValue === normalizedCommitted;
 }
+
+/** Returns remaining text after a committed dead-key prefix, or null if value is only the echo. */
+export function stripCommittedPrefix(value: string, committed: string): string | null {
+  if (!value) return null;
+  if (isDuplicateCompositionEcho(value, committed)) return null;
+
+  const valueGraphemes = segmentInputGraphemes(value);
+  const committedGraphemes = segmentInputGraphemes(committed);
+  const prefixMatches = committedGraphemes.every((g, i) => valueGraphemes[i] === g);
+  if (!prefixMatches || valueGraphemes.length <= committedGraphemes.length) return value;
+
+  return valueGraphemes.slice(committedGraphemes.length).join('');
+}
+
+/** Keys that start a dead-key / Option accent sequence (´ on QWERTY, Option on Dvorak). */
+export function isDeadKeyActivationKey(e: Pick<KeyboardEvent, 'key' | 'altKey'>): boolean {
+  if (e.altKey || e.key === 'Alt' || e.key === 'AltGraph' || e.key === 'Option' || e.key === 'Dead') {
+    return true;
+  }
+  return e.key.length === 1 && DEAD_KEY_PREFIX_CHARS.has(e.key);
+}
