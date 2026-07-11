@@ -21,8 +21,10 @@ export function isDeadKeyPrefix(value: string): boolean {
   return /\p{M}/u.test(char);
 }
 
-/** Whether the value looks like a finished composed character (e.g. á, ñ). */
-export function isComposedCharacter(value: string): boolean {
-  if (!value || isDeadKeyPrefix(value)) return false;
-  return segmentInputGraphemes(value).some((char) => char.length > 0 && !DEAD_KEY_PREFIX_CHARS.has(char));
+/** Whether an input event is an echo of a character already committed via compositionEnd. */
+export function isDuplicateCompositionEcho(value: string, committed: string): boolean {
+  if (!committed) return false;
+  const normalizedValue = value.normalize('NFC');
+  const normalizedCommitted = committed.normalize('NFC');
+  return normalizedValue === normalizedCommitted;
 }

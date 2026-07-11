@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  isComposedCharacter,
   isDeadKeyPrefix,
+  isDuplicateCompositionEcho,
   segmentInputGraphemes,
 } from '@/utils/typing/hiddenInputComposition';
 
@@ -25,9 +25,8 @@ describe('hiddenInputComposition', () => {
     expect(isDeadKeyPrefix('a')).toBe(false);
   });
 
-  it('detects composed characters', () => {
-    expect(isComposedCharacter('á')).toBe(true);
-    expect(isComposedCharacter('Ñ')).toBe(true);
-    expect(isComposedCharacter('´')).toBe(false);
+  it('detects duplicate composition echo', () => {
+    expect(isDuplicateCompositionEcho('á', 'á')).toBe(true);
+    expect(isDuplicateCompositionEcho('b', 'á')).toBe(false);
   });
 });
