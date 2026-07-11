@@ -69,6 +69,15 @@ export function getWordBackspaceCount(text: string): number {
   return text.length - pos;
 }
 
+/** Whether a keydown is Option/Ctrl + Backspace (word delete backward). */
+export function isWordBackspaceKey(
+  e: Pick<KeyboardEvent, 'key' | 'altKey' | 'ctrlKey' | 'metaKey'>,
+): boolean {
+  if (e.key !== 'Backspace') return false;
+  if (e.altKey) return true;
+  return e.ctrlKey && !e.metaKey;
+}
+
 /** Keys that start a dead-key / Option accent sequence (´ on QWERTY, Option on Dvorak). */
 export function isDeadKeyActivationKey(e: Pick<KeyboardEvent, 'key' | 'altKey'>): boolean {
   if (e.key === 'Backspace' || e.key === 'Delete') {

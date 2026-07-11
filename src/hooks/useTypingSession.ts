@@ -52,6 +52,7 @@ import {
   isDeadKeyActivationKey,
   isDeadKeyPrefix,
   isDuplicateCompositionEcho,
+  isWordBackspaceKey,
   segmentInputGraphemes,
   stripCommittedPrefix,
 } from '@/utils/typing/hiddenInputComposition';
@@ -206,6 +207,11 @@ export function useTypingSession({
   targetTextRef.current = targetText;
   const inputLengthRef = useRef(input.length);
   inputLengthRef.current = input.length;
+  const inputRef = useRef(input);
+  inputRef.current = input;
+  const statusesRef = useRef(statuses);
+  statusesRef.current = statuses;
+  const backspaceHandledRef = useRef(false);
   const isComposingRef = useRef(false);
   const deadKeyActiveRef = useRef(false);
   const deadKeyActivationRef = useRef(false);
@@ -777,25 +783,6 @@ export function useTypingSession({
     ],
   );
 
-  const handleBackspace = useCallback(
-    (count = 1) => {
-      if (input.length === 0 || count <= 0) return;
-      const deleteCount = Math.min(count, input.length);
-      const startIndex = input.length - deleteCount;
-      for (let i = startIndex; i < input.length; i++) {
-        if (statuses[i] === 'correct') {
-          correctCharsCountRef.current = Math.max(0, correctCharsCountRef.current - 1);
-        }
-      }
-      const newInput = input.slice(0, -deleteCount);
-      dispatch({ type: 'BACKSPACE', count: deleteCount });
-      if (zenMode) {
-        setTargetText(newInput);
-      }
-    },
-    [input, statuses, zenMode],
-  );
-
   const resetHiddenInputImeState = useCallback((inputEl: HTMLInputElement) => {
     isComposingRef.current = false;
     deadKeyActiveRef.current = false;
@@ -813,6 +800,47 @@ export function useTypingSession({
       containsDeadKeyPrefix(inputEl.value)
     );
   }, []);
+
+  const executeBackspace = useCallback(
+    (inputEl: HTMLInputElement, mode: 'character' | 'word') => {
+      if (backspaceHandledRef.current) return;
+      backspaceHandledRef.current = true;
+      queueMicrotask(() => {
+        backspaceHandledRef.current = false;
+      });
+
+      const pendingAccent = hasPendingAccentInHiddenInput(inputEl);
+      resetHiddenInputImeState(inputEl);
+
+      const currentInput = inputRef.current;
+      if (currentInput.length === 0) return;
+
+      const deleteCount = Math.min(
+        pendingAccent || mode === 'character'
+          ? 1
+          : getWordBackspaceCount(currentInput),
+        currentInput.length,
+      );
+      if (deleteCount <= 0) return;
+
+      const currentStatuses = statusesRef.current;
+      const startIndex = currentInput.length - deleteCount;
+      for (let i = startIndex; i < currentInput.length; i++) {
+        if (currentStatuses[i] === 'correct') {
+          correctCharsCountRef.current = Math.max(0, correctCharsCountRef.current - 1);
+        }
+      }
+
+      const newInput = currentInput.slice(0, -deleteCount);
+      inputRef.current = newInput;
+      inputLengthRef.current = newInput.length;
+      dispatch({ type: 'BACKSPACE', count: deleteCount });
+      if (zenMode) {
+        setTargetText(newInput);
+      }
+    },
+    [zenMode, hasPendingAccentInHiddenInput, resetHiddenInputImeState],
+  );
 
   const clearHiddenInputBuffer = useCallback((el?: HTMLInputElement | null) => {
     if (isComposingRef.current || deadKeyActiveRef.current) return;
@@ -954,19 +982,34 @@ export function useTypingSession({
     [finished, paused, commitInputText, clearHiddenInputBuffer, finalizeDeadKeyCommit],
   );
 
-  const handleBeforeInput = useCallback(
-    (e: React.FormEvent<HTMLInputElement>) => {
-      const inputType = (e.nativeEvent as InputEvent).inputType;
-      if (
-        inputType === 'deleteContentBackward' ||
-        inputType === 'deleteWordBackward' ||
-        inputType === 'deleteContentForward'
-      ) {
-        e.preventDefault();
+  const executeBackspaceRef = useRef(executeBackspace);
+  executeBackspaceRef.current = executeBackspace;
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onBeforeInput = (event: Event) => {
+      if (finished || paused) return;
+      const inputEvent = event as InputEvent;
+      const target = inputEvent.target;
+      if (!(target instanceof HTMLInputElement) || target !== hiddenInputRef.current) return;
+
+      if (inputEvent.inputType === 'deleteWordBackward') {
+        event.preventDefault();
+        executeBackspaceRef.current(target, 'word');
+        return;
       }
-    },
-    [],
-  );
+
+      if (inputEvent.inputType === 'deleteContentBackward') {
+        event.preventDefault();
+        executeBackspaceRef.current(target, 'character');
+      }
+    };
+
+    container.addEventListener('beforeinput', onBeforeInput, true);
+    return () => container.removeEventListener('beforeinput', onBeforeInput, true);
+  }, [finished, paused]);
 
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -1009,22 +1052,8 @@ export function useTypingSession({
 
       if (e.key === 'Backspace') {
         e.preventDefault();
-        const inputEl = e.currentTarget;
-        const pendingAccent = hasPendingAccentInHiddenInput(inputEl);
-
-        resetHiddenInputImeState(inputEl);
-
-        if (pendingAccent) {
-          handleBackspace();
-          return;
-        }
-
-        if (e.altKey) {
-          handleBackspace(getWordBackspaceCount(input));
-          return;
-        }
-
-        handleBackspace();
+        const mode = isWordBackspaceKey(e.nativeEvent) ? 'word' : 'character';
+        executeBackspace(e.currentTarget, mode);
         return;
       }
 
@@ -1064,11 +1093,9 @@ export function useTypingSession({
       targetText,
       reset,
       submitTypedCharacter,
-      handleBackspace,
+      executeBackspace,
       startTime,
       clearHiddenInputBuffer,
-      resetHiddenInputImeState,
-      hasPendingAccentInHiddenInput,
     ],
   );
 
@@ -1108,7 +1135,6 @@ export function useTypingSession({
     retryButtonRef,
     reset,
     handleInput,
-    handleBeforeInput,
     handleInputKeyDown,
     handleCompositionStart,
     handleCompositionEnd,

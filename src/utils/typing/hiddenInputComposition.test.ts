@@ -5,6 +5,7 @@ import {
   isDeadKeyActivationKey,
   isDeadKeyPrefix,
   isDuplicateCompositionEcho,
+  isWordBackspaceKey,
   segmentInputGraphemes,
   stripCommittedPrefix,
 } from '@/utils/typing/hiddenInputComposition';
@@ -50,6 +51,18 @@ describe('hiddenInputComposition', () => {
   it('detects pending accent prefixes inside a longer buffer', () => {
     expect(containsDeadKeyPrefix('e´')).toBe(true);
     expect(containsDeadKeyPrefix('acorde')).toBe(false);
+  });
+
+  it('detects word-backspace modifier combos', () => {
+    expect(
+      isWordBackspaceKey({ key: 'Backspace', altKey: true, ctrlKey: false, metaKey: false } as KeyboardEvent),
+    ).toBe(true);
+    expect(
+      isWordBackspaceKey({ key: 'Backspace', altKey: false, ctrlKey: true, metaKey: false } as KeyboardEvent),
+    ).toBe(true);
+    expect(
+      isWordBackspaceKey({ key: 'Backspace', altKey: false, ctrlKey: false, metaKey: false } as KeyboardEvent),
+    ).toBe(false);
   });
 
   it('computes macOS-style word backspace delete counts', () => {
