@@ -46,13 +46,13 @@ import {
 } from '@/utils/typing/keystrokeTelemetry';
 import { wordHasUncorrectedErrors } from '@/utils/typing/wordErrors';
 import { countRemainingWords } from '@/utils/typing/textBuffer';
+import {
+  isDeadKeyPrefix,
+  segmentInputGraphemes,
+} from '@/utils/typing/hiddenInputComposition';
 
-/** Dead-key prefix characters the OS may inject before the final composed letter. */
-const DEAD_KEY_PREFIX_PATTERN = /^[´^¨~]$/;
-
-function isDeadKeyPrefix(value: string): boolean {
-  return value.length === 1 && DEAD_KEY_PREFIX_PATTERN.test(value);
-}
+/** Words left before fetching another practice chunk in timed mode. */
+const TEXT_BUFFER_WORD_THRESHOLD = 15;
 
 /** Live WPM / elapsed refresh — 10 fps keeps stats smooth without excess renders. */
 const STATS_TICK_MS = 100;
@@ -197,7 +197,8 @@ export function useTypingSession({
   const inputLengthRef = useRef(input.length);
   inputLengthRef.current = input.length;
   const isComposingRef = useRef(false);
-  const skipNextChangeRef = useRef(false);
+  const deadKeyActiveRef = useRef(false);
+  const ignoreNextInputRef = useRef(false);
 
   const focusHiddenInput = useCallback(() => {
     requestAnimationFrame(() => hiddenInputRef.current?.focus());
@@ -456,7 +457,8 @@ export function useTypingSession({
     sessionHadErrorRef.current = false;
     rhythmLockBrokenRef.current = false;
     isComposingRef.current = false;
-    skipNextChangeRef.current = false;
+    deadKeyActiveRef.current = false;
+    ignoreNextInputRef.current = false;
     if (vampireDamageTimerRef.current !== null) {
       window.clearTimeout(vampireDamageTimerRef.current);
       vampireDamageTimerRef.current = null;
@@ -774,67 +776,84 @@ export function useTypingSession({
     }
   }, [input, statuses, zenMode]);
 
+  const commitInputText = useCallback(
+    (text: string) => {
+      for (const char of segmentInputGraphemes(text)) {
+        submitTypedCharacter(char);
+      }
+    },
+    [submitTypedCharacter],
+  );
+
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;
+    deadKeyActiveRef.current = false;
   }, []);
 
   const handleCompositionEnd = useCallback(
     (e: React.CompositionEvent<HTMLInputElement>) => {
       isComposingRef.current = false;
+      deadKeyActiveRef.current = false;
 
       if (finished || paused) {
         e.currentTarget.value = '';
         return;
       }
 
-      const composedString = e.data;
-      if (!composedString) return;
+      if (e.data) {
+        commitInputText(e.data);
+      }
 
-      skipNextChangeRef.current = true;
-      submitTypedCharacter(composedString.slice(-1));
       e.currentTarget.value = '';
+      ignoreNextInputRef.current = true;
     },
-    [finished, paused, submitTypedCharacter],
+    [finished, paused, commitInputText],
   );
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
+  const handleInput = useCallback(
+    (e: React.FormEvent<HTMLInputElement>) => {
+      const inputEl = e.currentTarget;
+      const value = inputEl.value;
 
-      if (isComposingRef.current) {
-        const char = value.slice(-1);
-        if (char && !isDeadKeyPrefix(char)) {
-          isComposingRef.current = false;
-          if (!finished && !paused) {
-            submitTypedCharacter(char);
-          }
-          e.target.value = '';
-        }
+      if (ignoreNextInputRef.current) {
+        inputEl.value = '';
+        ignoreNextInputRef.current = false;
         return;
       }
 
-      if (skipNextChangeRef.current) {
-        skipNextChangeRef.current = false;
-        e.target.value = '';
+      if (isComposingRef.current) {
         return;
       }
 
       if (finished || paused) {
-        e.target.value = '';
+        inputEl.value = '';
         return;
       }
 
       if (!value) return;
 
-      if (isDeadKeyPrefix(value)) {
-        isComposingRef.current = true;
+      if (deadKeyActiveRef.current) {
+        if (isDeadKeyPrefix(value)) return;
+
+        const graphemes = segmentInputGraphemes(value);
+        const stillHasPrefix = graphemes.some((char) => isDeadKeyPrefix(char));
+        if (stillHasPrefix && graphemes.length > 1) return;
+
+        deadKeyActiveRef.current = false;
+        commitInputText(value);
+        inputEl.value = '';
         return;
       }
 
-      submitTypedCharacter(value.slice(-1));
-      e.target.value = '';
+      if (isDeadKeyPrefix(value)) {
+        deadKeyActiveRef.current = true;
+        return;
+      }
+
+      commitInputText(value);
+      inputEl.value = '';
     },
-    [finished, paused, submitTypedCharacter],
+    [finished, paused, commitInputText],
   );
 
   const handleInputKeyDown = useCallback(
@@ -879,6 +898,8 @@ export function useTypingSession({
       if (e.key === 'Backspace') {
         e.preventDefault();
         isComposingRef.current = false;
+        deadKeyActiveRef.current = false;
+        ignoreNextInputRef.current = false;
         e.currentTarget.value = '';
         handleBackspace();
         return;
@@ -956,7 +977,7 @@ export function useTypingSession({
     hiddenInputRef,
     retryButtonRef,
     reset,
-    handleInputChange,
+    handleInput,
     handleInputKeyDown,
     handleCompositionStart,
     handleCompositionEnd,

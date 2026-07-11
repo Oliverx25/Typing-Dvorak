@@ -154,7 +154,7 @@ export default function TypingTest({
     hiddenInputRef,
     retryButtonRef,
     reset,
-    handleInputChange,
+    handleInput,
     handleInputKeyDown,
     handleCompositionStart,
     handleCompositionEnd,
@@ -317,7 +317,7 @@ export default function TypingTest({
           tabIndex={-1}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
-          onChange={handleInputChange}
+          onInput={handleInput}
           onKeyDown={handleInputKeyDown}
           className="absolute -z-10 h-px w-px overflow-hidden opacity-0"
         />
