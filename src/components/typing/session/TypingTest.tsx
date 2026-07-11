@@ -154,6 +154,8 @@ export default function TypingTest({
     retryButtonRef,
     reset,
     handleKeyDown,
+    handleCompositionStart,
+    handleCompositionEnd,
     togglePause,
   } = session;
 
@@ -294,6 +296,8 @@ export default function TypingTest({
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
         onClick={() => !finished && !paused && containerRef.current?.focus()}
         role="textbox"
         aria-label={lessonTitle}

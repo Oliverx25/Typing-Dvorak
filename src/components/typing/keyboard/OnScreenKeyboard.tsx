@@ -95,36 +95,98 @@ function fingerStyle(
   };
 }
 
+const GRID_GAP_PX = 4;
+
+function isoBootWidth(bootCols: number, topCols: number): string {
+  const ratio = (bootCols / topCols) * 100;
+  return `calc(${ratio}% + 2px)`;
+}
+
+function isoPatchWidth(bootCols: number, topCols: number): string {
+  return `${(bootCols / topCols) * 100}%`;
+}
+
+function isoEnterFillStyle(
+  isPressed: boolean,
+  isTarget: boolean,
+  finger?: CSSProperties,
+): CSSProperties {
+  if (finger?.background) return { background: finger.background };
+  if (isPressed) return { background: 'var(--color-key-pressed)' };
+  if (isTarget) return { background: 'var(--color-key-target-bg)' };
+  return { background: 'color-mix(in srgb, var(--color-key) 80%, transparent)' };
+}
+
+function isoEnterBorderClass(isPressed: boolean, isTarget: boolean): string {
+  if (isPressed) return 'border-[var(--color-key-pressed)]';
+  if (isTarget) return 'border-2 border-[var(--color-key-target)]';
+  return 'border-[var(--color-border)]';
+}
+
 function IsoEnterKey({
   surfaceClass,
   style,
   finger,
   bootCols = 5,
   topCols = 6,
+  isPressed,
+  isTarget,
 }: {
   surfaceClass: string;
   style: CSSProperties;
   finger?: CSSProperties;
   bootCols?: number;
   topCols?: number;
+  isPressed: boolean;
+  isTarget: boolean;
 }) {
+  const fillStyle = isoEnterFillStyle(isPressed, isTarget, finger);
+  const borderClass = isoEnterBorderClass(isPressed, isTarget);
+  const bootWidth = isoBootWidth(bootCols, topCols);
+  const patchWidth = isoPatchWidth(bootCols, topCols);
+
   return (
-    <div className="relative z-10" style={style}>
+    <div className="relative z-20" style={style}>
       <div
         className={[
-          'flex h-10 items-start justify-center rounded-t-lg rounded-br-none border border-b-0 pb-[1px] font-mono text-sm font-medium sm:h-11 sm:text-base',
+          'relative z-20 flex h-10 items-start justify-center rounded-lg border font-mono text-sm font-medium sm:h-11 sm:text-base',
           surfaceClass,
         ].join(' ')}
         style={finger}
       >
         <span className="mt-2">↵</span>
+
+        {isTarget ? (
+          <span className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-4 border-x-transparent border-b-[var(--color-key-target)]" />
+        ) : null}
       </div>
+
+      <div
+        className="absolute right-[-1px] z-30 border-0"
+        style={{
+          top: 'calc(100% - 2px)',
+          width: patchWidth,
+          height: GRID_GAP_PX,
+          ...fillStyle,
+        }}
+        aria-hidden="true"
+      />
+
       <div
         className={[
-          'absolute top-[calc(100%+0.25rem)] right-0 -mt-[1px] flex h-10 items-center justify-center rounded-b-lg rounded-t-none border border-t-0 sm:h-11',
-          surfaceClass,
+          'absolute top-full right-[-1px] flex items-center justify-center rounded-b-md rounded-t-none border border-t-0',
+          borderClass,
+          isPressed
+            ? 'text-white'
+            : isTarget
+              ? 'text-[var(--color-key-target)]'
+              : 'text-[var(--color-text-muted)]',
         ].join(' ')}
-        style={{ width: `calc(${(bootCols / topCols) * 100}% + ${bootCols - 1}px)` }}
+        style={{
+          width: bootWidth,
+          height: `calc(100% + ${GRID_GAP_PX}px)`,
+          ...fillStyle,
+        }}
         aria-hidden="true"
       />
     </div>
@@ -183,6 +245,8 @@ function DefaultGridKey({
         finger={finger}
         bootCols={keyDef.isoBootCols}
         topCols={keyDef.colSpan}
+        isPressed={isPressed}
+        isTarget={isTarget}
       />
     );
   }

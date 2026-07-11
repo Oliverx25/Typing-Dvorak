@@ -76,6 +76,8 @@ function Keyboard({ pressedKey, expectedChar }: KeyboardProps) {
     if (!expectedChar || !multiStep) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.isComposing) return;
+
       const currentStepKeys = getActiveStepKeys(expectedChar, sequenceStep);
       if (!eventAdvancesCompositeStep(e, currentStepKeys)) return;
 

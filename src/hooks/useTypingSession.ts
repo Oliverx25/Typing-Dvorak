@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
-  IGNORED_TYPING_KEYS,
   resolvePulseKeyCode,
+  shouldIgnoreTypingKeyEvent,
 } from '@/utils/keyboard/keyboardMappings';
 import {
   buildStats,
@@ -192,6 +192,8 @@ export function useTypingSession({
   targetTextRef.current = targetText;
   const inputLengthRef = useRef(input.length);
   inputLengthRef.current = input.length;
+  const isComposingRef = useRef(false);
+  const skipNextKeydownRef = useRef(false);
 
   const correctChars = correctCharsCountRef.current;
   const liveStats = zenMode
@@ -444,6 +446,8 @@ export function useTypingSession({
     errorIndexHistoryRef.current.clear();
     sessionHadErrorRef.current = false;
     rhythmLockBrokenRef.current = false;
+    isComposingRef.current = false;
+    skipNextKeydownRef.current = false;
     if (vampireDamageTimerRef.current !== null) {
       window.clearTimeout(vampireDamageTimerRef.current);
       vampireDamageTimerRef.current = null;
@@ -557,6 +561,214 @@ export function useTypingSession({
     return () => window.removeEventListener('keydown', handleRetryKey);
   }, [finished, reset]);
 
+  const submitTypedCharacter = useCallback(
+    (typedChar: string) => {
+      if (zenMode) {
+        if (!started) {
+          const now = Date.now();
+          startTimeRef.current = now;
+          setStarted(true);
+          setStartTime(now);
+        }
+
+        dispatch({ type: 'ZEN_CHAR', char: typedChar });
+        setTargetText(input + typedChar);
+
+        const entry = createKeystrokeEntry(
+          input.length,
+          typedChar,
+          typedChar,
+          true,
+          lastKeystrokeTsRef.current,
+        );
+        lastKeystrokeTsRef.current = entry.timestamp;
+        keystrokeLogRef.current.push(entry);
+        correctCharsCountRef.current += 1;
+
+        recordKeystroke(typedChar, true);
+
+        if (sound) playCorrectSound();
+        const pulseCode = resolvePulseKeyCode(typedChar);
+        if (pulseCode) pulseActiveKey(pulseCode);
+        return;
+      }
+
+      const expected = targetText[input.length];
+      if (expected === undefined) return;
+
+      if (
+        effectiveStopOnWord &&
+        typedChar === ' ' &&
+        wordHasUncorrectedErrors(input, statuses, errorIndexHistoryRef.current)
+      ) {
+        return;
+      }
+
+      if (!started) {
+        const now = Date.now();
+        startTimeRef.current = now;
+        setStarted(true);
+        setStartTime(now);
+      }
+
+      const isCorrect = typedChar === expected;
+
+      const logEntry = createKeystrokeEntry(
+        input.length,
+        expected,
+        typedChar,
+        isCorrect,
+        lastKeystrokeTsRef.current,
+      );
+      lastKeystrokeTsRef.current = logEntry.timestamp;
+      keystrokeLogRef.current.push(logEntry);
+
+      if (!isCorrect && effectiveStopOnError) {
+        const nextErrors = errorKeystrokesRef.current + 1;
+        dispatch({
+          type: 'STOP_ON_ERROR',
+          errorKeystrokes: nextErrors,
+          comboBroke: combo > 0,
+        });
+        sessionHadErrorRef.current = true;
+        errorIndexHistoryRef.current.add(input.length);
+        sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
+        if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
+        recordHeatmapKeystroke(expected, typedChar, false);
+        if (sound) playIncorrectSound();
+        if (suddenDeathMode) {
+          requestAnimationFrame(() => forceFinishEarly());
+        } else if (vampireMode) {
+          applyVampireHit();
+        }
+        return;
+      }
+
+      const newInput = input + typedChar;
+      const nextErrors = isCorrect ? errorKeystrokesRef.current : errorKeystrokesRef.current + 1;
+      const nextCorrect = isCorrect
+        ? correctCharsCountRef.current + 1
+        : correctCharsCountRef.current;
+      const nextCombo = isCorrect ? combo + 1 : 0;
+      const nextAccuracy = calculateAccuracy(nextCorrect, nextErrors);
+
+      if (isCorrect) {
+        correctCharsCountRef.current += 1;
+        dispatch({
+          type: 'KEY_HIT',
+          char: typedChar,
+          status: 'correct',
+          combo: nextCombo,
+          maxCombo: Math.max(maxCombo, nextCombo),
+          errorKeystrokes: errorKeystrokesRef.current,
+          comboBroke: false,
+        });
+        if (raceMode) {
+          setRaceScore(
+            (prev) => prev + Math.round(scoreIncrementForHit(nextCombo, nextAccuracy) * scoreMultiplier),
+          );
+        }
+        if (vampireMode) {
+          applyVampireCorrect(nextCombo);
+        }
+        if (sessionHadErrorRef.current) {
+          errorRecoveryMaxRef.current = Math.max(errorRecoveryMaxRef.current, nextCombo);
+        }
+      } else {
+        dispatch({
+          type: 'KEY_HIT',
+          char: typedChar,
+          status: 'incorrect',
+          combo: 0,
+          maxCombo,
+          errorKeystrokes: nextErrors,
+          comboBroke: combo > 0,
+        });
+        sessionHadErrorRef.current = true;
+        errorIndexHistoryRef.current.add(input.length);
+        sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
+        if (suddenDeathMode) {
+          requestAnimationFrame(() => forceFinishEarly());
+        } else if (vampireMode) {
+          applyVampireHit();
+        }
+        if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
+      }
+
+      recordHeatmapKeystroke(expected, typedChar, isCorrect);
+
+      if (sound) {
+        if (isCorrect) playCorrectSound();
+        else playIncorrectSound();
+      }
+
+      const pulseCode = resolvePulseKeyCode(typedChar);
+      if (pulseCode) pulseActiveKey(pulseCode);
+
+      if (isTestMode && newInput.length >= targetText.length - 20) {
+        if (fetchMoreTextRef.current) {
+          maybeFetchMoreText(newInput.length);
+        } else {
+          const extension = ` ${generateDrillText(lesson.charSet ?? 'all', 40)}`;
+          setTargetText((prev) => prev + extension);
+          dispatch({ type: 'EXTEND_TEXT', extension });
+        }
+      }
+
+      if (!isTestMode && newInput.length === targetText.length) {
+        const finalElapsed = startTimeRef.current
+          ? Date.now() - startTimeRef.current - totalPausedMsRef.current
+          : elapsedMs;
+        const finalCorrect = correctCharsCountRef.current;
+        const finalErrors = errorKeystrokesRef.current;
+        finishSession(buildStats(finalCorrect, finalErrors, finalElapsed || 1, isTestMode));
+      }
+    },
+    [
+      zenMode,
+      started,
+      input,
+      targetText,
+      statuses,
+      effectiveStopOnWord,
+      sound,
+      effectiveStopOnError,
+      combo,
+      maxCombo,
+      musicPacerEnabled,
+      suddenDeathMode,
+      vampireMode,
+      applyVampireHit,
+      raceMode,
+      scoreMultiplier,
+      applyVampireCorrect,
+      forceFinishEarly,
+      isTestMode,
+      maybeFetchMoreText,
+      lesson,
+      elapsedMs,
+      finishSession,
+      pulseActiveKey,
+    ],
+  );
+
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+
+  const handleCompositionEnd = useCallback(
+    (e: React.CompositionEvent<HTMLElement>) => {
+      isComposingRef.current = false;
+      if (finished || paused || !e.data) return;
+
+      skipNextKeydownRef.current = true;
+      for (const char of e.data) {
+        submitTypedCharacter(char);
+      }
+    },
+    [finished, paused, submitTypedCharacter],
+  );
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (finished) {
       if (e.key === 'Enter') {
@@ -595,7 +807,13 @@ export function useTypingSession({
       return;
     }
 
-    if (IGNORED_TYPING_KEYS.has(e.key)) return;
+    if (isComposingRef.current || e.nativeEvent.isComposing) return;
+    if (shouldIgnoreTypingKeyEvent(e.nativeEvent)) return;
+
+    if (skipNextKeydownRef.current) {
+      skipNextKeydownRef.current = false;
+      if (e.key.length === 1) return;
+    }
 
     if (e.key === 'Backspace') {
       e.preventDefault();
@@ -616,34 +834,7 @@ export function useTypingSession({
     if (zenMode) {
       if (e.key.length !== 1) return;
       e.preventDefault();
-
-      if (!started) {
-        const now = Date.now();
-        startTimeRef.current = now;
-        setStarted(true);
-        setStartTime(now);
-      }
-
-      const typedChar = e.key;
-      dispatch({ type: 'ZEN_CHAR', char: typedChar });
-      setTargetText(input + typedChar);
-
-      const entry = createKeystrokeEntry(
-        input.length,
-        typedChar,
-        typedChar,
-        true,
-        lastKeystrokeTsRef.current,
-      );
-      lastKeystrokeTsRef.current = entry.timestamp;
-      keystrokeLogRef.current.push(entry);
-      correctCharsCountRef.current += 1;
-
-      recordKeystroke(typedChar, true);
-
-      if (sound) playCorrectSound();
-      const pulseCode = resolvePulseKeyCode(typedChar);
-      if (pulseCode) pulseActiveKey(pulseCode);
+      submitTypedCharacter(e.key);
       return;
     }
 
@@ -662,132 +853,8 @@ export function useTypingSession({
       typedChar = e.key;
     }
 
-    if (effectiveStopOnWord && typedChar === ' ' && wordHasUncorrectedErrors(input, statuses, errorIndexHistoryRef.current)) {
-      e.preventDefault();
-      return;
-    }
-
     e.preventDefault();
-
-    if (!started) {
-      const now = Date.now();
-      startTimeRef.current = now;
-      setStarted(true);
-      setStartTime(now);
-    }
-
-    const isCorrect = typedChar === expected;
-
-    const logEntry = createKeystrokeEntry(
-      input.length,
-      expected,
-      typedChar,
-      isCorrect,
-      lastKeystrokeTsRef.current,
-    );
-    lastKeystrokeTsRef.current = logEntry.timestamp;
-    keystrokeLogRef.current.push(logEntry);
-
-    if (!isCorrect && effectiveStopOnError) {
-      const nextErrors = errorKeystrokesRef.current + 1;
-      dispatch({
-        type: 'STOP_ON_ERROR',
-        errorKeystrokes: nextErrors,
-        comboBroke: combo > 0,
-      });
-      sessionHadErrorRef.current = true;
-      errorIndexHistoryRef.current.add(input.length);
-      sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
-      if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
-      recordHeatmapKeystroke(expected, typedChar, false);
-      if (sound) playIncorrectSound();
-      if (suddenDeathMode) {
-        requestAnimationFrame(() => forceFinishEarly());
-      } else if (vampireMode) {
-        applyVampireHit();
-      }
-      return;
-    }
-
-    const newInput = input + typedChar;
-    const nextErrors = isCorrect ? errorKeystrokesRef.current : errorKeystrokesRef.current + 1;
-    const nextCorrect = isCorrect
-      ? correctCharsCountRef.current + 1
-      : correctCharsCountRef.current;
-    const nextCombo = isCorrect ? combo + 1 : 0;
-    const nextAccuracy = calculateAccuracy(nextCorrect, nextErrors);
-
-    if (isCorrect) {
-      correctCharsCountRef.current += 1;
-      dispatch({
-        type: 'KEY_HIT',
-        char: typedChar,
-        status: 'correct',
-        combo: nextCombo,
-        maxCombo: Math.max(maxCombo, nextCombo),
-        errorKeystrokes: errorKeystrokesRef.current,
-        comboBroke: false,
-      });
-      if (raceMode) {
-        setRaceScore(
-          (prev) => prev + Math.round(scoreIncrementForHit(nextCombo, nextAccuracy) * scoreMultiplier),
-        );
-      }
-      if (vampireMode) {
-        applyVampireCorrect(nextCombo);
-      }
-      if (sessionHadErrorRef.current) {
-        errorRecoveryMaxRef.current = Math.max(errorRecoveryMaxRef.current, nextCombo);
-      }
-    } else {
-      dispatch({
-        type: 'KEY_HIT',
-        char: typedChar,
-        status: 'incorrect',
-        combo: 0,
-        maxCombo,
-        errorKeystrokes: nextErrors,
-        comboBroke: combo > 0,
-      });
-      sessionHadErrorRef.current = true;
-      errorIndexHistoryRef.current.add(input.length);
-      sessionMissesRef.current[typedChar] = (sessionMissesRef.current[typedChar] ?? 0) + 1;
-      if (suddenDeathMode) {
-        requestAnimationFrame(() => forceFinishEarly());
-      } else if (vampireMode) {
-        applyVampireHit();
-      }
-      if (combo > 0 && musicPacerEnabled) rhythmLockBrokenRef.current = true;
-    }
-
-    recordHeatmapKeystroke(expected, typedChar, isCorrect);
-
-    if (sound) {
-      if (isCorrect) playCorrectSound();
-      else playIncorrectSound();
-    }
-
-    const pulseCode = resolvePulseKeyCode(typedChar);
-    if (pulseCode) pulseActiveKey(pulseCode);
-
-    if (isTestMode && newInput.length >= targetText.length - 20) {
-      if (fetchMoreTextRef.current) {
-        maybeFetchMoreText(newInput.length);
-      } else {
-        const extension = ` ${generateDrillText(lesson.charSet ?? 'all', 40)}`;
-        setTargetText((prev) => prev + extension);
-        dispatch({ type: 'EXTEND_TEXT', extension });
-      }
-    }
-
-    if (!isTestMode && newInput.length === targetText.length) {
-      const finalElapsed = startTimeRef.current
-        ? Date.now() - startTimeRef.current - totalPausedMsRef.current
-        : elapsedMs;
-      const finalCorrect = correctCharsCountRef.current;
-      const finalErrors = errorKeystrokesRef.current;
-      finishSession(buildStats(finalCorrect, finalErrors, finalElapsed || 1, isTestMode));
-    }
+    submitTypedCharacter(typedChar);
   }, [
     finished,
     zenMode,
@@ -798,23 +865,9 @@ export function useTypingSession({
     togglePause,
     paused,
     statuses,
-    effectiveStopOnWord,
     targetText,
-    started,
-    sound,
-    effectiveStopOnError,
-    suddenDeathMode,
-    vampireMode,
-    applyVampireHit,
-    combo,
-    raceMode,
-    scoreMultiplier,
-    applyVampireCorrect,
-    musicPacerEnabled,
-    forceFinishEarly,
-    lesson,
-    maybeFetchMoreText,
-    pulseActiveKey,
+    reset,
+    submitTypedCharacter,
   ]);
 
   const clearComboBroke = useCallback(() => dispatch({ type: 'CLEAR_COMBO_BROKE' }), []);
@@ -852,6 +905,8 @@ export function useTypingSession({
     retryButtonRef,
     reset,
     handleKeyDown,
+    handleCompositionStart,
+    handleCompositionEnd,
     togglePause,
   };
 }
