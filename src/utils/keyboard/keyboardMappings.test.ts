@@ -8,7 +8,6 @@ import {
   getOppositeShiftKey,
   getSequenceStepsForChar,
   resolvePulseKeyCode,
-  shouldIgnoreTypingKeyEvent,
   SHIFT_RIGHT,
 } from '@/utils/keyboard/keyboardMappings';
 
@@ -76,15 +75,6 @@ describe('keyboardMappings', () => {
     const optionEChar = { key: '´', code: 'KeyE', altKey: true } as KeyboardEvent;
     expect(eventAdvancesCompositeStep(optionE, [ALT_LEFT, 'KeyE'])).toBe(true);
     expect(eventAdvancesCompositeStep(optionEChar, [ALT_LEFT, 'KeyE'])).toBe(true);
-  });
-
-  it('ignores IME composition and dead-key prefix events for typing validation', () => {
-    expect(shouldIgnoreTypingKeyEvent({ key: 'a', isComposing: true })).toBe(true);
-    expect(shouldIgnoreTypingKeyEvent({ key: 'Dead', isComposing: false })).toBe(true);
-    expect(shouldIgnoreTypingKeyEvent({ key: '´', isComposing: false })).toBe(true);
-    expect(shouldIgnoreTypingKeyEvent({ key: 'Shift', isComposing: false })).toBe(true);
-    expect(shouldIgnoreTypingKeyEvent({ key: 'á', isComposing: false })).toBe(false);
-    expect(shouldIgnoreTypingKeyEvent({ key: 'ñ', isComposing: false })).toBe(false);
   });
 
   it('does not advance ñ step 2 when Option is still held', () => {

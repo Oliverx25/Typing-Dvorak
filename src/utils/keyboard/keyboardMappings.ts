@@ -22,23 +22,6 @@ export const IGNORED_TYPING_KEYS = new Set([
   'Process',
 ]);
 
-/** Visible dead-key prefixes before the final composed character (Option+e → ´, etc.). */
-export const DEAD_KEY_PREFIX_CHARS = new Set(['´', '^', '¨', '~']);
-
-const PURE_MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'AltGraph']);
-
-/** Whether a keydown should be ignored while composing or during dead-key prefix input. */
-export function shouldIgnoreTypingKeyEvent(
-  e: Pick<KeyboardEvent, 'key' | 'isComposing'>,
-): boolean {
-  if (e.isComposing) return true;
-  if (IGNORED_TYPING_KEYS.has(e.key)) return true;
-  if (PURE_MODIFIER_KEYS.has(e.key)) return true;
-  if (DEAD_KEY_PREFIX_CHARS.has(e.key)) return true;
-  if (e.key.length === 1 && /\p{M}/u.test(e.key)) return true;
-  return false;
-}
-
 const ACCENT_VOWELS: Record<string, string> = {
   á: 'KeyA',
   é: 'KeyE',

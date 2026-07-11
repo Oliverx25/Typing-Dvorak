@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
   resolvePulseKeyCode,
-  shouldIgnoreTypingKeyEvent,
 } from '@/utils/keyboard/keyboardMappings';
 import {
   buildStats,
@@ -172,6 +171,7 @@ export function useTypingSession({
   const vampireDamageTimerRef = useRef<number | null>(null);
   const consecutiveMissesRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const sessionMissesRef = useRef<Record<string, number>>({});
   const sessionSavedRef = useRef(false);
@@ -192,8 +192,10 @@ export function useTypingSession({
   targetTextRef.current = targetText;
   const inputLengthRef = useRef(input.length);
   inputLengthRef.current = input.length;
-  const isComposingRef = useRef(false);
-  const skipNextKeydownRef = useRef(false);
+
+  const focusHiddenInput = useCallback(() => {
+    requestAnimationFrame(() => hiddenInputRef.current?.focus());
+  }, []);
 
   const correctChars = correctCharsCountRef.current;
   const liveStats = zenMode
@@ -409,6 +411,7 @@ export function useTypingSession({
         totalPausedMsRef.current += Date.now() - pausedAtRef.current;
         pausedAtRef.current = null;
       }
+      requestAnimationFrame(() => hiddenInputRef.current?.focus());
       return false;
     });
   }, [isTestMode, started, finished]);
@@ -446,8 +449,6 @@ export function useTypingSession({
     errorIndexHistoryRef.current.clear();
     sessionHadErrorRef.current = false;
     rhythmLockBrokenRef.current = false;
-    isComposingRef.current = false;
-    skipNextKeydownRef.current = false;
     if (vampireDamageTimerRef.current !== null) {
       window.clearTimeout(vampireDamageTimerRef.current);
       vampireDamageTimerRef.current = null;
@@ -456,7 +457,7 @@ export function useTypingSession({
       window.clearTimeout(activeKeyTimerRef.current);
       activeKeyTimerRef.current = null;
     }
-    requestAnimationFrame(() => containerRef.current?.focus());
+    requestAnimationFrame(() => hiddenInputRef.current?.focus());
   }, [isTestMode, lesson, locale, customText, zenMode]);
 
   useEffect(() => {
@@ -502,7 +503,7 @@ export function useTypingSession({
   );
 
   useEffect(() => {
-    containerRef.current?.focus();
+    hiddenInputRef.current?.focus();
   }, []);
 
   const prevMode = useRef(mode);
@@ -752,123 +753,120 @@ export function useTypingSession({
     ],
   );
 
-  const handleCompositionStart = useCallback(() => {
-    isComposingRef.current = true;
-  }, []);
+  const handleBackspace = useCallback(() => {
+    if (input.length === 0) return;
+    const removedIndex = input.length - 1;
+    if (statuses[removedIndex] === 'correct') {
+      correctCharsCountRef.current = Math.max(0, correctCharsCountRef.current - 1);
+    }
+    const newInput = input.slice(0, -1);
+    dispatch({ type: 'BACKSPACE', index: input.length - 1 });
+    if (zenMode) {
+      setTargetText(newInput);
+    }
+  }, [input, statuses, zenMode]);
 
-  const handleCompositionEnd = useCallback(
-    (e: React.CompositionEvent<HTMLElement>) => {
-      isComposingRef.current = false;
-      if (finished || paused || !e.data) return;
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (finished || paused) {
+        e.target.value = '';
+        return;
+      }
 
-      skipNextKeydownRef.current = true;
-      for (const char of e.data) {
+      const value = e.target.value;
+      if (!value) return;
+
+      for (const char of value) {
         submitTypedCharacter(char);
       }
+
+      e.target.value = '';
     },
     [finished, paused, submitTypedCharacter],
   );
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (finished) {
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (finished) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          reset();
+        }
+        return;
+      }
+
+      if (zenMode && e.key === 'Escape') {
+        e.preventDefault();
+        if (!started || input.length === 0) return;
+        const elapsed = startTime
+          ? Date.now() - startTime - totalPausedMsRef.current
+          : elapsedMs;
+        finishSession({
+          wpm: zenWpmFromChars(input.length, Math.max(elapsed, 1)),
+          accuracy: 100,
+          correctChars: input.length,
+          incorrectChars: 0,
+          elapsedSeconds: Math.round(Math.max(elapsed, 1) / 1000),
+        });
+        return;
+      }
+
+      if (isTestMode && e.key === 'Escape') {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
+
+      if (paused) return;
+
+      if (e.key.startsWith('Arrow')) {
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        e.currentTarget.value = '';
+        handleBackspace();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const expected = targetText[input.length];
+        if (expected === '\t') {
+          submitTypedCharacter('\t');
+          e.currentTarget.value = '';
+        }
+        return;
+      }
+
       if (e.key === 'Enter') {
         e.preventDefault();
-        reset();
+        const expected = targetText[input.length];
+        if (expected === '\n') {
+          submitTypedCharacter('\n');
+          e.currentTarget.value = '';
+        }
       }
-      return;
-    }
-
-    if (zenMode && e.key === 'Escape') {
-      e.preventDefault();
-      if (!started || input.length === 0) return;
-      const elapsed = startTime
-        ? Date.now() - startTime - totalPausedMsRef.current
-        : elapsedMs;
-      finishSession({
-        wpm: zenWpmFromChars(input.length, Math.max(elapsed, 1)),
-        accuracy: 100,
-        correctChars: input.length,
-        incorrectChars: 0,
-        elapsedSeconds: Math.round(Math.max(elapsed, 1) / 1000),
-      });
-      return;
-    }
-
-    if (isTestMode && e.key === 'Escape') {
-      e.preventDefault();
-      togglePause();
-      return;
-    }
-
-    if (paused) return;
-
-    if (e.key.startsWith('Arrow')) {
-      e.preventDefault();
-      return;
-    }
-
-    if (isComposingRef.current || e.nativeEvent.isComposing) return;
-    if (shouldIgnoreTypingKeyEvent(e.nativeEvent)) return;
-
-    if (skipNextKeydownRef.current) {
-      skipNextKeydownRef.current = false;
-      if (e.key.length === 1) return;
-    }
-
-    if (e.key === 'Backspace') {
-      e.preventDefault();
-      if (input.length === 0) return;
-      const removedIndex = input.length - 1;
-      if (statuses[removedIndex] === 'correct') {
-        correctCharsCountRef.current = Math.max(0, correctCharsCountRef.current - 1);
-      }
-      const newInput = input.slice(0, -1);
-      dispatch({ type: 'BACKSPACE', index: input.length - 1 });
-      if (zenMode) {
-        setTargetText(newInput);
-      }
-      return;
-    }
-
-    // --- Zen mode: free-flow buffer, no target validation ---
-    if (zenMode) {
-      if (e.key.length !== 1) return;
-      e.preventDefault();
-      submitTypedCharacter(e.key);
-      return;
-    }
-
-    const expected = targetText[input.length];
-    if (expected === undefined) return;
-
-    let typedChar: string | null = null;
-    if (e.key === 'Enter' && expected === '\n') typedChar = '\n';
-    else if (e.key === 'Tab' && expected === '\t') typedChar = '\t';
-    else if (e.key === 'Enter' || e.key === 'Tab') {
-      e.preventDefault();
-      return;
-    } else if (e.key.length !== 1) {
-      return;
-    } else {
-      typedChar = e.key;
-    }
-
-    e.preventDefault();
-    submitTypedCharacter(typedChar);
-  }, [
-    finished,
-    zenMode,
-    input,
-    elapsedMs,
-    finishSession,
-    isTestMode,
-    togglePause,
-    paused,
-    statuses,
-    targetText,
-    reset,
-    submitTypedCharacter,
-  ]);
+    },
+    [
+      finished,
+      zenMode,
+      input,
+      elapsedMs,
+      finishSession,
+      isTestMode,
+      togglePause,
+      paused,
+      started,
+      targetText,
+      reset,
+      submitTypedCharacter,
+      handleBackspace,
+      startTime,
+    ],
+  );
 
   const clearComboBroke = useCallback(() => dispatch({ type: 'CLEAR_COMBO_BROKE' }), []);
 
@@ -902,11 +900,12 @@ export function useTypingSession({
     zenMode,
     clearComboBroke,
     containerRef,
+    hiddenInputRef,
     retryButtonRef,
     reset,
-    handleKeyDown,
-    handleCompositionStart,
-    handleCompositionEnd,
+    handleInputChange,
+    handleInputKeyDown,
+    focusHiddenInput,
     togglePause,
   };
 }

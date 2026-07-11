@@ -151,11 +151,12 @@ export default function TypingTest({
     errorIndexHistory,
     clearComboBroke,
     containerRef,
+    hiddenInputRef,
     retryButtonRef,
     reset,
-    handleKeyDown,
-    handleCompositionStart,
-    handleCompositionEnd,
+    handleInputChange,
+    handleInputKeyDown,
+    focusHiddenInput,
     togglePause,
   } = session;
 
@@ -294,19 +295,28 @@ export default function TypingTest({
 
       <div
         ref={containerRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
-        onClick={() => !finished && !paused && containerRef.current?.focus()}
-        role="textbox"
+        role="group"
         aria-label={lessonTitle}
-        aria-readonly="true"
+        onClick={() => !finished && !paused && focusHiddenInput()}
         className={[
           'relative cursor-text overflow-hidden rounded-2xl border-2 bg-[var(--color-surface-elevated)] p-6 outline-none transition-all duration-300 sm:p-8',
-          finished ? 'border-[var(--color-correct)]/30' : paused ? 'border-[var(--color-key-target)]/40' : 'border-[var(--color-border)] focus:border-[var(--color-highlight)]/50 focus:ring-4 focus:ring-[var(--color-highlight)]/10',
+          finished ? 'border-[var(--color-correct)]/30' : paused ? 'border-[var(--color-key-target)]/40' : 'border-[var(--color-border)] focus-within:border-[var(--color-highlight)]/50 focus-within:ring-4 focus-within:ring-[var(--color-highlight)]/10',
         ].join(' ')}
       >
+        <input
+          ref={hiddenInputRef}
+          type="text"
+          autoFocus
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          aria-hidden="true"
+          tabIndex={-1}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
+          className="absolute -z-10 h-px w-px overflow-hidden opacity-0"
+        />
         <div
           className="pointer-events-none absolute inset-0 opacity-50"
           style={{
