@@ -156,6 +156,8 @@ export default function TypingTest({
     reset,
     handleInputChange,
     handleInputKeyDown,
+    handleCompositionStart,
+    handleCompositionEnd,
     focusHiddenInput,
     togglePause,
   } = session;
@@ -313,6 +315,8 @@ export default function TypingTest({
           spellCheck={false}
           aria-hidden="true"
           tabIndex={-1}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           onChange={handleInputChange}
           onKeyDown={handleInputKeyDown}
           className="absolute -z-10 h-px w-px overflow-hidden opacity-0"

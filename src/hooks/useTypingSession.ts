@@ -47,8 +47,12 @@ import {
 import { wordHasUncorrectedErrors } from '@/utils/typing/wordErrors';
 import { countRemainingWords } from '@/utils/typing/textBuffer';
 
-/** Words left before fetching another practice chunk in timed mode. */
-const TEXT_BUFFER_WORD_THRESHOLD = 15;
+/** Dead-key prefix characters the OS may inject before the final composed letter. */
+const DEAD_KEY_PREFIX_PATTERN = /^[´^¨~]$/;
+
+function isDeadKeyPrefix(value: string): boolean {
+  return value.length === 1 && DEAD_KEY_PREFIX_PATTERN.test(value);
+}
 
 /** Live WPM / elapsed refresh — 10 fps keeps stats smooth without excess renders. */
 const STATS_TICK_MS = 100;
@@ -192,6 +196,8 @@ export function useTypingSession({
   targetTextRef.current = targetText;
   const inputLengthRef = useRef(input.length);
   inputLengthRef.current = input.length;
+  const isComposingRef = useRef(false);
+  const skipNextChangeRef = useRef(false);
 
   const focusHiddenInput = useCallback(() => {
     requestAnimationFrame(() => hiddenInputRef.current?.focus());
@@ -449,6 +455,8 @@ export function useTypingSession({
     errorIndexHistoryRef.current.clear();
     sessionHadErrorRef.current = false;
     rhythmLockBrokenRef.current = false;
+    isComposingRef.current = false;
+    skipNextChangeRef.current = false;
     if (vampireDamageTimerRef.current !== null) {
       window.clearTimeout(vampireDamageTimerRef.current);
       vampireDamageTimerRef.current = null;
@@ -766,20 +774,64 @@ export function useTypingSession({
     }
   }, [input, statuses, zenMode]);
 
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+
+  const handleCompositionEnd = useCallback(
+    (e: React.CompositionEvent<HTMLInputElement>) => {
+      isComposingRef.current = false;
+
+      if (finished || paused) {
+        e.currentTarget.value = '';
+        return;
+      }
+
+      const composedString = e.data;
+      if (!composedString) return;
+
+      skipNextChangeRef.current = true;
+      submitTypedCharacter(composedString.slice(-1));
+      e.currentTarget.value = '';
+    },
+    [finished, paused, submitTypedCharacter],
+  );
+
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+
+      if (isComposingRef.current) {
+        const char = value.slice(-1);
+        if (char && !isDeadKeyPrefix(char)) {
+          isComposingRef.current = false;
+          if (!finished && !paused) {
+            submitTypedCharacter(char);
+          }
+          e.target.value = '';
+        }
+        return;
+      }
+
+      if (skipNextChangeRef.current) {
+        skipNextChangeRef.current = false;
+        e.target.value = '';
+        return;
+      }
+
       if (finished || paused) {
         e.target.value = '';
         return;
       }
 
-      const value = e.target.value;
       if (!value) return;
 
-      for (const char of value) {
-        submitTypedCharacter(char);
+      if (isDeadKeyPrefix(value)) {
+        isComposingRef.current = true;
+        return;
       }
 
+      submitTypedCharacter(value.slice(-1));
       e.target.value = '';
     },
     [finished, paused, submitTypedCharacter],
@@ -826,6 +878,7 @@ export function useTypingSession({
 
       if (e.key === 'Backspace') {
         e.preventDefault();
+        isComposingRef.current = false;
         e.currentTarget.value = '';
         handleBackspace();
         return;
@@ -905,6 +958,8 @@ export function useTypingSession({
     reset,
     handleInputChange,
     handleInputKeyDown,
+    handleCompositionStart,
+    handleCompositionEnd,
     focusHiddenInput,
     togglePause,
   };
