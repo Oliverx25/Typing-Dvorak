@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  containsDeadKeyPrefix,
+  getWordBackspaceCount,
   isDeadKeyActivationKey,
   isDeadKeyPrefix,
   isDuplicateCompositionEcho,
@@ -42,5 +44,19 @@ describe('hiddenInputComposition', () => {
     expect(isDeadKeyActivationKey({ key: 'Alt', altKey: true } as KeyboardEvent)).toBe(true);
     expect(isDeadKeyActivationKey({ key: '´', altKey: false } as KeyboardEvent)).toBe(true);
     expect(isDeadKeyActivationKey({ key: 'a', altKey: false } as KeyboardEvent)).toBe(false);
+    expect(isDeadKeyActivationKey({ key: 'Backspace', altKey: true } as KeyboardEvent)).toBe(false);
+  });
+
+  it('detects pending accent prefixes inside a longer buffer', () => {
+    expect(containsDeadKeyPrefix('e´')).toBe(true);
+    expect(containsDeadKeyPrefix('acorde')).toBe(false);
+  });
+
+  it('computes macOS-style word backspace delete counts', () => {
+    expect(getWordBackspaceCount('')).toBe(0);
+    expect(getWordBackspaceCount('hello world')).toBe(5);
+    expect(getWordBackspaceCount('hello ')).toBe(6);
+    expect(getWordBackspaceCount('hello  ')).toBe(7);
+    expect(getWordBackspaceCount('a')).toBe(1);
   });
 });

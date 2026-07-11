@@ -47,6 +47,8 @@ import {
 import { wordHasUncorrectedErrors } from '@/utils/typing/wordErrors';
 import { countRemainingWords } from '@/utils/typing/textBuffer';
 import {
+  containsDeadKeyPrefix,
+  getWordBackspaceCount,
   isDeadKeyActivationKey,
   isDeadKeyPrefix,
   isDuplicateCompositionEcho,
@@ -775,18 +777,42 @@ export function useTypingSession({
     ],
   );
 
-  const handleBackspace = useCallback(() => {
-    if (input.length === 0) return;
-    const removedIndex = input.length - 1;
-    if (statuses[removedIndex] === 'correct') {
-      correctCharsCountRef.current = Math.max(0, correctCharsCountRef.current - 1);
-    }
-    const newInput = input.slice(0, -1);
-    dispatch({ type: 'BACKSPACE', index: input.length - 1 });
-    if (zenMode) {
-      setTargetText(newInput);
-    }
-  }, [input, statuses, zenMode]);
+  const handleBackspace = useCallback(
+    (count = 1) => {
+      if (input.length === 0 || count <= 0) return;
+      const deleteCount = Math.min(count, input.length);
+      const startIndex = input.length - deleteCount;
+      for (let i = startIndex; i < input.length; i++) {
+        if (statuses[i] === 'correct') {
+          correctCharsCountRef.current = Math.max(0, correctCharsCountRef.current - 1);
+        }
+      }
+      const newInput = input.slice(0, -deleteCount);
+      dispatch({ type: 'BACKSPACE', count: deleteCount });
+      if (zenMode) {
+        setTargetText(newInput);
+      }
+    },
+    [input, statuses, zenMode],
+  );
+
+  const resetHiddenInputImeState = useCallback((inputEl: HTMLInputElement) => {
+    isComposingRef.current = false;
+    deadKeyActiveRef.current = false;
+    deadKeyActivationRef.current = false;
+    ignoreNextInputRef.current = false;
+    lastCompositionCommitRef.current = null;
+    inputEl.value = '';
+  }, []);
+
+  const hasPendingAccentInHiddenInput = useCallback((inputEl: HTMLInputElement) => {
+    return (
+      deadKeyActiveRef.current ||
+      deadKeyActivationRef.current ||
+      isComposingRef.current ||
+      containsDeadKeyPrefix(inputEl.value)
+    );
+  }, []);
 
   const clearHiddenInputBuffer = useCallback((el?: HTMLInputElement | null) => {
     if (isComposingRef.current || deadKeyActiveRef.current) return;
@@ -928,12 +954,22 @@ export function useTypingSession({
     [finished, paused, commitInputText, clearHiddenInputBuffer, finalizeDeadKeyCommit],
   );
 
+  const handleBeforeInput = useCallback(
+    (e: React.FormEvent<HTMLInputElement>) => {
+      const inputType = (e.nativeEvent as InputEvent).inputType;
+      if (
+        inputType === 'deleteContentBackward' ||
+        inputType === 'deleteWordBackward' ||
+        inputType === 'deleteContentForward'
+      ) {
+        e.preventDefault();
+      }
+    },
+    [],
+  );
+
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (isDeadKeyActivationKey(e.nativeEvent)) {
-        deadKeyActivationRef.current = true;
-      }
-
       if (finished) {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -973,14 +1009,27 @@ export function useTypingSession({
 
       if (e.key === 'Backspace') {
         e.preventDefault();
-        isComposingRef.current = false;
-        deadKeyActiveRef.current = false;
-        deadKeyActivationRef.current = false;
-        ignoreNextInputRef.current = false;
-        lastCompositionCommitRef.current = null;
-        clearHiddenInputBuffer(e.currentTarget);
+        const inputEl = e.currentTarget;
+        const pendingAccent = hasPendingAccentInHiddenInput(inputEl);
+
+        resetHiddenInputImeState(inputEl);
+
+        if (pendingAccent) {
+          handleBackspace();
+          return;
+        }
+
+        if (e.altKey) {
+          handleBackspace(getWordBackspaceCount(input));
+          return;
+        }
+
         handleBackspace();
         return;
+      }
+
+      if (isDeadKeyActivationKey(e.nativeEvent)) {
+        deadKeyActivationRef.current = true;
       }
 
       if (e.key === 'Tab') {
@@ -1018,6 +1067,8 @@ export function useTypingSession({
       handleBackspace,
       startTime,
       clearHiddenInputBuffer,
+      resetHiddenInputImeState,
+      hasPendingAccentInHiddenInput,
     ],
   );
 
@@ -1057,6 +1108,7 @@ export function useTypingSession({
     retryButtonRef,
     reset,
     handleInput,
+    handleBeforeInput,
     handleInputKeyDown,
     handleCompositionStart,
     handleCompositionEnd,

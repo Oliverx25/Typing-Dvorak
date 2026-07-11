@@ -13,7 +13,7 @@ export interface TypingCoreState {
 
 export type TypingCoreAction =
   | { type: 'RESET'; text: string }
-  | { type: 'BACKSPACE'; index: number }
+  | { type: 'BACKSPACE'; count?: number }
   | { type: 'ZEN_CHAR'; char: string }
   | {
       type: 'KEY_HIT';
@@ -49,9 +49,12 @@ export function typingCoreReducer(state: TypingCoreState, action: TypingCoreActi
       return createInitialTypingCore(action.text);
     case 'BACKSPACE': {
       if (state.input.length === 0) return state;
+      const count = Math.min(action.count ?? 1, state.input.length);
       const next = [...state.statuses];
-      next[state.input.length - 1] = 'pending';
-      return { ...state, input: state.input.slice(0, -1), statuses: next };
+      for (let i = state.input.length - count; i < state.input.length; i++) {
+        next[i] = 'pending';
+      }
+      return { ...state, input: state.input.slice(0, -count), statuses: next };
     }
     case 'ZEN_CHAR':
       return {

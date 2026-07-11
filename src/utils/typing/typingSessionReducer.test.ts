@@ -31,4 +31,15 @@ describe('typingCoreReducer', () => {
     expect(next.statuses[0]).toBe('correct');
     expect(next.combo).toBe(1);
   });
+
+  it('removes multiple characters on word backspace', () => {
+    const state = {
+      ...createInitialTypingCore('hello world'),
+      input: 'hello world',
+      statuses: createInitialTypingCore('hello world').statuses.map(() => 'correct' as const),
+    };
+    const next = typingCoreReducer(state, { type: 'BACKSPACE', count: 5 });
+    expect(next.input).toBe('hello ');
+    expect(next.statuses.slice(6)).toEqual(['pending', 'pending', 'pending', 'pending', 'pending']);
+  });
 });
